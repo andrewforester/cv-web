@@ -1,0 +1,41 @@
+/*
+ * Design tokens: the only place for colours, type, spacing and radii.
+ * Neutral placeholders until the Theme Issue brings the Figma style.
+ */
+:root {
+  /* Colours */
+  --color-bg: #ffffff;
+  --color-surface: #f5f5f5;
+  --color-text: #1a1a1a;
+  --color-text-muted: #5c5c5c;
+  --color-accent: #1f5fbf;
+  --color-on-accent: #ffffff;
+  --color-border: #d4d4d4;
+
+  /* Typography */
+  --font-family-base: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 2rem;
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+  --line-height-base: 1.5;
+  --line-height-tight: 1.2;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* Shape */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --border-width: 1px;
+
+  /* Layout */
+  --content-max-width: 48rem;
+}
