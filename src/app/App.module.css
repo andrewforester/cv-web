@@ -1,5 +1,5 @@
 .shell {
-  max-width: var(--content-max-width);
+  max-width: calc(var(--content-max-width) + 2 * var(--page-gutter));
   margin: 0 auto;
   padding: var(--space-4) var(--page-gutter);
 }
