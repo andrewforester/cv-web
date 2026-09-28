@@ -82,7 +82,7 @@ Spacing / radii: `--radius-card: 12px` (Figma 8), `--radius-logo: 9px` (Figma 6,
 6. **Education** — section title; two lines (`--font-education`): `Applied Mathematics, Cybernetics` / `Kyiv National University 2007 - 2012`.
 7. **About me** — section title, then:
    - Subsection **Favourite books**: a row of 4 covers (gap ≈ 37 px, wrap under 600 px to 2 per row), each cover 100 × 150 px, `--shadow-book`, no radius; under it title (`--font-book-title`) and author (`--font-book-author`), 3 px apart:
-     Antifragile / Nassim Nicolas Taleb (`book_antifragile.jpg`) · Siddhartha / Herman Hesse (`book_siddhartha.jpg`) · The Goal / Eliyahu Goldratt (`book_the_goal.jpg`) · A Pattern Language / Christopher Alexander (`book_pattern_language.png`).
+     Antifragile / Nassim Nicholas Taleb (`book_antifragile.jpg`) · Siddhartha / Hermann Hesse (`book_siddhartha.jpg`) · The Goal / Eliyahu Goldratt (`book_the_goal.jpg`) · A Pattern Language / Christopher Alexander (`book_pattern_language.png`).
    - Subsection **Interests**: `Sports, forest hiking, e-bike riding, good books, volunteering, playing guitar, AI experiments` (`--font-meta`, text colour).
 8. **Previous Experience** — section title, entries in this order:
    - **WiseHouse** · Android Developer · Mar 2020 - Feb 2021 · `logo_wisehouse.png` — Created MyIGB app from scratch to Google Play publication / Build an architecture based on MVI+Redux supporting offline mode / Setup CI with automatic builds sent to Telegram and Google Play / Wrote code 100% on Kotlin using modern libs: Coroutines, Flow, Ktor
@@ -118,6 +118,6 @@ Several PNGs are much larger than displayed (Telegram 3072 px, Gmail 1536 px, Si
 - Size scale ×1.5 from Figma points; content max width 672 px.
 - `#011570`, `#021771`, `#455598` merged into `--color-text` / `--color-text-secondary`.
 - Redline annotations are not rendered.
-- Texts are copied verbatim from Figma (incl. "Nassim Nicolas Taleb", "Herman Hesse", "Build an architecture…"); corrections only on the human's request.
+- Texts are copied verbatim from Figma (incl. "Nassim Nicholas Taleb", "Herman Hesse", "Build an architecture…"); corrections only on the human's request.
 - Contacts are links (mailto, tel, wa.me, t.me).
 - English only for now; texts live in the data layer / strings, never hardcoded in components.
