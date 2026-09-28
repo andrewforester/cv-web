@@ -6,4 +6,10 @@ export const cvTestIds = {
   technologyCard: 'cv-technology-card',
   latestExperience: 'cv-latest-experience',
   experienceEntry: 'cv-experience-entry',
+  appCard: 'cv-app-card',
+  appRating: 'cv-app-rating',
+  education: 'cv-education',
+  book: 'cv-book',
+  interests: 'cv-interests',
+  previousExperience: 'cv-previous-experience',
 } as const;
