@@ -17,7 +17,7 @@ Standing rules only: who changes which files and how sessions stay out of each o
 
 ## Design source of truth
 
-TODO(scaffold): name the style reference (a Figma file, an existing design package, a brand guide) and its call budget, e.g. "Figma, Starter plan: 20 MCP calls/month".
+Style reference: Figma file (link and MCP call budget are recorded here by the orchestrator).
 
 1. **The style reference** sets sizes, colours, type, radii, spacing and component style.
 2. **Screenshots** (of an existing app, a competitor, a sketch) show *what* is on a screen: blocks, content, texts, icons, behaviour. They don't set the style. A design package from a screenshot restyles every block in the reference language: existing tokens, fonts, card style, spacing grid. Screenshot colours, fonts and sizes are used only when the reference has no equivalent role, and then they become new tokens.
@@ -35,18 +35,18 @@ Don't commit screenshots to feature branches.
 
 ## Hot spots
 
-Each has one owner: a role, not a particular session. The Issue names the role. TODO(scaffold): replace the generic paths with the real ones.
+Each has one owner: a role, not a particular session. The Issue names the role.
 
 | What | Owner | Others |
 |---|---|---|
-| Build and dependency files, workspace config, `.github/workflows/**`, `.github/dependabot.yml`, `.claude/hooks/**` | Scaffold (`infra`) | ask in the Issue |
-| Entry points, routing, app shell | Scaffold | a screen may only register its own route |
-| Theme / design tokens, fonts | Theme (`theme`) | the theme merges **before** screens that depend on it |
-| Shared components | Theme | a component lives in its screen folder first; when a second screen needs it, a separate PR moves it |
-| Strings | each screen has its own strings file / namespace `<screen>.*` | the shared one belongs to Theme |
-| Images, icons | `<screen>_*`; shared icons belong to Theme | never rename other screens' resources |
-| Data layer (models, API/repository interfaces) | the first screen that needs them | a screen's mocks live in its own data folder |
-| API contract between frontend and backend | Scaffold (`infra`) until a backend owner exists | changes go through their own Issue |
+| `package.json`, `package-lock.json`, `.nvmrc`, `vite.config.ts`, `tsconfig*.json`, `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `playwright.config.ts`, `e2e/**`, `.github/workflows/**`, `.github/dependabot.yml`, `.claude/hooks/**` | Scaffold (`infra`) | ask in the Issue |
+| `index.html`, `src/main.tsx`, `src/app/**` (app shell, `AppProviders`) | Scaffold | a screen may only register its own route in `src/app/App.tsx` |
+| `src/theme/**` (`tokens.css`, `global.css`), fonts | Theme (`theme`) | the theme merges **before** screens that depend on it |
+| `src/shared/**` | Theme | a component lives in its screen folder first; when a second screen needs it, a separate PR moves it |
+| Strings | each screen has its own `src/screens/<screen>/strings.ts` (namespace `<screen>`) | `src/i18n/common.ts` and the `src/i18n/` mechanism belong to Theme |
+| Images, icons | `src/screens/<screen>/assets/<screen>_*`; shared icons in `src/shared/icons/` belong to Theme | never rename other screens' resources |
+| `src/data/**` (`models.ts`, `CvRepository.ts`) | the first screen that needs them | a screen's mocks live in `src/data/mock/` under its own file names |
+| API contract between frontend and backend (`src/data/CvRepository.ts`, `src/data/models.ts`) | Scaffold (`infra`) until a backend owner exists | changes go through their own Issue |
 | `docs/**`, `CLAUDE.md`, `.claude/skills/**`, `.claude/settings.json`, `.github/ISSUE_TEMPLATE/**`, `.github/pull_request_template.md` | coordinator or human | others propose changes in a PR |
 
 ## Issues and labels
@@ -74,4 +74,12 @@ Scaffold first, then theme, then screens (in parallel, any order). A screen can 
 
 ## Scaffold decisions (reference)
 
-TODO(scaffold): filled by the Scaffold Issue. Stack and versions, folder layout, package/module names, where tokens and strings live, test framework, known platform quirks (things that break and how to avoid them).
+- **Stack:** Vite 8 + React 19 + TypeScript 6 (strict, `noUncheckedIndexedAccess`), npm with a committed `package-lock.json`, Node 22 (`.nvmrc`). Static SPA, no router yet (add one with the second page).
+- **Hosting:** GitHub Pages via Actions, Vite `base: '/cv-web/'`. Every URL is under `/cv-web/`: reference public files as `/favicon.svg` in `index.html` (Vite adds the base) and use `import.meta.env.BASE_URL` in code, never a bare `/`.
+- **Layout:** `src/app` (shell, providers), `src/theme`, `src/i18n`, `src/data` (`models.ts`, `CvRepository.ts`, `mock/`), `src/shared/<Component>/`, `src/screens/<screen>/`, `e2e/`. Every code folder has an `agents.md`.
+- **Tokens:** CSS custom properties in `src/theme/tokens.css` (`--color-*`, `--font-size-*`, `--font-weight-*`, `--line-height-*`, `--space-*`, `--radius-*`, `--border-width`, `--content-max-width`), used from CSS Modules. Neutral placeholders until the Theme Issue. No TS mirror yet.
+- **i18n:** in-house, no library. Locales `en`, `uk` (label "UA"). Detection: `localStorage['cv.locale']` → `navigator.language` → `en`; mirrored into `<html lang>`. Namespaces are `defineStrings({ en, uk })` objects (a missing `uk` key fails `tsc`), read with `useStrings(ns)`. CV content is localized data from the repository, not strings.
+- **Data:** `CvRepository.getCv(locale): Promise<Cv>`; `StaticCvRepository` reads `src/data/mock/cv.<locale>.json`. Bound once in `src/app/AppProviders.tsx` (a backend swaps that line); state holders get it with `useCvRepository()`.
+- **Screen pattern:** `use<Screen>State()` (state holder) → `<Screen>UiState` → stateless `<Screen>Screen` (`className?`, `state`, callbacks) ← glued by `<Screen>Route`. Test ids in `testIds.ts`.
+- **Tests:** Vitest + Testing Library + jest-dom (jsdom, globals on, `src/test/setup.ts` clears `localStorage` between tests). Wrap components in `AppProviders` (props `repository`, `locale` for fakes). Playwright 1.56 for the web smoke check (`e2e/`).
+- **Quirks:** Playwright is pinned to `~1.56.0` because the cloud container's preinstalled Chromium is revision 1194; bumping it needs `executablePath: '/opt/pw-browsers/chromium'` or a new container image. CSS Modules in Vitest use non-scoped class names. Prettier skips Markdown (`.prettierignore`), so docs are formatted by hand.
