@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 # PRs run lint and tests plus a web build + Playwright smoke test (web-smoke).
-# The web deploys to GitHub Pages after merge (push to main) or on a manual run. Pushes to feature
+# The web is deployed by Vercel's GitHub App (production = main, a preview per PR), not by CI. Pushes to feature
 # branches trigger nothing: sessions run lint and test locally, the PR re-checks it.
 # Draft PRs run nothing: the orchestrator opens the PR as a draft before work starts,
 # and CI runs once the developer marks it Ready for review (and on every push after that).
@@ -64,36 +64,3 @@ jobs:
             web-check/
             test-results/
           if-no-files-found: ignore
-
-  deploy:
-    name: Deploy to GitHub Pages
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
-    needs: checks
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - name: Build
-        run: npm run build
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-      - id: deployment
-        uses: actions/deploy-pages@v4
-      - name: Summary
-        env:
-          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
-        run: |
-          echo "Web: $PAGE_URL" >> "$GITHUB_STEP_SUMMARY"

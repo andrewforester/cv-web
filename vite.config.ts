@@ -2,9 +2,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// GitHub Pages serves the site at https://andrewforester.github.io/cv-web/
+// Vercel serves the site from the root of its domain.
 export default defineConfig({
-  base: '/cv-web/',
+  base: '/',
   plugins: [react()],
   test: {
     environment: 'jsdom',

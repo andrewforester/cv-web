@@ -9,13 +9,13 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
   use: {
-    baseURL: `http://localhost:${PORT}/cv-web/`,
+    baseURL: `http://localhost:${PORT}/`,
     ...devices['Desktop Chrome'],
     viewport: { width: 1280, height: 800 },
   },
   webServer: {
     command: 'npm run preview',
-    url: `http://localhost:${PORT}/cv-web/`,
+    url: `http://localhost:${PORT}/`,
     reuseExistingServer: !process.env.CI,
   },
 });
