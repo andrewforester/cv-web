@@ -31,4 +31,9 @@
     grid-template-columns: repeat(2, 1fr);
     column-gap: var(--space-4);
   }
+
+  /* The one-line interests text wraps here; give the wrapped lines room. */
+  .interests {
+    line-height: var(--font-card-body-line-height);
+  }
 }
