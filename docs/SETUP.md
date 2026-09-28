@@ -26,7 +26,7 @@ Re-running it is safe.
 
 ## 3. Outside the repository (by hand)
 
-- **Cloud environment** (claude.ai/code → environments): create one for the repo. Allowed domains: the package registries the stack needs (added in the Scaffold Issue). The session-start hook warns when one is missing.
+- **Cloud environment** (claude.ai/code → environments): create one for the repo. Allowed domains: `registry.npmjs.org` (npm packages; Playwright uses the container's preinstalled Chromium). The session-start hook warns when one is missing.
 - **Connectors** on claude.ai: GitHub is required (sessions read Issues and update PRs through it); a design tool (Figma) only if the project has a design file.
 - **Settings → Actions → General:** allow GitHub Actions to create and approve pull requests only if a workflow needs it; otherwise leave the defaults.
 - **Branch protection on `main`** (optional): require the `Lint & tests` check once Scaffold has made it real.
@@ -34,7 +34,7 @@ Re-running it is safe.
 ## 4. After bootstrap
 
 1. Start an orchestrator session on the repo: "You are the orchestrator" (skill `orchestrate`).
-2. It sees `TODO(scaffold)` and runs **First run: the Scaffold Issue**: agree the stack with you, file the Scaffold Issue, launch it, merge it.
+2. It sees the unfilled scaffold placeholders and runs **First run: the Scaffold Issue**: agree the stack with you, file the Scaffold Issue, launch it, merge it.
 3. Start a QA session (skill `qa-release`) once Scaffold has CI jobs that deploy something.
 4. From then on, hand the orchestrator screens and features.
 

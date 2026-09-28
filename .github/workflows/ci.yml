@@ -16,8 +16,8 @@ concurrency:
 permissions:
   contents: read
 
-# PRs run lint and tests (and, after scaffold, a web build + Playwright smoke test).
-# Deploys run after merge (push to main) or on a manual run. Pushes to feature
+# PRs run lint and tests plus a web build + Playwright smoke test (web-smoke).
+# The web deploys to GitHub Pages after merge (push to main) or on a manual run. Pushes to feature
 # branches trigger nothing: sessions run lint and test locally, the PR re-checks it.
 # Draft PRs run nothing: the orchestrator opens the PR as a draft before work starts,
 # and CI runs once the developer marks it Ready for review (and on every push after that).
@@ -28,12 +28,72 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # TODO(scaffold): toolchain setup, then the lint and test commands from CLAUDE.md → Commands.
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
       - name: Lint
-        run: echo "TODO(scaffold) lint"
+        run: npm run lint
       - name: Tests
-        run: echo "TODO(scaffold) test"
+        run: npm test
 
-  # TODO(scaffold): web-smoke (build + Playwright startup check, screenshots as the
-  # `web-smoke-screenshots` artifact) on PRs, and deploy jobs on push to main
-  # (e.g. GitHub Pages for the web, the backend's host).
+  web-smoke:
+    name: web-smoke
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Playwright startup check
+        run: npm run web-check
+      - name: Upload screenshots
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-smoke-screenshots
+          path: |
+            web-check/
+            test-results/
+          if-no-files-found: ignore
+
+  deploy:
+    name: Deploy to GitHub Pages
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Build
+        run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      - name: Summary
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          echo "Web: $PAGE_URL" >> "$GITHUB_STEP_SUMMARY"

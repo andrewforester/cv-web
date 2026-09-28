@@ -1,0 +1,15 @@
+.shell {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+.header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-8);
+}
+
+.main {
+  display: block;
+}

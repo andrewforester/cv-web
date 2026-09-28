@@ -1,39 +1,47 @@
 # CV Andrew Panasiuk
 
-TODO(scaffold): one paragraph on what the product is, its platforms and where its data comes from.
+Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + React + TypeScript) on GitHub Pages, bilingual English + Ukrainian with a language switcher on the page. CV data comes from a `CvRepository` (today a mock over bundled JSON in `src/data/mock/`); a backend for editing the CV will replace the mock later by swapping one binding in `src/app/AppProviders.tsx`. Visual style comes from a Figma file (see `docs/COORDINATION.md`).
 
 ## Layout
 
-TODO(scaffold): table of top-level paths and what lives there (apps, packages, docs).
-
 | Path | What lives there |
 |---|---|
+| `src/main.tsx` | Entry point: global styles, providers, `App`. |
+| `src/app/` | App shell (`App.tsx`: header with the language switcher + page) and `AppProviders.tsx` (i18n + data binding). |
+| `src/theme/` | Design tokens (`tokens.css`, CSS custom properties) and global styles. |
+| `src/i18n/` | In-house typed i18n: locale detection/persistence, `defineStrings`, `useStrings`, the shared `common` namespace. |
+| `src/data/` | CV models, the `CvRepository` interface and its context, `mock/` (JSON per locale + `StaticCvRepository`). |
+| `src/shared/` | Shared stateless components (`LanguageSwitcher/`). |
+| `src/screens/<screen>/` | One folder per screen (`home/` today). |
+| `e2e/` | Playwright web smoke check (`smoke.spec.ts`). |
+| `public/` | Static files copied as is (favicon). |
 | `docs/COORDINATION.md` | Standing rules for parallel Claude sessions: file ownership, design source of truth, Issue labels. Read it before touching files. |
 | `docs/design/<name>/` | Design packages (`SPEC.md`, `screenshot.png`, `assets/`). Build from them; don't call design-tool MCPs. |
 
 ## Commands
 
-Skills refer to these slots by name (*lint*, *format*, *test*, *build*, *run*, *web check*). TODO(scaffold): fill in every slot.
+Skills refer to these slots by name (*lint*, *format*, *test*, *build*, *run*, *web check*). Node 22 (`.nvmrc`), npm; install with `npm ci`.
 
 | Slot | Command | Notes |
 |---|---|---|
-| lint | TODO(scaffold) | |
-| format | TODO(scaffold) | auto-fix for *lint* |
-| test | TODO(scaffold) | fast tests, no device/emulator |
-| build | TODO(scaffold) | production build; output dir: TODO(scaffold) |
-| run | TODO(scaffold) | local dev server |
-| web check | TODO(scaffold) | how to serve *build* and screenshot it with Playwright (viewport, locale) |
+| lint | `npm run lint` | ESLint (zero warnings) + `prettier --check` + `tsc -b` |
+| format | `npm run format` | auto-fix for *lint* (Prettier + `eslint --fix`) |
+| test | `npm test` | fast tests, no device/emulator: Vitest + Testing Library (jsdom), `src/**/*.test.ts(x)` |
+| build | `npm run build` | production build; output dir: `dist/` (base path `/cv-web/`) |
+| run | `npm run dev` | local dev server, http://localhost:5173/cv-web/ |
+| web check | `npm run build && npm run web-check` | Playwright serves `dist/` with `vite preview` (http://localhost:4173/cv-web/), Chromium 1280×800, browser locales `en-US` and `uk-UA`; fails on `pageerror`/console errors; screenshots in `web-check/home-{en,uk}.png`. In the cloud container the preinstalled Chromium is used (no `playwright install`). |
 
 Before every push: *lint* and *test* must pass.
 
-Cloud sessions: `.claude/hooks/session-start.sh` prepares the container (TODO(scaffold): what it installs, which domains the environment must allow).
+Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `npm ci` when `node_modules` is missing or older than `package-lock.json`, and warns when `registry.npmjs.org` (the only domain the environment must allow) is unreachable. Playwright uses the preinstalled Chromium in `/opt/pw-browsers`.
 
 ## Conventions
 
-- TODO(scaffold): language style guide and the linter that enforces it.
+- TypeScript strict (`noUncheckedIndexedAccess` on), React function components, CSS Modules (`<Component>.module.css`) using only `var(--token)` values. ESLint flat config (`eslint.config.js`: typescript-eslint strict, react-hooks, react-refresh) + Prettier (`.prettierrc.json`: single quotes, width 100) enforce it via *lint*. Markdown is not auto-formatted.
+- Strings: `defineStrings({ en, uk })` per namespace, read with `useStrings(ns)`; screen namespace in `src/screens/<screen>/strings.ts`, shared one in `src/i18n/common.ts`. CV content is data (`src/data`), not strings.
 - Components: one per file, props/state in, callbacks out, first optional param is the styling hook (e.g. `className`/`modifier`) when the stack has one.
 - Never hardcode colours, text sizes or user-visible strings in screens: use design tokens and the strings/i18n mechanism.
-- One screen = one folder (`<screen>/`: screen, its components, test ids). TODO(scaffold): exact path.
+- One screen = one folder (`<screen>/`: screen, its components, test ids): `src/screens/<screen>/` with `<Screen>UiState.ts`, `use<Screen>State.ts`, `<Screen>Screen.tsx`, `<Screen>Route.tsx`, `strings.ts`, `testIds.ts`, tests next to the code (see `src/screens/agents.md`).
 - Every screen gets at least one UI test.
 - Mock data lives behind a small interface in the data layer, so a real backend can replace it later.
 
@@ -61,5 +69,5 @@ GitHub Issues hold the whole working process: status labels, session ids, scope 
 ## Git & CI
 
 - Work in feature branches; `main` is updated only via PRs.
-- CI (`.github/workflows/ci.yml`): non-draft PRs run *lint* and *test* (TODO(scaffold): plus a web smoke job that builds and runs a Playwright startup check, screenshots uploaded as the `web-smoke-screenshots` artifact). Pushes to feature branches and draft PRs trigger no CI; a PR's CI starts when it is marked Ready for review.
-- Deliverables of a push to `main`: TODO(scaffold) (e.g. web on GitHub Pages https://andrewforester.github.io/cv-web/, backend deploy). Links are in the CI run summary.
+- CI (`.github/workflows/ci.yml`): non-draft PRs run *lint* and *test* (job `Lint & tests`) plus `web-smoke`: *build* and the Playwright startup check in both locales, screenshots uploaded as the `web-smoke-screenshots` artifact. Pushes to feature branches and draft PRs trigger no CI; a PR's CI starts when it is marked Ready for review.
+- Deliverables of a push to `main`: the web on GitHub Pages, https://andrewforester.github.io/cv-web/ (job `Deploy to GitHub Pages`, after `Lint & tests`; also runs on workflow_dispatch). Links are in the CI run summary.
