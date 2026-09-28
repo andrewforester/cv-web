@@ -1,8 +1,12 @@
 import { commonStrings, useStrings } from '../../i18n';
+import { AboutSection } from './AboutSection';
+import { AppsSection } from './AppsSection';
 import styles from './CvScreen.module.css';
 import type { CvUiState } from './CvUiState';
+import { EducationSection } from './EducationSection';
+import { ExperienceSection } from './ExperienceSection';
 import { HeaderSection } from './HeaderSection';
-import { LatestExperienceSection } from './LatestExperienceSection';
+import { cvStrings } from './strings';
 import { SummarySection } from './SummarySection';
 import { TechnologiesSection } from './TechnologiesSection';
 import { cvTestIds } from './testIds';
@@ -15,6 +19,7 @@ interface CvScreenProps {
 /** The CV page: sections top to bottom in SPEC order. Stateless. */
 export function CvScreen({ className, state }: CvScreenProps) {
   const common = useStrings(commonStrings);
+  const strings = useStrings(cvStrings);
 
   if (state.status !== 'ready') {
     return (
@@ -33,8 +38,20 @@ export function CvScreen({ className, state }: CvScreenProps) {
       <HeaderSection header={cv.header} />
       <SummarySection summary={cv.summary} />
       <TechnologiesSection cards={cv.technologies} />
-      <LatestExperienceSection entries={cv.latestExperience} />
-      {/* Part 2 (#8): Apps, Education, About me, Previous Experience go here. */}
+      <ExperienceSection
+        title={strings.latestExperienceTitle}
+        entries={cv.latestExperience}
+        testId={cvTestIds.latestExperience}
+      />
+      <AppsSection apps={cv.apps} />
+      <EducationSection lines={cv.education} />
+      <AboutSection books={cv.books} interests={cv.interests} />
+      <ExperienceSection
+        title={strings.previousExperienceTitle}
+        entries={cv.previousExperience}
+        testId={cvTestIds.previousExperience}
+        lazy
+      />
     </article>
   );
 }

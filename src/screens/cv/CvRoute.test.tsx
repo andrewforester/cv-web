@@ -47,6 +47,47 @@ describe('CV screen', () => {
     expect(within(latest).getByText('Feb 2021 - Feb 2026')).toBeInTheDocument();
   });
 
+  it('renders apps, education, about me and previous experience from mock data', async () => {
+    renderCv();
+    await screen.findByTestId(cvTestIds.root);
+
+    const apps = screen.getAllByTestId(cvTestIds.appCard);
+    expect(apps.map((app) => within(app).getByRole('heading').textContent)).toEqual([
+      'Cync',
+      'August Home',
+      'Savant',
+    ]);
+    const [cync, , savant] = apps as [HTMLElement, HTMLElement, HTMLElement];
+    expect(within(cync).getByTestId(cvTestIds.appRating)).toHaveTextContent('5.0');
+    expect(within(cync).getByText('91.8K reviews')).toBeInTheDocument();
+    expect(within(savant).queryByTestId(cvTestIds.appRating)).not.toBeInTheDocument();
+    expect(within(savant).getByText('100k+')).toBeInTheDocument();
+    expect(within(savant).getByText('Downloads')).toBeInTheDocument();
+
+    expect(screen.getByTestId(cvTestIds.education)).toHaveTextContent(
+      'Kyiv National University 2007 - 2012',
+    );
+
+    const books = screen.getAllByTestId(cvTestIds.book);
+    expect(books).toHaveLength(4);
+    expect(within(books[1] as HTMLElement).getByRole('img', { name: 'Siddhartha' })).toBeVisible();
+    expect(books[1]).toHaveTextContent('Hermann Hesse');
+    expect(screen.getByTestId(cvTestIds.interests)).toHaveTextContent('AI experiments');
+
+    const previous = screen.getByTestId(cvTestIds.previousExperience);
+    const entries = within(previous).getAllByTestId(cvTestIds.experienceEntry);
+    expect(entries.map((entry) => within(entry).getByRole('img').getAttribute('alt'))).toEqual([
+      'WiseHouse',
+      'Attendify',
+      'RosFines',
+      'Smartling',
+      'Rokkit',
+      'ivi',
+      'Samsung',
+    ]);
+    expect(within(previous).getAllByText('remotely')).toHaveLength(3);
+  });
+
   it('shows an error when the repository fails', async () => {
     renderCv({ getCv: () => Promise.reject(new Error('offline')) });
 

@@ -6,6 +6,9 @@
   --cv-photo-size: 120px;
   --cv-logo-size: 36px;
   --cv-icon-size: 18px;
+  --cv-rating-star-size: 15px;
+  --cv-book-width: 100px;
+  --cv-book-height: 150px;
 }
 
 .status {
