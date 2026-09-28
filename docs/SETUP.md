@@ -1,0 +1,43 @@
+# Setting up a project from ai-dev-kit
+
+The template holds the AI working process (roles as skills, Issue flow, CI gating) with no stack. The stack is chosen and wired in by the first task, the Scaffold Issue.
+
+## 1. Create the repository
+
+```bash
+gh repo create <owner>/<name> --private --template andrewforester/ai-dev-kit --clone
+cd <name>
+```
+
+## 2. Bootstrap
+
+```bash
+scripts/bootstrap.sh --name "Product Name" --dry-run   # see what it will do
+scripts/bootstrap.sh --name "Product Name"
+```
+
+It fills the project name, repo and Pages URL into the docs and skills, then creates:
+- the labels from `docs/COORDINATION.md`;
+- the orphan branch `screens` for Issue screenshots;
+- the branch `ci-watch` and the draft PR "CI watch: main (never merge)" for the `qa-release` role;
+- GitHub Pages with source "GitHub Actions" (skipped with a warning if the plan doesn't allow it).
+
+Re-running it is safe.
+
+## 3. Outside the repository (by hand)
+
+- **Cloud environment** (claude.ai/code → environments): create one for the repo. Allowed domains: the package registries the stack needs (added in the Scaffold Issue). The session-start hook warns when one is missing.
+- **Connectors** on claude.ai: GitHub is required (sessions read Issues and update PRs through it); a design tool (Figma) only if the project has a design file.
+- **Settings → Actions → General:** allow GitHub Actions to create and approve pull requests only if a workflow needs it; otherwise leave the defaults.
+- **Branch protection on `main`** (optional): require the `Lint & tests` check once Scaffold has made it real.
+
+## 4. After bootstrap
+
+1. Start an orchestrator session on the repo: "You are the orchestrator" (skill `orchestrate`).
+2. It sees `TODO(scaffold)` and runs **First run: the Scaffold Issue**: agree the stack with you, file the Scaffold Issue, launch it, merge it.
+3. Start a QA session (skill `qa-release`) once Scaffold has CI jobs that deploy something.
+4. From then on, hand the orchestrator screens and features.
+
+## Keeping in sync with the template
+
+There is no automatic sync. When the process improves in a project, port the change to `ai-dev-kit` by hand (skills and `docs/COORDINATION.md` are the parts worth porting), keeping it stack-free.

@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    # The CI-watch PR (main -> ci-watch) only relays main's push runs to the QA session.
+    branches-ignore: [ci-watch]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# PRs run lint and tests (and, after scaffold, a web build + Playwright smoke test).
+# Deploys run after merge (push to main) or on a manual run. Pushes to feature
+# branches trigger nothing: sessions run lint and test locally, the PR re-checks it.
+# Draft PRs run nothing: the orchestrator opens the PR as a draft before work starts,
+# and CI runs once the developer marks it Ready for review (and on every push after that).
+jobs:
+  checks:
+    name: Lint & tests
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # TODO(scaffold): toolchain setup, then the lint and test commands from CLAUDE.md → Commands.
+      - name: Lint
+        run: echo "TODO(scaffold) lint"
+      - name: Tests
+        run: echo "TODO(scaffold) test"
+
+  # TODO(scaffold): web-smoke (build + Playwright startup check, screenshots as the
+  # `web-smoke-screenshots` artifact) on PRs, and deploy jobs on push to main
+  # (e.g. GitHub Pages for the web, the backend's host).

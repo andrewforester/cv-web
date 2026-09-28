@@ -1,0 +1,27 @@
+name: Task
+description: Feature, fix, backend work or chore
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What needs to be done
+    validations:
+      required: true
+  - type: textarea
+    id: zone
+    attributes:
+      label: Zone (may change) / must not change
+      description: See docs/COORDINATION.md → Hot spots.
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of scope
+  - type: input
+    id: depends
+    attributes:
+      label: Depends on
+      value: "Depends on: none"
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
