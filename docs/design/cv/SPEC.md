@@ -118,6 +118,6 @@ Several PNGs are much larger than displayed (Telegram 3072 px, Gmail 1536 px, Si
 - Size scale ×1.5 from Figma points; content max width 672 px.
 - `#011570`, `#021771`, `#455598` merged into `--color-text` / `--color-text-secondary`.
 - Redline annotations are not rendered.
-- Texts are copied verbatim from Figma (incl. "Nassim Nicholas Taleb", "Herman Hesse", "Build an architecture…"); corrections only on the human's request.
+- Texts are copied verbatim from Figma, except author names corrected by the human: "Nassim Nicholas Taleb", "Hermann Hesse" (Figma has "Nicolas", "Herman").
 - Contacts are links (mailto, tel, wa.me, t.me).
 - English only for now; texts live in the data layer / strings, never hardcoded in components.
