@@ -5,19 +5,20 @@
 }
 
 .greeting {
-  font-size: var(--font-size-md);
+  font-size: var(--font-body-size);
   color: var(--color-text-muted);
 }
 
 .name {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-tight);
+  font-size: var(--font-name-size);
+  font-weight: var(--font-name-weight);
+  line-height: var(--font-name-line-height);
 }
 
 .title {
-  font-size: var(--font-size-lg);
-  color: var(--color-accent);
+  font-size: var(--font-section-size);
+  line-height: var(--font-section-line-height);
+  color: var(--color-text-secondary);
 }
 
 .status {

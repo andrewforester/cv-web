@@ -1,3 +1,4 @@
+@import './fonts.css';
 @import './tokens.css';
 
 *,
@@ -7,15 +8,18 @@
 }
 
 html {
-  font-family: var(--font-family-base);
   font-size: 100%;
-  line-height: var(--line-height-base);
-  color: var(--color-text);
-  background: var(--color-bg);
 }
 
 body {
   margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-body-size);
+  line-height: var(--font-body-line-height);
+  font-weight: var(--font-body-weight);
+  letter-spacing: var(--letter-spacing);
+  color: var(--color-text);
+  background: var(--color-bg);
 }
 
 h1,
