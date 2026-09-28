@@ -1,0 +1,19 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="141.078" height="83.6578" viewBox="0 0 141.078 83.6578" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Group 56">
+<mask id="mask0_0_5" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="142" height="84">
+<path id="Vector" d="M0.328907 71.0323V12.6255C0.328907 10.9962 0.567416 9.42757 1.04443 7.91967C1.52265 6.41337 2.20239 5.08459 3.08609 3.93189C3.96856 2.77767 4.9858 1.88974 6.14018 1.26665C7.29339 0.642042 8.49307 0.328908 9.74166 0.328908H131.335C132.583 0.328908 133.784 0.642042 134.938 1.26665C136.091 1.88974 137.109 2.77767 137.992 3.93189C138.874 5.08459 139.554 6.41337 140.032 7.91967C140.51 9.42757 140.749 10.9962 140.749 12.6255V71.0323C140.749 72.6632 140.51 74.2318 140.032 75.7397C139.554 77.2444 138.874 78.5747 137.992 79.729C137.109 80.8817 136.091 81.7696 134.938 82.3927C133.784 83.0174 132.583 83.3289 131.335 83.3289H9.74166C8.49307 83.3289 7.29339 83.0174 6.14018 82.3927C4.9858 81.7696 3.96856 80.8817 3.08609 79.729C2.20239 78.5747 1.52265 77.2444 1.04443 75.7397C0.567416 74.2318 0.328907 72.6632 0.328907 71.0323Z" stroke="#49CC8F" stroke-width="0.657813"/>
+</mask>
+<g mask="url(#mask0_0_5)">
+<rect id="Rectangle 2" width="161.421" height="149.476" transform="matrix(0.785145 0.619311 -0.665919 0.746024 57.3403 -62.6345)" fill="url(#paint0_linear_0_5)" fill-opacity="0.53"/>
+</g>
+</g>
+<defs>
+<linearGradient id="paint0_linear_0_5" x1="80.7107" y1="0" x2="80.7107" y2="149.476" gradientUnits="userSpaceOnUse">
+<stop stop-color="#FF0000"/>
+<stop offset="0.235577" stop-color="#FFFF00"/>
+<stop offset="0.485577" stop-color="#0E1DF6"/>
+<stop offset="0.764423" stop-color="#E413F3"/>
+<stop offset="1" stop-color="#EE0A0E"/>
+</linearGradient>
+</defs>
+</svg>
