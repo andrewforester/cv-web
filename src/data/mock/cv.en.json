@@ -1,4 +1,371 @@
 {
-  "name": "Andrew Panasiuk",
-  "title": "Software Engineer"
+  "header": {
+    "name": "Andrew Panasiuk",
+    "headline": "Senior Android Engineer with iOS experience",
+    "tagline": "Creating Android apps since 2012",
+    "photo": "photo",
+    "contacts": {
+      "email": "andriipanasiuk@gmail.com",
+      "phone": "+38 093 897-71-10",
+      "whatsappUrl": "https://wa.me/380938977110",
+      "telegramUrl": "https://t.me/+380938977110"
+    }
+  },
+  "summary": [
+    [
+      {
+        "text": "Product-minded "
+      },
+      {
+        "text": "Senior Android Engineer",
+        "emphasis": "medium"
+      },
+      {
+        "text": " with 12+ years of experience."
+      }
+    ],
+    [
+      {
+        "text": "Proficient in Kotlin, Coroutines, Jetpack, MVVM/MVI."
+      }
+    ],
+    [
+      {
+        "text": "Integrating modern AI-driven tools and approaches into workflow."
+      }
+    ],
+    [
+      {
+        "text": "Autonomous end-to-end feature delivery combined with trust and respect for team leadership."
+      }
+    ],
+    [
+      {
+        "text": "Strong background in Applied Mathematics (M.Sc.)."
+      }
+    ],
+    [
+      {
+        "text": "Skilled yet maintaining a passion for crafting good software."
+      }
+    ]
+  ],
+  "technologies": [
+    {
+      "title": "Android",
+      "items": [
+        "Jetpack Compose",
+        "Hilt",
+        "Room/SQLite",
+        "Picasso/Glide",
+        "Custom UI",
+        "Custom Animations"
+      ],
+      "variant": "default",
+      "column": 1
+    },
+    {
+      "title": "Product mindset",
+      "items": [
+        "Feature ownership",
+        "Pixel-perfect UI",
+        "Human-centric UX",
+        "Product analytics basics"
+      ],
+      "variant": "highlighted",
+      "column": 1
+    },
+    {
+      "title": "Unit/UI testing",
+      "items": ["JUnit", "Mockk", "Robolectric", "JaCoCo"],
+      "variant": "default",
+      "column": 1
+    },
+    {
+      "title": "Kotlin",
+      "items": ["Coroutines", "Ktor", "Flow", "Kotlinx-serialization", "Kotlin Multiplatform"],
+      "variant": "default",
+      "column": 2
+    },
+    {
+      "title": "Architecture",
+      "items": ["MVVM", "MVI", "Redux", "Clean", "SOLID"],
+      "variant": "default",
+      "column": 2
+    },
+    {
+      "title": "Integrations",
+      "items": ["Firebase Cloud Messaging", "Locations API", "SocketIO", "REST/RPC API"],
+      "variant": "default",
+      "column": 2
+    },
+    {
+      "title": "AI Tools",
+      "items": [
+        "Copilot",
+        "agents.md",
+        "Cursor IDE",
+        "hallucination prevention",
+        "MCP",
+        "orchestration approach"
+      ],
+      "variant": "ai",
+      "column": 3
+    },
+    {
+      "title": "Tools",
+      "items": ["Gradle", "Git", "Github Actions", "CircleCI", "CocoaPods"],
+      "variant": "default",
+      "column": 3
+    },
+    {
+      "title": "iOS",
+      "items": ["Swift", "UIKit", "AutoLayout", "Stevia"],
+      "variant": "default",
+      "column": 3
+    }
+  ],
+  "latestExperience": [
+    {
+      "company": "Transcenda",
+      "remote": false,
+      "role": "Senior Android Developer",
+      "period": "Feb 2021 - Feb 2026",
+      "logo": "logo_transcenda",
+      "bullets": [
+        [
+          {
+            "text": "Took ownership on key features delivery for "
+          },
+          {
+            "text": "Cync",
+            "emphasis": "boldItalic"
+          },
+          {
+            "text": " and "
+          },
+          {
+            "text": "August Home",
+            "emphasis": "boldItalic"
+          },
+          {
+            "text": " smart home apps, both serving 1M+ users"
+          }
+        ],
+        [
+          {
+            "text": "Boosted engineering efficiency by integrating AI-driven workflows (Copilot, LLMs)"
+          }
+        ],
+        [
+          {
+            "text": "Developed complex custom graphics using Jetpack Compose Canvas"
+          }
+        ],
+        [
+          {
+            "text": "Supported BLE communication for realtime devices discovery, status sync and offline resilience"
+          }
+        ]
+      ]
+    }
+  ],
+  "apps": [
+    {
+      "name": "Cync",
+      "publisher": "Savant Systems, Inc.",
+      "icon": "app_cync",
+      "rating": "5.0",
+      "reviews": "91.8K",
+      "downloads": "1M+"
+    },
+    {
+      "name": "August Home",
+      "publisher": "August Home, Inc.",
+      "icon": "app_august",
+      "rating": "4.1",
+      "reviews": "18.7K",
+      "downloads": "1M+"
+    },
+    {
+      "name": "Savant",
+      "publisher": "Savant Systems, Inc.",
+      "icon": "app_savant",
+      "downloads": "100k+"
+    }
+  ],
+  "education": ["Applied Mathematics, Cybernetics", "Kyiv National University 2007 - 2012"],
+  "books": [
+    {
+      "title": "Antifragile",
+      "author": "Nassim Nicholas Taleb",
+      "cover": "book_antifragile"
+    },
+    {
+      "title": "Siddhartha",
+      "author": "Hermann Hesse",
+      "cover": "book_siddhartha"
+    },
+    {
+      "title": "The Goal",
+      "author": "Eliyahu Goldratt",
+      "cover": "book_the_goal"
+    },
+    {
+      "title": "A Pattern Language",
+      "author": "Christopher Alexander",
+      "cover": "book_pattern_language"
+    }
+  ],
+  "interests": "Sports, forest hiking, e-bike riding, good books, volunteering, playing guitar, AI experiments",
+  "previousExperience": [
+    {
+      "company": "WiseHouse",
+      "remote": false,
+      "role": "Android Developer",
+      "period": "Mar 2020 - Feb 2021",
+      "logo": "logo_wisehouse",
+      "bullets": [
+        [
+          {
+            "text": "Created MyIGB app from scratch to Google Play publication"
+          }
+        ],
+        [
+          {
+            "text": "Build an architecture based on MVI+Redux supporting offline mode"
+          }
+        ],
+        [
+          {
+            "text": "Setup CI with automatic builds sent to Telegram and Google Play"
+          }
+        ],
+        [
+          {
+            "text": "Wrote code 100% on Kotlin using modern libs: Coroutines, Flow, Ktor"
+          }
+        ]
+      ]
+    },
+    {
+      "company": "Attendify",
+      "remote": false,
+      "role": "Android/iOS Developer",
+      "period": "Jan 2018 - Mar 2020",
+      "logo": "logo_attendify",
+      "bullets": [
+        [
+          {
+            "text": "Created number of features in 2 key projects both on Android and iOS"
+          }
+        ],
+        [
+          {
+            "text": "Setup CI with daily builds sent to Slack channel; migrated codebase to Kotlin"
+          }
+        ],
+        [
+          {
+            "text": "Deeply collaborate with designers to implement user-friendly UI"
+          }
+        ]
+      ]
+    },
+    {
+      "company": "RosFines",
+      "remote": true,
+      "role": "Android Lead",
+      "period": "May 2017 - Aug 2017",
+      "logo": "logo_rosfines",
+      "bullets": [
+        [
+          {
+            "text": "Built a development process in collaboration with PM; conducted hiring interviews"
+          }
+        ],
+        [
+          {
+            "text": "Setup CI with automatic deployment to Fabric Beta"
+          }
+        ]
+      ]
+    },
+    {
+      "company": "Smartling",
+      "remote": true,
+      "role": "Android SDK Developer",
+      "period": "Feb 2016 - Aug 2017",
+      "logo": "logo_smartling",
+      "bullets": [
+        [
+          {
+            "text": "Implement features for the mobile localization SDK"
+          }
+        ],
+        [
+          {
+            "text": "Increased code coverage with unit tests to 60+%"
+          }
+        ],
+        [
+          {
+            "text": "Setup Github as Maven repo for the SDK artifacts, wrote usage docs for the SDK"
+          }
+        ]
+      ]
+    },
+    {
+      "company": "Rokkit",
+      "remote": false,
+      "role": "Android Developer",
+      "period": "Jun 2015 - Jan 2016",
+      "logo": "logo_rokkit",
+      "bullets": [
+        [
+          {
+            "text": "Created an unusual UX to search for the flight tickets and hotels all over the world"
+          }
+        ]
+      ]
+    },
+    {
+      "company": "ivi",
+      "remote": true,
+      "role": "Android Teamlead",
+      "period": "Apr 2013 - Dec 2014",
+      "logo": "logo_ivi",
+      "bullets": [
+        [
+          {
+            "text": "Ensured regular bug-free releases of the product with 1M+ users"
+          }
+        ],
+        [
+          {
+            "text": "Mentor a team of 2 developers, made a code review, collaborated with PM"
+          }
+        ],
+        [
+          {
+            "text": "Develop and support shared codebase for 3 ivi projects"
+          }
+        ]
+      ]
+    },
+    {
+      "company": "Samsung",
+      "remote": false,
+      "role": "Android Developer",
+      "period": "Jan 2012 - Sep 2012",
+      "logo": "logo_samsung",
+      "bullets": [
+        [
+          {
+            "text": "Created an analogue of Android Layout Inflater for the custom UI framework"
+          }
+        ]
+      ]
+    }
+  ]
 }

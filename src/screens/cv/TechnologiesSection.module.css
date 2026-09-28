@@ -1,0 +1,38 @@
+/* Row gap 18 px, column gap 30 px (SPEC). */
+.grid {
+  --row-gap: calc(var(--space-3) * 1.5);
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: var(--space-7);
+  align-items: start;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--row-gap);
+}
+
+/* Narrower: the columns dissolve and CSS columns flow the cards in the same order. */
+@media (max-width: 719px) {
+  .grid {
+    display: block;
+    columns: 2;
+  }
+
+  .column {
+    display: contents;
+  }
+
+  .card {
+    break-inside: avoid;
+    margin-bottom: var(--row-gap);
+  }
+}
+
+@media (max-width: 599px) {
+  .grid {
+    columns: 1;
+  }
+}

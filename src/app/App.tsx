@@ -1,9 +1,9 @@
 import { useLocale } from '../i18n';
-import { HomeRoute } from '../screens/home/HomeRoute';
+import { CvRoute } from '../screens/cv/CvRoute';
 import { LanguageSwitcher } from '../shared/LanguageSwitcher/LanguageSwitcher';
 import styles from './App.module.css';
 
-/** App shell: header with the language switcher, then the (single, for now) screen. */
+/** App shell: header with the language switcher, then the CV page. */
 export function App() {
   const { locale, setLocale } = useLocale();
 
@@ -13,7 +13,7 @@ export function App() {
         <LanguageSwitcher locale={locale} onChange={setLocale} />
       </header>
       <main className={styles.main}>
-        <HomeRoute />
+        <CvRoute />
       </main>
     </div>
   );
