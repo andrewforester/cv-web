@@ -1,6 +1,6 @@
 # CV Andrew Panasiuk
 
-Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + React + TypeScript) on GitHub Pages, bilingual English + Ukrainian with a language switcher on the page. CV data comes from a `CvRepository` (today a mock over bundled JSON in `src/data/mock/`); a backend for editing the CV will replace the mock later by swapping one binding in `src/app/AppProviders.tsx`. Visual style comes from a Figma file (see `docs/COORDINATION.md`).
+Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + React + TypeScript) on Vercel, bilingual English + Ukrainian with a language switcher on the page. CV data comes from a `CvRepository` (today a mock over bundled JSON in `src/data/mock/`); a backend for editing the CV will replace the mock later by swapping one binding in `src/app/AppProviders.tsx`. Visual style comes from a Figma file (see `docs/COORDINATION.md`).
 
 ## Layout
 
@@ -27,9 +27,9 @@ Skills refer to these slots by name (*lint*, *format*, *test*, *build*, *run*, *
 | lint | `npm run lint` | ESLint (zero warnings) + `prettier --check` + `tsc -b` |
 | format | `npm run format` | auto-fix for *lint* (Prettier + `eslint --fix`) |
 | test | `npm test` | fast tests, no device/emulator: Vitest + Testing Library (jsdom), `src/**/*.test.ts(x)` |
-| build | `npm run build` | production build; output dir: `dist/` (base path `/cv-web/`) |
-| run | `npm run dev` | local dev server, http://localhost:5173/cv-web/ |
-| web check | `npm run build && npm run web-check` | Playwright serves `dist/` with `vite preview` (http://localhost:4173/cv-web/), Chromium 1280×800, browser locales `en-US` and `uk-UA`; fails on `pageerror`/console errors; screenshots in `web-check/home-{en,uk}.png`. In the cloud container the preinstalled Chromium is used (no `playwright install`). |
+| build | `npm run build` | production build; output dir: `dist/` (base path `/`) |
+| run | `npm run dev` | local dev server, http://localhost:5173/ |
+| web check | `npm run build && npm run web-check` | Playwright serves `dist/` with `vite preview` (http://localhost:4173/), Chromium 1280×800, browser locales `en-US` and `uk-UA`; fails on `pageerror`/console errors; screenshots in `web-check/home-{en,uk}.png`. In the cloud container the preinstalled Chromium is used (no `playwright install`). |
 
 Before every push: *lint* and *test* must pass.
 
@@ -70,4 +70,4 @@ GitHub Issues hold the whole working process: status labels, session ids, scope 
 
 - Work in feature branches; `main` is updated only via PRs.
 - CI (`.github/workflows/ci.yml`): non-draft PRs run *lint* and *test* (job `Lint & tests`) plus `web-smoke`: *build* and the Playwright startup check in both locales, screenshots uploaded as the `web-smoke-screenshots` artifact. Pushes to feature branches and draft PRs trigger no CI; a PR's CI starts when it is marked Ready for review.
-- Deliverables of a push to `main`: the web on GitHub Pages, https://andrewforester.github.io/cv-web/ (job `Deploy to GitHub Pages`, after `Lint & tests`; also runs on workflow_dispatch). Links are in the CI run summary.
+- Deliverables: the web on Vercel (Hobby), deployed by Vercel's GitHub App, not by CI. Production = `main` (URL in the Vercel project); every PR/branch gets a preview deployment (URL in the PR's Vercel check/comment). Previews may be behind Vercel Authentication (Deployment Protection) by default, so they can require a Vercel login. Build config is in `vercel.json`. Pushes to `main` run `Lint & tests` in CI so the QA role sees main's health.

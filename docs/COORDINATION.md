@@ -75,7 +75,7 @@ Scaffold first, then theme, then screens (in parallel, any order). A screen can 
 ## Scaffold decisions (reference)
 
 - **Stack:** Vite 8 + React 19 + TypeScript 6 (strict, `noUncheckedIndexedAccess`), npm with a committed `package-lock.json`, Node 22 (`.nvmrc`). Static SPA, no router yet (add one with the second page).
-- **Hosting:** GitHub Pages via Actions, Vite `base: '/cv-web/'`. Every URL is under `/cv-web/`: reference public files as `/favicon.svg` in `index.html` (Vite adds the base) and use `import.meta.env.BASE_URL` in code, never a bare `/`.
+- **Hosting:** Vercel (Hobby, Git integration: production = `main`, a preview per PR), Vite `base: '/'`. Reference public files as `/favicon.svg` in `index.html` and use `import.meta.env.BASE_URL` in code, never a bare `/`, so the base can change again.
 - **Layout:** `src/app` (shell, providers), `src/theme`, `src/i18n`, `src/data` (`models.ts`, `CvRepository.ts`, `mock/`), `src/shared/<Component>/`, `src/screens/<screen>/`, `e2e/`. Every code folder has an `agents.md`.
 - **Tokens:** CSS custom properties in `src/theme/tokens.css` (CV design tokens, names fixed in the Theme Issue; see `src/theme/agents.md`), fonts in `src/theme/fonts.css`, used from CSS Modules. No TS mirror yet.
 - **i18n:** in-house, no library. Locales `en`, `uk` (label "UA"). Detection: `localStorage['cv.locale']` → `navigator.language` → `en`; mirrored into `<html lang>`. Namespaces are `defineStrings({ en, uk })` objects (a missing `uk` key fails `tsc`), read with `useStrings(ns)`. CV content is localized data from the repository, not strings.

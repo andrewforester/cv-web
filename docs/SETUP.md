@@ -20,11 +20,12 @@ It fills the project name, repo and Pages URL into the docs and skills, then cre
 - the labels from `docs/COORDINATION.md`;
 - the orphan branch `screens` for Issue screenshots;
 - the branch `ci-watch` and the draft PR "CI watch: main (never merge)" for the `qa-release` role;
-- GitHub Pages with source "GitHub Actions" (skipped with a warning if the plan doesn't allow it).
 
 Re-running it is safe.
 
 ## 3. Outside the repository (by hand)
+
+- **Vercel** (vercel.com, Hobby): import the repo (Add New → Project), allow the Vercel GitHub App on it. Production branch = `main`; every PR gets a preview deployment. Build settings come from `vercel.json`, no token in CI. Previews may be behind Vercel Authentication (Deployment Protection) by default: open them logged in to Vercel, or turn it off in the project's settings.
 
 - **Cloud environment** (claude.ai/code → environments): create one for the repo. Allowed domains: `registry.npmjs.org` (npm packages; Playwright uses the container's preinstalled Chromium). The session-start hook warns when one is missing.
 - **Connectors** on claude.ai: GitHub is required (sessions read Issues and update PRs through it); a design tool (Figma) only if the project has a design file.
