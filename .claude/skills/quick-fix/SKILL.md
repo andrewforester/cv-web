@@ -1,6 +1,6 @@
 ---
 name: quick-fix
-description: Small {{PROJECT_NAME}} fixes (a visual glitch, wrong colour/icon/spacing, a config or platform setting, a small backend bug) — how the orchestrator files and launches them and how a session works one. Use when the human reports a small bug or polish item, or when a session is started on an Issue labelled fix.
+description: Small CV Andrew Panasiuk fixes (a visual glitch, wrong colour/icon/spacing, a config or platform setting, a small backend bug) — how the orchestrator files and launches them and how a session works one. Use when the human reports a small bug or polish item, or when a session is started on an Issue labelled fix.
 ---
 
 # Quick fix

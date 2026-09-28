@@ -1,6 +1,6 @@
 ---
 name: qa-release
-description: Own the health of {{PROJECT_NAME}}'s main branch as the QA / release session — follow CI on main through the permanent CI-watch PR, check each green build (deployed web and backend), find the breaking merge when main goes red and revert it or file the fix. Use when a session is given the QA, tester or release role, or asked to watch main / post-merge CI.
+description: Own the health of CV Andrew Panasiuk's main branch as the QA / release session — follow CI on main through the permanent CI-watch PR, check each green build (deployed web and backend), find the breaking merge when main goes red and revert it or file the fix. Use when a session is given the QA, tester or release role, or asked to watch main / post-merge CI.
 ---
 
 # QA / release

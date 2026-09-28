@@ -1,4 +1,4 @@
-# {{PROJECT_NAME}}
+# CV Andrew Panasiuk
 
 TODO(scaffold): one paragraph on what the product is, its platforms and where its data comes from.
 
@@ -62,4 +62,4 @@ GitHub Issues hold the whole working process: status labels, session ids, scope 
 
 - Work in feature branches; `main` is updated only via PRs.
 - CI (`.github/workflows/ci.yml`): non-draft PRs run *lint* and *test* (TODO(scaffold): plus a web smoke job that builds and runs a Playwright startup check, screenshots uploaded as the `web-smoke-screenshots` artifact). Pushes to feature branches and draft PRs trigger no CI; a PR's CI starts when it is marked Ready for review.
-- Deliverables of a push to `main`: TODO(scaffold) (e.g. web on GitHub Pages {{PAGES_URL}}, backend deploy). Links are in the CI run summary.
+- Deliverables of a push to `main`: TODO(scaffold) (e.g. web on GitHub Pages https://andrewforester.github.io/cv-web/, backend deploy). Links are in the CI run summary.

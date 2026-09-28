@@ -1,4 +1,4 @@
-# {{PROJECT_NAME}}
+# CV Andrew Panasiuk
 
 Built with parallel Claude Code sessions coordinated through GitHub Issues. Start with `CLAUDE.md` and `docs/COORDINATION.md`.
 

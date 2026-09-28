@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: Coordinate work on {{PROJECT_NAME}} as the orchestrator session — turn the human's requests into GitHub Issues, open a branch and draft PR per Issue, launch one cloud session on it, follow the PR by events, verify and merge, and report results with links. Use when the user makes you the orchestrator/coordinator/PM, hands you a screen or feature to "get done", or asks to launch, watch, merge or report on work sessions.
+description: Coordinate work on CV Andrew Panasiuk as the orchestrator session — turn the human's requests into GitHub Issues, open a branch and draft PR per Issue, launch one cloud session on it, follow the PR by events, verify and merge, and report results with links. Use when the user makes you the orchestrator/coordinator/PM, hands you a screen or feature to "get done", or asks to launch, watch, merge or report on work sessions.
 ---
 
 # Orchestrate
@@ -40,11 +40,11 @@ Before every launch, so you can follow the PR by events from the start:
 3. `subscribe_pr_activity` on it right away. CI skips draft PRs; it runs when the session marks the PR **Ready for review**, and that run (its `check_suite.completed` event) is your signal to verify and merge.
 
 ## Launch a session
-`create_session` with `source_url` = repo, `outcome_branch` = `claude/<short>` (and `source_revision` = that branch), `permission_mode: auto`, tags `{{REPO_NAME}}`, `issue-N`, a `model` by task size (below), and a prompt like:
+`create_session` with `source_url` = repo, `outcome_branch` = `claude/<short>` (and `source_revision` = that branch), `permission_mode: auto`, tags `cv-web`, `issue-N`, a `model` by task size (below), and a prompt like:
 
 ```
-You are a working session on {{PROJECT_NAME}}. No human is watching; work until the PR is open.
-Task: GitHub Issue #N in {{REPO}}. Branch: claude/<short>. Draft PR: #P (already open; don't open another).
+You are a working session on CV Andrew Panasiuk. No human is watching; work until the PR is open.
+Task: GitHub Issue #N in andrewforester/cv-web. Branch: claude/<short>. Draft PR: #P (already open; don't open another).
 Use the `develop` skill (or `design` for a design Issue). Read the Issue and all its comments via the GitHub MCP tools.
 Start with `git fetch origin && git merge origin/main`.
 Don't call design-tool MCPs. Don't merge the PR; the orchestrator does.
@@ -91,7 +91,7 @@ After merging:
 - Then run **Dispatch** (Queue with dependencies).
 - Don't watch CI on `main`: the `qa-release` session does (via the CI-watch PR) and reverts or files a fix when it goes red. Before each merge, check that the latest push run of `ci.yml` on `main` isn't red; if it is, merge only the fix or revert.
 - Report the result with links. Use a `PushNotification` (it may not reach the phone) **and** a chat message:
-  - the deliverables from `CLAUDE.md` → Git & CI (e.g. Web: {{PAGES_URL}});
+  - the deliverables from `CLAUDE.md` → Git & CI (e.g. Web: https://andrewforester.github.io/cv-web/);
   - **Cost** table: each Issue's session (model, USD, context used, output tokens), the orchestrator's own spend since the previous report (`get_session` without an id → `usage.cost_usd`; subtract the total you gave last time) and its current context (`context_usage.used_tokens`), and the round total.
   - The queue: Issues still `ready`/`blocked` and what each waits for.
   - What a human still has to check on a real device or another browser.

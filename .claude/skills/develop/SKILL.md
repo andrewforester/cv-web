@@ -1,6 +1,6 @@
 ---
 name: develop
-description: Work a {{PROJECT_NAME}} GitHub Issue as a developer session — stay inside the Issue's zone, build the feature or screen, verify locally (lint, tests, web check), push to the draft PR the orchestrator opened and mark it Ready for review for the orchestrator to merge. Use when a session is started on an Issue, told to implement a task/feature/fix/screen from an Issue, or given the develop role.
+description: Work a CV Andrew Panasiuk GitHub Issue as a developer session — stay inside the Issue's zone, build the feature or screen, verify locally (lint, tests, web check), push to the draft PR the orchestrator opened and mark it Ready for review for the orchestrator to merge. Use when a session is started on an Issue, told to implement a task/feature/fix/screen from an Issue, or given the develop role.
 ---
 
 # Develop
@@ -38,7 +38,7 @@ You are one working session on one Issue. The orchestrator launched you; a human
 1. Re-read the Issue and all its comments: scope or decisions may have changed while you worked. Adjust.
 2. `git merge origin/main` again, re-run the checks, then push.
 3. Post the web screenshot(s) to the branch `screens` at `issue-<N>/<name>.png` (a worktree on `origin/screens`; `git pull --rebase` before pushing, it's append-only) and **comment on the Issue** with:
-   - the screenshot, embedded by `https://raw.githubusercontent.com/{{REPO}}/screens/issue-<N>/<name>.png`;
+   - the screenshot, embedded by `https://raw.githubusercontent.com/andrewforester/cv-web/screens/issue-<N>/<name>.png`;
    - deviations from the design and why;
    - stubs, `TODO`s, questions and the options you took;
    - how you verified it.

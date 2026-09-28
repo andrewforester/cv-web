@@ -1,6 +1,6 @@
 ---
 name: implement-screen
-description: Implement a new {{PROJECT_NAME}} screen or page (from a design package, screenshot or description) following project conventions, with tests and visual verification. Use whenever the task is to add or rebuild a screen or a reusable UI component.
+description: Implement a new CV Andrew Panasiuk screen or page (from a design package, screenshot or description) following project conventions, with tests and visual verification. Use whenever the task is to add or rebuild a screen or a reusable UI component.
 ---
 
 # Implement a screen

@@ -1,6 +1,6 @@
 ---
 name: design
-description: Turn a screenshot (or photo/mock) of an app screen into a {{PROJECT_NAME}} design package — docs/design/<screen>/SPEC.md with tokens, measurements, structure, texts and behaviour, plus screenshot.png and assets/ — without calling design-tool MCPs. Use when asked to spec, describe, reverse-engineer or prepare the design of a screen from an image, or when a session is started on an Issue labelled design.
+description: Turn a screenshot (or photo/mock) of an app screen into a CV Andrew Panasiuk design package — docs/design/<screen>/SPEC.md with tokens, measurements, structure, texts and behaviour, plus screenshot.png and assets/ — without calling design-tool MCPs. Use when asked to spec, describe, reverse-engineer or prepare the design of a screen from an image, or when a session is started on an Issue labelled design.
 ---
 
 # Design from a screenshot

@@ -28,7 +28,7 @@ TODO(scaffold): name the style reference (a Figma file, an existing design packa
 Everything about *how the work is going* goes into the Issue, as comments: launch (session id), scope changes, questions, decisions, blockers, verification results, **web screenshots of the result**, and at closing **the Claude usage of the work (model, USD, context, tokens)**. The repository holds only the product (code, resources, design packages) and the standing rules. The PR body stays short: what changed and `Closes #N`.
 
 **Screenshots** are stored on the orphan branch `screens` (never merged), path `issue-<N>/<name>.png`, and embedded in the Issue comment by their raw URL:
-`https://raw.githubusercontent.com/{{REPO}}/screens/issue-<N>/<name>.png`.
+`https://raw.githubusercontent.com/andrewforester/cv-web/screens/issue-<N>/<name>.png`.
 Don't commit screenshots to feature branches.
 
 **Questions never block a session.** Nobody is watching it. Write the question in an Issue comment, pick the most conservative option, note it, and keep going. The coordinator or the human answers in the Issue.
