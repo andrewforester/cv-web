@@ -1,7 +1,7 @@
 .shell {
   max-width: var(--content-max-width);
   margin: 0 auto;
-  padding: var(--space-4);
+  padding: var(--space-4) var(--page-gutter);
 }
 
 .header {
