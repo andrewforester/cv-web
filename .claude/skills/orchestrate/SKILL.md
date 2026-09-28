@@ -91,7 +91,7 @@ After merging:
 - Then run **Dispatch** (Queue with dependencies).
 - Don't watch CI on `main`: the `qa-release` session does (via the CI-watch PR) and reverts or files a fix when it goes red. Before each merge, check that the latest push run of `ci.yml` on `main` isn't red; if it is, merge only the fix or revert.
 - Report the result with links. Use a `PushNotification` (it may not reach the phone) **and** a chat message:
-  - the deliverables from `CLAUDE.md` → Git & CI (e.g. Web: https://andrewforester.github.io/cv-web/);
+  - the deliverables from `CLAUDE.md` → Git & CI (e.g. Web: https://cv-web-inky-five.vercel.app/);
   - **Cost** table: each Issue's session (model, USD, context used, output tokens), the orchestrator's own spend since the previous report (`get_session` without an id → `usage.cost_usd`; subtract the total you gave last time) and its current context (`context_usage.used_tokens`), and the round total.
   - The queue: Issues still `ready`/`blocked` and what each waits for.
   - What a human still has to check on a real device or another browser.
