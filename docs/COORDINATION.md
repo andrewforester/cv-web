@@ -17,7 +17,7 @@ Standing rules only: who changes which files and how sessions stay out of each o
 
 ## Design source of truth
 
-Style reference: Figma file (link and MCP call budget are recorded here by the orchestrator).
+Style reference: Figma file `Power-Place` (https://www.figma.com/design/ehr6aIVaitNHH1KafRlVQW/Power-Place), CV frames `2550:474`, `2550:572`, `2550:659` (exported to `docs/design/cv/`). Figma Starter plan: a small monthly MCP call budget (about 6 calls); 3 were spent in Sept 2026 on the CV frames. Re-export only for real design changes, one frame per call.
 
 1. **The style reference** sets sizes, colours, type, radii, spacing and component style.
 2. **Screenshots** (of an existing app, a competitor, a sketch) show *what* is on a screen: blocks, content, texts, icons, behaviour. They don't set the style. A design package from a screenshot restyles every block in the reference language: existing tokens, fonts, card style, spacing grid. Screenshot colours, fonts and sizes are used only when the reference has no equivalent role, and then they become new tokens.
