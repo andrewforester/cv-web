@@ -1,0 +1,54 @@
+/* Pieces shared by several chat components. */
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.caption {
+  font-size: var(--font-chat-caption-size);
+  line-height: var(--font-chat-caption-line-height);
+  font-weight: var(--font-chat-caption-weight);
+  color: var(--color-text-secondary);
+}
+
+.secondaryButton {
+  min-height: var(--chat-secondary-button-height);
+  padding: 0 var(--space-3);
+  font: inherit;
+  font-size: var(--font-card-body-size);
+  line-height: var(--font-card-body-line-height);
+  font-weight: var(--font-card-title-weight);
+  letter-spacing: inherit;
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: var(--border-card) solid var(--color-text);
+  border-radius: var(--radius-logo);
+  cursor: pointer;
+}
+
+/* Transparent 44 px icon button (panel close; the hint's dismiss overrides the size). */
+.iconButton {
+  flex: none;
+  width: var(--chat-control-size);
+  height: var(--chat-control-size);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--color-text);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-logo);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: var(--chat-color-divider);
+}

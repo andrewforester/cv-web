@@ -1,0 +1,9 @@
+/* A single-colour SVG tinted with the text colour: the file is a mask over `currentColor`. */
+.icon {
+  display: block;
+  flex: none;
+  width: var(--chat-icon-size);
+  height: var(--chat-icon-size);
+  background: currentColor;
+  mask: var(--chat-icon-src) center / contain no-repeat;
+}

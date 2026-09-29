@@ -1,0 +1,60 @@
+.launcher {
+  position: fixed;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  z-index: var(--chat-z-index);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.fab {
+  position: relative;
+  flex: none;
+  width: var(--chat-fab-size);
+  height: var(--chat-fab-size);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--color-bg);
+  background: var(--color-text);
+  border: 0;
+  border-radius: 50%;
+  box-shadow: var(--chat-shadow-fab);
+  cursor: pointer;
+}
+
+.fab:hover {
+  background: var(--color-text-secondary);
+}
+
+/* AI ring: the AI Tools card gradient, 2 px wide, 4 px outside the button. */
+.fab::before {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--space-1));
+  padding: var(--chat-fab-ring-width);
+  border-radius: 50%;
+  background: var(--gradient-ai);
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+.fab:focus-visible {
+  /* Outside the gradient ring: 4 + 2 = 6 px. */
+  outline-offset: calc(var(--space-1) + var(--chat-fab-ring-width));
+}
+
+.icon {
+  width: var(--chat-fab-icon-size);
+  height: var(--chat-fab-icon-size);
+}
+
+@media (max-width: 599px), (max-height: 499px) {
+  .launcher {
+    right: var(--space-4);
+    bottom: var(--space-4);
+  }
+}

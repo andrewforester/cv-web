@@ -1,0 +1,7 @@
+.notice {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-card-body-size);
+  line-height: var(--font-card-body-line-height);
+  background: var(--chat-color-notice-bg);
+  border-bottom: var(--border-card) solid var(--color-highlight);
+}

@@ -2,7 +2,12 @@ import type { ChatRequest, ChatStreamEvent } from './contract';
 import { HttpChatRepository } from './HttpChatRepository';
 
 const request: ChatRequest = { v: 1, locale: 'en', messages: [{ role: 'user', content: 'Hi' }] };
-const usage = { inputTokens: 1, outputTokens: 2, cacheReadInputTokens: 0, cacheCreationInputTokens: 0 };
+const usage = {
+  inputTokens: 1,
+  outputTokens: 2,
+  cacheReadInputTokens: 0,
+  cacheCreationInputTokens: 0,
+};
 
 function sse(body: string, init: ResponseInit = {}): Response {
   return new Response(body, {
@@ -57,7 +62,11 @@ describe('HttpChatRepository', () => {
     const { events } = await collect(sse('event: delta\ndata: {"text":"a"}\n\n'));
     expect(events.at(-1)).toEqual({
       type: 'error',
-      error: expect.objectContaining({ code: 'upstream_error', retryable: true, requestId: 'req-1' }),
+      error: expect.objectContaining({
+        code: 'upstream_error',
+        retryable: true,
+        requestId: 'req-1',
+      }),
     });
   });
 
@@ -73,7 +82,11 @@ describe('HttpChatRepository', () => {
     );
     expect(withHeader.events[0]).toEqual({
       type: 'error',
-      error: expect.objectContaining({ code: 'rate_limited', retryable: true, retryAfterSeconds: 42 }),
+      error: expect.objectContaining({
+        code: 'rate_limited',
+        retryable: true,
+        retryAfterSeconds: 42,
+      }),
     });
     const withoutHeader = await collect(new Response('<html>', { status: 429 }));
     expect(withoutHeader.events[0]).toEqual({

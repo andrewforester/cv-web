@@ -1,0 +1,44 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2) var(--space-3) var(--space-4);
+  border-bottom: var(--border-card) solid var(--chat-color-divider);
+}
+
+.badge {
+  flex: none;
+  width: var(--chat-badge-size);
+  height: var(--chat-badge-size);
+  display: grid;
+  place-items: center;
+  color: var(--color-text);
+  background: var(--gradient-ai);
+  border-radius: 50%;
+}
+
+.titles {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space-1) / 2);
+}
+
+.title {
+  font-size: var(--font-subsection-size);
+  line-height: var(--font-section-line-height);
+  font-weight: var(--font-subsection-weight);
+}
+
+.subtitle {
+  font-size: var(--font-card-body-size);
+  line-height: var(--font-card-body-line-height);
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 599px), (max-height: 499px) {
+  .header {
+    padding-top: calc(var(--space-3) + env(safe-area-inset-top));
+  }
+}

@@ -98,5 +98,7 @@ async function readJson(response: Response): Promise<unknown> {
 }
 
 function bodyError(body: unknown): unknown {
-  return typeof body === 'object' && body !== null ? (body as { error?: unknown }).error : undefined;
+  return typeof body === 'object' && body !== null
+    ? (body as { error?: unknown }).error
+    : undefined;
 }
