@@ -16,7 +16,8 @@ Design: `docs/design/chat/SPEC.md` (+ "Orchestrator decisions" O1–O4); API: `d
 - UI (stateless): `ChatRoute` → `ChatScreen` (launcher or panel, focus back to the FAB after a
   keyboard/× close, exit animation via `usePresence`) → `ChatLauncher` + `ChatHint`;
   `ChatPanel` (dialog, `useDialogBehavior`: initial focus, Tab trap, Esc, outside pointer-down,
-  sheet scroll lock) → `ChatHeader`, `OfflineNotice`, `MessageList` (greeting, `SuggestedQuestions`,
+  sheet scroll lock; `useVisualViewportFit` sizes the sheet to `visualViewport` so it fits above the
+  on-screen keyboard, fallback `100dvh`; `index.html` also sets `interactive-widget=resizes-content`) → `ChatHeader`, `OfflineNotice`, `MessageList` (greeting, `SuggestedQuestions`,
   `TurnView` → `MessageRow` / `AssistantReply` / `NoticeRow`, `TypingIndicator`, follows the answer
   only near the bottom), `LiveAnnouncer` (one polite region: typing, complete answer, stopped,
   errors), `ChatComposer` (auto-grow textarea, Enter sends, `SendButton` Send/Stop, meta row;

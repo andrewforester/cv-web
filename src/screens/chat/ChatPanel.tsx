@@ -9,6 +9,7 @@ import { MessageList } from './MessageList';
 import { OfflineNotice } from './OfflineNotice';
 import { CHAT_PANEL_ID, chatTestIds } from './testIds';
 import { useDialogBehavior } from './useDialogBehavior';
+import { useVisualViewportFit } from './useVisualViewportFit';
 import { CHAT_SHEET_QUERY, useMediaQuery } from './useMediaQuery';
 
 interface ChatPanelProps {
@@ -36,6 +37,8 @@ export function ChatPanel({ className, state, actions, closing, onKeyboardClose 
     onEscape: onKeyboardClose,
     onOutsidePointerDown: actions.close,
   });
+
+  useVisualViewportFit(dialogRef, sheet);
 
   // After sending, stopping or retrying, the question field keeps / gets the focus.
   const thenFocusInput = (action: () => void) => () => {
