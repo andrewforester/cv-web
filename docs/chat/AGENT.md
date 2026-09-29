@@ -4,8 +4,10 @@ The floating AI chat (GRA-8, [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md)) also contro
 natural language: "show me his Kotlin experience", "перемкни на українську", "scroll to the apps".
 The model calls **pre-declared, strictly typed frontend tools** that run in the browser; it never
 sees pixels, never parses the DOM and never gets CSS selectors. Decision record:
-[`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md); wire contract: the **v2
-DRAFT** section of [`API.md`](API.md). Status: design (GRA-31), nothing implemented yet.
+[`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md); wire contract: the **v2**
+section of [`API.md`](API.md). Status: shipped (design GRA-31; contract GRA-32, server GRA-33, registry
+GRA-34, chat UI GRA-35, README + e2e GRA-36). Known gap at GRA-36: the chat is not yet bound to the
+registry (section 11).
 
 ## 1. Findings: what the page can be told to do
 
@@ -207,6 +209,9 @@ Vercel, too much power for this). The hard cap remains the Anthropic workspace s
 
 ## 7. Implementation tasks
 
+All shipped: a1 = GRA-32, a2 = GRA-33, b = GRA-34, c = GRA-35, d = GRA-36. The table is the plan
+as written; the code and `agents.md` files are the truth.
+
 | # | Task | Zone | Depends on | Model | Size |
 |---|---|---|---|---|---|
 | a1 | **Contract v2 + ids.** `src/data/chat/contract.ts` (v2 types, API.md DRAFT made final), `src/data/chat/agentTools.ts` (`AgentToolSpec`, results, `buildAgentToolSpecs`, `AgentToolExecutor` interface), `id` on CV items in `src/data/models.ts` + `cv.en.json`, type test that ids are equal across locales. | Backend (contract), data | none | Opus | S |
@@ -236,7 +241,7 @@ SYSTEM_DESIGN) gains command prompts and runs on the preview after a2+b+c.
 | 9 | Request: tools first and byte-identical across requests and locales; `<page_state>` inside the user message; cache markers in place | `buildLlmRequest.test.ts` (a2) |
 | 10 | Log line has tool fields and `dayCostUsd`; budget over → `503` with `Retry-After` | `handler.test.ts` (a2) |
 | 11 | Widget ↔ handler agree on the v2 sequence | `contract.test.ts` (a2) |
-| 12 | Both locales: ask "show the apps" → page scrolls, no console errors | `e2e/agent.spec.ts` (d) |
+| 12 | Both locales: ask "show the apps" → page scrolls, no console errors | `e2e/agent.spec.ts` (d), shipped; also `highlightElement` and the `openContact` card with Cancel. Fails until the registry is bound to the chat (section 11) |
 
 ## 9. Cost of a typical dialogue
 
@@ -262,12 +267,40 @@ request per command is the main new cost (~$0.004 each on Haiku). Worst request 
 (40 messages, 24k chars ≈ 8k tokens + 3.35k prefix, 800 out): ~$0.015 Haiku, ~$0.035 Sonnet
 uncached; the ADR-0001 abuse math is unchanged in shape.
 
-## 10. Open questions (defaults are taken until answered)
+## 10. Open questions (defaults taken, as shipped)
 
 | # | Question | Default |
 |---|---|---|
 | Q1 | Stable ids: add `id` to CV items in the JSON, or derive slugs from names? | Add `id` in the JSON (survives translation of titles). |
 | Q2 | On the mobile full-screen sheet, should visual actions close the chat so the result is visible? | Yes, close it (conversation kept); desktop card stays open. |
 | Q3 | Follow-up requests count against the per-IP limiter (8/min, 100/day); a command costs 2. | Keep counting every POST; revisit if real use hits `rate_limited`. |
-| Q4 | Build the `GET /api/chat-usage` admin endpoint? | Not built: the log line + Anthropic Console suffice. `CHAT_DAILY_BUDGET_USD` is built in a2, off by default. |
+| Q4 | Build the `GET /api/chat-usage` admin endpoint? | Not built: the log line + Anthropic Console suffice. `CHAT_DAILY_BUDGET_USD` shipped (GRA-33), off by default. |
 | Q5 | Default model once tools ship. | Stay on Haiku 4.5; the golden check adds command prompts; switch to Sonnet 5.5 if tool choice is unreliable. |
+
+## 11. As shipped (GRA-36)
+
+- **Limits in code** (`CHAT_LIMITS_V2`): 40 messages, 10 questions, `page` snapshot 1,000 chars,
+  `providerState` 16,384 chars, 3 calls per message, 2 tool rounds per turn (then
+  `tool_choice: none`). Tool set: `highlightElement`, `openContact` (`confirm`), `scrollToSection`,
+  `switchLanguage`.
+- **Env:** `ANTHROPIC_API_KEY`, `CHAT_MODEL`, `CHAT_ENABLED` (kill switch, also turns the agent
+  off), `CHAT_DAILY_BUDGET_USD` (soft, per instance, in memory; over it `503 unavailable` with
+  `retryAfterSeconds` to UTC midnight), `CHAT_FAKE_LLM` (dev/tests). No separate agent flag.
+- **Log line** (`server/chat/log.ts`) adds `toolCalls`, `toolNames`, `toolRound`, `toolChoice`,
+  `providerStateBytes`, `dayCostUsd`. Checked on a real dev server with the fake model: a tool
+  round logs `stopReason: "tool_use"`, `toolNames: ["scrollToSection"]`, `toolRound: 0`; the
+  follow-up logs `end_turn`, `toolRound: 1`, and `dayCostUsd` accumulates.
+- **Cost check** (prices from `modelOptions.ts`: Haiku 1 / 5 / 0.1 / 1.25, Sonnet 5.5 2 / 10 / 0.2
+  / 2.5 USD per MTok): the section 9 dialogue gives Haiku 11.3k×1 + 13.2k×0.1 + 4.8k×1.25 +
+  780×5 = $0.0225 and Sonnet 29.4k×0.2 + 5.7k×2.5 + 940×10 = $0.0295, i.e. **~$0.023 and ~$0.030**
+  per typical dialogue as estimated. The token counts are modelled, not measured; measure with
+  the real key from the `inputTokens` / `cache*Tokens` fields of the log after the first real
+  dialogues. The dev fake model reports a flat 100 in / 20 out, so its `costUsd` (0.0002) says
+  nothing about real cost.
+- **Not built:** `GET /api/chat-usage`, a global exact budget, the WebMCP wiring
+  (`src/agent/webmcp.ts` only converts).
+- **Known gap:** `useAgentExecutor()` (`src/screens/chat/agentExecutor.ts`) still reads only the
+  unprovided `AgentExecutorContext`, so on `main` every tool answers `not_available`; it must
+  return `useAgentRegistry()` and call `registry.setConfirm(() => Promise.resolve(true))` (the chat
+  asks the visitor itself; the registry would otherwise decline `confirm` tools). Reported on the
+  GRA-36 PR; `e2e/agent.spec.ts` covers it. Remove this note once fixed.

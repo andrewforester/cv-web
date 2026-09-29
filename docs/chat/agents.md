@@ -15,7 +15,7 @@ about Andrew's professional profile; answers stream from Claude through a Vercel
 - [`../adr/0001-ai-cv-chat.md`](../adr/0001-ai-cv-chat.md): why Vercel Functions, Claude
   (`claude-haiku-4-5` default, `claude-sonnet-5-5` alternative), SSE over fetch, full-context
   knowledge before RAG, and the layered abuse protection.
-- [`AGENT.md`](AGENT.md): the chat as a page agent (GRA-31, design only): what the CV page can be
+- [`AGENT.md`](AGENT.md): the chat as a page agent (GRA-31 design, shipped in GRA-32…36): what the CV page can be
   told to do, the typed tool catalogue (`scrollToSection`, `highlightElement`, `switchLanguage`,
   `openContact` with confirmation) with `data-agent-id` targets, the page snapshot sent to the
   model, the client-executed tool protocol (follow-up requests, stateless server, caps), safety,
@@ -24,8 +24,7 @@ about Andrew's professional profile; answers stream from Claude through a Vercel
 - [`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md): why our own Anthropic
   tool use + browser registry (not CopilotKit), WebMCP-ready tool shape, follow-up requests
   instead of a server-held loop.
-- `API.md` → "v2 (DRAFT)": the proposed contract amendment for tools (`v: 2`); not final until
-  the contract task lands it.
+- `API.md` → "v2: page-agent tools": the final contract for tools (`v: 2`, GRA-32).
 
 Rules for implementers: change the contract only through its own ticket, bump `v` for breaking
 changes (API.md, Versioning); never call a real LLM in tests or CI; keep the files the server

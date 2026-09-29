@@ -1,9 +1,9 @@
 # ADR-0002: The AI chat controls the page through typed browser tools
 
-**Status:** Proposed (GRA-31; fixed decisions from the epic, this record justifies them)
+**Status:** Accepted, implemented (GRA-32…36)
 **Date:** 2026-09-29
 **Deciders:** Andrew Panasiuk (owner); orchestrator
-**Related:** [`docs/chat/AGENT.md`](../chat/AGENT.md), [`docs/chat/API.md`](../chat/API.md) (v2 DRAFT), [ADR-0001](0001-ai-cv-chat.md)
+**Related:** [`docs/chat/AGENT.md`](../chat/AGENT.md), [`docs/chat/API.md`](../chat/API.md) (v2), [ADR-0001](0001-ai-cv-chat.md)
 
 ## Context
 

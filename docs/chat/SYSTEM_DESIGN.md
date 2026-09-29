@@ -1,5 +1,9 @@
 # AI CV chat: system design
 
+> v1 text chat, as designed in GRA-8. The page-agent extension (`v: 2`: tools, follow-up requests,
+> usage log fields, daily budget) is in [`AGENT.md`](AGENT.md) and API.md → v2; where this file says
+> "v1" or "no tools" read it as the tool-less baseline.
+
 A floating chat icon on the CV page opens a panel where a visitor asks about Andrew Panasiuk's
 professional profile. Answers stream from Claude through a Vercel Function in this repository,
 grounded only in what the CV page shows. This document is the blueprint for the backend and
@@ -12,7 +16,7 @@ frontend tickets. The wire contract is [`API.md`](API.md), the decisions and alt
 |---|---|
 | Functional | Text Q&A about the professional profile, streamed. Answer in the visitor's language (EN/UK). Refuse off-topic and private questions politely. Never invent facts. |
 | Knowledge | Today: exactly what the CV page shows (`src/data/mock/cv.<locale>.json`). Later: more professional material (detailed experience, case studies). Adding a source must be cheap. |
-| Security | The LLM key never reaches the browser. No web access, no tools. |
+| Security | The LLM key never reaches the browser. No web access. The only tools are the typed page tools of the page agent, executed in the browser (`AGENT.md`, `v: 2`). |
 | Evolution | Voice later (speech in/out) without rewriting the contract or the layers. |
 | Platform | Vercel Hobby, Vercel Functions (Node runtime) in `api/`, deployed with the site. Stateless server: the client sends the history each turn. |
 | Cost | No new paid services (no DB/KV). Abuse protection within that. |
@@ -68,7 +72,7 @@ Backend (new zone, backend ticket):
 | `server/chat/clientIp.ts` | Client IP from `x-real-ip`, else first `x-forwarded-for` entry (Vercel sets both). Used only in memory. |
 | `server/chat/sse.ts` | `encodeSseEvent(name, payload)`, keep-alive comment, SSE response headers. |
 | `server/chat/errors.ts` | `ChatError` factories, HTTP status per code, JSON error `Response`. |
-| `server/chat/config.ts` | Reads env once: `ANTHROPIC_API_KEY`, `CHAT_MODEL`, `CHAT_ENABLED`, `CHAT_FAKE_LLM`, `VERCEL_ENV`. |
+| `server/chat/config.ts` | Reads env once: `ANTHROPIC_API_KEY`, `CHAT_MODEL`, `CHAT_ENABLED`, `CHAT_DAILY_BUDGET_USD`, `CHAT_FAKE_LLM`, `VERCEL_ENV`. |
 | `server/chat/knowledge/KnowledgeSource.ts` | `KnowledgeSource` and `KnowledgeDocument` types. |
 | `server/chat/knowledge/CvKnowledgeSource.ts` | Loads `src/data/mock/cv.<locale>.json` (fallback `en`) and renders it with `renderCv`. |
 | `server/chat/knowledge/renderCv.ts` | `Cv` to deterministic Markdown (section 5). |
@@ -243,7 +247,7 @@ Guardrail layers, from cheapest to last resort:
 | Threat | Mitigation |
 |---|---|
 | Hallucinated facts | Grounding rules above; knowledge in one tagged block; small, focused knowledge; golden-question check before model switches (section 14). |
-| Prompt injection in the visitor message | Visitor text only ever goes in `user` messages, never into `system`; the rules above; no tools and no web, so an injection cannot fetch, act or exfiltrate; output rendered as plain text. |
+| Prompt injection in the visitor message | Visitor text only ever goes in `user` messages, never into `system`; the rules above; no web and no server-side tools (page tools are typed enums run in the browser, `AGENT.md` §5), so an injection cannot fetch or exfiltrate; output rendered as plain text. |
 | Forged history (client sends fake `assistant` turns to steer the model, or to use the endpoint as a free general LLM) | Length and turn limits; the system prompt still governs every turn; the damage is confined to the attacker's own session and budgeted by rate and spend limits. HMAC-signed assistant turns were considered and deferred (ADR). |
 | Off-topic / private questions | Scope rules; a polite refusal is a normal `end_turn` answer. |
 | Model safety refusal | `stop_reason: refusal` maps to `done.stopReason: 'refusal'`; the widget shows a localized notice. |
@@ -258,7 +262,7 @@ allowlist; an unknown value logs an error once and falls back to the default.
 | Model | Price in / out per MTok | Request knobs | Notes |
 |---|---|---|---|
 | `claude-haiku-4-5` (default) | $1 / $5; cache read $0.10 | `max_tokens: 800`; no `thinking` param (off by default on Haiku 4.5) | Fastest first token. Minimum cacheable prefix is **4,096 tokens**, so today's ~2k-token prefix is not cached (markers are harmless; caching starts by itself when knowledge grows). |
-| `claude-sonnet-5-5` | $2 / $10; cache read $0.20 | `max_tokens: 800`; `thinking: { type: 'between_tools' }` (no thinking in a tool-less chat: predictable latency, no hidden output tokens); `output_config: { effort: 'low' }`; server-side refusal fallback `fallbacks: 'default'` with beta `server-side-fallback-2026-07-01` | Caches from 512 tokens. Stronger instruction following and Ukrainian; tokenizer counts ~1.2x more tokens for the same text. |
+| `claude-sonnet-5-5` | $2 / $10; cache read $0.20 | `max_tokens: 800`; `thinking: { type: 'between_tools' }` (thinking only between tool calls; none in a plain answer: predictable latency, no hidden output tokens); `output_config: { effort: 'low' }`; server-side refusal fallback `fallbacks: 'default'` with beta `server-side-fallback-2026-07-01` | Caches from 512 tokens. Stronger instruction following and Ukrainian; tokenizer counts ~1.2x more tokens for the same text. |
 
 Why Haiku by default: the task is short, grounded Q&A over ~1k tokens of facts, where latency
 matters most to the visitor and Haiku is the fastest; the cost per conversation is about 0.7x of
@@ -322,6 +326,10 @@ or the Vercel MCP `get_runtime_logs`), no visitor content:
  "anthropicRequestId":"req_...","country":"UA","limiter":"ok"}
 ```
 
+v2 lines also carry `toolCalls`, `toolNames`, `toolRound`, `toolChoice`, `providerStateBytes` and
+`dayCostUsd` (this instance's estimated spend for the UTC day); daily total: sum `costUsd` in the
+logs or read the Anthropic Console (`AGENT.md` §6, README → Talk to the page).
+
 - Never logged: message text, IP address, user agent, cookies. `country` comes from
   `x-vercel-ip-country` (coarse, not personal). Errors log the Anthropic error type/status and
   its request id, not the prompt.
@@ -338,6 +346,7 @@ or the Vercel MCP `get_runtime_logs`), no visitor content:
 | `ANTHROPIC_API_KEY` | Vercel Production + Preview (Sensitive); `.env.local` for dev | none | Missing: `503 unavailable`. |
 | `CHAT_MODEL` | Vercel, optional | `claude-haiku-4-5` | Allowlisted model id. |
 | `CHAT_ENABLED` | Vercel, optional | `true` | `false`: `503 unavailable` (kill switch). |
+| `CHAT_DAILY_BUDGET_USD` | Vercel, optional | unset (off) | Soft daily spend cap per instance (in-memory estimate from `costUsd`): over it `503 unavailable` until UTC midnight. |
 | `CHAT_FAKE_LLM` | `.env.local` / tests only | unset | `1`: use `FakeLlmClient`. Ignored when `VERCEL_ENV` is set (any Vercel deployment). |
 
 `vercel.json` gets `"functions": { "api/chat.ts": { "maxDuration": 60, "supportsCancellation": true } }`.
