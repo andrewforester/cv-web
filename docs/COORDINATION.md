@@ -54,7 +54,7 @@ Plus **Needs human**: waiting for the human's answer or action (the question is 
 ### Where sessions write
 Working sessions may not have the Linear tools. They post questions, deviations and their final report as **PR comments**, and on the ticket too when they can. The orchestrator mirrors decisions, the verification result and the closing comment to the ticket.
 
-**Screenshots** are stored on the orphan branch `screens` (never merged), path `GRA-<N>/<name>.png`, and linked from the PR comment (`https://github.com/andrewforester/cv-web/blob/screens/GRA-<N>/<name>.png?raw=true`); the orchestrator attaches the one it verified to the ticket (Linear file upload). Don't commit screenshots to feature branches.
+**Screenshots** (web results, before/after, the human's device screenshots) are uploaded **straight to the Linear ticket** and embedded in a ticket comment as `![<name>](<assetUrl>)` (steps in Tooling → Tracker); the PR comment links to that ticket comment. They are never committed to git: not to feature branches and not to a `screens` branch (the old orphan `screens` branch stays as history only). A session without the Linear tools leaves its PNGs in `/tmp/GRA-<N>/` and says so in its PR comment; the orchestrator uploads them.
 
 **Questions never block a session.** Nobody is watching it. Write the question as a comment, pick the most conservative option, note it, and keep going. The coordinator or the human answers.
 
@@ -67,7 +67,12 @@ Concrete commands behind the general steps in the skills. When a tool here stops
 ### Tracker (Linear MCP)
 - File / update a ticket: `save_issue` (`team: Grandtorino`, `project`, `labels: [<Role>, <Type>]`, `state`, `blockedBy`, `relatedTo`, `description` = the brief). Project per epic: `save_project`.
 - Comment: `save_comment`. Read: `get_issue`, `list_issues` (`project`, `state`), `list_comments`.
-- Attach a screenshot: `prepare_attachment_upload` → upload → `create_attachment_from_upload`.
+- Attach a screenshot, one file at a time:
+  1. `prepare_attachment_upload` (`issue: GRA-N`, `filename`, `contentType: image/png`, `size` = exact bytes, e.g. `stat -f%z` on macOS).
+  2. Within 60 s: `curl -sS -o /dev/null -w "%{http_code}" -X PUT --data-binary @<file> <uploadRequest.url>` with **every** header from `uploadRequest.headers` verbatim (`content-type`, `cache-control`, `x-goog-content-length-range`, `Content-Disposition`); expect `200`.
+  3. `create_attachment_from_upload` (`issue`, `assetUrl`).
+  4. Embed in a ticket comment (`save_comment`) as `![<name>](<assetUrl>)`, the plain `assetUrl` without a signature (Linear signs it). Read images back with `extract_images`.
+  Keep images reasonable: crop close-ups, JPEG for large full-page mobile shots.
 
 ### Code host (GitHub)
 - Cloud sessions use the GitHub MCP tools; local sessions use the `gh` CLI.
@@ -78,14 +83,19 @@ Concrete commands behind the general steps in the skills. When a tool here stops
 - **CI on `main`** has no event of its own: the permanent draft PR **"CI watch: main (never merge)"** (#1, head `main`, base `ci-watch`) stands in for it; `qa-release` follows it. Never merge, close or mark it ready, never push to `ci-watch`.
 
 ### Sessions
-The orchestrator launches each task in a **new session of the same kind as itself**, with the brief, the branch, the draft PR, the skill to use and the standing rules in the prompt (template in `.claude/skills/orchestrate` → Launch a session).
+The orchestrator launches each task as a new agent in a **new session of the same kind as itself**, with the brief, the branch, the draft PR, the skill to use and the standing rules in the prompt (template in `.claude/skills/orchestrate` → Launch a session): the orchestrator runs in the cloud → a new cloud session; the orchestrator runs locally → a new local background session **with Remote Control**, so the human can follow and steer it from the Claude app.
 
 - **Cloud orchestrator → new cloud session:** `create_session` with `source_url` = repo, `source_revision` = `outcome_branch` = `claude/<short>`, `permission_mode: auto`, `model` (below), `tags: [cv-web, GRA-N]`, `title: "GRA-N <short title>"`. Fallback check-in with `send_later` at the expected finish (design ≈ 15 min, theme ≈ 10, screen part ≈ 20–25, quick fix ≈ 12); cancel with `delete_trigger` when the ready signal comes. Usage after merge: `get_session` → `external_metadata.usage` (`cost_usd`, tokens) and `context_usage`; then `archive_session`. A cloud session can't be messaged: steer it with a comment it reads, or launch a follow-up session on the same branch. Don't pass messages via Routines (`fire_trigger` always starts a new session).
-- **Local orchestrator → new local session with Remote Control:** one git worktree per task (`git worktree add .claude/worktrees/<short> claude/<short>`), prompt written to `<scratchpad>/prompt-GRA-N.md`, then from the worktree `claude --bg -n "GRA-N <short title>" --model <model> --effort <effort> --permission-mode auto "$(cat <prompt file>)"`. It shows in `claude agents` (attach: `claude attach <id>`); to follow it from the phone, turn on Remote Control in it (`/remote-control`; a session started by hand in a terminal: `claude remote-control` in the worktree). Message it with `SendMessage` (name from `ListAgents`), e.g. to resume after a usage-limit stop (`claude --bg --resume <id>` also works). Remove the worktree after merge (`git worktree remove`). Usage: what the session reports (model, tokens, duration; USD when shown).
+- **Local orchestrator → new local background session with Remote Control:** one git worktree per task (`git worktree add .claude/worktrees/<short> claude/<short>`), prompt written to `<scratchpad>/prompt-GRA-N.md`, then from the worktree:
+  ```
+  claude --bg -n "GRA-N <short title>" --remote-control "GRA-N <short title>" \
+    --model <model> --effort <effort> --permission-mode auto "$(cat <prompt file>)"
+  ```
+  `--bg` runs it in the background and prints its id; `--remote-control` turns Remote Control on from the start (the log shows `/remote-control is active` and a claude.ai/code link), so it appears in the Claude app under that name. Record the id and name on the ticket. It shows in `claude agents` (attach: `claude attach <id>`, log: `claude logs <id>`). Message it with `SendMessage` (name from `ListAgents`), e.g. to resume after a usage-limit stop (`claude --bg --resume <id>` also works). Remove the worktree after merge (`git worktree remove`). Usage: what the session reports (model, tokens, duration; USD when shown).
 - **Models:** Sonnet (`claude-sonnet-5-5` / `--model sonnet --effort medium`) for theme tokens, small fixes, docs, mechanical tasks; Opus (`claude-opus-5-5` / `--model opus --effort high`) for research, architecture, scaffold, design packages, screens, backend. At most 3 sessions at once (2 Opus locally: they share the account's usage limit); check the limit before a batch (cloud: `get_session` → `rate_limit_info`).
 - **Global skills:** tell sessions to use Anthropic's design / system-design / architecture skills (`engineering:system-design`, `engineering:architecture`, frontend design) when available in their environment, after the project skills.
 - **Didn't work (Sept 2026), don't retry:** the `Agent` tool with `isolation: "remote"` silently runs in a local worktree (its subagents are invisible and share the orchestrator's usage); starting a cloud session through a Routine (`RemoteTrigger`) is denied in auto mode.
-- **Hand-off to a new orchestrator:** handoff comment on the epic's project/main ticket, then launch the new orchestrator the same way as a task session (cloud: `create_session` without a branch; local: `claude --bg -n "orchestrator <epic>"` in the main checkout) with "Use the orchestrate skill. Continue <epic>; handoff: <link>".
+- **Hand-off to a new orchestrator:** handoff comment on the epic's project/main ticket, then launch the new orchestrator the same way as a task session (cloud: `create_session` without a branch; local: `claude --bg -n "orchestrator <epic>" --remote-control "orchestrator <epic>" --model opus --effort high --permission-mode auto "…"` in the main checkout) with "Use the orchestrate skill. Continue <epic>; handoff: <link>".
 
 ### Notifications and deploy checks
 - To the human: chat message + `PushNotification` (reaches the phone only while Remote Control is connected); anything the human must do (a key, a setting, a DNS record) also goes into a ticket comment with **Needs human**, since the Linear app notifies the phone.

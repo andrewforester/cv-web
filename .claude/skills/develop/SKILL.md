@@ -36,8 +36,8 @@ You are one working session on one task. The orchestrator launched you; a human 
 0. Self-review the diff: no file past ≈250 lines, no copy-pasted blocks, no hardcoded colours/sizes/strings, `agents.md` present and current in each folder you touched.
 1. Re-read the brief and all comments: scope or decisions may have changed while you worked. Adjust.
 2. `git merge origin/main` again, re-run the checks, then push.
-3. Put the web screenshot(s) where `COORDINATION.md` → Tracker → Screenshots says (never on your feature branch) and write the **report** as a PR comment (and on the ticket if you can):
-   - the screenshot link;
+3. Upload the web screenshot(s) to the ticket as `COORDINATION.md` → Tracker → Screenshots says (never into git) and write the **report** as a PR comment (and on the ticket if you can):
+   - the link to the ticket comment with the screenshots;
    - deviations from the design and why;
    - stubs, `TODO`s, questions and the options you took;
    - how you verified it, and what you installed.

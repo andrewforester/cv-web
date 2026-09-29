@@ -71,7 +71,7 @@ The design reference and the rules for screenshots are in `docs/COORDINATION.md`
 
 ## Process
 
-The tracker is **Linear** (team Grandtorino, one project per epic, one ticket `GRA-N` per task; GitHub Issues are not used). It holds the whole working process: status, Role/Type labels, dependencies (blocked-by relations), session names/ids, scope changes, questions and decisions, web screenshots of results (stored on the orphan branch `screens`), and a closing comment with the Claude usage (model, USD when known, context, tokens). Working sessions report in PR comments; the orchestrator mirrors to the ticket. The orchestrator's reports to the human include a cost table. The repository holds only the product and the standing rules; PR bodies are short (`Closes GRA-N` + what changed). Details: `docs/COORDINATION.md` → Tracker.
+The tracker is **Linear** (team Grandtorino, one project per epic, one ticket `GRA-N` per task; GitHub Issues are not used). It holds the whole working process: status, Role/Type labels, dependencies (blocked-by relations), session names/ids, scope changes, questions and decisions, web screenshots of results (uploaded straight to the ticket, never committed), and a closing comment with the Claude usage (model, USD when known, context, tokens). Working sessions report in PR comments; the orchestrator mirrors to the ticket. The orchestrator's reports to the human include a cost table. The repository holds only the product and the standing rules; PR bodies are short (`Closes GRA-N` + what changed). Details: `docs/COORDINATION.md` → Tracker.
 
 ## Git & CI
 

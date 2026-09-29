@@ -13,7 +13,7 @@ A fix is small: one symptom, a few files, no design package, no new screen. If i
    - Otherwise, one ticket per fix: Type **Bug**, Role of the zone (usually Development, or DevOps for config/hosting), status Todo. Several fixes in the same zone can share one ticket.
 2. **Brief:** symptom (browser/device, where on screen, the human's words), expected result, likely cause if you know it, zone (exact files), out of scope, done-when (before/after screenshot, checks green).
 3. **Launch** like any task (`orchestrate` → Launch a session) on branch `claude/fix-<short>`, with the cheaper model and "Use the `quick-fix` skill"; fallback check-in ≈ 12 min. A quick fix should cost about $1; if it needs measurements, say exactly which (e.g. "two screenshots, no network throttling").
-   The human's device screenshots go to the `screens` branch and into the ticket.
+   The human's device screenshots go into the ticket (`COORDINATION.md` → Tracker → Screenshots).
    If two fixes touch the same file, run them one after the other.
 4. **Merge** per `orchestrate` → Verify and merge. When a web screenshot can't show the change (config, backend, a specific browser), check the diff carefully and rely on CI.
 
