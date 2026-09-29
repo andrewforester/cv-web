@@ -80,9 +80,10 @@
 
 @media (max-width: 599px), (max-height: 499px) {
   .panel {
-    inset: 0;
+    inset: var(--chat-vv-top, 0) 0 auto 0;
     width: 100%;
-    height: 100dvh;
+    /* Set by useVisualViewportFit while the keyboard is open. */
+    height: var(--chat-vv-height, 100dvh);
     border-radius: 0;
     box-shadow: none;
     animation-name: sheet-in;
