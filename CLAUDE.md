@@ -38,6 +38,8 @@ Before every push: *lint* and *test* must pass.
 
 Chat env (server-side only; Vercel Project Settings for Production + Preview, `.env.local` for dev): `ANTHROPIC_API_KEY` (missing: `/api/chat` answers `503`), `CHAT_MODEL` (`claude-haiku-4-5` default, or `claude-sonnet-5-5`), `CHAT_ENABLED` (`false` = kill switch), `CHAT_FAKE_LLM` (`1` = scripted answers; dev/tests only, ignored on Vercel). No test or CI job calls a real model. Try the endpoint with `curl -N -X POST http://localhost:5173/api/chat -H 'Content-Type: application/json' -H 'Origin: http://localhost:5173' -d '{"v":1,"locale":"en","messages":[{"role":"user","content":"Hi"}]}'`.
 
+Local sessions (the default way work sessions run, see `.claude/skills/orchestrate` → Launch a session): install what you need yourself: Node 22 (`nvm install 22` or `brew install node@22`), `npm ci`, and for the *web check* Playwright's Chromium (`npx playwright install chromium`). The session-start hook does not run locally.
+
 Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `npm ci` when `node_modules` is missing or older than `package-lock.json`, and warns when `registry.npmjs.org` (the only domain the environment must allow) is unreachable. Playwright uses the preinstalled Chromium in `/opt/pw-browsers`.
 
 ## Conventions
@@ -69,7 +71,7 @@ The design reference and the rules for screenshots are in `docs/COORDINATION.md`
 
 ## Process
 
-GitHub Issues hold the whole working process: status labels, session ids, scope changes, questions and decisions, web screenshots of results (stored on the orphan branch `screens`, embedded in Issue comments). Each closed Issue gets a closing comment with the Claude usage (model, USD, context, tokens). Issues declare `Depends on: #N`; the orchestrator launches them as their dependencies merge. The orchestrator's reports to the human include a cost table. The repository holds only the product and the standing rules; PR bodies are short (`Closes #N` + what changed).
+The tracker holds the whole working process: GitHub Issues by default, or a Linear project when the human asks for it (one ticket per task, e.g. `GRA-7`; the PR body then says `Linear: GRA-7` instead of `Closes #N`, and reports go into PR comments plus a ticket comment). Below, "Issue" means the tracker's ticket. It records status labels, session names/ids, scope changes, questions and decisions, web screenshots of results (stored on the orphan branch `screens`, embedded in Issue comments). Each closed Issue gets a closing comment with the Claude usage (model, USD when known, context, tokens). Issues declare `Depends on: #N`; the orchestrator launches them as their dependencies merge. The orchestrator's reports to the human include a cost table. The repository holds only the product and the standing rules; PR bodies are short (`Closes #N` + what changed).
 
 ## Git & CI
 

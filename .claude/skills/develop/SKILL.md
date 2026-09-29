@@ -9,8 +9,9 @@ You are one working session on one Issue. The orchestrator launched you; a human
 
 ## Start
 1. `git fetch origin && git merge origin/main` on your branch (`claude/<short>`). Never rebase or force-push. The orchestrator already opened a **draft PR** from this branch (the prompt names it): never open another one.
-2. Read `CLAUDE.md`, `docs/COORDINATION.md` and the **whole Issue with all its comments** through the GitHub MCP tools: task, design package, zone, out of scope, depends-on, done-when. The Issue is your only brief, and the place for everything about the process.
-3. If the Issue depends on another branch that isn't in `main` yet, merge that branch (`git merge origin/<branch>`) as soon as it exists. Use only the API contract the Issue names.
+2. Read `CLAUDE.md`, `docs/COORDINATION.md` and the **whole Issue with all its comments** through the GitHub MCP tools (or the `gh` CLI): task, design package, zone, out of scope, depends-on, done-when. The Issue is your only brief, and the place for everything about the process. If the tracker is Linear, the full brief is in your launch prompt, and questions and reports go into comments on your PR (and on the Linear ticket if you have the Linear MCP).
+3. **Environment.** In a cloud container the session-start hook prepares everything. In a local session install what you need yourself: Node 22 (`nvm install 22` or `brew install node@22`), `npm ci`, and `npx playwright install chromium` before the *web check*. Say in your report what you installed.
+4. If the Issue depends on another branch that isn't in `main` yet, merge that branch (`git merge origin/<branch>`) as soon as it exists. Use only the API contract the Issue names.
 
 ## Work
 - **Zone.** Change only the paths the Issue lists. If you need something outside the zone (a token, a dependency, a route registration that isn't listed), comment on the Issue with exactly what and why, and continue on a local stub (e.g. a private constant marked `TODO(<owner>)`). List every stub in your final Issue comment.
@@ -21,7 +22,8 @@ You are one working session on one Issue. The orchestrator launched you; a human
 - **Conventions** are in `CLAUDE.md`: tokens only (no hardcoded colours or sizes), strings through the strings/i18n mechanism, hoisted state, mocks behind an interface in the data layer.
 - **Architecture and code quality** (`CLAUDE.md` → Architecture & code quality): layered data → state → stateless UI, small files, no duplication (reuse shared components and tokens; if another screen already has the piece you need, say so in the Issue instead of copying it).
 - **`agents.md` in every folder you touch.** As you go, create or update `agents.md` next to the code: a short business description of what the folder does, what the user sees, the main types and how they connect, where data comes from, stubs/TODOs. Update it in the same commit as the code it describes.
-- Commit and push early and often. The sandbox can restart, and the orchestrator watches your branch.
+- Commit and push early and often. The sandbox can restart, sessions share a usage limit that can stop you mid-task, and the orchestrator watches your branch. After a stop, `git status` first: your worktree keeps uncommitted work.
+- Backend: Vercel previews are usually behind Vercel Authentication. Push a minimal deploy spike early so the preview proves the build, and say in the report if you couldn't call it.
 
 ## Verify before every push
 - *lint* and *test* (`CLAUDE.md` → Commands) must be green. Run *format* to auto-fix.
