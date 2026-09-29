@@ -309,3 +309,175 @@ event: error
 data: {"code":"upstream_error","message":"Upstream stream failed: overloaded","retryable":true,"requestId":"3f0c9a4e-..."}
 
 ```
+
+---
+
+## v2 (DRAFT, GRA-31): page-agent tools
+
+> **DRAFT. Not implemented.** Proposed by [`AGENT.md`](AGENT.md) and
+> [`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md). Everything above stays the
+> v1 contract. The contract task (AGENT.md section 7, a1) makes this section final and copies the
+> types into `src/data/chat/contract.ts` and `src/data/chat/agentTools.ts`.
+
+**Why a new version:** messages gain new shapes and a stream can now end with
+`stopReason: 'tool_use'`, which a v1 widget can't handle. Per Versioning, the server serves
+`v: 1` exactly as above (no tools) and `v: 2` as below, both for at least one release.
+
+### What changes from v1
+
+| Area | v2 |
+|---|---|
+| `v` | `2` |
+| Tools | The server always sends the full tool catalogue (`buildAgentToolSpecs`) to the model. The client never sends tool definitions. |
+| User message | `{ role: 'user', content, page }`: text + the page snapshot at send time (kept in the history and echoed verbatim). |
+| Tool-call turn | `{ role: 'assistant', content, toolCalls, providerState? }`: `content` may be empty when `toolCalls` is present. |
+| Tool results | `{ role: 'user', toolResults }`, right after the assistant message with `toolCalls`, one result per call id, same order. |
+| Roles | Still alternate, start with a text `user` message, end with a `user` message (text or results). |
+| Limits | `maxMessages` **40** (`422 conversation_limit` above); at most **10** text `user` messages; per-question and total char limits as v1; `page` at most 1,000 chars as JSON; `providerState` at most 16,384 chars; at most 3 `toolCalls` per assistant message; at most 2 consecutive tool rounds after the last text `user` message (the server then answers with tools disabled). |
+| SSE | New event `tool_call`; `done.stopReason` adds `'tool_use'`; `done` may carry `providerState`. |
+| Errors | No new codes: v2 shape violations are `400 invalid_request`; budget stop is `503 unavailable` with `retryAfterSeconds`. |
+
+### Stream
+
+| Event | `data` | When |
+|---|---|---|
+| `delta` | `{ "text": string }` | As v1 (usually one short sentence before a tool call). |
+| `tool_call` | `AgentToolCall` | Once per completed `tool_use` block, in order. |
+| `done` | `{ stopReason, usage, providerState? }` | Terminal. With `stopReason: 'tool_use'` the client executes the calls **after** `done`, then posts a follow-up. |
+| `error` | `ChatError` | Terminal, as v1. The client runs no tool from a stream that ended in `error`. |
+
+### Types (draft)
+
+```ts
+export const CHAT_API_VERSION_V2 = 2;
+
+export const CHAT_LIMITS_V2 = {
+  ...CHAT_LIMITS,
+  maxMessages: 40,
+  maxUserQuestions: 10,
+  maxPageStateChars: 1_000,
+  maxProviderStateChars: 16_384,
+  maxToolCallsPerMessage: 3,
+  maxToolRoundsPerTurn: 2,
+} as const;
+
+/** Page snapshot sent with each question: enums and booleans only, never text or values. */
+export interface AgentPageState {
+  route: '/';
+  locale: ChatLocale;
+  viewport: 'desktop' | 'mobile';
+  chat: 'card' | 'sheet';
+  activeSection: AgentSectionId | null;
+  highlighted: AgentTargetId | null;
+  /** Tools registered (mounted) right now, sorted. */
+  tools: AgentToolName[];
+}
+
+export type AgentToolName = 'highlightElement' | 'openContact' | 'scrollToSection' | 'switchLanguage';
+
+export type AgentSectionId =
+  | 'header' | 'summary' | 'technologies' | 'latest-experience'
+  | 'apps' | 'education' | 'about' | 'previous-experience';
+
+/** `<kind>:<id>`, the value of the element's `data-agent-id`; ids come from the CV JSON. */
+export type AgentTargetId = `${'section' | 'technology' | 'experience' | 'app' | 'book' | 'contact'}:${string}`;
+
+export interface AgentToolCall {
+  /** The model's `tool_use` id. */
+  id: string;
+  name: AgentToolName;
+  /** Validated by the client against the tool's JSON Schema before anything runs. */
+  input: Record<string, unknown>;
+}
+
+export type AgentToolError = 'not_available' | 'unknown_target' | 'invalid_params' | 'declined' | 'failed';
+
+export type AgentToolResult = { ok: true } | { ok: false; error: AgentToolError };
+
+export interface AgentToolResultMessageItem {
+  callId: string;
+  result: AgentToolResult;
+}
+
+export type ChatMessageV2 =
+  | { role: 'user'; content: string; page: AgentPageState }
+  | { role: 'user'; toolResults: AgentToolResultMessageItem[] }
+  | { role: 'assistant'; content: string; toolCalls?: AgentToolCall[]; providerState?: string };
+
+export interface ChatRequestV2 {
+  v: typeof CHAT_API_VERSION_V2;
+  locale: ChatLocale;
+  messages: ChatMessageV2[];
+}
+
+export type ChatStopReasonV2 = ChatStopReason | 'tool_use';
+
+export interface ChatSsePayloadsV2 {
+  delta: { text: string };
+  tool_call: AgentToolCall;
+  done: { stopReason: ChatStopReasonV2; usage: ChatUsage; providerState?: string };
+  error: ChatError;
+}
+```
+
+`src/data/chat/agentTools.ts` (draft) holds the catalogue both sides use:
+
+```ts
+export interface AgentToolSpec {
+  name: AgentToolName;
+  /** For the model; English, one or two sentences. */
+  description: string;
+  /** JSON Schema: type object, all properties required, additionalProperties false, enums of real ids. */
+  inputSchema: Record<string, unknown>;
+  /** Outward or irreversible: the chat asks the visitor before running it. */
+  confirm: boolean;
+}
+
+/** Deterministic: sorted by name, ids in CV data order. Same output on server and client. */
+export declare function buildAgentToolSpecs(cv: Cv): AgentToolSpec[];
+
+/** What the chat needs from the page: implemented by the browser registry, faked in tests. */
+export interface AgentToolExecutor {
+  specs(): AgentToolSpec[];
+  available(): AgentToolName[];
+  execute(call: AgentToolCall): Promise<AgentToolResult>;
+}
+```
+
+### Example: one tool round (draft)
+
+Request 1 (the visitor asks):
+
+```json
+{ "v": 2, "locale": "en", "messages": [
+  { "role": "user", "content": "Show me his apps",
+    "page": { "route": "/", "locale": "en", "viewport": "desktop", "chat": "card",
+              "activeSection": "header", "highlighted": null,
+              "tools": ["highlightElement", "openContact", "scrollToSection", "switchLanguage"] } } ] }
+```
+
+Response 1:
+
+```text
+event: delta
+data: {"text":"Scrolling to his apps."}
+
+event: tool_call
+data: {"id":"toolu_01A","name":"scrollToSection","input":{"section":"apps"}}
+
+event: done
+data: {"stopReason":"tool_use","usage":{"inputTokens":3510,"outputTokens":48,"cacheReadInputTokens":0,"cacheCreationInputTokens":0}}
+
+```
+
+Request 2 (follow-up after the client scrolled):
+
+```json
+{ "v": 2, "locale": "en", "messages": [
+  { "role": "user", "content": "Show me his apps", "page": { "...": "as sent in request 1" } },
+  { "role": "assistant", "content": "Scrolling to his apps.",
+    "toolCalls": [ { "id": "toolu_01A", "name": "scrollToSection", "input": { "section": "apps" } } ] },
+  { "role": "user", "toolResults": [ { "callId": "toolu_01A", "result": { "ok": true } } ] } ] }
+```
+
+Response 2: `delta` "Here they are: Cync, August Home and Savant." then `done` with `end_turn`.
