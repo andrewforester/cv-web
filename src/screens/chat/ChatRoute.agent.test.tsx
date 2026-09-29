@@ -1,4 +1,10 @@
-import { act, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { AgentToolRegistry } from '../../agent';
+import { AppProviders } from '../../app/AppProviders';
+import { buildAgentToolSpecs, FakeChatRepository } from '../../data/chat';
+import { StaticCvRepository } from '../../data/mock/StaticCvRepository';
+import { ChatRoute } from './ChatRoute';
 import { chatTestIds } from './testIds';
 import { answer, inList, renderOpenChat, toolTurn } from './chatTestHarness';
 
@@ -289,5 +295,42 @@ describe('chat tool loop failures and layout', () => {
 
     await inList().findByText('Here.');
     expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+});
+
+describe('chat over the real tool registry', () => {
+  it('runs scrollToSection, and openContact after Confirm (not declined)', async () => {
+    const cv = await new StaticCvRepository().getCv('en');
+    const registry = new AgentToolRegistry(buildAgentToolSpecs(cv));
+    const scroll = vi.fn(() => ({ ok: true }) as const);
+    const open = vi.fn(() => ({ ok: true }) as const);
+    registry.register('scrollToSection', scroll);
+    registry.register('openContact', open);
+    const repository = new FakeChatRepository();
+    const user = userEvent.setup();
+    render(
+      <AppProviders chatRepository={repository} locale="en" agentRegistry={registry}>
+        <ChatRoute />
+      </AppProviders>,
+    );
+    await user.click(screen.getByTestId(chatTestIds.fab));
+    repository
+      .reply(...toolTurn('', scrollToApps))
+      .reply(...answer('Scrolled.'))
+      .reply(...toolTurn('', openTelegram))
+      .reply(...answer('Opened.'));
+
+    await ask(user, 'Show the apps');
+    expect(await inList().findByText('Scrolled.')).toBeInTheDocument();
+    expect(scroll).toHaveBeenCalledWith({ section: 'apps' });
+
+    await ask(user, 'Telegram');
+    expect(open).not.toHaveBeenCalled();
+    await user.click(await screen.findByTestId(chatTestIds.confirmAction));
+    expect(await inList().findByText('Opened.')).toBeInTheDocument();
+    expect(open).toHaveBeenCalledWith({ channel: 'telegram' });
+    expect(repository.requests.at(-1)?.messages.at(-1)).toMatchObject({
+      toolResults: [{ result: { ok: true } }],
+    });
   });
 });
