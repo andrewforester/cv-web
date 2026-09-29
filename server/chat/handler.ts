@@ -1,6 +1,12 @@
-import { CHAT_LIMITS, type ChatError } from '../../src/data/chat/contract.js';
+import {
+  CHAT_LIMITS,
+  type ChatError,
+  type ChatMessageV2,
+  type ChatRequest,
+} from '../../src/data/chat/contract.js';
 import { clientIp } from './clientIp.js';
 import type { ChatConfig } from './config.js';
+import type { DayCostMeter } from './dayCost.js';
 import { chatError, errorResponse, HTTP_STATUS_BY_CODE } from './errors.js';
 import { checkContentType, checkMethod, checkOrigin, readBody } from './guards.js';
 import type { KnowledgeLoader } from './knowledge/assembleKnowledge.js';
@@ -17,6 +23,8 @@ export interface ChatDeps {
   /** Absent when no API key is configured: `503 unavailable`. */
   llm: LlmClient | undefined;
   limiter: RateLimiter;
+  /** This instance's spend today: logged, and checked against `config.dailyBudgetUsd`. */
+  dayCost: DayCostMeter;
   knowledge: KnowledgeLoader;
   log: ChatLogger;
   now?: () => number;
@@ -58,7 +66,21 @@ function newEntry(requestId: string, deps: ChatDeps, request: Request): ChatLogE
     upstreamError: null,
     country: request.headers.get('x-vercel-ip-country'),
     limiter: null,
+    toolCalls: null,
+    toolNames: null,
+    toolRound: null,
+    toolChoice: null,
+    providerStateBytes: null,
+    dayCostUsd: null,
   };
+}
+
+/** Characters of text the visitor and the model wrote (never the text itself). */
+function inputChars(messages: ChatRequest['messages'] | ChatMessageV2[]): number {
+  return messages.reduce(
+    (sum, message) => sum + ('content' in message ? message.content.length : 0),
+    0,
+  );
 }
 
 function parseJson(text: string): { ok: true; value: unknown } | { ok: false } {
@@ -78,21 +100,27 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
   const startedAt = now();
   const requestId = deps.newRequestId?.() ?? crypto.randomUUID();
   const entry = newEntry(requestId, deps, request);
-  const fail = (error: ChatError): Response => {
+  const fail = (error: ChatError, version?: number): Response => {
     deps.log({
       ...entry,
       status: HTTP_STATUS_BY_CODE[error.code],
       outcome: 'error',
       errorCode: error.code,
       durationMs: now() - startedAt,
+      dayCostUsd: deps.dayCost.totalToday(),
     });
-    return errorResponse(error, requestId);
+    return errorResponse(error, requestId, version);
   };
 
   const guardError = checkMethod(request) ?? checkOrigin(request) ?? checkContentType(request);
   if (guardError) return fail(guardError);
   if (!deps.config.enabled) return fail(chatError('unavailable', 'Chat is switched off'));
   if (!deps.llm) return fail(chatError('unavailable', 'Chat is not configured'));
+  const budget = deps.config.dailyBudgetUsd;
+  if (budget !== undefined && deps.dayCost.totalToday() >= budget) {
+    const retryAfterSeconds = deps.dayCost.secondsToNextDay();
+    return fail(chatError('unavailable', 'Daily budget reached', { retryAfterSeconds }));
+  }
 
   const decision = deps.limiter.check(clientIp(request));
   entry.limiter = decision.ok ? 'ok' : decision.scope;
@@ -119,13 +147,20 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
   const chat = validation.request;
   entry.locale = chat.locale;
   entry.messages = chat.messages.length;
-  entry.inputChars = chat.messages.reduce((sum, message) => sum + message.content.length, 0);
+  entry.inputChars = inputChars(chat.messages);
 
   try {
     const knowledge = await deps.knowledge(chat.locale);
+    const llmRequest = buildLlmRequest(chat, knowledge, deps.config.model);
+    if (chat.v === 2) {
+      entry.toolRound = chat.toolRound;
+      entry.toolChoice = llmRequest.tool_choice?.type ?? null;
+    }
     return await streamAnswer({
       llm: deps.llm,
-      llmRequest: buildLlmRequest(chat, knowledge, deps.config.model),
+      llmRequest,
+      version: chat.v,
+      dayCost: deps.dayCost,
       model: deps.config.model,
       requestSignal: request.signal,
       requestId,
@@ -137,6 +172,6 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
       log: deps.log,
     });
   } catch {
-    return fail(chatError('internal_error', 'Unexpected server error'));
+    return fail(chatError('internal_error', 'Unexpected server error'), chat.v);
   }
 }

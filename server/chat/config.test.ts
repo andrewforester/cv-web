@@ -33,6 +33,16 @@ describe('readChatConfig', () => {
     expect(readChatConfig({ CHAT_FAKE_LLM: '1' }).fakeLlm).toBe(true);
     expect(readChatConfig({ CHAT_FAKE_LLM: '1', VERCEL_ENV: 'preview' }).fakeLlm).toBe(false);
   });
+
+  it('reads the optional daily budget; unset or invalid is off', () => {
+    expect(readChatConfig({}).dailyBudgetUsd).toBeUndefined();
+    expect(readChatConfig({ CHAT_DAILY_BUDGET_USD: ' 2.5 ' }).dailyBudgetUsd).toBe(2.5);
+    for (const value of ['0', '-1', 'ten', 'Infinity']) {
+      const config = readChatConfig({ CHAT_DAILY_BUDGET_USD: value });
+      expect(config.dailyBudgetUsd).toBeUndefined();
+      expect(config.invalidBudget).toBe(value);
+    }
+  });
 });
 
 describe('estimateCostUsd', () => {

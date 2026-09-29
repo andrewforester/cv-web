@@ -1,9 +1,9 @@
-import type { ChatSseEventName, ChatSsePayloads } from '../../src/data/chat/contract.js';
+import type { ChatSseEventNameV2, ChatSsePayloadsV2 } from '../../src/data/chat/contract.js';
 
-/** One SSE event: `event:` line, one `data:` line of JSON, blank line. */
-export function encodeSseEvent<N extends ChatSseEventName>(
+/** One SSE event: `event:` line, one `data:` line of JSON, blank line. v1 uses a subset. */
+export function encodeSseEvent<N extends ChatSseEventNameV2>(
   name: N,
-  payload: ChatSsePayloads[N],
+  payload: ChatSsePayloadsV2[N],
 ): string {
   return `event: ${name}\ndata: ${JSON.stringify(payload)}\n\n`;
 }

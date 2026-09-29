@@ -37,19 +37,26 @@ export function chatError(
   return { code, message, retryable: RETRYABLE_BY_DEFAULT.has(code), ...extra };
 }
 
-/** Headers every response of the function carries. */
-export function baseHeaders(requestId: string): Record<string, string> {
+/** Headers every response of the function carries; `version` is the request's once known. */
+export function baseHeaders(
+  requestId: string,
+  version: number = CHAT_API_VERSION,
+): Record<string, string> {
   return {
-    [CHAT_API_VERSION_HEADER]: String(CHAT_API_VERSION),
+    [CHAT_API_VERSION_HEADER]: String(version),
     [CHAT_REQUEST_ID_HEADER]: requestId,
   };
 }
 
 /** A JSON error `Response` (`{ "error": ChatError }`) with the status of its code. */
-export function errorResponse(error: ChatError, requestId: string): Response {
+export function errorResponse(
+  error: ChatError,
+  requestId: string,
+  version: number = CHAT_API_VERSION,
+): Response {
   const body: ChatErrorBody = { error: { ...error, requestId } };
   const headers: Record<string, string> = {
-    ...baseHeaders(requestId),
+    ...baseHeaders(requestId, version),
     'Content-Type': 'application/json; charset=utf-8',
     'Cache-Control': 'no-store',
   };
