@@ -1,5 +1,7 @@
 import type { ExperienceEntry as ExperienceEntryData } from '../../data';
+import type { AgentTargetId } from '../../data/chat';
 import { useStrings } from '../../i18n';
+import { agentTargetProps } from './agentTarget';
 import styles from './ExperienceEntry.module.css';
 import { cvImageUrl } from './images';
 import { RichTextLine } from './RichTextLine';
@@ -9,18 +11,25 @@ import { cvTestIds } from './testIds';
 interface ExperienceEntryProps {
   className?: string;
   entry: ExperienceEntryData;
+  highlightedId: AgentTargetId | null;
   /** Below-the-fold entries load their logo lazily. */
   lazy?: boolean;
 }
 
 /** One job: logo, company (+ "remotely"), role and period, then the bullet lines. */
-export function ExperienceEntry({ className, entry, lazy = false }: ExperienceEntryProps) {
+export function ExperienceEntry({
+  className,
+  entry,
+  highlightedId,
+  lazy = false,
+}: ExperienceEntryProps) {
   const strings = useStrings(cvStrings);
 
   return (
     <div
       className={[styles.root, className].filter(Boolean).join(' ')}
       data-testid={cvTestIds.experienceEntry}
+      {...agentTargetProps('experience', entry.id, highlightedId)}
     >
       <div className={styles.head}>
         <img

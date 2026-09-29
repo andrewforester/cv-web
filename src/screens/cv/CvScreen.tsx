@@ -29,27 +29,31 @@ export function CvScreen({ className, state }: CvScreenProps) {
     );
   }
 
-  const { cv } = state;
+  const { cv, highlightedId } = state;
   return (
     <article
       className={[styles.root, className].filter(Boolean).join(' ')}
       data-testid={cvTestIds.root}
     >
-      <HeaderSection header={cv.header} />
-      <SummarySection summary={cv.summary} />
-      <TechnologiesSection cards={cv.technologies} />
+      <HeaderSection header={cv.header} highlightedId={highlightedId} />
+      <SummarySection summary={cv.summary} highlightedId={highlightedId} />
+      <TechnologiesSection cards={cv.technologies} highlightedId={highlightedId} />
       <ExperienceSection
         title={strings.latestExperienceTitle}
         entries={cv.latestExperience}
         testId={cvTestIds.latestExperience}
+        sectionId="latest-experience"
+        highlightedId={highlightedId}
       />
-      <AppsSection apps={cv.apps} />
-      <EducationSection lines={cv.education} />
-      <AboutSection books={cv.books} interests={cv.interests} />
+      <AppsSection apps={cv.apps} highlightedId={highlightedId} />
+      <EducationSection lines={cv.education} highlightedId={highlightedId} />
+      <AboutSection books={cv.books} interests={cv.interests} highlightedId={highlightedId} />
       <ExperienceSection
         title={strings.previousExperienceTitle}
         entries={cv.previousExperience}
         testId={cvTestIds.previousExperience}
+        sectionId="previous-experience"
+        highlightedId={highlightedId}
         lazy
       />
     </article>

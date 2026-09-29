@@ -7,7 +7,7 @@ Design tokens, fonts and global styles for the whole site.
   (name, section, subsection, body, education, card-title, card-body, meta, tag, book-title,
   book-author, app-name, app-publisher, app-value, app-label), `--font-family`,
   `--letter-spacing`, `--letter-spacing-app`, `--space-1..9` (4, 8, 12, 16, 20, 24, 30, 36, 48 px),
-  `--content-max-width`, `--page-gutter`. Components use `var(--token)` in CSS Modules, never
+  `--content-max-width`, `--page-gutter`. `--agent-highlight-*` and `--agent-scroll-margin-top` (page-agent highlight outline, its 3 s fade, scroll landing offset). Components use `var(--token)` in CSS Modules, never
   literals. Add a token rather than repeating a literal.
 - `fonts.css`: self-hosted Inter via `@fontsource/inter`: latin + cyrillic subsets only, weights
   400/500/600/700 + italic 400/700, `font-display: swap`. Cyrillic files load only when Cyrillic

@@ -31,3 +31,17 @@ Stubs: image sizes (`--cv-photo-size`, `--cv-logo-size`, `--cv-icon-size`,
 `--cv-rating-star-size`, `--cv-book-width/height`) are screen-local custom properties in
 `CvScreen.module.css`; emphasis weights reuse `--font-subsection-weight` / `--font-name-weight`.
 Both `TODO(theme)`: move to theme tokens if the theme adds them.
+
+Page agent (GRA-34, `docs/chat/AGENT.md`): every section and item is an agent target.
+- `agentTargetProps(kind, id, highlightedId)` (`agentTarget.ts`) is spread on the element: gives
+  `data-agent-id="<kind>:<id>"` (sections: `section:<AgentSectionId>`; items by their CV `id`;
+  contacts `contact:<channel>`) and `data-agent-highlighted` while it is the highlighted one.
+  `agentTarget.css` (global, tokens only) sets `scroll-margin-top` and the fading outline.
+- `CvUiState.ready.highlightedId` is set by `useCvState().highlight(id)` and clears after 3 s;
+  components only render it (no class toggling from executors).
+- `useCvAgentTools(cv, highlight)` (called by `CvRoute`, only while the CV is ready) registers
+  `scrollToSection`, `highlightElement` (both find the element by `data-agent-id`; missing →
+  `unknown_target`; smooth scroll, instant under reduced motion) and `openContact` (link from
+  `contactLinks.ts`; the visitor's confirmation is done by the registry's confirm callback, which
+  the chat sets). Test: `CvRoute.agent.test.tsx`.
+Not done: URL hash update on `scrollToSection` (elements have no `id`).
