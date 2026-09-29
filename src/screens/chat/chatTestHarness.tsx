@@ -1,22 +1,31 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AppProviders } from '../../app/AppProviders';
-import { FakeChatRepository, type ChatStreamEvent } from '../../data/chat';
+import { FakeChatRepository, type AgentToolCall, type ChatStreamEventV2 } from '../../data/chat';
+import { StaticCvRepository } from '../../data/mock/StaticCvRepository';
 import type { Locale } from '../../i18n';
+import { AgentExecutorContext } from './agentExecutor';
+import { FakeAgentExecutor } from './fakeAgentExecutor';
 import { ChatRoute } from './ChatRoute';
 import { chatTestIds } from './testIds';
 
-/** Test helper: the chat widget over a `FakeChatRepository`, already opened. */
-export async function renderOpenChat(locale: Locale = 'en') {
+/**
+ * Test helper: the chat widget over a `FakeChatRepository`, already opened. With `withTools`, the
+ * page tools are a `FakeAgentExecutor` over the real catalogue (returned as `executor`).
+ */
+export async function renderOpenChat(locale: Locale = 'en', { withTools = false } = {}) {
   const repository = new FakeChatRepository();
+  const executor = new FakeAgentExecutor(await new StaticCvRepository().getCv(locale));
   const user = userEvent.setup();
   render(
     <AppProviders chatRepository={repository} locale={locale}>
-      <ChatRoute />
+      <AgentExecutorContext value={withTools ? executor : null}>
+        <ChatRoute />
+      </AgentExecutorContext>
     </AppProviders>,
   );
   await user.click(screen.getByTestId(chatTestIds.fab));
-  return { repository, user };
+  return { repository, executor, user };
 }
 
 export const usage = {
@@ -26,7 +35,7 @@ export const usage = {
   cacheCreationInputTokens: 0,
 };
 
-export function answer(...texts: string[]): ChatStreamEvent[] {
+export function answer(...texts: string[]): ChatStreamEventV2[] {
   return [
     ...texts.map((text) => ({ type: 'delta' as const, text })),
     { type: 'done', stopReason: 'end_turn', usage },
@@ -36,4 +45,17 @@ export function answer(...texts: string[]): ChatStreamEvent[] {
 /** Queries inside the message list (answers are also in the live region). */
 export function inList() {
   return within(screen.getByTestId(chatTestIds.list));
+}
+
+/** A model message that says `text` and ends in these tool calls (`done: tool_use`). */
+export function toolTurn(text: string, ...calls: Omit<AgentToolCall, 'id'>[]): ChatStreamEventV2[] {
+  return [
+    ...(text ? [{ type: 'delta' as const, text }] : []),
+    ...calls.map((call, index) => ({
+      type: 'tool_call' as const,
+      id: `toolu_${index + 1}`,
+      ...call,
+    })),
+    { type: 'done', stopReason: 'tool_use', usage, providerState: 'opaque-state' },
+  ];
 }

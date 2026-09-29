@@ -21,6 +21,7 @@ import {
   isBusy,
   turnMessages,
 } from './conversation';
+import { useConfirmationDecisions } from './useConfirmationDecisions';
 import { runToolCalls, VISUAL_TOOLS } from './runToolCalls';
 import { chatStrings } from './strings';
 
@@ -75,7 +76,6 @@ export function useChatConversation({
   const strings = useStrings(chatStrings);
   const [turns, dispatch] = useReducer(conversationReducer, []);
   const controller = useRef<AbortController | null>(null);
-  const decisions = useRef(new Map<string, (confirmed: boolean) => void>());
   const nextId = useRef(0);
   const commandsAvailable = executor.available().length > 0;
 
@@ -100,14 +100,7 @@ export function useChatConversation({
     [locale, sheet, executor],
   );
 
-  const waitForDecision = useCallback(
-    (callId: string, signal: AbortSignal) =>
-      new Promise<boolean>((resolve) => {
-        decisions.current.set(callId, resolve);
-        signal.addEventListener('abort', () => resolve(false), { once: true });
-      }),
-    [],
-  );
+  const { waitForDecision, confirmAction, declineAction } = useConfirmationDecisions();
 
   const run = useCallback(
     async (id: string, initial: ChatMessageV2[], finishedRounds: number) => {
@@ -128,7 +121,7 @@ export function useChatConversation({
           const request: ChatRequestV2 = {
             v: CHAT_API_VERSION_V2,
             locale: requestLocale,
-            messages,
+            messages: [...messages],
           };
           let terminal;
           for await (const event of repository.send(request, signal)) {
@@ -137,8 +130,7 @@ export function useChatConversation({
               answer += event.text;
               dispatch({ type: 'delta', id, text: event.text });
             } else if (event.type === 'tool_call') {
-              const { type: _type, ...call } = event;
-              calls.push(call);
+              calls.push({ id: event.id, name: event.name, input: event.input });
             } else {
               terminal = event;
               break;
@@ -242,13 +234,6 @@ export function useChatConversation({
     controller.current?.abort();
     dispatch({ type: 'reset' });
   }, []);
-
-  const decide = useCallback((callId: string, confirmed: boolean) => {
-    decisions.current.get(callId)?.(confirmed);
-    decisions.current.delete(callId);
-  }, []);
-  const confirmAction = useCallback((callId: string) => decide(callId, true), [decide]);
-  const declineAction = useCallback((callId: string) => decide(callId, false), [decide]);
 
   return { turns, busy, commandsAvailable, ask, retry, stop, reset, confirmAction, declineAction };
 }

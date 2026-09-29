@@ -16,14 +16,14 @@ to `POST /api/chat` and streams the answer back. Contract: `docs/chat/API.md`.
   the chat calls; the browser registry implements it), `buildAgentToolSpecs(cv)`: 4 tools,
   sorted, ids from the CV JSON (`id` on items), identical in every locale. `agentTargetId(s)`
   build the `data-agent-id` values. Imports use `.js` specifiers because `server/**` runs it.
-  Not wired yet: the server tool loop, the client registry and the chat UI are separate tasks.
-- `ChatRepository.ts`: the seam. `send(request, signal)` → `AsyncIterable<ChatStreamEvent>`:
-  `delta`* then one `done` / `error`. Never throws; an aborted signal just ends the stream.
+  The chat UI runs the tool loop over `AgentToolExecutor` (GRA-35); the client registry is GRA-34.
+- `ChatRepository.ts`: the seam. `send(request v1 | v2, signal)` → `AsyncIterable<ChatStreamEventV2>`:
+  `delta` / `tool_call`* then one `done` (v2: `stopReason: 'tool_use'`, `providerState`) / `error`. Never throws; an aborted signal just ends the stream.
 - `HttpChatRepository.ts`: the real binding: `fetch` POST + SSE body (not `EventSource`, it can't
   POST). Pre-stream non-2xx → `chatErrors.ts` `errorFromResponse` (JSON `{ error }`; non-JSON
   429 → `rate_limited`, `Retry-After` or 60 s; other unparsable → `upstream_error`, retryable for
   5xx). Network failure → retryable `upstream_error`.
-- `readChatStream.ts`: SSE events → `ChatStreamEvent`s; unknown events ignored; malformed event,
+- `readChatStream.ts`: SSE events (`delta`, `tool_call`, `done`, `error`) → `ChatStreamEventV2`s; unknown events ignored; malformed event,
   read failure or a stream without a terminal event → retryable `upstream_error`.
 - `parseSse.ts`: incremental WHATWG SSE parser (UTF-8 and CRLF split across chunks, comments).
 - `chatErrors.ts`: error helpers; unknown error codes are kept but never retryable.
