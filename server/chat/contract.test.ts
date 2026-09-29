@@ -3,10 +3,12 @@ import type {
   ChatErrorBody,
   ChatLocale,
   ChatSseEventName,
+  ChatSseEventNameV2,
   ChatStreamEvent,
+  ChatStreamEventV2,
 } from '../../src/data/chat/contract.js';
 import type { Locale } from '../../src/i18n/locale.js';
-import { chatRequest, readSse, testDeps } from '../test/helpers.js';
+import { chatRequest, readSse, SCROLL_APPS, testDeps, v2Body } from '../test/helpers.js';
 import { handleChat } from './handler.js';
 import { LlmError } from './llm/LlmClient.js';
 
@@ -55,6 +57,27 @@ describe('contract', () => {
           retryable: false,
           requestId: 'req-1',
         },
+      },
+    ]);
+  });
+
+  it('v2 tool round: delta*, tool_call*, then done with tool_use and providerState', async () => {
+    const deps = testDeps({ deltas: ['Scrolling.'], toolCalls: [SCROLL_APPS] });
+    const response = await handleChat(chatRequest(v2Body()), deps);
+    const { events } = await readSse(response);
+    const consumed = events.map((event): ChatStreamEventV2 => {
+      const name = event.event as ChatSseEventNameV2;
+      if (name === 'error') return { type: 'error', error: event.data as ChatErrorBody['error'] };
+      return { type: name, ...(event.data as object) } as ChatStreamEventV2;
+    });
+    expect(consumed).toEqual([
+      { type: 'delta', text: 'Scrolling.' },
+      { type: 'tool_call', ...SCROLL_APPS },
+      {
+        type: 'done',
+        stopReason: 'tool_use',
+        usage: expect.any(Object),
+        providerState: expect.any(String),
       },
     ]);
   });

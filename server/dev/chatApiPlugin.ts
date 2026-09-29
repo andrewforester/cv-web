@@ -4,7 +4,13 @@ import { loadEnv, type Connect, type Plugin, type ViteDevServer } from 'vite';
 import { CHAT_API_PATH } from '../../src/data/chat/contract.js';
 
 /** Server-side env the chat function reads; loaded from `.env*.local`, never exposed to the page. */
-const CHAT_ENV_KEYS = ['ANTHROPIC_API_KEY', 'CHAT_MODEL', 'CHAT_ENABLED', 'CHAT_FAKE_LLM'];
+const CHAT_ENV_KEYS = [
+  'ANTHROPIC_API_KEY',
+  'CHAT_MODEL',
+  'CHAT_ENABLED',
+  'CHAT_FAKE_LLM',
+  'CHAT_DAILY_BUDGET_USD',
+];
 
 interface ChatModule {
   default: { fetch(request: Request): Promise<Response> };

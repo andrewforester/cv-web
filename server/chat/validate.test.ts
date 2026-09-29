@@ -55,7 +55,7 @@ describe('validateChatRequest', () => {
   });
 
   it('rejects another version with unsupported_version', () => {
-    expect(codeOf({ ...VALID_BODY, v: 2 })).toBe('unsupported_version');
+    expect(codeOf({ ...VALID_BODY, v: 3 })).toBe('unsupported_version');
   });
 
   it('allows 20 messages and rejects 21 with conversation_limit', () => {

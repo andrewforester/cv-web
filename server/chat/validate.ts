@@ -1,32 +1,22 @@
 import {
   CHAT_API_VERSION,
+  CHAT_API_VERSION_V2,
   CHAT_LIMITS,
   CHAT_LOCALES,
-  type ChatError,
-  type ChatLocale,
   type ChatMessage,
-  type ChatRequest,
 } from '../../src/data/chat/contract.js';
 import { chatError } from './errors.js';
+import {
+  invalid,
+  isOneOf,
+  isRecord,
+  tooLong,
+  type ValidatedChatV2,
+  type ValidationResult,
+} from './validateParts.js';
+import { validateV2 } from './validateV2.js';
 
-export type ValidationResult = { ok: true; request: ChatRequest } | { ok: false; error: ChatError };
-
-const invalid = (message: string): ValidationResult => ({
-  ok: false,
-  error: chatError('invalid_request', message),
-});
-const tooLong = (message: string): ValidationResult => ({
-  ok: false,
-  error: chatError('too_long', message),
-});
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function isLocale(value: unknown): value is ChatLocale {
-  return typeof value === 'string' && (CHAT_LOCALES as readonly string[]).includes(value);
-}
+export type { ValidatedChatV2, ValidationResult };
 
 /** Checks one message's shape and its place in the alternation (even index: user). */
 function checkMessage(item: unknown, index: number): ChatMessage | string {
@@ -58,21 +48,24 @@ function checkLengths(messages: ChatMessage[]): ValidationResult | undefined {
 }
 
 /**
- * Validates a parsed JSON body against docs/chat/API.md → Request. Returns only the known fields
- * (unknown ones are ignored for forward compatibility).
+ * Validates a parsed JSON body against docs/chat/API.md → Request (v1) or → v2. Returns only the
+ * known fields (unknown ones are ignored for forward compatibility).
  */
 export function validateChatRequest(body: unknown): ValidationResult {
   if (!isRecord(body)) return invalid('Body must be a JSON object');
   if (typeof body.v !== 'number') return invalid('v must be a number');
-  if (body.v !== CHAT_API_VERSION) {
+  if (body.v !== CHAT_API_VERSION && body.v !== CHAT_API_VERSION_V2) {
     return {
       ok: false,
       error: chatError('unsupported_version', `Unsupported version v=${body.v}`),
     };
   }
-  if (!isLocale(body.locale)) return invalid(`locale must be one of ${CHAT_LOCALES.join(', ')}`);
+  if (!isOneOf(CHAT_LOCALES, body.locale)) {
+    return invalid(`locale must be one of ${CHAT_LOCALES.join(', ')}`);
+  }
   if (!Array.isArray(body.messages)) return invalid('messages must be an array');
   if (body.messages.length === 0) return invalid('messages must not be empty');
+  if (body.v === CHAT_API_VERSION_V2) return validateV2(body.locale, body.messages);
   if (body.messages.length > CHAT_LIMITS.maxMessages) {
     return {
       ok: false,
