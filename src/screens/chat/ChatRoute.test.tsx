@@ -53,10 +53,16 @@ describe('chat widget', () => {
     expect(screen.queryAllByTestId(chatTestIds.suggestion)).toHaveLength(0);
     expect(screen.getByTestId(chatTestIds.typing)).toBeInTheDocument();
     expect(screen.getByTestId(chatTestIds.announcer)).toHaveTextContent('Assistant is typing…');
-    expect(repository.requests[0]).toEqual({
-      v: 1,
+    expect(repository.requests[0]).toMatchObject({
+      v: 2,
       locale: 'en',
-      messages: [{ role: 'user', content: 'Which apps has he worked on?' }],
+      messages: [
+        {
+          role: 'user',
+          content: 'Which apps has he worked on?',
+          page: { route: '/', locale: 'en', tools: [] },
+        },
+      ],
     });
 
     await act(async () => repository.emit({ type: 'delta', text: 'He worked on **Cync**' }));
@@ -86,7 +92,7 @@ describe('chat widget', () => {
 
     await user.type(input, '  Second  {Enter}');
     await inList().findByText('A2');
-    expect(repository.requests[1]?.messages).toEqual([
+    expect(repository.requests[1]?.messages).toMatchObject([
       { role: 'user', content: 'Line 1\nLine 2' },
       { role: 'assistant', content: 'A1' },
       { role: 'user', content: 'Second' },
@@ -108,7 +114,7 @@ describe('chat widget', () => {
     repository.reply(...answer('Next'));
     await user.type(screen.getByTestId(chatTestIds.input), 'Next?{Enter}');
     await inList().findByText('Next');
-    expect(repository.requests[1]?.messages).toEqual([{ role: 'user', content: 'Next?' }]);
+    expect(repository.requests[1]?.messages).toMatchObject([{ role: 'user', content: 'Next?' }]);
   });
 
   it('shows Ukrainian texts', async () => {

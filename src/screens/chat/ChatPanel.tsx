@@ -66,10 +66,13 @@ export function ChatPanel({ className, state, actions, closing, onKeyboardClose 
       <MessageList
         turns={state.turns}
         conversationFull={state.conversationFull}
+        commandsAvailable={state.commandsAvailable}
         maxInputLength={state.maxInputLength}
         onAsk={(question) => thenFocusInput(() => actions.ask(question))()}
         onRetry={thenFocusInput(actions.retry)}
         onNewChat={thenFocusInput(actions.newChat)}
+        onConfirmAction={(callId) => thenFocusInput(() => actions.confirmAction(callId))()}
+        onDeclineAction={(callId) => thenFocusInput(() => actions.declineAction(callId))()}
       />
       <LiveAnnouncer announcement={state.announcement} maxInputLength={state.maxInputLength} />
       <ChatComposer

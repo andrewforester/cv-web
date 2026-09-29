@@ -63,7 +63,7 @@ describe('chat widget notices', () => {
     expect(screen.getAllByTestId(chatTestIds.suggestion)).toHaveLength(4);
   });
 
-  it('offers a new chat before sending past 20 messages', async () => {
+  it('offers a new chat before sending past 10 questions', async () => {
     const { repository, user } = await renderOpenChat();
     const input = screen.getByTestId(chatTestIds.input);
     for (let i = 1; i <= 10; i++) {

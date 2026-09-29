@@ -1,46 +1,34 @@
-import { useId } from 'react';
 import { useStrings } from '../../i18n';
-import chat from './chat.module.css';
+import { ChipGroup } from './ChipGroup';
 import { chatStrings } from './strings';
 import styles from './SuggestedQuestions.module.css';
 import { chatTestIds } from './testIds';
 
 interface SuggestedQuestionsProps {
-  className?: string;
+  /** Page tools are mounted: also offer example commands. */
+  commands: boolean;
   onAsk: (question: string) => void;
 }
 
-/** "Try asking" + four question chips of the empty state; a chip sends its question. */
-export function SuggestedQuestions({ className, onAsk }: SuggestedQuestionsProps) {
+/** The empty state: "Try asking" question chips and, with page tools, example command chips. */
+export function SuggestedQuestions({ commands, onAsk }: SuggestedQuestionsProps) {
   const strings = useStrings(chatStrings);
-  const labelId = useId();
-  const questions = [
-    strings.suggestion1,
-    strings.suggestion2,
-    strings.suggestion3,
-    strings.suggestion4,
-  ];
-
   return (
-    <div
-      className={className ? `${styles.group} ${className}` : styles.group}
-      role="group"
-      aria-labelledby={labelId}
-    >
-      <p id={labelId} className={`${chat.caption} ${styles.label}`}>
-        {strings.tryAsking}
-      </p>
-      {questions.map((question) => (
-        <button
-          key={question}
-          type="button"
-          className={styles.chip}
-          data-testid={chatTestIds.suggestion}
-          onClick={() => onAsk(question)}
-        >
-          {question}
-        </button>
-      ))}
+    <div className={styles.groups}>
+      <ChipGroup
+        label={strings.tryAsking}
+        items={[strings.suggestion1, strings.suggestion2, strings.suggestion3, strings.suggestion4]}
+        testId={chatTestIds.suggestion}
+        onPick={onAsk}
+      />
+      {commands && (
+        <ChipGroup
+          label={strings.commandsLabel}
+          items={[strings.command1, strings.command2, strings.command3]}
+          testId={chatTestIds.command}
+          onPick={onAsk}
+        />
+      )}
     </div>
   );
 }

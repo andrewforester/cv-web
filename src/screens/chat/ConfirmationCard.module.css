@@ -1,0 +1,31 @@
+.card {
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--chat-color-notice-bg);
+  border: var(--border-card) solid var(--color-card-border);
+  border-radius: var(--radius-card);
+}
+
+.title {
+  margin: 0;
+  font-weight: var(--font-card-title-weight);
+}
+
+.detail {
+  margin: 0;
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.buttons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.confirm {
+  color: var(--color-bg);
+  background: var(--color-text);
+}

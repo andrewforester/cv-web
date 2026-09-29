@@ -9,6 +9,7 @@ import type {
 import { exceedsConversationLimits } from './conversation';
 import { useChatConversation } from './useChatConversation';
 import { useChatHint } from './useChatHint';
+import { CHAT_SHEET_QUERY, useMediaQuery } from './useMediaQuery';
 import { useOnlineStatus } from './useOnlineStatus';
 
 /** The counter appears from 80 % of the limit (SPEC O1: from 800 of 1,000). */
@@ -24,7 +25,9 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
   }, []);
   const online = useOnlineStatus();
   const hint = useChatHint();
-  const conversation = useChatConversation(announce);
+  const sheet = useMediaQuery(CHAT_SHEET_QUERY);
+  const closeSheet = useCallback(() => setOpen(false), []);
+  const conversation = useChatConversation({ announce, sheet, closeSheet });
   const { turns, busy } = conversation;
 
   const tooLong = (text: string) => text.length > CHAT_LIMITS.maxUserMessageChars;
@@ -57,6 +60,8 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
       if (online) conversation.retry();
     },
     newChat: conversation.reset,
+    confirmAction: conversation.confirmAction,
+    declineAction: conversation.declineAction,
   };
 
   const state: ChatUiState = {
@@ -72,6 +77,7 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
     canSend,
     conversationFull,
     announcement,
+    commandsAvailable: conversation.commandsAvailable,
   };
 
   return { state, actions };

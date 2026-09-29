@@ -1,4 +1,5 @@
 import { useStrings } from '../../i18n';
+import { actionText } from './actionText';
 import { answerPlainText } from './answerMarkdown';
 import chat from './chat.module.css';
 import type { ChatAnnouncement } from './ChatUiState';
@@ -12,7 +13,7 @@ interface LiveAnnouncerProps {
 }
 
 /**
- * The dialog's one polite live region: "typing" on send, the complete answer as plain text,
+ * The dialog's one polite live region: "typing" on send, each page action's confirmation question and outcome, the complete answer as plain text,
  * "stopped", error texts, the length limit. Streamed tokens are never announced one by one.
  */
 export function LiveAnnouncer({ announcement, maxInputLength }: LiveAnnouncerProps) {
@@ -39,6 +40,8 @@ function announcementText(
       return strings.typing;
     case 'stopped':
       return strings.stopped;
+    case 'action':
+      return actionText(announcement.action, strings);
     case 'tooLong':
       return formatString(strings.tooLong, { max });
     case 'error':
