@@ -96,4 +96,28 @@
   /* Layout */
   --content-max-width: 672px;
   --page-gutter: 24px;
+
+  /* Chat (docs/design/chat/SPEC.md, New tokens) */
+  --chat-fab-size: 56px;
+  --chat-fab-icon-size: 24px;
+  --chat-control-size: 44px;
+  --chat-icon-size: 20px;
+  --chat-panel-width: 400px;
+  --chat-panel-height: 600px;
+  --chat-hint-max-width: 240px;
+  --chat-bubble-max-width: 85%;
+  --chat-radius-tail: 4px;
+  --chat-color-divider: rgba(0, 22, 112, 0.12);
+  --chat-color-disabled-bg: rgba(0, 22, 112, 0.12);
+  --chat-color-error: #c0262d;
+  --chat-color-error-bg: #fdeeee;
+  --chat-color-notice-bg: rgba(239, 191, 4, 0.14);
+  --chat-shadow-fab: 0 4px 12px rgba(0, 22, 112, 0.3);
+  --chat-shadow-panel: 0 12px 32px rgba(0, 22, 112, 0.16), 0 2px 8px rgba(0, 22, 112, 0.08);
+  --font-chat-caption-size: 12px;
+  --font-chat-caption-line-height: 16px;
+  --font-chat-caption-weight: 400;
+  --chat-z-index: 1000;
+  --chat-motion-duration: 200ms;
+  --chat-motion-easing: cubic-bezier(0.2, 0, 0, 1);
 }
