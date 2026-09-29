@@ -6,8 +6,7 @@ The model calls **pre-declared, strictly typed frontend tools** that run in the 
 sees pixels, never parses the DOM and never gets CSS selectors. Decision record:
 [`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md); wire contract: the **v2**
 section of [`API.md`](API.md). Status: shipped (design GRA-31; contract GRA-32, server GRA-33, registry
-GRA-34, chat UI GRA-35, README + e2e GRA-36). Known gap at GRA-36: the chat is not yet bound to the
-registry (section 11).
+GRA-34, chat UI GRA-35, README + e2e GRA-36, chat bound to the registry GRA-37).
 
 ## 1. Findings: what the page can be told to do
 
@@ -299,8 +298,3 @@ uncached; the ADR-0001 abuse math is unchanged in shape.
   nothing about real cost.
 - **Not built:** `GET /api/chat-usage`, a global exact budget, the WebMCP wiring
   (`src/agent/webmcp.ts` only converts).
-- **Known gap:** `useAgentExecutor()` (`src/screens/chat/agentExecutor.ts`) still reads only the
-  unprovided `AgentExecutorContext`, so on `main` every tool answers `not_available`; it must
-  return `useAgentRegistry()` and call `registry.setConfirm(() => Promise.resolve(true))` (the chat
-  asks the visitor itself; the registry would otherwise decline `confirm` tools). Reported on the
-  GRA-36 PR; `e2e/agent.spec.ts` covers it. Remove this note once fixed.

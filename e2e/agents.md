@@ -16,6 +16,4 @@ by `vite preview` at `http://localhost:4173/` (config: `playwright.config.ts`).
   UK: "show the apps" scrolls the `section:apps` target into view, the action chip and the answer
   appear, the follow-up carries the call id, no console errors; `highlightElement` on the same
   target; `openContact` shows the confirmation card and Cancel opens nothing (`window.open` is
-  spied, the URL is unchanged). Screenshots `web-check/agent-{en,uk}.png`. These tests need
-  `AgentToolRegistry` bound to the chat (`useAgentExecutor`); without it every tool answers
-  `not_available`.
+  spied, the URL is unchanged). Screenshots `web-check/agent-{en,uk}.png`.
