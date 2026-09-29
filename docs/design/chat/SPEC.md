@@ -316,3 +316,13 @@ Conservative defaults taken without an answer; the orchestrator may change them.
 12. **Mobile open focuses the dialog, not the textarea**, to keep the keyboard from covering the chips.
 13. **Full-screen sheet also when the viewport is < 500 px tall** (landscape phones, 200 % zoom).
 14. **Renders** come from headless Chrome via `render.sh` instead of a Playwright script (this session's machine had no Playwright browser; the result is the same Chromium render), over a simplified static CV backdrop rather than the built site.
+
+### Orchestrator decisions (override the items above where they conflict)
+
+Aligned with the API contract `docs/chat/API.md` (merged in #17):
+
+- **O1. Limit:** 1,000 characters per question (`CHAT_LIMITS.maxUserMessageChars`), counted with `String.length`. The counter appears from 800. The `tooLong` and `counter` strings use 1000 / 1000 instead of 500. The rest of item 6 still applies: no hard `maxlength`, error styling over the limit.
+- **O2. Answer formatting:** a safe minimal subset only: paragraphs, `- ` bullet lists and `**bold**`. No italic, numbered lists, links or raw HTML: everything else renders as plain text. An email address or URL in an answer stays plain, selectable text, so the link rules in "States and behaviour" don't apply in v1.
+- **O3. New chat:** the contract allows 20 messages (10 questions). When a request would exceed that (or the API returns `conversation_limit`), show a neutral notice with a **"Start a new chat"** button that clears the conversation. Add the strings `conversationLimit` and `newChat` (EN + UK) in the same style as the other notices. The rest of item 7 still applies.
+- **O4. Error texts:** one localized string per `ChatErrorCode` (the error notices above cover `rate_limited`, `upstream_error`/`internal_error`/`unavailable` as "server", and offline), plus a generic fallback. `unsupported_version` asks the visitor to reload the page.
+- Items 1–5 and 8–14 are confirmed as written; "ШІ" in the UK copy is fine.
