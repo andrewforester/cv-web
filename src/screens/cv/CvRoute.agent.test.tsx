@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { AgentToolRegistry } from '../../agent';
 import { AppProviders } from '../../app/AppProviders';
 import { StaticCvRepository } from '../../data';
@@ -18,6 +18,8 @@ async function renderCv() {
     </AppProviders>,
   );
   await screen.findByTestId(cvTestIds.name);
+  // Handlers register in an effect after the CV commits.
+  await waitFor(() => expect(registry.available()).toContain('highlightElement'));
   return { registry, view };
 }
 
