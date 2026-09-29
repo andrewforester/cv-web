@@ -36,7 +36,7 @@ Small bugs and polish items: follow `.claude/skills/quick-fix` instead of the st
 6. Theme and screen, or backend and frontend, run in parallel only if the task that owns the contract (token names, endpoints and shapes) fixes it in its brief, and the other task says to merge that branch as soon as it exists.
 
 ## Launch a session
-Launch every task in a **new working session of the same kind as you**: a cloud orchestrator starts a new cloud session; a local orchestrator starts a new local session with Remote Control, in its own worktree, so the human can follow it from the app. The commands, models and limits are in `COORDINATION.md` → Tooling → Sessions.
+Launch every task as a **new agent in a new background session**, with the launch command from `COORDINATION.md` → Tooling → Sessions (which kind of session, the exact command and flags, models and limits are all there).
 
 1. Open the branch and the draft PR (Tooling → Code host) and start following the PR right away.
 2. Write the prompt: the whole brief (the session may not be able to read the tracker), the branch, the draft PR number, the skill to use, and the standing rules:
@@ -53,7 +53,7 @@ Launch every task in a **new working session of the same kind as you**: a cloud 
 3. Pick the model by task size (Tooling → Sessions). The model is not the main cost driver: long exploration and repeated heavy checks are. Keep briefs precise (likely cause, exact files, how much verification is enough).
 4. Set the ticket to In Progress and comment with the session name and id. Schedule one fallback check-in for when it should be done.
 
-**Screenshots from the human** (bug reports from a device): put them on the `screens` branch and into the ticket; the session never sees the chat.
+**Screenshots from the human** (bug reports from a device): upload them to the ticket (`COORDINATION.md` → Tracker → Screenshots); the session never sees the chat.
 
 ## Queue with dependencies (intake → dispatch)
 The human sends tasks one after another. File each one as soon as it arrives; don't wait for the batch.
@@ -93,7 +93,7 @@ After merging:
 - A red `main` is the top priority: pick up the QA fix task first.
 
 ## Hand off
-When your context passes ≈300k tokens, the human asks, or a round ends: write a handoff comment in the tracker (the epic's project or main ticket): open tickets and their state, running sessions (name, id, branch, PR), decisions not yet in docs, pending human actions, and cost so far. Then launch a new orchestrator of your own kind with "Use the orchestrate skill. Continue <epic>; the handoff is in <link>.", give the human its id, and stop your watchers and check-ins.
+When your context passes ≈300k tokens, the human asks, or a round ends: write a handoff comment in the tracker (the epic's project or main ticket): open tickets and their state, running sessions (name, id, branch, PR), decisions not yet in docs, pending human actions, and cost so far. Then launch a new orchestrator the same way as a task session (`COORDINATION.md` → Tooling → Sessions) with "Use the orchestrate skill. Continue <epic>; the handoff is in <link>.", give the human its id, and stop your watchers and check-ins.
 
 ## Keep the orchestrator cheap
 The orchestrator is usually the most expensive session: every wake-up re-reads the whole conversation. So:
