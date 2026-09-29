@@ -22,10 +22,14 @@ export interface StreamContext {
 }
 
 /** Maps a failure of the model call to the error the visitor gets. */
-function upstreamFailure(error: unknown, deadlineHit: boolean): ChatError {
+function upstreamFailure(
+  error: unknown,
+  deadlineHit: boolean,
+  phase: 'request' | 'stream',
+): ChatError {
   if (deadlineHit) return chatError('upstream_error', 'Deadline exceeded', { retryable: true });
   if (error instanceof LlmError) {
-    return chatError('upstream_error', `Upstream stream failed: ${error.errorType ?? 'error'}`, {
+    return chatError('upstream_error', `Upstream ${phase} failed: ${error.errorType ?? 'error'}`, {
       retryable: error.retryable,
     });
   }
@@ -74,7 +78,7 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
     entry.anthropicRequestId = started.providerRequestId ?? null;
   } catch (error) {
     cleanup();
-    const failure = upstreamFailure(error, deadlineHit);
+    const failure = upstreamFailure(error, deadlineHit, 'request');
     const outcome = visitorGone ? 'aborted' : 'error';
     const status = HTTP_STATUS_BY_CODE[failure.code];
     writeLog({ status, outcome, errorCode: failure.code, ...upstreamDetails(error) });
@@ -122,7 +126,7 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
           return { outcome: 'error', errorCode: failure.code };
         } catch (error) {
           if (visitorGone && !deadlineHit) return { outcome: 'aborted' };
-          const failure = upstreamFailure(error, deadlineHit);
+          const failure = upstreamFailure(error, deadlineHit, 'stream');
           send(encodeSseEvent('error', { ...failure, requestId: ctx.requestId }));
           return { outcome: 'error', errorCode: failure.code, ...upstreamDetails(error) };
         }
@@ -133,9 +137,11 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
         cleanup();
         const ttftMs = firstDeltaAt === undefined ? null : firstDeltaAt - startedAt;
         writeLog({ status: 200, ttftMs, ...fields });
-        if (open) {
-          open = false;
+        open = false;
+        try {
           controller.close();
+        } catch {
+          // Already closed: the visitor cancelled the stream.
         }
       });
     },
