@@ -1,15 +1,52 @@
-import type { ChatError, ChatErrorCode, ChatStopReason } from '../../data/chat';
+import type {
+  AgentPageState,
+  AgentToolCall,
+  AgentToolResult,
+  ChatError,
+  ChatErrorCode,
+  ChatStopReason,
+} from '../../data/chat';
+
+/** Text the visitor reads on a confirmation card; built by the client, never from model text. */
+export interface ChatConfirmation {
+  readonly title: string;
+  readonly detail: string;
+}
+
+/**
+ * One tool call of the model as the visitor sees it. `running`: executing (chip); `awaiting`: a
+ * confirmation card is shown; `finished`: `result` is set (ok, declined or an error).
+ */
+export interface ChatActionCall {
+  readonly call: AgentToolCall;
+  /** The CV's own name of a highlighted item ("Kotlin"), resolved when the call arrived. */
+  readonly label?: string | undefined;
+  readonly status: 'running' | 'awaiting' | 'finished';
+  readonly result?: AgentToolResult;
+  readonly confirmation?: ChatConfirmation;
+}
+
+/** One model message that ended in tool calls: what it said, the calls, opaque provider state. */
+export interface ChatToolRound {
+  readonly text: string;
+  readonly providerState?: string | undefined;
+  readonly actions: readonly ChatActionCall[];
+}
 
 /**
  * One question and its answer. `pending`: sent, no token yet (typing indicator); `streaming`:
- * tokens arriving; `done`: complete (`stopReason` from the API); `stopped`: the visitor pressed
+ * tokens arriving; `acting`: running the model's tool calls (`rounds`, last one); `done`: complete (`stopReason` from the API); `stopped`: the visitor pressed
  * Stop; `error`: failed (`error`), partial text dropped from the history.
  */
 export interface ChatTurn {
   readonly id: string;
   readonly question: string;
+  /** The page snapshot taken when the question was sent (kept so history stays append-only). */
+  readonly page: AgentPageState;
+  /** Finished tool rounds of this turn, in order; the `answer` is the model message after them. */
+  readonly rounds: readonly ChatToolRound[];
   readonly answer: string;
-  readonly status: 'pending' | 'streaming' | 'done' | 'stopped' | 'error';
+  readonly status: 'pending' | 'streaming' | 'acting' | 'done' | 'stopped' | 'error';
   readonly stopReason?: ChatStopReason;
   readonly error?: ChatError;
 }
@@ -17,6 +54,7 @@ export interface ChatTurn {
 /** What the polite live region says; `id` changes on every announcement. */
 export type ChatAnnouncement = { readonly id: number } & (
   | { readonly kind: 'typing' | 'stopped' | 'tooLong' }
+  | { readonly kind: 'action'; readonly action: ChatActionCall }
   | { readonly kind: 'answer'; readonly text: string; readonly stopReason: ChatStopReason }
   | { readonly kind: 'error'; readonly code: ChatErrorCode; readonly retryable: boolean }
 );
@@ -40,6 +78,8 @@ export interface ChatUiState {
   /** The next question would break the conversation limits: offer a new chat. */
   readonly conversationFull: boolean;
   readonly announcement: ChatAnnouncement | null;
+  /** Page tools are mounted: the greeting offers example commands. */
+  readonly commandsAvailable: boolean;
 }
 
 export interface ChatActions {
@@ -55,4 +95,8 @@ export interface ChatActions {
   /** Re-sends the last failed question. */
   retry(): void;
   newChat(): void;
+  /** Confirm button of a confirmation card: the action runs. */
+  confirmAction(callId: string): void;
+  /** Cancel button of a confirmation card: the model gets `declined`. */
+  declineAction(callId: string): void;
 }

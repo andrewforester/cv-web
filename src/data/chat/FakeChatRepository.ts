@@ -1,23 +1,23 @@
 import type { ChatRepository } from './ChatRepository';
-import type { ChatRequest, ChatStreamEvent } from './contract';
+import type { ChatRequest, ChatRequestV2, ChatStreamEventV2 } from './contract';
 
 /**
  * Scripted `ChatRepository` for tests. Each `send` plays the next reply queued with `reply()`
- * (a reply without a terminal event ends like a truncated stream). With nothing queued, the stream
+ * (a reply without a terminal event ends like a truncated stream; `tool_call` events are not terminal). With nothing queued, the stream
  * stays open and waits for events pushed with `emit()` (and `end()`), so tests can step through a
  * streamed answer. Aborting the signal ends the stream. Every request is recorded in `requests`.
  */
 export class FakeChatRepository implements ChatRepository {
-  readonly requests: ChatRequest[] = [];
-  private readonly replies: ChatStreamEvent[][] = [];
+  readonly requests: (ChatRequest | ChatRequestV2)[] = [];
+  private readonly replies: ChatStreamEventV2[][] = [];
   private live: EventChannel | null = null;
 
-  reply(...events: ChatStreamEvent[]): this {
+  reply(...events: ChatStreamEventV2[]): this {
     this.replies.push(events);
     return this;
   }
 
-  emit(...events: ChatStreamEvent[]): void {
+  emit(...events: ChatStreamEventV2[]): void {
     if (!this.live) throw new Error('FakeChatRepository: no open stream to emit into');
     this.live.push(events);
   }
@@ -30,7 +30,10 @@ export class FakeChatRepository implements ChatRepository {
     return this.live !== null;
   }
 
-  async *send(request: ChatRequest, signal?: AbortSignal): AsyncGenerator<ChatStreamEvent> {
+  async *send(
+    request: ChatRequest | ChatRequestV2,
+    signal?: AbortSignal,
+  ): AsyncGenerator<ChatStreamEventV2> {
     this.requests.push(request);
     const channel = new EventChannel(signal);
     const scripted = this.replies.shift();
@@ -45,7 +48,7 @@ export class FakeChatRepository implements ChatRepository {
         const event = await channel.next();
         if (!event) return;
         yield event;
-        if (event.type !== 'delta') return;
+        if (event.type !== 'delta' && event.type !== 'tool_call') return;
       }
     } finally {
       if (this.live === channel) this.live = null;
@@ -55,7 +58,7 @@ export class FakeChatRepository implements ChatRepository {
 
 /** A queue that a consumer awaits; `undefined` means closed or aborted. */
 class EventChannel {
-  private readonly queue: ChatStreamEvent[] = [];
+  private readonly queue: ChatStreamEventV2[] = [];
   private closed = false;
   private wake: (() => void) | null = null;
 
@@ -63,7 +66,7 @@ class EventChannel {
     signal?.addEventListener('abort', () => this.wake?.());
   }
 
-  push(events: ChatStreamEvent[]): void {
+  push(events: ChatStreamEventV2[]): void {
     this.queue.push(...events);
     this.wake?.();
   }
@@ -73,7 +76,7 @@ class EventChannel {
     this.wake?.();
   }
 
-  async next(): Promise<ChatStreamEvent | undefined> {
+  async next(): Promise<ChatStreamEventV2 | undefined> {
     for (;;) {
       if (this.signal?.aborted) return undefined;
       const event = this.queue.shift();

@@ -4,6 +4,7 @@ import { AssistantReply } from './AssistantReply';
 import type { ChatTurn } from './ChatUiState';
 import { errorTextKey, isNeutralError } from './errorText';
 import { MessageRow } from './MessageRow';
+import { RoundView } from './RoundView';
 import { NoticeRow, type NoticeAction } from './NoticeRow';
 import { chatStrings, formatString } from './strings';
 import { chatTestIds } from './testIds';
@@ -15,10 +16,20 @@ interface TurnViewProps {
   maxInputLength: number;
   onRetry: () => void;
   onNewChat: () => void;
+  onConfirmAction: (callId: string) => void;
+  onDeclineAction: (callId: string) => void;
 }
 
-/** One question and everything that answers it: visitor bubble, reply, error notice. */
-export function TurnView({ turn, isLast, maxInputLength, onRetry, onNewChat }: TurnViewProps) {
+/** One question and everything that answers it: visitor bubble, tool rounds (chips, cards), reply, error notice. */
+export function TurnView({
+  turn,
+  isLast,
+  maxInputLength,
+  onRetry,
+  onNewChat,
+  onConfirmAction,
+  onDeclineAction,
+}: TurnViewProps) {
   const strings = useStrings(chatStrings);
 
   const errorNotice = (error: ChatError) => {
@@ -43,6 +54,14 @@ export function TurnView({ turn, isLast, maxInputLength, onRetry, onNewChat }: T
       <MessageRow author="visitor" testId={chatTestIds.visitorMessage}>
         {turn.question}
       </MessageRow>
+      {turn.rounds.map((round, index) => (
+        <RoundView
+          key={index}
+          round={round}
+          onConfirm={onConfirmAction}
+          onDecline={onDeclineAction}
+        />
+      ))}
       <AssistantReply turn={turn} />
       {turn.status === 'error' && turn.error && errorNotice(turn.error)}
     </>

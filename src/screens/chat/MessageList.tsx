@@ -16,10 +16,13 @@ interface MessageListProps {
   className?: string;
   turns: readonly ChatTurn[];
   conversationFull: boolean;
+  commandsAvailable: boolean;
   maxInputLength: number;
   onAsk: (question: string) => void;
   onRetry: () => void;
   onNewChat: () => void;
+  onConfirmAction: (callId: string) => void;
+  onDeclineAction: (callId: string) => void;
 }
 
 /** The scrollable conversation: greeting, suggestions (empty state), turns, limit notice. */
@@ -27,10 +30,13 @@ export function MessageList({
   className,
   turns,
   conversationFull,
+  commandsAvailable,
   maxInputLength,
   onAsk,
   onRetry,
   onNewChat,
+  onConfirmAction,
+  onDeclineAction,
 }: MessageListProps) {
   const strings = useStrings(chatStrings);
   const listRef = useRef<HTMLOListElement>(null);
@@ -67,7 +73,7 @@ export function MessageList({
       </MessageRow>
       {turns.length === 0 && (
         <li>
-          <SuggestedQuestions onAsk={onAsk} />
+          <SuggestedQuestions commands={commandsAvailable} onAsk={onAsk} />
         </li>
       )}
       {turns.map((turn, index) => (
@@ -78,6 +84,8 @@ export function MessageList({
           maxInputLength={maxInputLength}
           onRetry={onRetry}
           onNewChat={onNewChat}
+          onConfirmAction={onConfirmAction}
+          onDeclineAction={onDeclineAction}
         />
       ))}
       {conversationFull && turns.length > 0 && (

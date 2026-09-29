@@ -73,7 +73,27 @@ for (const { locale, browserLocale, question, deltas, answer } of cases) {
       await expect(reply).toContainText(answer);
       await expect(reply.locator('strong').first()).toHaveText('Cync');
       await expect(dialog.getByTestId('chat-send')).toBeVisible();
-      expect(requests).toEqual([{ v: 1, locale, messages: [{ role: 'user', content: question }] }]);
+      expect(requests).toEqual([
+        {
+          v: 2,
+          locale,
+          messages: [
+            {
+              role: 'user',
+              content: question,
+              page: {
+                route: '/',
+                locale,
+                viewport: 'desktop',
+                chat: 'card',
+                activeSection: null,
+                highlighted: null,
+                tools: [],
+              },
+            },
+          ],
+        },
+      ]);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/chat-${locale}.png` });
       expect(errors).toEqual([]);
     });

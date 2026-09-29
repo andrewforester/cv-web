@@ -20,6 +20,11 @@ export const chatTestIds = {
   stop: 'chat-stop',
   meta: 'chat-meta',
   announcer: 'chat-announcer',
+  actionChip: 'chat-action-chip',
+  confirmation: 'chat-confirmation',
+  confirmAction: 'chat-confirm',
+  declineAction: 'chat-decline',
+  command: 'chat-command',
 } as const;
 
 /** The dialog's DOM id (the FAB's `aria-controls`). */

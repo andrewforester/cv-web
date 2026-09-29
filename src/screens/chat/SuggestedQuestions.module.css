@@ -28,3 +28,9 @@
 .chip:hover {
   border-color: var(--color-text);
 }
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
