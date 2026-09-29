@@ -4,13 +4,14 @@ App shell and wiring. Owner: Scaffold (screens may only register their own route
 
 - `AppProviders.tsx`: i18n provider + the data bindings (`CvRepositoryContext` ←
   `StaticCvRepository`, `ChatRepositoryContext` ← `HttpChatRepository`). To plug in a backend,
-  change that one line. Accepts `repository`, `chatRepository` and `locale` props so tests can
+  change that one line. Also wraps the tree in `AgentProvider` (`src/agent/`, the page-agent tool registry). Accepts `repository`, `chatRepository`, `agentRegistry` and `locale` props so tests can
   inject fakes.
 - `App.tsx`: layout: header with the shared `LanguageSwitcher` (wired to `useLocale()`), then the
   CV screen (`CvRoute`), then the floating chat widget (`ChatRoute`, fixed-positioned; the shell's
   bottom padding keeps the FAB off the last CV line). The shell is `--content-max-width` wide plus `--page-gutter` each side.
   There is no router yet: one page. Add one when a second page appears.
+- `App` also registers the `switchLanguage` agent tool (`useAgentTools`, always mounted).
 - `App.test.tsx`: switching EN → UA sets `<html lang>` and the stored choice; untranslated texts
-  stay English.
+  stay English; the `switchLanguage` tool changes the locale.
 
 Entry point: `src/main.tsx` (imports `src/theme/global.css`, renders `<AppProviders><App/>`).

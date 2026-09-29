@@ -120,4 +120,11 @@
   --chat-z-index: 1000;
   --chat-motion-duration: 200ms;
   --chat-motion-easing: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Page agent: highlight of a targeted section or item, and where a scroll lands */
+  --agent-highlight-color: var(--color-text-secondary);
+  --agent-highlight-width: 3px;
+  --agent-highlight-offset: 4px;
+  --agent-highlight-duration: 3s;
+  --agent-scroll-margin-top: var(--space-6);
 }
