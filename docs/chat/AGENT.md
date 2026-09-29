@@ -139,7 +139,7 @@ Rules and caps:
 - **`providerState`:** Sonnet 5.5 (`thinking: between_tools`) returns progress-note `thinking`
   blocks that must be passed back unchanged in the next request, or the model loses them. The
   server serialises the assistant turn's non-text blocks (thinking + tool_use, with signatures)
-  into an opaque string (at most 16 KiB), the client echoes it verbatim, and the server rebuilds
+  into an opaque string (at most 16,384 chars), the client echoes it verbatim, and the server rebuilds
   the assistant content from it after checking that its `tool_use` ids and inputs match
   `toolCalls`. Haiku 4.5 (no thinking) returns only tool_use blocks. Tampering only affects the
   attacker's own session (the API verifies thinking signatures), as with forged history in
@@ -213,12 +213,12 @@ Vercel, too much power for this). The hard cap remains the Anthropic workspace s
 | a2 | **Server tool loop + cost log.** `server/chat/**`: v2 validation (`page`, `toolCalls`, `toolResults`, `providerState`), tools in `buildLlmRequest`, `tool_use` mapping in `AnthropicLlmClient` / `LlmEvent`, `tool_call` SSE, round cap → `tool_choice: none`, log fields, day counters, `CHAT_DAILY_BUDGET_USD`, `FakeLlmClient` tool scripts, prompt additions. | Backend: `server/**`, `api/**` | a1 | Opus | L |
 | b | **Client registry + CV tools.** `src/agent/` (registry, provider, `useAgentTools(specs, executors)`, argument validation against the spec, WebMCP adapter stub not wired); `src/screens/cv/**` (`data-agent-id`, `highlightedId` in `CvUiState`, `useCvAgentTools`, scroll margin); `switchLanguage` registration in `src/app/App.tsx`, provider in `src/app/AppProviders.tsx`; highlight tokens in `src/theme/tokens.css`. | Frontend + Theme | a1 | Sonnet | M |
 | c | **Chat UI.** `src/screens/chat/**`: `useChatConversation` tool loop over `AgentToolExecutor` (fake in tests), "running action" chips, confirmation card, sheet close on visual actions, greeting with example commands (EN/UK) in `strings.ts`, new error/decline texts. | Frontend (chat) | a1 (b's real executor only for manual checks) | Sonnet | M |
-| d | **README + e2e.** A "Talk to the page" README section; `e2e/agent.spec.ts` with a mocked `/api/chat` scripting a `tool_call` round; `docs/chat/*` updated from DRAFT to final. | e2e, docs | a2, b, c | Sonnet | S |
+| d | **README + e2e.** A "Talk to the page" README section; `e2e/agent.spec.ts` with a mocked `/api/chat` scripting a `tool_call` round; `SYSTEM_DESIGN.md` and this file updated to what shipped. | e2e, docs | a2, b, c | Sonnet | S |
 
 Order: a1 first (small, unblocks all); then **a2, b, c in parallel**; d last. Shared-file
 owners: `src/data/chat/contract.ts` and `agentTools.ts` = a1 only (later changes via a PR
 comment to the backend owner); `src/app/App.tsx`, `AppProviders.tsx`, `tokens.css` = b;
-`src/screens/chat/strings.ts` = c; `docs/chat/*`, README = d. The golden check (section 14 of
+`src/screens/chat/strings.ts` = c; README, `SYSTEM_DESIGN.md`, `AGENT.md` = d (the API.md v2 section = a1). The golden check (section 14 of
 SYSTEM_DESIGN) gains command prompts and runs on the preview after a2+b+c.
 
 ## 8. Acceptance criteria → tests
