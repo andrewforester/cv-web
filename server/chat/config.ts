@@ -11,6 +11,10 @@ export interface ChatConfig {
   unknownModel?: string;
   /** `CHAT_FAKE_LLM=1` outside Vercel: scripted answers, no key needed. */
   fakeLlm: boolean;
+  /** `CHAT_DAILY_BUDGET_USD`: this instance's daily spend cap; unset or invalid = off. */
+  dailyBudgetUsd?: number;
+  /** `CHAT_DAILY_BUDGET_USD` was set but is not a positive number (logged once at startup). */
+  invalidBudget?: string;
 }
 
 type Env = Record<string, string | undefined>;
@@ -19,11 +23,16 @@ type Env = Record<string, string | undefined>;
 export function readChatConfig(env: Env): ChatConfig {
   const { options, unknown } = resolveModel(env.CHAT_MODEL);
   const onVercel = Boolean(env.VERCEL_ENV);
+  const budgetText = env.CHAT_DAILY_BUDGET_USD?.trim() || undefined;
+  const budget = budgetText === undefined ? undefined : Number(budgetText);
+  const budgetOk = budget !== undefined && Number.isFinite(budget) && budget > 0;
   return {
     enabled: env.CHAT_ENABLED?.trim().toLowerCase() !== 'false',
     apiKey: env.ANTHROPIC_API_KEY?.trim() || undefined,
     model: options,
     unknownModel: unknown ? env.CHAT_MODEL : undefined,
     fakeLlm: !onVercel && env.CHAT_FAKE_LLM?.trim() === '1',
+    dailyBudgetUsd: budgetOk ? budget : undefined,
+    invalidBudget: budgetText !== undefined && !budgetOk ? budgetText : undefined,
   };
 }

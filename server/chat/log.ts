@@ -1,4 +1,4 @@
-import type { ChatErrorCode, ChatStopReason } from '../../src/data/chat/contract.js';
+import type { ChatErrorCode, ChatStopReasonV2 } from '../../src/data/chat/contract.js';
 
 /**
  * One structured line per request (docs/chat/SYSTEM_DESIGN.md §10). Never holds message text,
@@ -11,7 +11,7 @@ export interface ChatLogEntry {
   status: number;
   /** `done`, `error` (pre-stream or mid-stream), `aborted` (the visitor went away). */
   outcome: 'done' | 'error' | 'aborted';
-  stopReason: ChatStopReason | null;
+  stopReason: ChatStopReasonV2 | null;
   errorCode: ChatErrorCode | null;
   locale: string | null;
   model: string;
@@ -30,6 +30,16 @@ export interface ChatLogEntry {
   upstreamError: string | null;
   country: string | null;
   limiter: 'ok' | 'ip' | 'instance' | null;
+  /** v2: `tool_call` events streamed in this response (at most 3) and their tool names. */
+  toolCalls: number | null;
+  toolNames: string[] | null;
+  /** v2: tool rounds already in this visitor turn (0 = answering a question). */
+  toolRound: number | null;
+  toolChoice: 'auto' | 'none' | null;
+  /** v2: length of the `providerState` sent with `done`. */
+  providerStateBytes: number | null;
+  /** This instance's estimated spend for the current UTC day, this request included. */
+  dayCostUsd: number | null;
 }
 
 export type ChatLogger = (entry: ChatLogEntry) => void;

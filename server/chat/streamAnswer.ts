@@ -1,14 +1,19 @@
-import type { ChatError } from '../../src/data/chat/contract.js';
+import { CHAT_LIMITS_V2, type ChatError } from '../../src/data/chat/contract.js';
+import type { DayCostMeter } from './dayCost.js';
 import { baseHeaders, chatError, errorResponse, HTTP_STATUS_BY_CODE } from './errors.js';
 import { LlmError, type LlmClient, type LlmEvent, type LlmRequest } from './llm/LlmClient.js';
 import { estimateCostUsd, type ModelOptions } from './llm/modelOptions.js';
 import type { ChatLogEntry, ChatLogger } from './log.js';
+import { encodeProviderState } from './providerState.js';
 import { encodeSseEvent, SSE_HEADERS, SSE_PING } from './sse.js';
 
 export interface StreamContext {
   llm: LlmClient;
   llmRequest: LlmRequest;
+  /** The request's API version: 2 streams `tool_call` events. */
+  version: number;
   model: ModelOptions;
+  dayCost: DayCostMeter;
   /** Fires when the visitor goes away (Stop, closed tab). */
   requestSignal: AbortSignal;
   requestId: string;
@@ -69,7 +74,12 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
     ctx.requestSignal.removeEventListener('abort', onVisitorAbort);
   };
   const writeLog = (fields: Partial<ChatLogEntry>) =>
-    ctx.log({ ...entry, ...fields, durationMs: now() - startedAt });
+    ctx.log({
+      ...entry,
+      ...fields,
+      durationMs: now() - startedAt,
+      dayCostUsd: ctx.dayCost.totalToday(),
+    });
 
   let events: AsyncIterable<LlmEvent>;
   try {
@@ -82,7 +92,7 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
     const outcome = visitorGone ? 'aborted' : 'error';
     const status = HTTP_STATUS_BY_CODE[failure.code];
     writeLog({ status, outcome, errorCode: failure.code, ...upstreamDetails(error) });
-    return errorResponse(failure, ctx.requestId);
+    return errorResponse(failure, ctx.requestId, ctx.version);
   }
 
   const encoder = new TextEncoder();
@@ -102,6 +112,10 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
         if (firstDeltaAt === undefined) send(SSE_PING);
       }, ctx.pingIntervalMs);
 
+      const toolNames: string[] = [];
+      const toolFields = (): Partial<ChatLogEntry> =>
+        ctx.version === 2 ? { toolCalls: toolNames.length, toolNames: [...toolNames] } : {};
+
       const pump = async (): Promise<Partial<ChatLogEntry>> => {
         try {
           for await (const event of events) {
@@ -110,7 +124,28 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
               send(encodeSseEvent('delta', { text: event.text }));
               continue;
             }
-            send(encodeSseEvent('done', { stopReason: event.stopReason, usage: event.usage }));
+            if (event.type === 'tool_call') {
+              // Over the per-response cap: not streamed; the follow-up answers it invalid_params.
+              if (ctx.version !== 2 || toolNames.length >= CHAT_LIMITS_V2.maxToolCallsPerMessage) {
+                continue;
+              }
+              toolNames.push(event.call.name);
+              send(encodeSseEvent('tool_call', event.call));
+              continue;
+            }
+            const providerState =
+              ctx.version === 2 && event.stopReason === 'tool_use' && event.blocks
+                ? encodeProviderState(event.blocks)
+                : undefined;
+            send(
+              encodeSseEvent('done', {
+                stopReason: event.stopReason,
+                usage: event.usage,
+                ...(providerState !== undefined ? { providerState } : {}),
+              }),
+            );
+            const costUsd = estimateCostUsd(ctx.model.pricing, event.usage);
+            ctx.dayCost.add(costUsd);
             return {
               outcome: 'done',
               stopReason: event.stopReason,
@@ -118,7 +153,9 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
               outputTokens: event.usage.outputTokens,
               cacheReadTokens: event.usage.cacheReadInputTokens,
               cacheWriteTokens: event.usage.cacheCreationInputTokens,
-              costUsd: estimateCostUsd(ctx.model.pricing, event.usage),
+              costUsd,
+              ...toolFields(),
+              providerStateBytes: providerState?.length ?? null,
             };
           }
           const failure = chatError('internal_error', 'Stream ended without a result');
@@ -136,7 +173,7 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
         clearInterval(ping);
         cleanup();
         const ttftMs = firstDeltaAt === undefined ? null : firstDeltaAt - startedAt;
-        writeLog({ status: 200, ttftMs, ...fields });
+        writeLog({ status: 200, ttftMs, ...toolFields(), ...fields });
         open = false;
         try {
           controller.close();
@@ -152,6 +189,6 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
 
   return new Response(body, {
     status: 200,
-    headers: { ...SSE_HEADERS, ...baseHeaders(ctx.requestId) },
+    headers: { ...SSE_HEADERS, ...baseHeaders(ctx.requestId, ctx.version) },
   });
 }
