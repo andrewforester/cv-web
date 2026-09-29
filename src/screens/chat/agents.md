@@ -16,10 +16,10 @@ Design: `docs/design/chat/SPEC.md` (+ "Orchestrator decisions" O1–O4); API: `d
 - Page agent (GRA-35, `docs/chat/AGENT.md`): the chat speaks v2 and runs the model's page tools in
   the browser. `useChatConversation` streams; after `done: tool_use` (never earlier) `runToolCalls`
   runs the collected calls in order over the `AgentToolExecutor` from `useAgentExecutor()`
-  (context `AgentExecutorContext`, empty until GRA-34 binds the registry: `TODO(GRA-34)`), appends
+  (the registry from `AgentProvider`; `AgentExecutorContext` is a test seam that wins when provided; the hook sets the registry confirm to always agree since the chat shows its own card first), appends
   the assistant turn (`toolCalls` + `providerState`) and `toolResults`, and sends a follow-up, at
   most 2 rounds per turn (calls beyond 3 get `invalid_params` unrun). A turn holds `page` (snapshot
-  sent with the question; `activeSection`/`highlighted` stay `null` until GRA-34) and `rounds`
+  sent with the question; `activeSection`/`highlighted` stay `null`) and `rounds`
   (`ChatToolRound`: text, `providerState`, `ChatActionCall`s). Stop aborts and drops the turn (a
   pending confirmation counts as declined); Try again re-sends the finished rounds and never
   re-runs tools. History: 40 messages, 10 questions, 24,000 chars (`conversation.ts`).

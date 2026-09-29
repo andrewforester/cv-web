@@ -1,19 +1,20 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useEffect } from 'react';
+import { useAgentRegistry } from '../../agent';
 import type { AgentToolExecutor } from '../../data/chat';
 
 /**
- * The page's tools as the chat sees them. Provided by the client registry (GRA-34, `src/agent/`);
- * TODO(GRA-34): bind the registry's executor here (or replace this context with its hook) once it
- * lands. Until then nothing is provided and the chat runs without page tools.
+ * Test seam: when provided, it wins over the page's registry (`FakeAgentExecutor` in tests).
+ * In the app nothing provides it and the chat runs the registry from `AgentProvider`.
  */
 export const AgentExecutorContext = createContext<AgentToolExecutor | null>(null);
 
-const NO_TOOLS: AgentToolExecutor = {
-  specs: () => [],
-  available: () => [],
-  execute: () => Promise.resolve({ ok: false, error: 'not_available' }),
-};
-
+/**
+ * The page's tools as the chat sees them. The chat shows its own confirmation card before it
+ * executes a `confirm` tool, so the registry's own confirmation is set to always agree.
+ */
 export function useAgentExecutor(): AgentToolExecutor {
-  return useContext(AgentExecutorContext) ?? NO_TOOLS;
+  const registry = useAgentRegistry();
+  const provided = useContext(AgentExecutorContext);
+  useEffect(() => registry.setConfirm(() => Promise.resolve(true)), [registry]);
+  return provided ?? registry;
 }

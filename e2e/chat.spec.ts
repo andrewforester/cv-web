@@ -88,7 +88,7 @@ for (const { locale, browserLocale, question, deltas, answer } of cases) {
                 chat: 'card',
                 activeSection: null,
                 highlighted: null,
-                tools: [],
+                tools: ['highlightElement', 'openContact', 'scrollToSection', 'switchLanguage'],
               },
             },
           ],
