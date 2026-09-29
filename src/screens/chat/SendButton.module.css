@@ -1,0 +1,23 @@
+.button {
+  flex: none;
+  width: var(--chat-control-size);
+  height: var(--chat-control-size);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--color-bg);
+  background: var(--color-text);
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.button:hover:enabled {
+  background: var(--color-text-secondary);
+}
+
+.button:disabled {
+  color: var(--color-text-muted);
+  background: var(--chat-color-disabled-bg);
+  cursor: default;
+}

@@ -10,4 +10,4 @@ One folder per screen: `src/screens/<screen>/`. Each holds:
 - `testIds.ts`, and at least one `*.test.tsx` UI test.
 - `agents.md`.
 
-Screens: `cv/` (the CV page, root of the site).
+Screens: `cv/` (the CV page, root of the site), `chat/` (the floating AI chat widget over it).

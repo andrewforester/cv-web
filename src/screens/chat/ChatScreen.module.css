@@ -1,0 +1,25 @@
+/*
+ * Chat widget root (its children are fixed-positioned). Sizes the SPEC gives without a theme
+ * token are screen-local here. TODO(theme): move them to tokens.css if another screen needs them.
+ */
+.root {
+  --chat-badge-size: 36px;
+  --chat-hint-dismiss-size: 24px;
+  --chat-hint-icon-size: 16px;
+  --chat-secondary-button-height: 36px;
+  --chat-dot-size: 6px;
+  --chat-caret-width: 2px;
+  --chat-caret-height: 18px;
+  --chat-ai-border-width: 1.5px;
+  --chat-fab-ring-width: 2px;
+  --chat-focus-ring-width: 2px;
+  --chat-motion-exit-duration: 150ms;
+
+  color: var(--color-text);
+}
+
+/* The textarea's ring is its field's border; the dialog container takes focus without a ring. */
+.root :focus-visible:not(textarea, [tabindex='-1']) {
+  outline: var(--chat-focus-ring-width) solid var(--color-text);
+  outline-offset: var(--chat-focus-ring-width);
+}

@@ -1,0 +1,109 @@
+.panel {
+  position: fixed;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  z-index: var(--chat-z-index);
+  width: var(--chat-panel-width);
+  height: min(var(--chat-panel-height), calc(100dvh - 2 * var(--space-6)));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-bg);
+  border-radius: var(--radius-card);
+  box-shadow: var(--chat-shadow-panel);
+  transform-origin: bottom right;
+  animation: panel-in var(--chat-motion-duration) var(--chat-motion-easing) both;
+}
+
+.panel:focus {
+  outline: none;
+}
+
+/* 1.5 px gradient border that keeps the radius (same technique as the CV's AI Tools card). */
+.panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: var(--chat-ai-border-width);
+  border-radius: inherit;
+  background: var(--gradient-ai);
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+.closing {
+  pointer-events: none;
+  animation: panel-out var(--chat-motion-exit-duration) var(--chat-motion-easing) both;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2)) scale(0.98);
+  }
+}
+
+@keyframes panel-out {
+  to {
+    opacity: 0;
+    transform: translateY(var(--space-2)) scale(0.98);
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-6));
+  }
+}
+
+@keyframes sheet-out {
+  to {
+    opacity: 0;
+    transform: translateY(var(--space-6));
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 599px), (max-height: 499px) {
+  .panel {
+    inset: 0;
+    width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+    animation-name: sheet-in;
+  }
+
+  .panel::before {
+    display: none;
+  }
+
+  .closing {
+    animation-name: sheet-out;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation-name: fade-in;
+    animation-duration: calc(var(--chat-motion-exit-duration) / 2);
+  }
+
+  .closing {
+    animation-name: fade-out;
+  }
+}

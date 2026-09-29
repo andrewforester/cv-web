@@ -1,0 +1,21 @@
+.caret {
+  display: inline-block;
+  width: var(--chat-caret-width);
+  height: var(--chat-caret-height);
+  margin-left: var(--chat-caret-width);
+  vertical-align: text-bottom;
+  background: currentColor;
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    animation: none;
+  }
+}

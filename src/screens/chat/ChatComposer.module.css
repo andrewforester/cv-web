@@ -1,0 +1,74 @@
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: var(--border-card) solid var(--chat-color-divider);
+}
+
+/* 5 px inside a 1 px border puts the 44 px Send 6 px from the edge; the text starts at 16 px. */
+.field {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  padding: calc(var(--space-1) + var(--border-card)) calc(var(--space-1) + var(--border-card))
+    calc(var(--space-1) + var(--border-card)) calc(var(--space-4) - var(--border-card));
+  background: var(--color-bg);
+  border: var(--border-card) solid var(--color-text-muted);
+  border-radius: var(--radius-card);
+}
+
+.field:focus-within {
+  border-color: var(--color-text);
+  box-shadow: 0 0 0 var(--border-card) var(--color-text);
+}
+
+.invalid,
+.invalid:focus-within {
+  border-color: var(--chat-color-error);
+  box-shadow: 0 0 0 var(--border-card) var(--chat-color-error);
+}
+
+/* One line = 44 px (22 + 2 × 11); grows to 5 lines, then scrolls. */
+.input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--chat-control-size);
+  max-height: calc(6 * var(--font-body-line-height));
+  padding: calc((var(--chat-control-size) - var(--font-body-line-height)) / 2) 0;
+  font: inherit;
+  font-size: var(--font-body-size);
+  line-height: var(--font-body-line-height);
+  letter-spacing: inherit;
+  color: var(--color-text);
+  background: transparent;
+  border: 0;
+  outline: none;
+  resize: none;
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.counter {
+  flex: none;
+  white-space: nowrap;
+}
+
+.error {
+  color: var(--chat-color-error);
+}
+
+@media (max-width: 599px), (max-height: 499px) {
+  .composer {
+    padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+  }
+}
