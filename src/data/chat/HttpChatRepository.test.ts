@@ -1,4 +1,4 @@
-import type { ChatRequest, ChatStreamEvent } from './contract';
+import type { ChatRequest, ChatStreamEventV2 } from './contract';
 import { HttpChatRepository } from './HttpChatRepository';
 
 const request: ChatRequest = { v: 1, locale: 'en', messages: [{ role: 'user', content: 'Hi' }] };
@@ -21,7 +21,7 @@ async function collect(response: Response | Error, signal?: AbortSignal) {
   const fetchFn = vi.fn<typeof fetch>(() =>
     response instanceof Response ? Promise.resolve(response) : Promise.reject(response),
   );
-  const events: ChatStreamEvent[] = [];
+  const events: ChatStreamEventV2[] = [];
   for await (const event of new HttpChatRepository(fetchFn).send(request, signal)) {
     events.push(event);
   }
@@ -44,6 +44,26 @@ describe('HttpChatRepository', () => {
       { type: 'delta', text: 'lo' },
       { type: 'done', stopReason: 'end_turn', usage },
     ]);
+  });
+
+  it('yields tool_call events before a done with providerState', async () => {
+    const call = { id: 'toolu_1', name: 'scrollToSection', input: { section: 'apps' } };
+    const { events } = await collect(
+      sse(
+        `event: delta\ndata: {"text":"Scrolling."}\n\nevent: tool_call\ndata: ${JSON.stringify(call)}\n\n` +
+          `event: done\ndata: ${JSON.stringify({ stopReason: 'tool_use', usage, providerState: 'opaque' })}\n\n`,
+      ),
+    );
+    expect(events).toEqual([
+      { type: 'delta', text: 'Scrolling.' },
+      { type: 'tool_call', ...call },
+      { type: 'done', stopReason: 'tool_use', usage, providerState: 'opaque' },
+    ]);
+  });
+
+  it('treats a malformed tool_call as a retryable upstream error', async () => {
+    const { events } = await collect(sse('event: tool_call\ndata: {"id":"x"}\n\n'));
+    expect(events).toMatchObject([{ type: 'error', error: { code: 'upstream_error' } }]);
   });
 
   it('passes a mid-stream error event through', async () => {

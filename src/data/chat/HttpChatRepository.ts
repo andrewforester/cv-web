@@ -4,7 +4,8 @@ import {
   CHAT_API_PATH,
   CHAT_REQUEST_ID_HEADER,
   type ChatRequest,
-  type ChatStreamEvent,
+  type ChatRequestV2,
+  type ChatStreamEventV2,
 } from './contract';
 import { readChatStream } from './readChatStream';
 
@@ -23,7 +24,10 @@ export class HttpChatRepository implements ChatRepository {
     this.url = url;
   }
 
-  async *send(request: ChatRequest, signal?: AbortSignal): AsyncGenerator<ChatStreamEvent> {
+  async *send(
+    request: ChatRequest | ChatRequestV2,
+    signal?: AbortSignal,
+  ): AsyncGenerator<ChatStreamEventV2> {
     let response: Response;
     try {
       response = await this.fetchFn(this.url, {
