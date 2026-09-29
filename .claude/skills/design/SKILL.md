@@ -1,6 +1,6 @@
 ---
 name: design
-description: Turn a screenshot (or photo/mock) of an app screen into a CV Andrew Panasiuk design package — docs/design/<screen>/SPEC.md with tokens, measurements, structure, texts and behaviour, plus screenshot.png and assets/ — without calling design-tool MCPs. Use when asked to spec, describe, reverse-engineer or prepare the design of a screen from an image, or when a session is started on an Issue labelled design.
+description: Turn a screenshot (or photo/mock) of an app screen into a CV Andrew Panasiuk design package — docs/design/<screen>/SPEC.md with tokens, measurements, structure, texts and behaviour, plus screenshot.png and assets/ — without calling design-tool MCPs. Use when asked to spec, describe, reverse-engineer or prepare the design of a screen from an image, or when a session is started on a task with the Design role.
 ---
 
 # Design from a screenshot
@@ -11,8 +11,8 @@ Output: `docs/design/<screen>/` in the same shape as the packages already in `do
 
 ## 1. Get the image into the repo
 - Find the screenshot:
-  - usually the orchestrator has already committed it as `docs/design/<screen>/screenshot.png` on your branch (the Issue says so);
-  - a path the human or Issue gives you;
+  - usually the orchestrator has already committed it as `docs/design/<screen>/screenshot.png` on your branch (the brief says so);
+  - a path the human or the brief gives you;
   - an attachment saved under `~/.claude/uploads/`.
 
   If you can only *see* it in the chat and have no file, ask the human to attach it as a file or commit it, and stop.
@@ -23,7 +23,7 @@ Output: `docs/design/<screen>/` in the same shape as the packages already in `do
 The style reference (`docs/COORDINATION.md` → Design source of truth) sets sizes, colours, type, radii and spacing. So:
 - Take from the screenshot *what* is there: blocks, order, content, texts, icons, illustrations, behaviour.
 - Specify *how it looks* in the reference language: read the theme/tokens code and the existing design packages, then give every block the matching treatment (card fill/border/radius/padding/shadow, type styles, spacing grid, text colours).
-- Sample screenshot colours (Python/PIL, flat areas only) to identify the *role* of each colour, then map the role to an existing token. A new token is justified only when the reference has no colour for that role; list it in **"New tokens needed"** with a suggested name. The theme owner adds it in a separate `theme` Issue.
+- Sample screenshot colours (Python/PIL, flat areas only) to identify the *role* of each colour, then map the role to an existing token. A new token is justified only when the reference has no colour for that role; list it in **"New tokens needed"** with a suggested name. The theme owner adds it in a separate theme task.
 - Record notable screenshot-vs-reference differences in one short table, for information only.
 - **Stay consistent with screens already built.** Before sizing anything, read the other packages in `docs/design/` and the code of built screens and shared components. The same role gets the same treatment on every screen: page title, section title + subtitle, "View All"-type links, pills, primary/secondary buttons, cards, carousels, navigation. Screenshots often have oversized text and buttons: scale them to the existing type roles and control sizes, don't copy them. Name the reused component/token for each block, and list pieces that should be shared with an existing screen under **"Shared components"** (they get moved to shared components, not copied).
 
@@ -41,7 +41,7 @@ Write `SPEC.md` with these sections:
 - **States and behaviour**: taps, hover/focus, selection, scrolling, loading/empty/error, and anything implied but not shown.
 - **Responsive**: how the layout changes between the target viewports, if the project has more than one.
 - **Decisions**: for each question the image doesn't answer, the conservative default you chose. The orchestrator may change them.
-- Skip anything the Issue lists as **out of scope**, even if it's in the screenshot.
+- Skip anything the brief lists as **out of scope**, even if it's in the screenshot.
 - **Data**: what should come from mocks / the API (names, numbers, lists).
 
 ## 4. Check yourself
@@ -49,8 +49,8 @@ Write `SPEC.md` with these sections:
 - Check the sums: the widths of the items in a row plus the gaps and paddings should equal the viewport width.
 
 ## 5. Deliver
-- Re-read the Issue and all its comments first: scope may have changed while you worked.
+- Re-read the brief and all comments first: scope may have changed while you worked.
 - Commit only `docs/design/<screen>/**`.
-- **Comment on the Issue** with the open questions (each with the default you put in Decisions), the new tokens, and anything you're unsure of. Never stop to wait for an answer: nobody is watching.
-- Push to the draft PR the orchestrator opened (never open another), add a short summary to its body next to `Closes #N`, and mark it **Ready for review** (`update_pull_request`, `draft: false`) as your last step: that starts CI and signals the orchestrator. Process details stay in the Issue.
-- Don't merge; the orchestrator merges and then files the `theme` and `screen` Issues from your package.
+- **Comment** (on the PR, and on the ticket if you can) with the open questions (each with the default you put in Decisions), the new tokens, and anything you're unsure of. Never stop to wait for an answer: nobody is watching.
+- Push to the draft PR the orchestrator opened (never open another), add a short summary to its body next to the ticket reference, and mark it **Ready for review** as your last step (`docs/COORDINATION.md` → Tooling): that starts CI and signals the orchestrator.
+- Don't merge; the orchestrator merges and then files the theme and screen tasks from your package.

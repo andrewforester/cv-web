@@ -17,7 +17,7 @@ Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + Rea
 | `server/` | Framework-free backend logic: `chat/` (the `/api/chat` pipeline: guards, limiter, validation, knowledge, prompt, Claude via `@anthropic-ai/sdk`, SSE), `dev/` (Vite plugin serving `/api/chat` in `npm run dev`), `test/` (server test setup and helpers). |
 | `e2e/` | Playwright web smoke check (`smoke.spec.ts`). |
 | `public/` | Static files copied as is (favicon). |
-| `docs/COORDINATION.md` | Standing rules for parallel Claude sessions: file ownership, design source of truth, Issue labels. Read it before touching files. |
+| `docs/COORDINATION.md` | Standing rules for parallel Claude sessions: file ownership, design source of truth, the tracker (Linear: statuses, labels, brief format) and **Tooling** (the concrete commands the skills' general steps map to). Read it before touching files. |
 | `docs/chat/`, `docs/adr/` | AI chat system design, API contract (`API.md`) and decisions. |
 | `docs/design/<name>/` | Design packages (`SPEC.md`, `screenshot.png`, `assets/`). Build from them; don't call design-tool MCPs. |
 
@@ -38,7 +38,7 @@ Before every push: *lint* and *test* must pass.
 
 Chat env (server-side only; Vercel Project Settings for Production + Preview, `.env.local` for dev): `ANTHROPIC_API_KEY` (missing: `/api/chat` answers `503`), `CHAT_MODEL` (`claude-haiku-4-5` default, or `claude-sonnet-5-5`), `CHAT_ENABLED` (`false` = kill switch), `CHAT_FAKE_LLM` (`1` = scripted answers; dev/tests only, ignored on Vercel). No test or CI job calls a real model. Try the endpoint with `curl -N -X POST http://localhost:5173/api/chat -H 'Content-Type: application/json' -H 'Origin: http://localhost:5173' -d '{"v":1,"locale":"en","messages":[{"role":"user","content":"Hi"}]}'`.
 
-Local sessions (the default way work sessions run, see `.claude/skills/orchestrate` → Launch a session): install what you need yourself: Node 22 (`nvm install 22` or `brew install node@22`), `npm ci`, and for the *web check* Playwright's Chromium (`npx playwright install chromium`). The session-start hook does not run locally.
+Local sessions (launched by a local orchestrator, see `docs/COORDINATION.md` → Tooling → Sessions): install what you need yourself: Node 22 (`nvm install 22` or `brew install node@22`), `npm ci`, and for the *web check* Playwright's Chromium (`npx playwright install chromium`). The session-start hook does not run locally.
 
 Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `npm ci` when `node_modules` is missing or older than `package-lock.json`, and warns when `registry.npmjs.org` (the only domain the environment must allow) is unreachable. Playwright uses the preinstalled Chromium in `/opt/pw-browsers`.
 
@@ -58,12 +58,12 @@ Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `n
 - **Unidirectional data flow:** immutable UI state, events as callbacks, no business logic in components.
 - **Small files:** one component per file; split a file when it grows past ≈200–250 lines or does two jobs. Components past ≈60 lines get split into named sub-components.
 - **Don't duplicate (DRY):** before writing a component, look in the shared components folder and other screens. If a second screen needs the same piece, move it to shared components (a Theme-zone PR, see `docs/COORDINATION.md`) instead of copying it. Same for dimensions and styles: reuse tokens, add a token rather than repeat a literal.
-- **Single responsibility, clear names, no dead code**, no speculative abstractions (YAGNI): build what the Issue asks, in a shape a real backend can plug into.
+- **Single responsibility, clear names, no dead code**, no speculative abstractions (YAGNI): build what the task asks, in a shape a real backend can plug into.
 - **Package docs:** every code folder you create or change has an `agents.md`: a short business description of what it does (which screen or feature, what the user sees, main types and how they connect, where the data comes from, known stubs). Keep it under ≈40 lines, write it for the next agent, update it in the same PR as the code.
 
 ## Skills (roles)
 
-`.claude/skills/`: `orchestrate` (coordinator: Issues, sessions, merge, reports), `develop` (a session working one Issue), `design` (design package from a screenshot), `implement-screen` (how to build a screen), `quick-fix` (small fixes: filing, launching, working them), `qa-release` (watches `main` after merges via the CI-watch PR, reverts or files fixes).
+`.claude/skills/`: `orchestrate` (coordinator: tracker tasks, sessions, merge, reports), `develop` (a session working one task), `design` (design package from a screenshot), `implement-screen` (how to build a screen), `quick-fix` (small fixes: filing, launching, working them), `qa-release` (watches `main` after merges via the CI-watch PR, reverts or files fixes). Skills describe roles in general terms; project-specific tools and commands live in `docs/COORDINATION.md` → Tooling and in this file.
 
 ## Design
 
@@ -71,7 +71,7 @@ The design reference and the rules for screenshots are in `docs/COORDINATION.md`
 
 ## Process
 
-The tracker holds the whole working process: GitHub Issues by default, or a Linear project when the human asks for it (one ticket per task, e.g. `GRA-7`; the PR body then says `Linear: GRA-7` instead of `Closes #N`, and reports go into PR comments plus a ticket comment). Below, "Issue" means the tracker's ticket. It records status labels, session names/ids, scope changes, questions and decisions, web screenshots of results (stored on the orphan branch `screens`, embedded in Issue comments). Each closed Issue gets a closing comment with the Claude usage (model, USD when known, context, tokens). Issues declare `Depends on: #N`; the orchestrator launches them as their dependencies merge. The orchestrator's reports to the human include a cost table. The repository holds only the product and the standing rules; PR bodies are short (`Closes #N` + what changed).
+The tracker is **Linear** (team Grandtorino, one project per epic, one ticket `GRA-N` per task; GitHub Issues are not used). It holds the whole working process: status, Role/Type labels, dependencies (blocked-by relations), session names/ids, scope changes, questions and decisions, web screenshots of results (stored on the orphan branch `screens`), and a closing comment with the Claude usage (model, USD when known, context, tokens). Working sessions report in PR comments; the orchestrator mirrors to the ticket. The orchestrator's reports to the human include a cost table. The repository holds only the product and the standing rules; PR bodies are short (`Closes GRA-N` + what changed). Details: `docs/COORDINATION.md` → Tracker.
 
 ## Git & CI
 
