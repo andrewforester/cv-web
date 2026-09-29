@@ -1,5 +1,5 @@
 import { readChatError, upstreamError } from './chatErrors';
-import type { AgentToolCall, ChatStreamEventV2V2 } from './contract';
+import type { AgentToolCall, ChatStreamEventV2 } from './contract';
 import { parseSse } from './parseSse';
 
 /**
