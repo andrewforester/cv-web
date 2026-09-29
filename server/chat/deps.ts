@@ -1,9 +1,11 @@
 import { readChatConfig } from './config.js';
 import type { ChatDeps } from './handler.js';
+import { DayCostMeter } from './dayCost.js';
 import { createKnowledgeLoader } from './knowledge/assembleKnowledge.js';
 import { KNOWLEDGE_SOURCES } from './knowledge/sources.js';
 import { AnthropicLlmClient } from './llm/AnthropicLlmClient.js';
-import { devFakeScript, FakeLlmClient } from './llm/FakeLlmClient.js';
+import { devFakeScript } from './llm/devFakeScript.js';
+import { FakeLlmClient } from './llm/FakeLlmClient.js';
 import type { LlmClient } from './llm/LlmClient.js';
 import { consoleLogger } from './log.js';
 import { RateLimiter } from './rateLimiter.js';
@@ -22,6 +24,14 @@ export function createChatDeps(env: Record<string, string | undefined>): ChatDep
       }),
     );
   }
+  if (config.invalidBudget !== undefined) {
+    console.error(
+      JSON.stringify({
+        evt: 'chat_config',
+        error: `CHAT_DAILY_BUDGET_USD "${config.invalidBudget}" is not a positive number; budget off`,
+      }),
+    );
+  }
   let llm: LlmClient | undefined;
   if (config.fakeLlm) llm = new FakeLlmClient(devFakeScript);
   else if (config.apiKey) llm = new AnthropicLlmClient({ apiKey: config.apiKey });
@@ -29,6 +39,7 @@ export function createChatDeps(env: Record<string, string | undefined>): ChatDep
     config,
     llm,
     limiter: new RateLimiter(),
+    dayCost: new DayCostMeter(),
     knowledge: createKnowledgeLoader(KNOWLEDGE_SOURCES),
     log: consoleLogger,
   };

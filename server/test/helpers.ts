@@ -1,6 +1,7 @@
 import type { ChatRequest } from '../../src/data/chat/contract.js';
 import { readChatConfig } from '../chat/config.js';
 import type { ChatDeps } from '../chat/handler.js';
+import { DayCostMeter } from '../chat/dayCost.js';
 import { createKnowledgeLoader } from '../chat/knowledge/assembleKnowledge.js';
 import { KNOWLEDGE_SOURCES } from '../chat/knowledge/sources.js';
 import { FakeLlmClient, type FakeScript } from '../chat/llm/FakeLlmClient.js';
@@ -50,6 +51,7 @@ export function testDeps(
     config: readChatConfig({ ANTHROPIC_API_KEY: 'test-key' }),
     llm: new FakeLlmClient(script),
     limiter: new RateLimiter(),
+    dayCost: new DayCostMeter(),
     knowledge: createKnowledgeLoader(KNOWLEDGE_SOURCES),
     log: (entry) => logs.push(entry),
     newRequestId: () => 'req-1',
