@@ -47,6 +47,7 @@ Each has one owner: a role, not a particular session. The Issue names the role.
 | Images, icons | `src/screens/<screen>/assets/<screen>_*`; shared icons in `src/shared/icons/` belong to Theme | never rename other screens' resources |
 | `src/data/**` (`models.ts`, `CvRepository.ts`) | the first screen that needs them | a screen's mocks live in `src/data/mock/` under its own file names |
 | API contract between frontend and backend (`src/data/CvRepository.ts`, `src/data/models.ts`) | Scaffold (`infra`) until a backend owner exists | changes go through their own Issue |
+| `api/**`, `server/**`, `src/data/chat/contract.ts` (the `/api/chat` contract, `docs/chat/API.md`), `vercel.json` `functions` | Backend (`backend`) | contract changes go through their own ticket and a PR comment; breaking ones bump `v` |
 | `docs/**`, `CLAUDE.md`, `.claude/skills/**`, `.claude/settings.json`, `.github/ISSUE_TEMPLATE/**`, `.github/pull_request_template.md` | coordinator or human | others propose changes in a PR |
 
 ## Issues and labels
