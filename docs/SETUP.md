@@ -16,10 +16,7 @@ scripts/bootstrap.sh --name "Product Name" --dry-run   # see what it will do
 scripts/bootstrap.sh --name "Product Name"
 ```
 
-It fills the project name, repo and Pages URL into the docs and skills, then creates:
-- the labels from `docs/COORDINATION.md`;
-- the orphan branch `screens` for task screenshots;
-- the branch `ci-watch` and the draft PR "CI watch: main (never merge)" for the `qa-release` role;
+It fills the project name and repo into the docs and skills, then creates the branch `ci-watch` and the draft PR "CI watch: main (never merge)" for the `qa-release` role. This repo's copy of the script is the old one and also created GitHub labels and the orphan `screens` branch: neither is used any more (labels live in Linear, screenshots are uploaded to tickets, see `docs/COORDINATION.md` → Tracker). The current script is in the template (`andrewforester/ai-dev-kit`).
 
 Re-running it is safe.
 
