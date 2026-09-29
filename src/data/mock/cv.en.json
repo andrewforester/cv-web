@@ -52,6 +52,7 @@
   ],
   "technologies": [
     {
+      "id": "android",
       "title": "Android",
       "items": [
         "Jetpack Compose",
@@ -65,6 +66,7 @@
       "column": 1
     },
     {
+      "id": "product-mindset",
       "title": "Product mindset",
       "items": [
         "Feature ownership",
@@ -76,30 +78,35 @@
       "column": 1
     },
     {
+      "id": "testing",
       "title": "Unit/UI testing",
       "items": ["JUnit", "Mockk", "Robolectric", "JaCoCo"],
       "variant": "default",
       "column": 1
     },
     {
+      "id": "kotlin",
       "title": "Kotlin",
       "items": ["Coroutines", "Ktor", "Flow", "Kotlinx-serialization", "Kotlin Multiplatform"],
       "variant": "default",
       "column": 2
     },
     {
+      "id": "architecture",
       "title": "Architecture",
       "items": ["MVVM", "MVI", "Redux", "Clean", "SOLID"],
       "variant": "default",
       "column": 2
     },
     {
+      "id": "integrations",
       "title": "Integrations",
       "items": ["Firebase Cloud Messaging", "Locations API", "SocketIO", "REST/RPC API"],
       "variant": "default",
       "column": 2
     },
     {
+      "id": "ai-tools",
       "title": "AI Tools",
       "items": [
         "Copilot",
@@ -113,12 +120,14 @@
       "column": 3
     },
     {
+      "id": "tools",
       "title": "Tools",
       "items": ["Gradle", "Git", "Github Actions", "CircleCI", "CocoaPods"],
       "variant": "default",
       "column": 3
     },
     {
+      "id": "ios",
       "title": "iOS",
       "items": ["Swift", "UIKit", "AutoLayout", "Stevia"],
       "variant": "default",
@@ -127,6 +136,7 @@
   ],
   "latestExperience": [
     {
+      "id": "transcenda",
       "company": "Transcenda",
       "remote": false,
       "role": "Senior Android Developer",
@@ -172,6 +182,7 @@
   ],
   "apps": [
     {
+      "id": "cync",
       "name": "Cync",
       "publisher": "Savant Systems, Inc.",
       "icon": "app_cync",
@@ -180,6 +191,7 @@
       "downloads": "1M+"
     },
     {
+      "id": "august-home",
       "name": "August Home",
       "publisher": "August Home, Inc.",
       "icon": "app_august",
@@ -188,6 +200,7 @@
       "downloads": "1M+"
     },
     {
+      "id": "savant",
       "name": "Savant",
       "publisher": "Savant Systems, Inc.",
       "icon": "app_savant",
@@ -197,21 +210,25 @@
   "education": ["Applied Mathematics, Cybernetics", "Kyiv National University 2007 - 2012"],
   "books": [
     {
+      "id": "antifragile",
       "title": "Antifragile",
       "author": "Nassim Nicholas Taleb",
       "cover": "book_antifragile"
     },
     {
+      "id": "siddhartha",
       "title": "Siddhartha",
       "author": "Hermann Hesse",
       "cover": "book_siddhartha"
     },
     {
+      "id": "the-goal",
       "title": "The Goal",
       "author": "Eliyahu Goldratt",
       "cover": "book_the_goal"
     },
     {
+      "id": "a-pattern-language",
       "title": "A Pattern Language",
       "author": "Christopher Alexander",
       "cover": "book_pattern_language"
@@ -220,6 +237,7 @@
   "interests": "Sports, forest hiking, e-bike riding, good books, volunteering, playing guitar, AI experiments",
   "previousExperience": [
     {
+      "id": "wisehouse",
       "company": "WiseHouse",
       "remote": false,
       "role": "Android Developer",
@@ -249,6 +267,7 @@
       ]
     },
     {
+      "id": "attendify",
       "company": "Attendify",
       "remote": false,
       "role": "Android/iOS Developer",
@@ -273,6 +292,7 @@
       ]
     },
     {
+      "id": "rosfines",
       "company": "RosFines",
       "remote": true,
       "role": "Android Lead",
@@ -292,6 +312,7 @@
       ]
     },
     {
+      "id": "smartling",
       "company": "Smartling",
       "remote": true,
       "role": "Android SDK Developer",
@@ -316,6 +337,7 @@
       ]
     },
     {
+      "id": "rokkit",
       "company": "Rokkit",
       "remote": false,
       "role": "Android Developer",
@@ -330,6 +352,7 @@
       ]
     },
     {
+      "id": "ivi",
       "company": "ivi",
       "remote": true,
       "role": "Android Teamlead",
@@ -354,6 +377,7 @@
       ]
     },
     {
+      "id": "samsung",
       "company": "Samsung",
       "remote": false,
       "role": "Android Developer",
