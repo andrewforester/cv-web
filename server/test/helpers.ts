@@ -1,4 +1,10 @@
-import type { ChatRequest } from '../../src/data/chat/contract.js';
+import type {
+  AgentPageState,
+  AgentToolCall,
+  ChatMessageV2,
+  ChatRequest,
+  ChatRequestV2,
+} from '../../src/data/chat/contract.js';
 import { readChatConfig } from '../chat/config.js';
 import type { ChatDeps } from '../chat/handler.js';
 import { DayCostMeter } from '../chat/dayCost.js';
@@ -15,6 +21,45 @@ export const VALID_BODY: ChatRequest = {
   locale: 'en',
   messages: [{ role: 'user', content: 'What does Andrew do?' }],
 };
+
+export const PAGE: AgentPageState = {
+  route: '/',
+  locale: 'en',
+  viewport: 'desktop',
+  chat: 'card',
+  activeSection: 'header',
+  highlighted: null,
+  tools: ['highlightElement', 'openContact', 'scrollToSection', 'switchLanguage'],
+};
+
+export const SCROLL_APPS: AgentToolCall = {
+  id: 'toolu_1',
+  name: 'scrollToSection',
+  input: { section: 'apps' },
+};
+
+/** v2 message builders: a question, a tool-use turn and its results (all `ok` by default). */
+export const question = (content: string): ChatMessageV2 => ({ role: 'user', content, page: PAGE });
+export const toolTurn = (
+  toolCalls: AgentToolCall[] = [SCROLL_APPS],
+  content = 'Scrolling.',
+  providerState?: string,
+): ChatMessageV2 => ({
+  role: 'assistant',
+  content,
+  toolCalls,
+  ...(providerState !== undefined ? { providerState } : {}),
+});
+export const toolResults = (toolCalls: AgentToolCall[] = [SCROLL_APPS]): ChatMessageV2 => ({
+  role: 'user',
+  toolResults: toolCalls.map((call) => ({ callId: call.id, result: { ok: true } })),
+});
+
+export const v2Body = (...messages: ChatMessageV2[]): ChatRequestV2 => ({
+  v: 2,
+  locale: 'en',
+  messages: messages.length > 0 ? messages : [question('Show the apps')],
+});
 
 /** A `POST /api/chat` as a browser on the site sends it; override any part. */
 export function chatRequest(

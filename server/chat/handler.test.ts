@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { ChatErrorBody } from '../../src/data/chat/contract.js';
 import { chatRequest, testDeps, VALID_BODY } from '../test/helpers.js';
 import { readChatConfig } from './config.js';
+import { DayCostMeter } from './dayCost.js';
 import { handleChat } from './handler.js';
 import { RateLimiter, DEFAULT_RATE_LIMITS } from './rateLimiter.js';
 
@@ -138,5 +139,38 @@ describe('handleChat: errors before the stream', () => {
     const response = await handleChat(chatRequest(), deps);
     expect(response.status).toBe(500);
     expect(await errorOf(response)).toMatchObject({ code: 'internal_error', retryable: true });
+  });
+});
+
+describe('handleChat: usage log and daily budget', () => {
+  it('logs the running day total with every line', async () => {
+    const deps = testDeps();
+    await (await handleChat(chatRequest(), deps)).text();
+    await (await handleChat(chatRequest(), deps)).text();
+    const [first, second] = deps.logs;
+    expect(first?.costUsd).toBeGreaterThan(0);
+    expect(second?.dayCostUsd).toBeCloseTo((first?.costUsd ?? 0) * 2, 6);
+  });
+
+  it('answers 503 unavailable with Retry-After until UTC midnight once over budget', async () => {
+    const now = () => Date.UTC(2026, 8, 30, 23, 0, 0);
+    const deps = testDeps(undefined, {
+      config: readChatConfig({ ANTHROPIC_API_KEY: 'k', CHAT_DAILY_BUDGET_USD: '0.0001' }),
+      dayCost: new DayCostMeter(now),
+      now,
+    });
+    const first = await handleChat(chatRequest(), deps);
+    expect(first.status).toBe(200);
+    await first.text();
+    const response = await handleChat(chatRequest(), deps);
+    expect(response.status).toBe(503);
+    expect(response.headers.get('retry-after')).toBe('3600');
+    expect(await errorOf(response)).toMatchObject({
+      code: 'unavailable',
+      retryable: true,
+      retryAfterSeconds: 3600,
+    });
+    expect(deps.llm.requests).toHaveLength(1);
+    expect(deps.logs.at(-1)).toMatchObject({ status: 503, dayCostUsd: 0.0002 });
   });
 });
