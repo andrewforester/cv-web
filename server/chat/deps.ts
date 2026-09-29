@@ -1,0 +1,35 @@
+import { readChatConfig } from './config.js';
+import type { ChatDeps } from './handler.js';
+import { createKnowledgeLoader } from './knowledge/assembleKnowledge.js';
+import { KNOWLEDGE_SOURCES } from './knowledge/sources.js';
+import { AnthropicLlmClient } from './llm/AnthropicLlmClient.js';
+import { devFakeScript, FakeLlmClient } from './llm/FakeLlmClient.js';
+import type { LlmClient } from './llm/LlmClient.js';
+import { consoleLogger } from './log.js';
+import { RateLimiter } from './rateLimiter.js';
+
+/**
+ * Production dependencies from the environment, built once per instance: the fake model when
+ * `CHAT_FAKE_LLM=1` (never on Vercel), Claude when a key is set, otherwise none (`503`).
+ */
+export function createChatDeps(env: Record<string, string | undefined>): ChatDeps {
+  const config = readChatConfig(env);
+  if (config.unknownModel !== undefined) {
+    console.error(
+      JSON.stringify({
+        evt: 'chat_config',
+        error: `CHAT_MODEL "${config.unknownModel}" is not allowlisted; using ${config.model.id}`,
+      }),
+    );
+  }
+  let llm: LlmClient | undefined;
+  if (config.fakeLlm) llm = new FakeLlmClient(devFakeScript);
+  else if (config.apiKey) llm = new AnthropicLlmClient({ apiKey: config.apiKey });
+  return {
+    config,
+    llm,
+    limiter: new RateLimiter(),
+    knowledge: createKnowledgeLoader(KNOWLEDGE_SOURCES),
+    log: consoleLogger,
+  };
+}

@@ -10,12 +10,15 @@ Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + Rea
 | `src/app/` | App shell (`App.tsx`: header with the language switcher + page) and `AppProviders.tsx` (i18n + data binding). |
 | `src/theme/` | Design tokens (`tokens.css`, CSS custom properties) and global styles. |
 | `src/i18n/` | In-house typed i18n: locale detection/persistence, `defineStrings`, `useStrings`, the shared `common` namespace. |
-| `src/data/` | CV models, the `CvRepository` interface and its context, `mock/` (JSON per locale + `StaticCvRepository`). |
+| `src/data/` | CV models, the `CvRepository` interface and its context, `mock/` (JSON per locale + `StaticCvRepository`); `chat/contract.ts`: the `/api/chat` contract types shared with `server/`. |
 | `src/shared/` | Shared stateless components (`LanguageSwitcher/`). |
 | `src/screens/<screen>/` | One folder per screen (`home/` today). |
+| `api/` | Vercel Functions (Node runtime), thin entries only: `chat.ts` = `POST /api/chat` (AI CV chat). Every file here becomes a function. |
+| `server/` | Framework-free backend logic: `chat/` (the `/api/chat` pipeline: guards, limiter, validation, knowledge, prompt, Claude via `@anthropic-ai/sdk`, SSE), `dev/` (Vite plugin serving `/api/chat` in `npm run dev`), `test/` (server test setup and helpers). |
 | `e2e/` | Playwright web smoke check (`smoke.spec.ts`). |
 | `public/` | Static files copied as is (favicon). |
 | `docs/COORDINATION.md` | Standing rules for parallel Claude sessions: file ownership, design source of truth, Issue labels. Read it before touching files. |
+| `docs/chat/`, `docs/adr/` | AI chat system design, API contract (`API.md`) and decisions. |
 | `docs/design/<name>/` | Design packages (`SPEC.md`, `screenshot.png`, `assets/`). Build from them; don't call design-tool MCPs. |
 
 ## Commands
@@ -26,12 +29,14 @@ Skills refer to these slots by name (*lint*, *format*, *test*, *build*, *run*, *
 |---|---|---|
 | lint | `npm run lint` | ESLint (zero warnings) + `prettier --check` + `tsc -b` |
 | format | `npm run format` | auto-fix for *lint* (Prettier + `eslint --fix`) |
-| test | `npm test` | fast tests, no device/emulator: Vitest + Testing Library (jsdom), `src/**/*.test.ts(x)` |
+| test | `npm test` | fast tests, no device/emulator: Vitest projects `web` (Testing Library, jsdom, `src/**/*.test.ts(x)`) and `server` (node, `server/**/*.test.ts`, fake LLM only; the setup deletes `ANTHROPIC_API_KEY`) |
 | build | `npm run build` | production build; output dir: `dist/` (base path `/`) |
-| run | `npm run dev` | local dev server, http://localhost:5173/ |
+| run | `npm run dev` | local dev server, http://localhost:5173/; also serves `POST /api/chat` (env from `.env.local`, see `.env.example`; `CHAT_FAKE_LLM=1` answers without a key) |
 | web check | `npm run build && npm run web-check` | Playwright serves `dist/` with `vite preview` (http://localhost:4173/), Chromium 1280×800, browser locales `en-US` and `uk-UA`; fails on `pageerror`/console errors; screenshots in `web-check/home-{en,uk}.png`. In the cloud container the preinstalled Chromium is used (no `playwright install`). |
 
 Before every push: *lint* and *test* must pass.
+
+Chat env (server-side only; Vercel Project Settings for Production + Preview, `.env.local` for dev): `ANTHROPIC_API_KEY` (missing: `/api/chat` answers `503`), `CHAT_MODEL` (`claude-haiku-4-5` default, or `claude-sonnet-5-5`), `CHAT_ENABLED` (`false` = kill switch), `CHAT_FAKE_LLM` (`1` = scripted answers; dev/tests only, ignored on Vercel). No test or CI job calls a real model. Try the endpoint with `curl -N -X POST http://localhost:5173/api/chat -H 'Content-Type: application/json' -H 'Origin: http://localhost:5173' -d '{"v":1,"locale":"en","messages":[{"role":"user","content":"Hi"}]}'`.
 
 Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `npm ci` when `node_modules` is missing or older than `package-lock.json`, and warns when `registry.npmjs.org` (the only domain the environment must allow) is unreachable. Playwright uses the preinstalled Chromium in `/opt/pw-browsers`.
 
