@@ -18,7 +18,8 @@
   color: var(--color-text);
 }
 
-.root :focus-visible {
+/* The textarea's ring is its field's border; the dialog container takes focus without a ring. */
+.root :focus-visible:not(textarea, [tabindex='-1']) {
   outline: var(--chat-focus-ring-width) solid var(--color-text);
   outline-offset: var(--chat-focus-ring-width);
 }

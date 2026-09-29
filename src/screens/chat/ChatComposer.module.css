@@ -58,6 +58,11 @@
   gap: var(--space-3);
 }
 
+.counter {
+  flex: none;
+  white-space: nowrap;
+}
+
 .error {
   color: var(--chat-color-error);
 }

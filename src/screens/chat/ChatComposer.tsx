@@ -71,7 +71,7 @@ export function ChatComposer(props: ChatComposerProps) {
           {tooLong ? formatString(strings.tooLong, { max: maxLength }) : strings.disclaimer}
         </span>
         {counterVisible && (
-          <span className={tooLong ? styles.error : undefined}>
+          <span className={tooLong ? `${styles.counter} ${styles.error}` : styles.counter}>
             {formatString(strings.counter, { count: input.length, max: maxLength })}
           </span>
         )}
