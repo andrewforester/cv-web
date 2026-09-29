@@ -47,6 +47,11 @@ export interface Contacts {
 export type TechnologyCardVariant = 'default' | 'highlighted' | 'ai';
 
 export interface TechnologyCard {
+  /**
+   * Stable, locale-independent slug (`kotlin`, `august-home`): the same in every locale's JSON.
+   * The AI page agent targets items by it (`data-agent-id`, `src/data/chat/agentTools.ts`).
+   */
+  id: string;
   title: string;
   items: string[];
   variant: TechnologyCardVariant;
@@ -55,6 +60,11 @@ export interface TechnologyCard {
 }
 
 export interface ExperienceEntry {
+  /**
+   * Stable, locale-independent slug (`kotlin`, `august-home`): the same in every locale's JSON.
+   * The AI page agent targets items by it (`data-agent-id`, `src/data/chat/agentTools.ts`).
+   */
+  id: string;
   company: string;
   remote: boolean;
   role: string;
@@ -65,6 +75,11 @@ export interface ExperienceEntry {
 }
 
 export interface AppCard {
+  /**
+   * Stable, locale-independent slug (`kotlin`, `august-home`): the same in every locale's JSON.
+   * The AI page agent targets items by it (`data-agent-id`, `src/data/chat/agentTools.ts`).
+   */
+  id: string;
   name: string;
   publisher: string;
   icon: ImageRef;
@@ -77,6 +92,11 @@ export interface AppCard {
 }
 
 export interface Book {
+  /**
+   * Stable, locale-independent slug (`kotlin`, `august-home`): the same in every locale's JSON.
+   * The AI page agent targets items by it (`data-agent-id`, `src/data/chat/agentTools.ts`).
+   */
+  id: string;
   title: string;
   author: string;
   cover: ImageRef;

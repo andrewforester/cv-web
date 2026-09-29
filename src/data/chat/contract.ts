@@ -1,5 +1,5 @@
 /**
- * AI CV chat API contract, v1 (docs/chat/API.md). Shared by the widget (`src/data/chat/**`) and the
+ * AI CV chat API contract, v1 and v2 (docs/chat/API.md). Shared by the widget (`src/data/chat/**`) and the
  * backend (`server/chat/**`). Keep it framework-free: no React, DOM, Vite or Node imports.
  */
 
@@ -84,4 +84,157 @@ export type ChatSseEventName = keyof ChatSsePayloads;
 export type ChatStreamEvent =
   | { type: 'delta'; text: string }
   | { type: 'done'; stopReason: ChatStopReason; usage: ChatUsage }
+  | { type: 'error'; error: ChatError };
+
+// ---------------------------------------------------------------------------------------------
+// v2: page-agent tools (docs/chat/API.md → v2, docs/chat/AGENT.md). v1 above stays valid as is.
+// ---------------------------------------------------------------------------------------------
+
+export const CHAT_API_VERSION_V2 = 2;
+
+/** v2 limits: v1's char limits plus the tool-loop caps. */
+export const CHAT_LIMITS_V2 = {
+  ...CHAT_LIMITS,
+  maxMessages: 40,
+  /** Text `user` messages (questions) per conversation. */
+  maxUserQuestions: 10,
+  /** `JSON.stringify(page).length`. */
+  maxPageStateChars: 1_000,
+  maxProviderStateChars: 16_384,
+  maxToolCallsPerMessage: 3,
+  /** Assistant `toolCalls` messages after the last text `user` message; then tools are off. */
+  maxToolRoundsPerTurn: 2,
+} as const;
+
+/** Sorted, like the tool list the model gets. */
+export const AGENT_TOOL_NAMES = [
+  'highlightElement',
+  'openContact',
+  'scrollToSection',
+  'switchLanguage',
+] as const;
+export type AgentToolName = (typeof AGENT_TOOL_NAMES)[number];
+
+/** CV page sections in page order; `data-agent-id="section:<id>"`. */
+export const AGENT_SECTION_IDS = [
+  'header',
+  'summary',
+  'technologies',
+  'latest-experience',
+  'apps',
+  'education',
+  'about',
+  'previous-experience',
+] as const;
+export type AgentSectionId = (typeof AGENT_SECTION_IDS)[number];
+
+/** Contact channels of the CV header (`Contacts`); `data-agent-id="contact:<channel>"`. */
+export const AGENT_CONTACT_CHANNELS = ['email', 'phone', 'whatsapp', 'telegram'] as const;
+export type AgentContactChannel = (typeof AGENT_CONTACT_CHANNELS)[number];
+
+/** Target kinds; item ids (`technology`, `experience`, `app`, `book`) come from the CV JSON. */
+export const AGENT_TARGET_KINDS = [
+  'section',
+  'technology',
+  'experience',
+  'app',
+  'book',
+  'contact',
+] as const;
+export type AgentTargetKind = (typeof AGENT_TARGET_KINDS)[number];
+
+/** `<kind>:<id>`, the value of the target element's `data-agent-id`. */
+export type AgentTargetId = `${AgentTargetKind}:${string}`;
+
+export const AGENT_VIEWPORTS = ['desktop', 'mobile'] as const;
+/** The chat widget's layout: floating card (desktop) or full-screen sheet (under 600 px). */
+export const AGENT_CHAT_LAYOUTS = ['card', 'sheet'] as const;
+
+/** Page snapshot sent with each question: enums and booleans only, never text or values. */
+export interface AgentPageState {
+  route: '/';
+  locale: ChatLocale;
+  viewport: (typeof AGENT_VIEWPORTS)[number];
+  chat: (typeof AGENT_CHAT_LAYOUTS)[number];
+  activeSection: AgentSectionId | null;
+  highlighted: AgentTargetId | null;
+  /** Tools registered (mounted) right now, sorted. */
+  tools: AgentToolName[];
+}
+
+/** One `tool_use` of the model, streamed as a `tool_call` event and echoed in `toolCalls`. */
+export interface AgentToolCall {
+  /** The model's `tool_use` id. */
+  id: string;
+  name: AgentToolName;
+  /** Validated by the client against the tool's JSON Schema before anything runs. */
+  input: Record<string, unknown>;
+}
+
+export const AGENT_TOOL_ERRORS = [
+  'not_available',
+  'unknown_target',
+  'invalid_params',
+  'declined',
+  'failed',
+] as const;
+export type AgentToolError = (typeof AGENT_TOOL_ERRORS)[number];
+
+/** Fixed enums only: no page text ever goes back to the model. */
+export type AgentToolResult = { ok: true } | { ok: false; error: AgentToolError };
+
+export interface AgentToolResultItem {
+  /** The `AgentToolCall.id` it answers. */
+  callId: string;
+  result: AgentToolResult;
+}
+
+/** A visitor question with the page snapshot taken when it was sent. */
+export interface ChatUserMessageV2 {
+  role: 'user';
+  /** Plain text, non-empty after trimming. */
+  content: string;
+  page: AgentPageState;
+}
+
+/** Results of the preceding assistant message's `toolCalls`: one per call, same order. */
+export interface ChatToolResultsMessageV2 {
+  role: 'user';
+  toolResults: AgentToolResultItem[];
+}
+
+export interface ChatAssistantMessageV2 {
+  role: 'assistant';
+  /** May be empty when `toolCalls` is present. */
+  content: string;
+  toolCalls?: AgentToolCall[];
+  /** Opaque, from `done.providerState`; echoed verbatim, never parsed by the client. */
+  providerState?: string;
+}
+
+export type ChatMessageV2 = ChatUserMessageV2 | ChatToolResultsMessageV2 | ChatAssistantMessageV2;
+
+/** Roles alternate, start with a text `user` message and end with a `user` message. */
+export interface ChatRequestV2 {
+  v: typeof CHAT_API_VERSION_V2;
+  locale: ChatLocale;
+  messages: ChatMessageV2[];
+}
+
+/** `tool_use`: the client runs the streamed calls, then posts the results in a follow-up. */
+export type ChatStopReasonV2 = ChatStopReason | 'tool_use';
+
+export interface ChatSsePayloadsV2 {
+  delta: { text: string };
+  tool_call: AgentToolCall;
+  done: { stopReason: ChatStopReasonV2; usage: ChatUsage; providerState?: string };
+  error: ChatError;
+}
+export type ChatSseEventNameV2 = keyof ChatSsePayloadsV2;
+
+/** v2 stream events for the app; tool calls run only after `done` with `stopReason: 'tool_use'`. */
+export type ChatStreamEventV2 =
+  | { type: 'delta'; text: string }
+  | ({ type: 'tool_call' } & AgentToolCall)
+  | { type: 'done'; stopReason: ChatStopReasonV2; usage: ChatUsage; providerState?: string }
   | { type: 'error'; error: ChatError };

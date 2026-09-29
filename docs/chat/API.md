@@ -1,8 +1,9 @@
-# AI CV chat: API contract (v1)
+# AI CV chat: API contract (v1, v2)
 
 The contract between the chat widget (`src/data/chat/**`, `src/screens/chat/**`) and the backend
-(`api/chat.ts` + `server/chat/**`). It is final for v1: the backend and frontend tickets implement
-exactly this. Design context: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md); decisions:
+(`api/chat.ts` + `server/chat/**`). It is final for v1 and for v2 (page-agent tools,
+[below](#v2-page-agent-tools)): the backend and frontend tickets implement exactly this. Design
+context: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md); decisions:
 [`../adr/0001-ai-cv-chat.md`](../adr/0001-ai-cv-chat.md).
 
 ## Summary
@@ -165,7 +166,7 @@ File: `src/data/chat/contract.ts`. Framework-free (no React, DOM, Vite or Node i
 
 ```ts
 /**
- * AI CV chat API contract, v1 (docs/chat/API.md). Shared by the widget (`src/data/chat/**`) and the
+ * AI CV chat API contract, v1 and v2 (docs/chat/API.md). Shared by the widget (`src/data/chat/**`) and the
  * backend (`server/chat/**`). Keep it framework-free: no React, DOM, Vite or Node imports.
  */
 
@@ -312,12 +313,12 @@ data: {"code":"upstream_error","message":"Upstream stream failed: overloaded","r
 
 ---
 
-## v2 (DRAFT, GRA-31): page-agent tools
+## v2: page-agent tools
 
-> **DRAFT. Not implemented.** Proposed by [`AGENT.md`](AGENT.md) and
+> Final (GRA-32). Design: [`AGENT.md`](AGENT.md), decision:
 > [`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md). Everything above stays the
-> v1 contract. The contract task (AGENT.md section 7, a1) makes this section final and copies the
-> types into `src/data/chat/contract.ts` and `src/data/chat/agentTools.ts`.
+> v1 contract. Types live in `src/data/chat/contract.ts` (wire) and `src/data/chat/agentTools.ts`
+> (tool catalogue); the blocks below are copies, the files win if they ever differ.
 
 **Why a new version:** messages gain new shapes and a stream can now end with
 `stopReason: 'tool_use'`, which a v1 widget can't handle. Per Versioning, the server serves
@@ -346,42 +347,84 @@ data: {"code":"upstream_error","message":"Upstream stream failed: overloaded","r
 | `done` | `{ stopReason, usage, providerState? }` | Terminal. With `stopReason: 'tool_use'` the client executes the calls **after** `done`, then posts a follow-up. |
 | `error` | `ChatError` | Terminal, as v1. The client runs no tool from a stream that ended in `error`. |
 
-### Types (draft)
+### Types
+
+`src/data/chat/contract.ts`, after the v1 block:
 
 ```ts
 export const CHAT_API_VERSION_V2 = 2;
 
+/** v2 limits: v1's char limits plus the tool-loop caps. */
 export const CHAT_LIMITS_V2 = {
   ...CHAT_LIMITS,
   maxMessages: 40,
+  /** Text `user` messages (questions) per conversation. */
   maxUserQuestions: 10,
+  /** `JSON.stringify(page).length`. */
   maxPageStateChars: 1_000,
   maxProviderStateChars: 16_384,
   maxToolCallsPerMessage: 3,
+  /** Assistant `toolCalls` messages after the last text `user` message; then tools are off. */
   maxToolRoundsPerTurn: 2,
 } as const;
+
+/** Sorted, like the tool list the model gets. */
+export const AGENT_TOOL_NAMES = [
+  'highlightElement',
+  'openContact',
+  'scrollToSection',
+  'switchLanguage',
+] as const;
+export type AgentToolName = (typeof AGENT_TOOL_NAMES)[number];
+
+/** CV page sections in page order; `data-agent-id="section:<id>"`. */
+export const AGENT_SECTION_IDS = [
+  'header',
+  'summary',
+  'technologies',
+  'latest-experience',
+  'apps',
+  'education',
+  'about',
+  'previous-experience',
+] as const;
+export type AgentSectionId = (typeof AGENT_SECTION_IDS)[number];
+
+/** Contact channels of the CV header (`Contacts`); `data-agent-id="contact:<channel>"`. */
+export const AGENT_CONTACT_CHANNELS = ['email', 'phone', 'whatsapp', 'telegram'] as const;
+export type AgentContactChannel = (typeof AGENT_CONTACT_CHANNELS)[number];
+
+/** Target kinds; item ids (`technology`, `experience`, `app`, `book`) come from the CV JSON. */
+export const AGENT_TARGET_KINDS = [
+  'section',
+  'technology',
+  'experience',
+  'app',
+  'book',
+  'contact',
+] as const;
+export type AgentTargetKind = (typeof AGENT_TARGET_KINDS)[number];
+
+/** `<kind>:<id>`, the value of the target element's `data-agent-id`. */
+export type AgentTargetId = `${AgentTargetKind}:${string}`;
+
+export const AGENT_VIEWPORTS = ['desktop', 'mobile'] as const;
+/** The chat widget's layout: floating card (desktop) or full-screen sheet (under 600 px). */
+export const AGENT_CHAT_LAYOUTS = ['card', 'sheet'] as const;
 
 /** Page snapshot sent with each question: enums and booleans only, never text or values. */
 export interface AgentPageState {
   route: '/';
   locale: ChatLocale;
-  viewport: 'desktop' | 'mobile';
-  chat: 'card' | 'sheet';
+  viewport: (typeof AGENT_VIEWPORTS)[number];
+  chat: (typeof AGENT_CHAT_LAYOUTS)[number];
   activeSection: AgentSectionId | null;
   highlighted: AgentTargetId | null;
   /** Tools registered (mounted) right now, sorted. */
   tools: AgentToolName[];
 }
 
-export type AgentToolName = 'highlightElement' | 'openContact' | 'scrollToSection' | 'switchLanguage';
-
-export type AgentSectionId =
-  | 'header' | 'summary' | 'technologies' | 'latest-experience'
-  | 'apps' | 'education' | 'about' | 'previous-experience';
-
-/** `<kind>:<id>`, the value of the element's `data-agent-id`; ids come from the CV JSON. */
-export type AgentTargetId = `${'section' | 'technology' | 'experience' | 'app' | 'book' | 'contact'}:${string}`;
-
+/** One `tool_use` of the model, streamed as a `tool_call` event and echoed in `toolCalls`. */
 export interface AgentToolCall {
   /** The model's `tool_use` id. */
   id: string;
@@ -390,26 +433,57 @@ export interface AgentToolCall {
   input: Record<string, unknown>;
 }
 
-export type AgentToolError = 'not_available' | 'unknown_target' | 'invalid_params' | 'declined' | 'failed';
+export const AGENT_TOOL_ERRORS = [
+  'not_available',
+  'unknown_target',
+  'invalid_params',
+  'declined',
+  'failed',
+] as const;
+export type AgentToolError = (typeof AGENT_TOOL_ERRORS)[number];
 
+/** Fixed enums only: no page text ever goes back to the model. */
 export type AgentToolResult = { ok: true } | { ok: false; error: AgentToolError };
 
-export interface AgentToolResultMessageItem {
+export interface AgentToolResultItem {
+  /** The `AgentToolCall.id` it answers. */
   callId: string;
   result: AgentToolResult;
 }
 
-export type ChatMessageV2 =
-  | { role: 'user'; content: string; page: AgentPageState }
-  | { role: 'user'; toolResults: AgentToolResultMessageItem[] }
-  | { role: 'assistant'; content: string; toolCalls?: AgentToolCall[]; providerState?: string };
+/** A visitor question with the page snapshot taken when it was sent. */
+export interface ChatUserMessageV2 {
+  role: 'user';
+  /** Plain text, non-empty after trimming. */
+  content: string;
+  page: AgentPageState;
+}
 
+/** Results of the preceding assistant message's `toolCalls`: one per call, same order. */
+export interface ChatToolResultsMessageV2 {
+  role: 'user';
+  toolResults: AgentToolResultItem[];
+}
+
+export interface ChatAssistantMessageV2 {
+  role: 'assistant';
+  /** May be empty when `toolCalls` is present. */
+  content: string;
+  toolCalls?: AgentToolCall[];
+  /** Opaque, from `done.providerState`; echoed verbatim, never parsed by the client. */
+  providerState?: string;
+}
+
+export type ChatMessageV2 = ChatUserMessageV2 | ChatToolResultsMessageV2 | ChatAssistantMessageV2;
+
+/** Roles alternate, start with a text `user` message and end with a `user` message. */
 export interface ChatRequestV2 {
   v: typeof CHAT_API_VERSION_V2;
   locale: ChatLocale;
   messages: ChatMessageV2[];
 }
 
+/** `tool_use`: the client runs the streamed calls, then posts the results in a follow-up. */
 export type ChatStopReasonV2 = ChatStopReason | 'tool_use';
 
 export interface ChatSsePayloadsV2 {
@@ -418,33 +492,80 @@ export interface ChatSsePayloadsV2 {
   done: { stopReason: ChatStopReasonV2; usage: ChatUsage; providerState?: string };
   error: ChatError;
 }
+export type ChatSseEventNameV2 = keyof ChatSsePayloadsV2;
+
+/** v2 stream events for the app; tool calls run only after `done` with `stopReason: 'tool_use'`. */
+export type ChatStreamEventV2 =
+  | { type: 'delta'; text: string }
+  | ({ type: 'tool_call' } & AgentToolCall)
+  | { type: 'done'; stopReason: ChatStopReasonV2; usage: ChatUsage; providerState?: string }
+  | { type: 'error'; error: ChatError };
 ```
 
-`src/data/chat/agentTools.ts` (draft) holds the catalogue both sides use:
+`src/data/chat/agentTools.ts` holds the catalogue both sides use (framework-free; it imports with
+`.js` specifiers because `server/**` runs it on Node):
 
 ```ts
+/** One string parameter restricted to an enum of real ids. */
+export interface AgentToolEnumParam {
+  type: 'string';
+  description: string;
+  enum: string[];
+}
+
+/** Strict-compatible JSON Schema: an object, every property required, nothing extra. */
+export type AgentToolInputSchema = {
+  type: 'object';
+  properties: Record<string, AgentToolEnumParam>;
+  required: string[];
+  additionalProperties: false;
+};
+
+/** A tool as the model sees it; WebMCP's shape minus `execute`. */
 export interface AgentToolSpec {
   name: AgentToolName;
   /** For the model; English, one or two sentences. */
   description: string;
-  /** JSON Schema: type object, all properties required, additionalProperties false, enums of real ids. */
-  inputSchema: Record<string, unknown>;
+  inputSchema: AgentToolInputSchema;
   /** Outward or irreversible: the chat asks the visitor before running it. */
   confirm: boolean;
 }
 
-/** Deterministic: sorted by name, ids in CV data order. Same output on server and client. */
-export declare function buildAgentToolSpecs(cv: Cv): AgentToolSpec[];
-
 /** What the chat needs from the page: implemented by the browser registry, faked in tests. */
 export interface AgentToolExecutor {
+  /** The full catalogue, mounted or not. */
   specs(): AgentToolSpec[];
+  /** Tools registered right now, sorted (`AgentPageState.tools`). */
   available(): AgentToolName[];
+  /** Never throws: invalid input → `invalid_params`, unmounted tool → `not_available`. */
   execute(call: AgentToolCall): Promise<AgentToolResult>;
 }
+
+/** Every highlightable target, `<kind>:<id>`: sections, CV items in data order, contacts. */
+export declare function agentTargetIds(cv: Cv): AgentTargetId[];
+
+/** Deterministic: sorted by name, ids in CV data order, the same in every locale. */
+export declare function buildAgentToolSpecs(cv: Cv): AgentToolSpec[];
 ```
 
-### Example: one tool round (draft)
+### Tool catalogue
+
+`buildAgentToolSpecs(cv)` returns these four specs, each with one required string parameter
+restricted to an enum:
+
+| Tool | Parameter | Enum | `confirm` |
+|---|---|---|---|
+| `highlightElement` | `target` | `section:<AgentSectionId>` (8), then `technology:`, `experience:` (latest, then previous), `app:`, `book:` with the CV ids in data order, then `contact:<channel>` (4) | `false` |
+| `openContact` | `channel` | `email`, `phone`, `whatsapp`, `telegram` | `true` |
+| `scrollToSection` | `section` | `AGENT_SECTION_IDS` in page order | `false` |
+| `switchLanguage` | `locale` | `en`, `uk` | `false` |
+
+Item ids are the `id` fields of `TechnologyCard`, `ExperienceEntry`, `AppCard` and `Book`
+(`src/data/models.ts`): lowercase slugs (`kotlin`, `august-home`), equal in every locale's JSON,
+so the catalogue is byte-identical across locales. The server maps a spec to an Anthropic tool as
+`{ name, description, input_schema: inputSchema, strict: true }`; `confirm` stays client-side.
+
+### Example: one tool round
 
 Request 1 (the visitor asks):
 
