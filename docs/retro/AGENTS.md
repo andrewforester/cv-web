@@ -10,16 +10,20 @@ it); it is never merged into `main`.
 
 Start here, in this order:
 1. [`ARCHITECTURE.md`](ARCHITECTURE.md) **section 9**: what is built and where, the final
-   decisions, how to add or change a fix step, the known debt.
-2. `docs/design/retro/SPEC.md`: the look (retro values, damage layers, copy, the full fix list,
-   `--retro-*` tokens).
+   decisions, the round-3 design (atomic chunks, motion, highlight, smooth close; GRA-49), how to
+   add or change a fix chunk, the known debt.
+2. `docs/design/retro/SPEC.md`: the look (retro values, damage layers, copy, the atomic fix list,
+   chunk timing, transitions, the highlight, `--retro-*` tokens).
 3. The package `AGENTS.md` of the code you touch: `src/screens/retro/` (and `engine/`, `layers/`),
    `src/data/retro/`, `server/chat/show/`, `src/app/`.
 4. Background only: `ARCHITECTURE.md` sections 0–8 (the design as planned, with the reasoning) and
    [`../adr/0003-retro-live-fix-show.md`](../adr/0003-retro-live-fix-show.md) (rejected options).
 
 Domain terms: **damage layer** (a CSS override removed by a fix step), **decoration** (show-only
-element such as the "Oh, snap!" note), **step** / **effect** (what a fix does), **manifest** (step
+element such as the "Oh, snap!" note), **step** / **chunk** / **effect** (a step is a group of
+chunks under one narration line; a chunk is one visible change: one effect, its target and its
+motion), **beat** (the pause after a chunk applies), **highlight** (the show's pointer on the
+chunk's target), **manifest** (step
 ids, titles, LLM intents, scripted fallbacks), **narration** (the LLM's commentary lines),
 **stage** (the app shell while the show runs), **hook contract** (the selectors layers may use),
 **guards 1–4** (the tests that keep the show honest across redesigns).
