@@ -49,7 +49,7 @@ describe('App modes', () => {
       expect(layers().length).toBeGreaterThan(0);
       expect(screen.queryByTestId(chatTestIds.fab)).toBeNull();
 
-      await advance(60_000);
+      await advance(80_000);
 
       expect(stage()).toBeNull();
       expect(layers()).toHaveLength(0);

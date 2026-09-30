@@ -1,5 +1,6 @@
 import type { ShowNarrateStreamEvent, ShowReplyStreamEvent } from './contract';
 import { HttpShowRepository } from './HttpShowRepository';
+import { RETRO_SCENARIO_ID } from './scenario';
 import type { ShowReplyInput } from './ShowRepository';
 
 const usage = {
@@ -62,17 +63,22 @@ describe('HttpShowRepository.narrate', () => {
       { type: 'done', stopReason: 'end_turn', usage },
     ]);
     expect(fetchFn).toHaveBeenCalledWith('/api/chat', expect.objectContaining({ method: 'POST' }));
-    expect(bodyOf(fetchFn)).toEqual({ v: 3, locale: 'en', kind: 'narrate', scenario: 'retro-1' });
+    expect(bodyOf(fetchFn)).toEqual({
+      v: 3,
+      locale: 'en',
+      kind: 'narrate',
+      scenario: RETRO_SCENARIO_ID,
+    });
   });
 
   it('skips lines for unknown keys and unknown events', async () => {
     const { events } = narrate(
       sse(
-        `${line('marquee', 'x')}event: delta\ndata: {"text":"x"}\n\n${line('rest', 'R.')}${done}`,
+        `${line('marquee', 'x')}event: delta\ndata: {"text":"x"}\n\n${line('links', 'L.')}${done}`,
       ),
     );
     expect(await events).toEqual([
-      { type: 'line', key: 'rest', text: 'R.' },
+      { type: 'line', key: 'links', text: 'L.' },
       { type: 'done', stopReason: 'end_turn', usage },
     ]);
   });
@@ -131,7 +137,7 @@ describe('HttpShowRepository.reply', () => {
       v: 3,
       locale: 'en',
       kind: 'reply',
-      scenario: 'retro-1',
+      scenario: RETRO_SCENARIO_ID,
       ...input,
     });
   });

@@ -55,7 +55,10 @@ describe('retro show screen', () => {
     expect(within(liveConsole).getByText(strings.consolePrompt)).toBeInTheDocument();
     expect(chatText()).toContain(strings.handoff);
 
-    await advance(40_000);
+    await advance(4_000);
+    expect(screen.getByRole('progressbar', { name: 'Step 1 of 7: fonts & colours' })).toBeVisible();
+
+    await advance(70_000);
     expect(loaders['ai-chat']).toHaveBeenCalledTimes(1);
     expect(layers()).toHaveLength(0);
     expect(document.head.querySelector('style[data-retro-host]')).toBeNull();

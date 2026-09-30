@@ -13,13 +13,17 @@ What it guarantees today:
   asks for confirmation and does nothing on Cancel.
 - The Retro Rebuild show (`retro.spec.ts`, docs/retro/ARCHITECTURE.md §1 guards 3 and 4): on the
   fake clock it runs to the end and leaves exactly the normal page (computed styles of every
-  element compared with `?retro=0`, nothing of the show left, AI chat button present); every token
-  value the console prints is the value the page gets; reduced motion still ends clean; only
-  English desktop visitors get it, once per browser session.
+  element compared with `?retro=0`, nothing of the show left, AI chat button present); after every
+  step, what the console printed for it is what the page has (token values live, layer styles and
+  decorations gone, chat button rendered); reduced motion still ends clean; only English desktop
+  visitors get it, once per browser session.
+- The show is a lazy chunk (`retroLazy.spec.ts`): `?retro=0` never requests it; in show mode no
+  frame of today's design is painted before the broken page; a failed chunk leaves the normal site.
 
 Place in the architecture: runs against `vite preview` of `dist/`, where `/api/chat` doesn't
 exist, so every chat scenario mocks the endpoint with scripted SSE, and the show runs scripted
 (automation gets no LLM). No test here calls a real model. An English desktop browser gets the
 show by default, so specs about today's site open `NORMAL_SITE` (`?retro=0`, `support.ts`).
 Screenshots land in `web-check/` (git-ignored); CI uploads them as an artifact and sessions attach
-them to the ticket (`retro-mid.png`, `retro-end.png` for the show).
+them to the ticket (`retro-mid.png` after step 4, `retro-end.png`, `retro-loading.png` and
+`retro-first-frame.png` for the show).

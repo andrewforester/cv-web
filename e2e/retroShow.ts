@@ -1,11 +1,12 @@
 import { expect, type Page } from '@playwright/test';
 
-// Helpers for `retro.spec.ts`: drive the Retro Rebuild show on Playwright's fake clock and read
-// what it left on the page (docs/retro/ARCHITECTURE.md §1 → guards 3 and 4).
+// Helpers for `retro.spec.ts`: drive the Retro Rebuild show on Playwright's fake clock, read what
+// the console printed and what the show left on the page (docs/retro/ARCHITECTURE.md §1 → guards
+// 3 and 4).
 
 /** Fake time per step of the loop; the runner is time-based, so the chunk size only sets the pace. */
 const CHUNK_MS = 250;
-/** The POC show takes ≈ 50 s of show time; anything past this is a hang. */
+/** The 7-step show takes ≈ 71 s of show time; anything past this is a hang. */
 const SHOW_LIMIT_MS = 120_000;
 
 export const stageSelector = '[data-retro-stage]';
@@ -165,4 +166,58 @@ export function rootTokens(page: Page, names: string[]): Promise<Record<string, 
       ),
     names,
   );
+}
+
+/** A step the console shows as finished: `// n/N title`, its code, then `✓ n/N title` last. */
+export interface SettledStep {
+  /** `n/N title`. */
+  name: string;
+  /** The lines between the step's title and its `✓` line. */
+  lines: string[];
+}
+
+/** The step settling on screen now, or `null` while one is typing (or the show isn't in steps). */
+export function settledStep(lines: string[]): SettledStep | null {
+  const name = lines.at(-1)?.replace(/^✓ /, '');
+  if (!name || name === lines.at(-1) || !/^\d+\/\d+ /.test(name)) return null;
+  const start = lines.lastIndexOf(`// ${name}`);
+  return start < 0 ? null : { name, lines: lines.slice(start + 1, -1) };
+}
+
+/** The layer files a step printed (`--- layers/<id>.css`), each with the lines under it. */
+function layerSections(lines: string[]): { id: string; lines: string[] }[] {
+  const sections: { id: string; lines: string[] }[] = [];
+  for (const line of lines) {
+    const file = /^--- layers\/(.+)\.css$/.exec(line);
+    if (file?.[1]) sections.push({ id: file[1], lines: [] });
+    else sections.at(-1)?.lines.push(line);
+  }
+  return sections;
+}
+
+/**
+ * Guard 4 for one finished step: every effect the console printed for it is what the page has now.
+ * A layer file → its `<style>` is gone, and for a token file every `+` value is the live value;
+ * `getElementById('<id>').remove()` → the element is gone; an `import(…)` → the chat button is on.
+ */
+export async function expectStepApplied(page: Page, lines: string[]): Promise<void> {
+  expect(lines.filter((line) => line.startsWith('// skipped'))).toEqual([]);
+  const sections = layerSections(lines);
+  for (const section of sections) {
+    await expect(page.locator(`style[data-retro-layer="${section.id}"]`)).toHaveCount(0);
+    const added = tokenLines(section.lines, '+');
+    if (added.length === 0) continue;
+    const removed = tokenLines(section.lines, '-');
+    const live = await rootTokens(page, [...new Set(removed.map(([name]) => name))]);
+    for (const [name, value] of added) expect(live[name], name).toBe(value);
+    for (const [name, broken] of removed) expect(live[name], name).not.toBe(broken);
+  }
+  const decorations = lines.flatMap((line) => {
+    const match = /getElementById\('([^']+)'\)\.remove\(\)/.exec(line);
+    return match?.[1] ? [match[1]] : [];
+  });
+  for (const id of decorations) await expect(page.locator(`[id="${id}"]`)).toHaveCount(0);
+  const loadsModule = lines.some((line) => line.includes('await import('));
+  if (loadsModule) await expect(page.getByTestId('chat-fab')).toBeVisible();
+  expect(sections.length + decorations.length + Number(loadsModule)).toBeGreaterThan(0);
 }

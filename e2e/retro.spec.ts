@@ -2,12 +2,12 @@ import { expect, test } from '@playwright/test';
 import {
   consoleLines,
   differences,
+  expectStepApplied,
   leftovers,
-  rootTokens,
   runShowToEnd,
+  settledStep,
   snapshotPage,
   stageSelector,
-  tokenLines,
 } from './retroShow';
 import { collectErrors, NORMAL_SITE, SCREENSHOT_DIR, SHOW_SITE } from './support';
 
@@ -16,35 +16,32 @@ import { collectErrors, NORMAL_SITE, SCREENSHOT_DIR, SHOW_SITE } from './support
 // `/api/chat` calls, so nothing here needs a model.
 test.use({ locale: 'en-US' });
 
-/** Both token layers of step 1 are applied; step 2 hasn't started, so their lines are on screen. */
-const FIRST_STEP_DONE = '✓ tokens-colors removed';
+/** The mid-show screenshot is taken when this step has settled (SPEC: after the cards step). */
+const MID_SHOW_STEP = 4;
 /** Time for the AI chat's first-visit hint and similar timers, the same on both pages. */
 const AFTER_MS = 3_000;
 
-test('guard 4: every token value the console prints is the value the page gets', async ({
+test('guard 4: after every step, what the console printed is what the page has', async ({
   page,
 }) => {
   const errors = collectErrors(page);
   await page.clock.install();
   await page.goto(SHOW_SITE);
   await expect(page.getByTestId('cv-name')).toBeVisible();
-  let checked = false;
+  const checked: string[] = [];
 
   await runShowToEnd(page, async () => {
-    if (checked) return;
-    const lines = await consoleLines(page);
-    if (!lines.includes(FIRST_STEP_DONE)) return;
-    checked = true;
-    const added = tokenLines(lines, '+');
-    const removed = tokenLines(lines, '-');
-    expect(added.length).toBeGreaterThan(0);
-    const live = await rootTokens(page, [...new Set(removed.map(([name]) => name))]);
-    for (const [name, value] of added) expect(live[name], name).toBe(value);
-    for (const [name, broken] of removed) expect(live[name], name).not.toBe(broken);
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/retro-mid.png` });
+    const step = settledStep(await consoleLines(page));
+    if (!step || checked.includes(step.name)) return;
+    checked.push(step.name);
+    await expectStepApplied(page, step.lines);
+    if (step.name.startsWith(`${MID_SHOW_STEP}/`))
+      await page.screenshot({ path: `${SCREENSHOT_DIR}/retro-mid.png` });
   });
 
-  expect(checked).toBe(true);
+  const numbers = checked.map((name) => name.split(' ')[0]);
+  expect(numbers).toEqual(checked.map((_, index) => `${index + 1}/${checked.length}`));
+  expect(checked.length).toBeGreaterThan(MID_SHOW_STEP);
   expect(errors).toEqual([]);
 });
 

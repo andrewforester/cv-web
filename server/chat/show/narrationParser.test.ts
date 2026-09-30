@@ -22,15 +22,15 @@ describe('NarrationParser', () => {
   });
 
   it('counts a last line without a line break after a complete answer', () => {
-    expect(parse(['rest: All of it.\nfinale: Done.']).lines).toEqual([
-      { key: 'rest', text: 'All of it.' },
+    expect(parse(['links: All of it.\nfinale: Done.']).lines).toEqual([
+      { key: 'links', text: 'All of it.' },
       { key: 'finale', text: 'Done.' },
     ]);
   });
 
   it('drops the unfinished last line after max_tokens', () => {
-    expect(parse(['rest: All of it.\nfinale: Done, this is And'], false).lines).toEqual([
-      { key: 'rest', text: 'All of it.' },
+    expect(parse(['links: All of it.\nfinale: Done, this is And'], false).lines).toEqual([
+      { key: 'links', text: 'All of it.' },
     ]);
   });
 
@@ -51,12 +51,12 @@ describe('NarrationParser', () => {
     const { lines } = parse([
       '1. **Tokens**: Fonts *first*.\n',
       '- LAYOUT: "Now the `layout`."\n',
-      '> rest :  <b>All</b>   of it.\n',
+      '> links :  <b>All</b>   of it.\n',
     ]);
     expect(lines).toEqual([
       { key: 'tokens', text: 'Fonts first.' },
       { key: 'layout', text: 'Now the layout.' },
-      { key: 'rest', text: 'All of it.' },
+      { key: 'links', text: 'All of it.' },
     ]);
   });
 
@@ -74,9 +74,9 @@ describe('NarrationParser', () => {
       `layout: ${runaway.slice(0, 300)}`,
       runaway.slice(0, 400),
       ' still going\n',
-      'rest: Back on track.\n',
+      'links: Back on track.\n',
       `finale: ${runaway}`,
     ]);
-    expect(lines).toEqual([{ key: 'rest', text: 'Back on track.' }]);
+    expect(lines).toEqual([{ key: 'links', text: 'Back on track.' }]);
   });
 });

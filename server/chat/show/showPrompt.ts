@@ -1,7 +1,7 @@
 import { RETRO_STEPS } from '../../../src/data/retro/scenario.js';
 
 /** Bump on every change of the show instructions (logged as `promptVersion` for v3). */
-export const SHOW_PROMPT_VERSION = 'show-2026-09-30.1';
+export const SHOW_PROMPT_VERSION = 'show-2026-09-30.2';
 
 /**
  * `narrate` (docs/retro/ARCHITECTURE.md §4): one commentary line per step plus the finale, as
