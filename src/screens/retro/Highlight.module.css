@@ -1,0 +1,80 @@
+/*
+ * The show's highlight (docs/design/retro/SPEC.md → Show what changed): a Paint-style selection in
+ * the console's green, 4 px outside each target, over the page and the decorations, under the dock.
+ */
+.highlight {
+  /* TODO(theme): the fill flash's 100 ms has no token yet (GRA-52). */
+  --retro-highlight-flash: 100ms;
+}
+
+.box,
+.frame {
+  --retro-ring-outset: calc(var(--agent-highlight-offset) + var(--agent-highlight-width));
+
+  z-index: calc(var(--retro-z-index) - 1);
+  pointer-events: none;
+  animation: retro-highlight-in var(--retro-highlight-fade-in) linear;
+  transition: opacity var(--retro-highlight-fade-out) linear;
+}
+
+.box {
+  position: absolute;
+}
+
+/* Page-wide chunks: a frame just inside the page area, left of the dock. */
+.frame {
+  --retro-ring-outset: 0px;
+
+  position: fixed;
+  top: var(--retro-page-frame-inset);
+  bottom: var(--retro-page-frame-inset);
+  left: var(--retro-page-frame-inset);
+  right: calc(var(--retro-dock-width) + var(--retro-dock-inset) + var(--retro-page-frame-inset));
+}
+
+/* The green band under the black dashes; the band's box also carries the fill flash. */
+.box::before,
+.box::after,
+.frame::before,
+.frame::after {
+  content: '';
+  position: absolute;
+  inset: calc(-1 * var(--retro-ring-outset));
+  border: var(--agent-highlight-width) solid var(--retro-code-add);
+}
+
+.box::before {
+  background-color: transparent;
+  transition: background-color var(--retro-highlight-flash) linear;
+}
+
+.box::after,
+.frame::after {
+  border-style: dashed;
+  border-color: var(--retro-highlight-ink);
+}
+
+.applied .box::before,
+.fading .box::before {
+  background-color: var(--retro-code-add-bg);
+}
+
+.fading .box,
+.fading .frame {
+  opacity: 0;
+}
+
+@keyframes retro-highlight-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .box,
+  .frame,
+  .box::before {
+    animation: none;
+    transition: none;
+  }
+}

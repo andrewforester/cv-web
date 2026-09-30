@@ -45,6 +45,7 @@ export function TerminalChat({
       <ChatComposer
         draft={chat.draft}
         limitReached={chat.limitReached}
+        readOnly={chat.readOnly}
         canSend={chat.canSend}
         onDraftChange={onDraftChange}
         onFocusChange={onFocusChange}

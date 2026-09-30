@@ -1,7 +1,10 @@
 import { createPortal } from 'react-dom';
 import { useStrings } from '../../i18n';
 import { Decorations } from './Decorations';
+import { Highlight } from './Highlight';
+import { liveName } from './liveName';
 import { LiveConsole } from './LiveConsole';
+import motionStyles from './RetroMotion.module.css';
 import type { RetroShowUiState } from './RetroShowUiState';
 import styles from './RetroShowScreen.module.css';
 import { retroStrings } from './strings';
@@ -20,7 +23,8 @@ interface RetroShowScreenProps {
 
 /**
  * The show over the page, rendered into `document.body` (outside the stage, so damage layers
- * never touch it): the decorations and the dock with the live console above the terminal chat.
+ * never touch it): the decorations, the highlight and the dock with the live console above the
+ * terminal chat. At the end the windows fly off while the page takes the dock's room back.
  */
 export function RetroShowScreen({
   className,
@@ -31,17 +35,21 @@ export function RetroShowScreen({
   onToggleMinimise,
 }: RetroShowScreenProps) {
   const strings = useStrings(retroStrings);
-  const docked = state.windows !== 'none';
-  // The page lays out beside the dock while the windows are open.
+  const { windows, highlight } = state;
+  const closing = windows === 'closing';
+  // The page lays out beside the dock while the windows are open, and re-centres as they close.
   useBodyClass(styles.stage, true);
-  useBodyClass(styles.docked, docked);
-  const consoleOpen = state.windows === 'chatAndConsole';
+  useBodyClass(styles.docked, windows !== 'none' && !closing);
+  const consoleOpen = windows === 'chatAndConsole' || closing;
+  const dockClasses = [styles.dock, motionStyles.live, closing && styles.closing, className];
   return createPortal(
     <>
       <Decorations decorations={state.decorations} />
-      {docked && (
+      {highlight && <Highlight key={highlight.key} highlight={highlight} />}
+      {windows !== 'none' && (
         <div
-          className={[styles.dock, className].filter(Boolean).join(' ')}
+          className={dockClasses.filter(Boolean).join(' ')}
+          style={liveName('retro-dock')}
           aria-label={strings.dockLabel}
           data-testid={retroTestIds.dock}
         >

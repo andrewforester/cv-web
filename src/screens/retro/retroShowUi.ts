@@ -1,7 +1,8 @@
+import { leavingDecorations } from './engine/chunkSelectors';
 import { activeDecorations, consoleView, progressOf, revealedText } from './engine/showSelectors';
 import { MAX_VISITOR_MESSAGES } from './engine/showReducer';
 import type { ShowState } from './engine/showTypes';
-import type { DecorationBox, RetroShowUiState } from './RetroShowUiState';
+import type { DecorationBox, HighlightUi, RetroShowUiState } from './RetroShowUiState';
 import type { DecorationId } from './scenario';
 import { fill, type RetroStrings } from './strings';
 
@@ -16,11 +17,21 @@ export interface ScreenLocalState {
   canSend: boolean;
   minimised: { chat: boolean; console: boolean };
   placement: Partial<Record<DecorationId, DecorationBox>>;
+  highlight: HighlightUi | null;
 }
 
 function windowsOf(state: ShowState): RetroShowUiState['windows'] {
-  if (state.phase === 'idle' || state.phase === 'done') return 'none';
-  return state.phase === 'chat' ? 'chat' : 'chatAndConsole';
+  switch (state.phase) {
+    case 'idle':
+    case 'done':
+      return 'none';
+    case 'chat':
+      return 'chat';
+    case 'closing':
+      return 'closing';
+    default:
+      return 'chatAndConsole';
+  }
 }
 
 function progressUi(state: ShowState, strings: RetroStrings) {
@@ -40,6 +51,19 @@ function progressUi(state: ShowState, strings: RetroStrings) {
       })
     : '';
   return { progress: { label, percent: progress.percent }, announcement };
+}
+
+/** Decorations on the page in scenario order, with the ones leaving a moment ago. */
+function decorationsUi(state: ShowState, placement: ScreenLocalState['placement']) {
+  const active = activeDecorations(state);
+  const leaving = leavingDecorations(state);
+  return state.config.plan.decorations
+    .filter((id) => active.includes(id) || leaving.includes(id))
+    .map((id) => ({
+      id: id as DecorationId,
+      box: placement[id as DecorationId] ?? null,
+      leaving: leaving.includes(id),
+    }));
 }
 
 /** Maps the runner's state (plus the screen's local bits) to what the stateless screen renders. */
@@ -62,6 +86,7 @@ export function toRetroShowUiState(
       draft: local.draft,
       canSend: local.canSend,
       limitReached: state.visitor.sent >= MAX_VISITOR_MESSAGES,
+      readOnly: state.phase === 'closing',
     },
     console: {
       minimised: local.minimised.console,
@@ -69,9 +94,7 @@ export function toRetroShowUiState(
       typing: console.typing,
       ...progressUi(state, strings),
     },
-    decorations: activeDecorations(state).map((id) => ({
-      id: id as DecorationId,
-      box: local.placement[id as DecorationId] ?? null,
-    })),
+    decorations: decorationsUi(state, local.placement),
+    highlight: local.highlight,
   };
 }

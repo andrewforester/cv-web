@@ -9,6 +9,8 @@ interface ChatComposerProps {
   draft: string;
   canSend: boolean;
   limitReached: boolean;
+  /** The windows are closing: the input stops taking text. */
+  readOnly: boolean;
   onDraftChange: (draft: string) => void;
   onFocusChange: (focused: boolean) => void;
   onSend: () => void;
@@ -20,6 +22,7 @@ export function ChatComposer({
   draft,
   canSend,
   limitReached,
+  readOnly,
   onDraftChange,
   onFocusChange,
   onSend,
@@ -42,6 +45,7 @@ export function ChatComposer({
         placeholder={limitReached ? strings.limitReached : strings.placeholder}
         value={draft}
         disabled={limitReached}
+        readOnly={readOnly}
         autoComplete="off"
         spellCheck={false}
         data-testid={retroTestIds.chatInput}

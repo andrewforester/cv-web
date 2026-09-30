@@ -19,19 +19,26 @@ Domain terms:
   `morph`; decorations leave). Each chunk types on its own clock, applies at its last character
   and gets a 1 s beat (≈ 92 s show).
 - **Stage**: the shell carrying `data-retro-stage` while the show runs (owned by `src/app`, R5).
+- **Motion / highlight / camera** (SPEC → Transitions, Show what changed; GRA-52): a fade chunk
+  switches CSS transitions on for its window (`RetroMotion.module.css`, a `body` class), a morph
+  chunk removes its layer inside a view transition (a class on `<html>`; the dock, decorations and
+  highlight stay live); the show's own highlight marks the chunk's target and its camera scrolls
+  to it unless the visitor scrolled lately; at the end the windows fly off (`closing`).
 
 Place in the architecture: a screen mounted by the shell next to the unchanged `CvRoute`:
 `RetroShowRoute` (props: module loaders, `onDone`) → `useRetroShowState` (runner, layer host,
 `ShowRepository` from `src/data/retro` for LLM narration and replies) → stateless
-`RetroShowScreen` (dock with `LiveConsole` + `TerminalChat`, `Decorations`) in a portal into
-`document.body`. `engine/` is the framework-free runner. The end state is always zero layers, zero
-decorations: the real site; the shell then drops the stage and stores `sessionStorage['retro.done']`.
+`RetroShowScreen` (dock with `LiveConsole` + `TerminalChat`, `Decorations`, `Highlight`) in a
+portal into `document.body`. `engine/` is the framework-free runner. The end state is always zero
+layers, zero decorations: the real site; the shell then drops the stage and stores
+`sessionStorage['retro.done']`.
 
 Rules and limits:
 - **Tokens-only exception:** `layers/*.css` and `Decorations.module.css` hardcode retro colours,
   fonts and sizes on purpose: they are the displayed "old code" and the 2002 furniture, and they
-  leave with the show. Everything else (the dock, the windows) uses only `--retro-*` tokens plus a
-  few window metrics that are screen-local custom properties (`TODO(theme)`).
+  leave with the show. Everything else (the dock, the windows, the highlight) uses only tokens plus
+  a few window metrics and the highlight's 100 ms fill flash as screen-local custom properties
+  (`TODO(theme)`).
 - The LLM is never on the critical path: missing narration → the manifest's fallback lines,
   failed replies → a scripted line; automation (`navigator.webdriver`) runs fully scripted.
 - Guards: `scenario.test.ts` (every layer/decoration removed exactly once, every chunk has a
@@ -39,8 +46,10 @@ Rules and limits:
   matches the real CV, every token exists), and in `e2e/retro.spec.ts` guards 3 and 4. Renaming
   a CV hook or token fails them; fix the layer, never the guard.
 - EN only by decision: `strings.ts` has no `uk` (it falls back to English).
-- Stubs: IBM Plex Mono isn't installed (the panels fall back to Courier New). Tests import layer
-  files with `?raw` like the app (`vite.config.ts` → `test.css.include`).
+- Tests import layer files with `?raw` like the app (`vite.config.ts` → `test.css.include`).
 - Dev harness: `harness/` (not a build entry): `npm run dev`, then
   `/src/screens/retro/harness/index.html`.
+- Motion never touches the CV screen: the classes live only for a chunk's window and go with the
+  show. Reduced motion: no classes, no view transitions, no leave, instant close. Browsers without
+  view transitions get morphs instantly (the highlight still shows where).
 - Desktop only; later rounds: replay.

@@ -1,6 +1,8 @@
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect } from 'react';
 import type { DecorationBox } from './RetroShowUiState';
 import type { DecorationId } from './scenario';
+import { useFollowFrames } from './useFollowFrames';
+import { useMeasuredState } from './useMeasuredState';
 
 /**
  * Decoration geometry from docs/design/retro/SPEC.md → Decorations (the note's width and offsets,
@@ -52,21 +54,20 @@ function place(layoutShifted: boolean): Placement {
   return placement;
 }
 
-const same = (a: Placement, b: Placement) => JSON.stringify(a) === JSON.stringify(b);
-
 /**
  * Measures the decorations' anchors on the page (stable hooks only) and keeps them in place while
- * layers come off, the CV loads, fonts arrive or the window resizes.
+ * layers come off, the CV loads, fonts arrive or the window resizes, and every animation frame
+ * while a change is `moving` the page (a fade or a morph just applied).
  */
-export function useDecorationPlacement(layersKey: string, layoutShifted: boolean): Placement {
-  const [placement, setPlacement] = useState<Placement>({});
+export function useDecorationPlacement(
+  layersKey: string,
+  layoutShifted: boolean,
+  moving: boolean,
+): Placement {
+  const [placement, setPlacement] = useMeasuredState<Placement>({});
 
   useLayoutEffect(() => {
-    const update = () =>
-      setPlacement((current) => {
-        const next = place(layoutShifted);
-        return same(current, next) ? current : next;
-      });
+    const update = () => setPlacement(place(layoutShifted));
     update();
     window.addEventListener('resize', update);
     void document.fonts?.ready.then(update);
@@ -76,7 +77,9 @@ export function useDecorationPlacement(layersKey: string, layoutShifted: boolean
       window.removeEventListener('resize', update);
       observer?.disconnect();
     };
-  }, [layersKey, layoutShifted]);
+  }, [layersKey, layoutShifted, setPlacement]);
+
+  useFollowFrames(moving, () => setPlacement(place(layoutShifted)));
 
   return placement;
 }
