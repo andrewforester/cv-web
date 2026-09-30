@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: Coordinate work on CV Andrew Panasiuk as the orchestrator session — turn the human's requests into tracker tasks, open a branch and draft PR per task, launch one working session on it (the same kind of session as the orchestrator itself), follow the PR, verify and merge, and report results with links. Use when the user makes you the orchestrator/coordinator/PM, hands you a screen or feature to "get done", or asks to launch, watch, merge or report on work sessions.
+description: Coordinate work on CV Andrew Panasiuk as the orchestrator session — turn the human's requests into tracker tasks, open a branch and draft PR per task, launch one working session on it (the same kind of session as the orchestrator itself), follow the PR, check the result and hand code PRs to a review session that merges them, and report results with links. Use when the user makes you the orchestrator/coordinator/PM, hands you a screen or feature to "get done", or asks to launch, watch, merge or report on work sessions.
 ---
 
 # Orchestrate
@@ -46,9 +46,10 @@ Launch every task as a **new agent in a new background session**, with the launc
    Use the `<skill>` skill. Report and ask questions as PR comments (and on the ticket if you can).
    Use Anthropic's design / system-design / architecture skills when available, after the project skills.
    Start with `git fetch origin && git merge origin/main`. Commit and push early and often.
-   Don't call design-tool MCPs. Don't merge the PR; the orchestrator does.
+   Don't call design-tool MCPs. Don't merge the PR; a review session does after its code review.
    Never wait for an answer: post the question, take the conservative option, continue.
-   When done, mark PR #P Ready for review (that's the signal), then keep it green. Don't schedule check-ins.
+   When done, mark PR #P Ready for review (that's the signal), then stay on the PR until it is merged:
+   keep it green and work the review rounds. Don't schedule check-ins.
    ```
 3. Pick the model by task size (Tooling → Sessions). The model is not the main cost driver: long exploration and repeated heavy checks are. Keep briefs precise (likely cause, exact files, how much verification is enough).
 4. Set the ticket to In Progress and comment with the session name and id. Schedule one fallback check-in for when it should be done.
@@ -72,23 +73,37 @@ The human sends tasks one after another. File each one as soon as it arrives; do
 - Follow each task's PR from the moment you open it. The session marking it Ready for review starts CI, and CI's result is your signal to verify. A session that finishes cleanly without marking the PR ready sends no signal, and ready signals can get lost: keep one fallback check-in per running task and, when it fires, look at **all** open PRs. Cancel it when the ready signal arrives.
 - Steer a running session through a comment it reads, or a message if your kind of session can reach it. If it's idle and needs more, launch a follow-up session on the same branch with a precise prompt.
 
-## Verify and merge (only if the human has allowed autonomous merging; otherwise ask)
-Merge a PR yourself when all of these hold:
-1. The diff stays inside the task's zone (and outside its out-of-scope list). Code quality per `AGENTS.md` → Architecture & code quality: no oversized files, no duplicated components, an up-to-date `AGENTS.md` (with its `CLAUDE.md`, root `AGENTS.md` → Package docs) in every code folder the PR touches, about purpose and domain rather than implementation.
-   No new `eslint-disable` comments and no loosened rules in `eslint.config.js` unless the brief allowed it. The session's plan comment matches what it built.
-2. There is a test, and for UI changes the session posted a web screenshot.
-3. CI on the PR is green, including the web smoke job. Look at 1–2 screenshots. Don't build locally, except when two ready PRs touch the same files: then check their merge locally, or merge them one after another and let CI re-run on the second. Backend: follow the deploy check in Tooling.
-4. Post the result on the ticket: what you checked, with your screenshot.
+## Verify and review
+Code tasks (Role Development or DevOps, including quick fixes) are merged by a **review session**, not by you. You check the result; the reviewer checks the code. Docs-only and design-package PRs you still merge yourself after the check below (only if the human has allowed autonomous merging; otherwise ask).
 
-After merging:
-- **Close out the session right away:** read its usage (model, USD when known, context, tokens), then archive or remove it (Tooling → Sessions).
-- Closing comment on the ticket: merged PR, verification summary, and a usage line:
+**Your check**, when a PR is marked Ready and its CI is green:
+1. The diff stays inside the task's zone (and outside its out-of-scope list): look at `--stat`, not the whole diff.
+2. There is a test, and for UI changes the session posted a web screenshot. Look at 1–2 screenshots and compare with the design package. Backend: the session's request/response in its report.
+3. Two ready PRs touching the same files: they are reviewed and merged one after the other, so CI re-runs on the second.
+4. Post the result on the ticket: what you checked, with your screenshot.
+Not OK (UI, scope, a missing screenshot): comment on the PR with exactly what to change, convert it to draft, set the ticket to In Progress. The developer session fixes it and marks it Ready again.
+
+**Launch the review** when your check passes:
+1. The ticket must link the PR (Linear's GitHub integration does it via `Closes GRA-N`; otherwise attach it).
+2. Comment on the ticket: "Review: autonomous merge allowed / not allowed" (the reviewer reads it), then set it to In Review.
+3. Launch a new session of the same kind as yourself (Tooling → Sessions → Review sessions) with the prompt below. The ticket carries everything else; don't paste the brief.
+   ```
+   You are the review session for CV Andrew Panasiuk. No human is watching.
+   Use the `review` skill. Ticket: GRA-N. Read the ticket, its comments and its PR from the tracker.
+   Review the code only; merge when it passes, otherwise send it back and follow the PR.
+   ```
+4. Comment on the ticket with the review session's name and id. Keep following the PR: a merge is your next signal; a `Needs human` from the reviewer (3 rounds without passing) goes to the human.
+
+After the merge (by the reviewer or by you):
+- The backend deploy check (Tooling → Notifications and deploy checks) right away.
+- **Close out the developer session right away:** read its usage (model, USD when known, context, tokens), then archive or remove it (Tooling → Sessions). The review session archives itself and posts its own usage line on the ticket; read it from there.
+- Closing comment on the ticket: merged PR, verification summary, review rounds, and a usage line per session (developer, reviewer):
   `Claude: <model> · $<cost> · context <used>k / <max>k · tokens in <input+cache_read+cache_write>k (cache read <cache_read>k) / out <output>k`.
 - Then run **Dispatch**.
 - Don't watch CI on `main`: the `qa-release` session does and reverts or files a fix when it goes red. Before each merge, check that the latest CI run on `main` isn't red; if it is, merge only the fix or revert.
 - Report to the human with links (Tooling → Notifications):
   - the deliverables from `AGENTS.md` → Git & CI;
-  - **Cost** table: each task's session (model, USD, context used, output tokens), your own spend since the previous report and your current context, and the round total;
+  - **Cost** table: each task's sessions, developer and reviewer (model, USD, context used, output tokens), your own spend since the previous report and your current context, and the round total;
   - the queue: tickets still Todo/Backlog and what each waits for;
   - what a human still has to check on a real device or another browser.
 - A red `main` is the top priority: pick up the QA fix task first.

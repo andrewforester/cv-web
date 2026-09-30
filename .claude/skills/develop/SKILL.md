@@ -1,6 +1,6 @@
 ---
 name: develop
-description: Work a CV Andrew Panasiuk task as a developer session — stay inside the task's zone, build the feature or screen, verify locally (lint, tests, web check), push to the draft PR the orchestrator opened and mark it Ready for review for the orchestrator to merge. Use when a session is started on a task/ticket, told to implement a feature/fix/screen from one, or given the develop role.
+description: Work a CV Andrew Panasiuk task as a developer session — stay inside the task's zone, build the feature or screen, verify locally (lint, tests, web check), push to the draft PR the orchestrator opened and mark it Ready for review, then work the review rounds until a review session merges it. Use when a session is started on a task/ticket, told to implement a feature/fix/screen from one, or given the develop role.
 ---
 
 # Develop
@@ -53,6 +53,12 @@ Guessing starts when the context is full of the wrong things.
    - stubs, `TODO`s, questions and the options you took;
    - how you verified it, and what you installed.
 4. Update the PR body (template `.github/pull_request_template.md`): keep the ticket reference, add a short summary of what changed.
-5. Mark the PR **Ready for review** as the last step of the work: it starts CI and is the orchestrator's signal. Then follow the PR and fix red CI and review comments until it's green. Don't schedule check-ins: the orchestrator follows the PR and closes your session after merging.
-6. Don't merge. The orchestrator verifies and merges.
+5. Mark the PR **Ready for review** as the last step of the work: it starts CI and is the orchestrator's signal. Then **stay on the PR until it is merged**: fix red CI, and handle the review (below). Don't schedule check-ins: follow the PR by events (Tooling → Code host); the orchestrator closes your session after the merge.
+6. Don't merge. The orchestrator checks the result, then a review session reviews the code and merges.
+
+## Review round
+The review session (`review` skill) sends the PR back by a **Request changes** review, converting the PR to draft and setting the ticket to In Progress. Then:
+1. Read every review comment. Fix each blocking finding; for one you disagree with, reply on its thread with the reason instead of ignoring it. Non-blocking notes are optional.
+2. Reply to each thread with what you changed (or why not). Don't resolve the reviewer's threads yourself.
+3. Merge `origin/main`, run the checks (Verify before every push), push, then mark the PR **Ready for review** again: that is the reviewer's signal. The orchestrator may send it back the same way (UI or scope): handle it the same way.
 7. If you're blocked (you can't continue even on a stub), comment with exactly what is missing, push what you have, and stop.

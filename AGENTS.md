@@ -66,7 +66,7 @@ Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `n
 
 ## Skills (roles)
 
-`.claude/skills/`: `orchestrate` (coordinator: tracker tasks, sessions, merge, reports), `develop` (a session working one task), `design` (design package from a screenshot), `quick-fix` (small fixes: filing, launching, working them), `qa-release` (watches `main` after merges via the CI-watch PR, reverts or files fixes). Skills describe roles in general terms; project-specific tools and commands live in `docs/COORDINATION.md` → Tooling and in this file. They cover the process (roles, tracker, PRs, zones); engineering technique comes from Anthropic's global skills when the environment has them (`docs/COORDINATION.md` → Tooling → Global skills).
+`.claude/skills/`: `orchestrate` (coordinator: tracker tasks, sessions, result check, reports), `develop` (a session working one task), `design` (design package from a screenshot), `quick-fix` (small fixes: filing, launching, working them), `review` (code review of a task's PR: sends it back with comments or merges it), `qa-release` (watches `main` after merges via the CI-watch PR, reverts or files fixes). Skills describe roles in general terms; project-specific tools and commands live in `docs/COORDINATION.md` → Tooling and in this file. They cover the process (roles, tracker, PRs, zones); engineering technique comes from Anthropic's global skills when the environment has them (`docs/COORDINATION.md` → Tooling → Global skills).
 
 ## Design
 
