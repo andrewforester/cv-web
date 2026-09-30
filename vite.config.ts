@@ -17,7 +17,8 @@ export default defineConfig({
           environment: 'jsdom',
           setupFiles: ['./src/test/setup.ts'],
           include: ['src/**/*.test.{ts,tsx}'],
-          css: { modules: { classNameStrategy: 'non-scoped' } },
+          // `?raw` CSS (the retro show's damage layers) must return the file text, not ''.
+          css: { include: [/\.css\?raw$/], modules: { classNameStrategy: 'non-scoped' } },
         },
       },
       {

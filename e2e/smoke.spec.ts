@@ -1,16 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-
-// Screenshots land here; CI uploads the folder as the `web-smoke-screenshots` artifact.
-const SCREENSHOT_DIR = 'web-check';
-
-function collectErrors(page: Page): string[] {
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(`console: ${message.text()}`);
-  });
-  return errors;
-}
+import { expect, test } from '@playwright/test';
+import { collectErrors, NORMAL_SITE, SCREENSHOT_DIR } from './support';
 
 const cases = [
   { locale: 'en', browserLocale: 'en-US', name: 'Andrew Panasiuk' },
@@ -24,7 +13,7 @@ for (const { locale, browserLocale, name } of cases) {
 
     test('renders without errors', async ({ page }) => {
       const errors = collectErrors(page);
-      await page.goto('./');
+      await page.goto(NORMAL_SITE);
 
       await expect(page.getByTestId('cv-name')).toHaveText(name);
       await expect(page.locator('html')).toHaveAttribute('lang', locale);
@@ -36,7 +25,7 @@ for (const { locale, browserLocale, name } of cases) {
 
 test('language switcher changes the page language', async ({ page }) => {
   const errors = collectErrors(page);
-  await page.goto('./');
+  await page.goto(NORMAL_SITE);
   await page.getByTestId('language-switcher-uk').click();
 
   await expect(page.getByTestId('cv-name')).toHaveText('Andrew Panasiuk');

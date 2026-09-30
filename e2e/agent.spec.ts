@@ -1,17 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
+import { collectErrors, NORMAL_SITE, SCREENSHOT_DIR } from './support';
 
 // Web check of the page agent with a mocked `/api/chat` scripting a v2 tool round
 // (docs/chat/AGENT.md §7, API.md → v2).
-const SCREENSHOT_DIR = 'web-check';
-
-function collectErrors(page: Page): string[] {
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(`console: ${message.text()}`);
-  });
-  return errors;
-}
 
 const usage = {
   inputTokens: 1,
@@ -90,7 +81,7 @@ for (const { locale, browserLocale, question, before, after } of cases) {
         call: { id: 'toolu_e2e_1', name: 'scrollToSection', input: { section: 'apps' } },
         after,
       });
-      await page.goto('./');
+      await page.goto(NORMAL_SITE);
       const apps = page.locator('[data-agent-id="section:apps"]');
       await expect(apps).not.toBeInViewport();
 
@@ -114,7 +105,7 @@ test('highlights a CV item with the highlight marker', async ({ page }) => {
     call: { id: 'toolu_e2e_h', name: 'highlightElement', input: { target: 'section:apps' } },
     after: 'Done.',
   });
-  await page.goto('./');
+  await page.goto(NORMAL_SITE);
   await ask(page, 'highlight the apps');
 
   await expect(page.locator('[data-agent-id="section:apps"]')).toBeInViewport();
@@ -139,7 +130,7 @@ test.describe('openContact confirmation', () => {
         return null;
       };
     });
-    await page.goto('./');
+    await page.goto(NORMAL_SITE);
     await ask(page, 'write to him on telegram');
 
     const card = page.getByTestId('chat-confirmation');
@@ -152,7 +143,7 @@ test.describe('openContact confirmation', () => {
       () => (window as unknown as { __opened: string[] }).__opened,
     );
     expect(opened).toEqual([]);
-    expect(page.url()).toBe(new URL('./', page.url()).href);
+    expect(page.url()).toBe(new URL(NORMAL_SITE, page.url()).href);
     expect(errors).toEqual([]);
   });
 });
