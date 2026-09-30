@@ -34,7 +34,6 @@
   flex: none;
   width: 1ch;
   height: 1.1em;
-  margin-right: -1ch;
   background: currentColor;
   animation: retro-caret-blink 1s steps(1) infinite;
 }

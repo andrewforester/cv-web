@@ -60,8 +60,11 @@ function applyTyped(state: ShowState, step: PlannedStep, ms: number, typed: numb
     if (!run || run.status !== 'pending' || effect.end > typed) continue;
     const reached = state.config.reducedMotion ? ms : Math.ceil((effect.end / step.chars) * ms);
     const at = state.stageAt + reached;
+    // A module's 5 s count from when the runner got here: its `import()` can't start earlier.
     const next: EffectRun =
-      effect.effect.kind === 'loadModule' ? { status: 'running', at } : { status: 'applied', at };
+      effect.effect.kind === 'loadModule'
+        ? { status: 'running', at: state.t }
+        : { status: 'applied', at };
     effects = { ...effects, [effect.key]: next };
   }
   for (const { key, effect } of step.effects) {
