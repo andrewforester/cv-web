@@ -5,6 +5,8 @@ import type { ShowDispatch } from './useShowRunner';
 
 /** A target this tall counts as in view once this much of it shows (SPEC → Scrolling). */
 const IN_VIEW_PX = 160;
+/** The show's own scroll is over after this long without scroll events (no `scrollend` needed). */
+const SCROLL_IDLE_MS = 150;
 
 function inView(rect: DOMRect): boolean {
   const visible = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
@@ -39,15 +41,23 @@ export function useChunkFocus(
   const visitorScrollAt = useRef(-Infinity);
   const ownScroll = useRef(false);
   useEffect(() => {
-    const onScroll = () => {
-      if (!ownScroll.current) visitorScrollAt.current = Date.now();
-    };
+    let idle: ReturnType<typeof setTimeout> | undefined;
     const onScrollEnd = () => {
+      clearTimeout(idle);
       ownScroll.current = false;
+    };
+    const onScroll = () => {
+      if (!ownScroll.current) {
+        visitorScrollAt.current = Date.now();
+        return;
+      }
+      clearTimeout(idle);
+      idle = setTimeout(onScrollEnd, SCROLL_IDLE_MS);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('scrollend', onScrollEnd);
     return () => {
+      clearTimeout(idle);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('scrollend', onScrollEnd);
     };
