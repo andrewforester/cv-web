@@ -25,6 +25,13 @@ Both modes render one tree shape, so `CvRoute` never remounts: the show (`RetroS
 (`ChatRoute`) is a lazy chunk in both modes: normal mode loads it at start; the show's last step
 loads it through the `ai-chat` loader, which resolves once the chat is rendered.
 
+The show is a lazy chunk too, requested only in show mode, so normal visitors never download it.
+While it loads the shell is `visibility: hidden`; it is revealed in the commit that mounts the
+show, whose damage layers go in before the browser paints, so the first visible frame is already
+the broken page (no flash of today's design). If the chunk fails to load (offline, a deploy
+swapped the chunks) the shell falls back to the normal site: the show counts as done for the
+session and the AI chat loads.
+
 Rules and limits:
 - Owner: Scaffold. Screens may only register their own route in `App.tsx`.
 - One page, no router yet: add one when a second page appears.
