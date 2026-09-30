@@ -18,9 +18,9 @@ A fix is small: one symptom, a few files, no design package, no new screen. If i
 4. **Merge** per `orchestrate` → Verify and merge. When a web screenshot can't show the change (config, backend, a specific browser), check the diff carefully and rely on CI.
 
 ## Session
-1. `git fetch origin && git merge origin/main`. Read `CLAUDE.md`, `docs/COORDINATION.md`, the brief and all comments.
-2. **Reproduce first** (`engineering:debug` when available: reproduce, isolate, diagnose). Find the cause in code; for UI take a "before" screenshot (*web check* in `CLAUDE.md` → Commands). For settings, find where the platform decides the behaviour (config files, `index.html`, manifest, headers, env).
-3. **Minimal fix** inside the zone. No refactors, no new dependencies (ask in a comment if one is needed). Keep the style reference. If the fix changes what a folder does, update its `AGENTS.md` (create it, with its `CLAUDE.md`, if it has none; `CLAUDE.md` → Package docs).
+1. `git fetch origin && git merge origin/main`. Read `AGENTS.md`, `docs/COORDINATION.md`, the brief and all comments.
+2. **Reproduce first** (`engineering:debug` when available: reproduce, isolate, diagnose). Find the cause in code; for UI take a "before" screenshot (*web check* in `AGENTS.md` → Commands). For settings, find where the platform decides the behaviour (config files, `index.html`, manifest, headers, env).
+3. **Minimal fix** inside the zone. No refactors, no new dependencies (ask in a comment if one is needed). Keep the style reference. If the fix changes what a folder does, update its `AGENTS.md` (create it, with its `CLAUDE.md`, if it has none; root `AGENTS.md` → Package docs).
 4. **Verify, proportionately:** *lint* and *test*; for UI also the *web check* with an "after" screenshot, any page error fails. Add or adjust a test when the fix is testable (`engineering:testing-strategy` when available, if it isn't obvious which). One before/after pair is enough; no long performance experiments unless the brief asks. List what needs a check on a real device or another browser.
 5. **Report** as a PR comment (and on the ticket if you can): cause, fix, before/after screenshots (stored per `COORDINATION.md` → Tracker → Screenshots), what you couldn't verify.
 6. Push to the draft PR the orchestrator opened (never open another), add a one-line summary to its body next to the ticket reference, then mark it **Ready for review**: that starts CI and signals the orchestrator. Follow the PR and fix red CI. Don't merge, and don't schedule check-ins.
