@@ -8,10 +8,11 @@ talk to the LLM. Design: `docs/retro/ARCHITECTURE.md`, `docs/adr/0003-retro-live
 `docs/design/retro/SPEC.md`; wire contract: `docs/chat/API.md` → v3.
 
 Domain terms:
-- **Scenario / step:** the authored fix sequence, 7 steps with one concern each (`tokens`,
-  `layout`, `images`, `cards`, `spacing`, `chrome`, `links`; scenario id `retro-2`). The manifest
-  here has ids, console titles, an intent line for the LLM and a scripted fallback per step.
-  What a step *does* to the page (damage layers, decorations, modules) lives in the retro screen.
+- **Scenario / step:** the authored fix sequence, 8 steps with one concern each (`fonts`,
+  `colours`, `layout`, `images`, `cards`, `spacing`, `chrome`, `links`; scenario id `retro-3`).
+  The manifest here has ids, console titles, an intent line for the LLM and a scripted fallback
+  per step. What a step *does* to the page (its chunks: damage layers, decorations, modules)
+  lives in the retro screen.
 - **Narration:** one commentary line per step plus the `finale`, fetched once per show
   (`narrate`); a missing line falls back to the manifest text, so the show never waits on the LLM.
 - **Reply:** the LLM's answer to a visitor message, with the step on screen as context.

@@ -1,0 +1,11 @@
+[data-retro-stage] [data-testid='cv-technology-card'] {
+  background: #ccffff;
+}
+
+[data-retro-stage] [data-agent-id='technology:product-mindset'] {
+  background: #ffff00;
+}
+
+[data-retro-stage] [data-agent-id='technology:ai-tools'] {
+  background: #ffccff;
+}

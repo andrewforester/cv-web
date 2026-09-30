@@ -10,7 +10,8 @@ import { NARRATE_INSTRUCTIONS, REPLY_INSTRUCTIONS } from './showPrompt.js';
  */
 const FAKE_NARRATION = [
   'Sure! Here are the lines:',
-  'tokens: Fonts first. Comic Sans had a good run.',
+  'fonts: Fonts first. Verdana had a good run.',
+  'colours: Now the colours. Goodbye, star field.',
   "layout: Now the layout. It's been leaning left since 2002.",
   'marquee: This key is not in the scenario, so nobody sees it.',
   'images: The pictures were in the wrong folder. Fixing the paths.',

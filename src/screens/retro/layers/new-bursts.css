@@ -5,26 +5,8 @@
   )::after {
   content: '';
   display: inline-block;
-  width: 40px;
-  height: 20px;
+  padding: 10px 20px;
   margin-left: 6px;
-  vertical-align: middle;
   background: var(--retro-badge-new) no-repeat;
   animation: retro-blink 1s steps(1) infinite;
-}
-
-@keyframes retro-blink {
-  50% {
-    visibility: hidden;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-retro-stage]
-    :is(
-      [data-agent-id='section:latest-experience'] h2,
-      [data-agent-id='technology:ai-tools'] h3
-    )::after {
-    animation: none;
-  }
 }

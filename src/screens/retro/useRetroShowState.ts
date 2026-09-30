@@ -56,7 +56,7 @@ export function useRetroShowState({ loaders, onDone, clock }: RetroShowOptions):
     onDone,
     pageTitle: strings.pageTitle,
   });
-  const placement = useDecorationPlacement(layersKey, layers.includes('layout-shift'));
+  const placement = useDecorationPlacement(layersKey, layers.includes('page-frame'));
 
   const [draft, setDraft] = useState('');
   const [focused, setFocused] = useState(false);

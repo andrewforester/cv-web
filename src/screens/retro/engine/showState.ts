@@ -1,12 +1,12 @@
 import type { RetroStepId } from '../../../data/retro';
 import { TIMING } from './timing';
-import type { ChatEntry, PlannedStep, ShowConfig, ShowState } from './showTypes';
+import type { ChatEntry, PlannedChunk, PlannedStep, ShowConfig, ShowState } from './showTypes';
 
 /** The show before anything happened: the broken page alone. `now` is the clock reading. */
 export function createShowState(config: ShowConfig, now: number): ShowState {
   const effects = Object.fromEntries(
     config.plan.steps.flatMap((step) =>
-      step.effects.map(({ key }) => [key, { status: 'pending' as const, at: 0 }]),
+      step.chunks.map(({ key }) => [key, { status: 'pending' as const, at: 0 }]),
     ),
   );
   return {
@@ -17,8 +17,10 @@ export function createShowState(config: ShowConfig, now: number): ShowState {
     phase: 'idle',
     phaseEndsAt: TIMING.chatDelayMs,
     step: 0,
+    chunk: 0,
     stage: 'narrate',
     stageAt: 0,
+    focusAt: null,
     heldSince: null,
     effects,
     chat: [],
@@ -56,30 +58,38 @@ export function addChat(state: ShowState, ...entries: NewEntry[]): ShowState {
   return { ...state, chat: [...state.chat, ...added], nextId: id };
 }
 
+/** Every step has run: the finale line, the windows closing, or done. */
+export function showEnded(state: ShowState): boolean {
+  return state.phase === 'finale' || state.phase === 'closing' || state.phase === 'done';
+}
+
 export function currentStep(state: ShowState): PlannedStep | undefined {
   return state.phase === 'steps' ? state.config.plan.steps[state.step] : undefined;
 }
 
-/** Whether every effect of a step has applied or been skipped. */
-export function stepResolved(state: ShowState, step: PlannedStep): boolean {
-  return step.effects.every(({ key }) => {
-    const status = state.effects[key]?.status;
-    return status === 'applied' || status === 'skipped';
-  });
+/** The chunk typing or in its beat; `undefined` during a step's narration and `stepDone`. */
+export function currentPlannedChunk(state: ShowState): PlannedChunk | undefined {
+  if (state.stage !== 'type' && state.stage !== 'beat') return undefined;
+  return currentStep(state)?.chunks[state.chunk];
+}
+
+/** Whether a chunk has applied or been skipped. */
+export function chunkResolved(state: ShowState, key: string): boolean {
+  const status = state.effects[key]?.status;
+  return status === 'applied' || status === 'skipped';
 }
 
 /** Steps finished so far (the reply request's `stepsDone`). */
 export function stepsDone(state: ShowState): number {
   const total = state.config.plan.steps.length;
-  if (state.phase === 'finale' || state.phase === 'done') return total;
+  if (showEnded(state)) return total;
   if (state.phase !== 'steps') return 0;
-  const step = currentStep(state);
-  return state.step + (state.stage === 'settle' && step && stepResolved(state, step) ? 1 : 0);
+  return state.step + (state.stage === 'stepDone' ? 1 : 0);
 }
 
 /** The step on screen for the reply request: `null` before the first step. */
 export function stepOnScreen(state: ShowState): RetroStepId | null {
   const steps = state.config.plan.steps;
-  if (state.phase === 'finale' || state.phase === 'done') return steps.at(-1)?.id ?? null;
+  if (showEnded(state)) return steps.at(-1)?.id ?? null;
   return currentStep(state)?.id ?? null;
 }

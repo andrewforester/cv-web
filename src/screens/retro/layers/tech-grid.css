@@ -1,0 +1,11 @@
+[data-retro-stage] [data-agent-id='section:technologies'] h2 {
+  text-align: center;
+}
+
+[data-retro-stage] div:has(> div > [data-testid='cv-technology-card']) {
+  column-gap: 2px;
+}
+
+[data-retro-stage] div:has(> [data-testid='cv-technology-card']) {
+  gap: 2px;
+}

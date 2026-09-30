@@ -2,13 +2,16 @@ import { render, screen } from '@testing-library/react';
 import { AppProviders } from '../../app/AppProviders';
 import tokensCss from '../../theme/tokens.css?raw';
 import { cvTestIds } from '../cv/testIds';
-import { tokenDeclarations } from './engine/consolePlan';
+import { targetQuery } from './engine/chunkSelectors';
+import { effectKey, tokenDeclarations } from './engine/consolePlan';
 import type { DamageLayer } from './engine/showTypes';
-import { DAMAGE_LAYERS } from './scenario';
+import { DAMAGE_LAYERS, DECORATION_IDS, type DamageLayerId } from './scenario';
+import { RETRO_CHUNKS } from './scenarioSteps';
 import { RetroStageTestHarness } from './RetroStageTestHarness';
 
-// Guard 2 (docs/retro/ARCHITECTURE.md §1): the layers still hit the real site. A renamed hook or
-// token makes a layer a silent no-op on the page; here it fails instead.
+// Guard 2 (docs/retro/ARCHITECTURE.md §1, §9 → Guards after the split): the layers and the chunk
+// targets still hit the real site. A renamed hook or token makes a layer a silent no-op on the
+// page, or points the highlight and camera at nothing; here it fails instead.
 
 type RuleLike = CSSRule & { selectorText?: string; cssRules?: CSSRuleList; name?: string };
 
@@ -68,10 +71,17 @@ const queryable = (selectorText: string): string[] =>
     .map((selector) => selector.replace(/::(before|after)\b/g, ''));
 
 const ids = (display: DamageLayer['display']) =>
-  Object.values(DAMAGE_LAYERS)
-    .filter((layer) => layer.display === display)
-    .map(({ id }) => id);
+  (Object.keys(DAMAGE_LAYERS) as DamageLayerId[]).filter(
+    (id) => DAMAGE_LAYERS[id].display === display,
+  );
 const siteTokens = new Set(tokenDeclarations(tokensCss).map(([name]) => name));
+const targeted = RETRO_CHUNKS.flatMap((step) => step.chunks).flatMap(({ effect, target }) =>
+  target && target.selectors !== 'page' ? [[effectKey(effect), target.selectors] as const] : [],
+);
+const onPage = (selectors: readonly string[]) => selectors.filter((s) => !s.startsWith('#'));
+const decorationTargets = targeted.flatMap(([, selectors]) =>
+  selectors.filter((s) => s.startsWith('#')),
+);
 
 describe('damage layers (guard 2: hook coverage)', () => {
   beforeEach(async () => {
@@ -94,5 +104,21 @@ describe('damage layers (guard 2: hook coverage)', () => {
     const names = tokenDeclarations(DAMAGE_LAYERS[id].css).map(([name]) => name);
     expect(names.length).toBeGreaterThan(0);
     expect(names.filter((name) => !siteTokens.has(name))).toEqual([]);
+  });
+
+  it.each(targeted.filter(([, selectors]) => onPage(selectors).length))(
+    '%s: every target selector matches the real CV under the stage',
+    (_, selectors) => {
+      const missing = onPage(selectors).filter(
+        (s) => document.querySelector(targetQuery(s)) === null,
+      );
+      expect(missing).toEqual([]);
+    },
+  );
+
+  it('points decoration targets only at decorations', () => {
+    expect(decorationTargets.length).toBeGreaterThan(0);
+    const decorations: readonly string[] = DECORATION_IDS;
+    expect(decorationTargets.filter((s) => !decorations.includes(s.slice(1)))).toEqual([]);
   });
 });

@@ -28,7 +28,7 @@ describe('validateShowRequest', () => {
   it.each([
     ['before the first step', null, 0],
     ['after the last step', null, RETRO_STEP_IDS.length],
-    ['during step 1', 'tokens', 0],
+    ['during step 1', 'fonts', 0],
   ] as const)('accepts a reply %s', (_, step, stepsDone) => {
     expect(codeOf(replyBody({ step, stepsDone }))).toBe('ok');
   });
@@ -38,7 +38,7 @@ describe('validateShowRequest', () => {
     ['no kind', { ...NARRATE_BODY, kind: undefined }],
     ['an unknown kind', { ...NARRATE_BODY, kind: 'chat' }],
     ['a scenario that is not a string', { ...NARRATE_BODY, scenario: 1 }],
-    ['an unknown step', replyBody({ step: 'fonts' as never })],
+    ['an unknown step', replyBody({ step: 'tokens' as never })],
     ['a missing step', { ...replyBody(), step: undefined }],
     ['stepsDone below 0', replyBody({ stepsDone: -1 })],
     ['stepsDone past the last step', replyBody({ stepsDone: RETRO_STEP_IDS.length + 1 })],

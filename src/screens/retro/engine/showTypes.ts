@@ -1,7 +1,7 @@
 import type { ChatErrorCode } from '../../../data/chat';
 import type { RetroNarrationKey, RetroStepId, ShowReplyInput } from '../../../data/retro';
 
-/** What a step does to the page (ARCHITECTURE §2). Ids are the scenario's layer/decoration/module ids. */
+/** What a chunk does to the page (ARCHITECTURE §2). Ids are the scenario's layer/decoration/module ids. */
 export type RetroEffect =
   | { kind: 'removeLayer'; layer: string }
   | { kind: 'removeDecoration'; decoration: string }
@@ -15,10 +15,33 @@ export interface DamageLayer {
   display: 'rules' | 'tokens';
 }
 
+/**
+ * Where a chunk lands, for the console's `// → <label>` line and the screen's highlight and camera:
+ * hook selectors resolved under `[data-retro-stage]` (`#<id>` for a decoration), or the whole page.
+ */
+export interface ChunkTarget {
+  label: string;
+  selectors: readonly string[] | 'page';
+}
+
+/** How a layer's removal lands (SPEC → Transitions): CSS transitions, or a view transition. */
+export type LayerMotion = 'fade' | 'morph';
+/** A planned chunk's motion: layers fade or morph, decorations leave, the module has none. */
+export type ChunkMotion = LayerMotion | 'leave' | 'none';
+
+/** One visible change (ARCHITECTURE §9 → Round 3): one effect, its target and its motion. */
+export interface RetroChunk {
+  effect: RetroEffect;
+  /** `null`: the module chunk (nothing to point at). */
+  target: ChunkTarget | null;
+  /** Layers only; decorations always leave, modules have none. */
+  motion?: LayerMotion;
+}
+
+/** A group of chunks under one narration line. */
 export interface RetroStep {
   id: RetroStepId;
-  effects: readonly RetroEffect[];
-  speed?: 'normal' | 'fast';
+  chunks: readonly RetroChunk[];
 }
 
 export type ConsoleLineKind =
@@ -38,26 +61,26 @@ export interface ConsoleLine {
   text: string;
 }
 
-/** An effect with the console text that is typed for it, precomputed when the show starts. */
-export interface PlannedEffect {
-  /** Unique in the show: `<kind>:<id>`. */
+/** A chunk with the console text that is typed for it, precomputed when the show starts. */
+export interface PlannedChunk {
+  /** Unique in the show: `<kind>:<id>` of its effect. */
   key: string;
   effect: RetroEffect;
+  target: ChunkTarget | null;
+  motion: ChunkMotion;
+  /** `// → <label>` (when it has a target), then the code. */
   lines: readonly ConsoleLine[];
-  /** Text of the `✓` line printed when the effect has applied. */
+  /** Text of the `✓` line printed when the chunk has applied. */
   doneText: string;
-  /** Offset in the step's typed characters where this effect's text ends: it applies there. */
-  end: number;
+  /** Typed characters of the chunk: it applies at the last one. */
+  chars: number;
 }
 
 export interface PlannedStep {
   id: RetroStepId;
   title: string;
   fallback: string;
-  fast: boolean;
-  effects: readonly PlannedEffect[];
-  /** Typed characters of the whole step. */
-  chars: number;
+  chunks: readonly PlannedChunk[];
 }
 
 export interface ShowPlan {
@@ -87,8 +110,9 @@ export interface ShowConfig {
   llm: boolean;
 }
 
-export type ShowPhase = 'idle' | 'chat' | 'console' | 'steps' | 'finale' | 'done';
-export type StepStage = 'narrate' | 'type' | 'settle';
+export type ShowPhase = 'idle' | 'chat' | 'console' | 'steps' | 'finale' | 'closing' | 'done';
+/** Inside a step: its narration, then per chunk `type` (applies at its end) and `beat`, then `stepDone`. */
+export type StepStage = 'narrate' | 'type' | 'beat' | 'stepDone';
 export type EffectStatus = 'pending' | 'running' | 'applied' | 'skipped';
 
 export interface EffectRun {
@@ -132,9 +156,14 @@ export interface ShowState {
   /** Show time when the current non-step phase ends. */
   phaseEndsAt: number;
   step: number;
+  /** Index of the current chunk in the step (`type`/`beat`). */
+  chunk: number;
   stage: StepStage;
   stageAt: number;
+  /** Show time the screen's camera settled on the current chunk's target (`focusSettled`). */
+  focusAt: number | null;
   heldSince: number | null;
+  /** Per chunk key: its effect's run. */
   effects: Readonly<Record<string, EffectRun>>;
   chat: readonly ChatEntry[];
   nextId: number;
@@ -151,6 +180,7 @@ export type ShowEvent =
   | { type: 'replyDelta'; now: number; text: string }
   | { type: 'replyEnded'; now: number }
   | { type: 'replyFailed'; now: number; code: ChatErrorCode }
+  | { type: 'focusSettled'; now: number; key: string }
   | { type: 'moduleLoaded'; now: number; key: string }
   | { type: 'effectFailed'; now: number; key: string; reason: string }
   | { type: 'offline'; now: number; offline: boolean };

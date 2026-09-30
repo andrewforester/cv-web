@@ -11,7 +11,7 @@ const usage: ChatUsage = {
   cacheCreationInputTokens: 0,
 };
 const input: ShowReplyInput = {
-  step: 'tokens',
+  step: 'fonts',
   stepsDone: 0,
   messages: [{ role: 'user', content: 'much better already' }],
 };

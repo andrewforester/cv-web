@@ -1,0 +1,8 @@
+[data-retro-stage] div:has(> [data-testid='cv-app-card']) {
+  display: block;
+  margin-left: 40px;
+}
+
+[data-retro-stage] [data-testid='cv-app-card'] {
+  margin-bottom: 4px;
+}
