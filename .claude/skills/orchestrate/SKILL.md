@@ -77,7 +77,6 @@ Merge a PR yourself when all of these hold:
 1. The diff stays inside the task's zone (and outside its out-of-scope list). Code quality per `AGENTS.md` → Architecture & code quality: no oversized files, no duplicated components, an up-to-date `AGENTS.md` (with its `CLAUDE.md`, root `AGENTS.md` → Package docs) in every code folder the PR touches, about purpose and domain rather than implementation.
    No new `eslint-disable` comments and no loosened rules in `eslint.config.js` unless the brief allowed it. The session's plan comment matches what it built.
 2. There is a test, and for UI changes the session posted a web screenshot.
-2a. For a PR that adds a feature, touches a layer boundary or the API contract, run an independent review of the diff with a fresh context (the `code-review` skill, or `engineering:code-review`, when available) and check the findings against `AGENTS.md` → Architecture & code quality. Real problems go back to the session as a PR comment; skip the review for docs-only PRs and quick fixes.
 3. CI on the PR is green, including the web smoke job. Look at 1–2 screenshots. Don't build locally, except when two ready PRs touch the same files: then check their merge locally, or merge them one after another and let CI re-run on the second. Backend: follow the deploy check in Tooling.
 4. Post the result on the ticket: what you checked, with your screenshot.
 
