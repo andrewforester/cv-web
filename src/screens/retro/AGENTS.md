@@ -12,8 +12,9 @@ Domain terms:
   only stable hooks under `[data-retro-stage]`. The same string is typed in the console.
 - **Decoration**: show-owned DOM over the page (nav bar + marquee, footer, "Oh, snap!" note),
   rendered through a portal, `aria-hidden`, its DOM id = its id.
-- **Step / effect** (`scenario.ts`): what each manifest step does: remove layers and decorations,
-  load a module. Each effect applies when its own text is typed.
+- **Step / effect** (`scenario.ts`): what each of the 7 manifest steps does: remove layers and
+  decorations, load a module (the AI chat, last effect of the last step). Each effect applies when
+  its own text is typed. No step is `fast`: every step types for the 5 s cap (≈ 71 s show).
 - **Stage**: the shell carrying `data-retro-stage` while the show runs (owned by `src/app`, R5).
 
 Place in the architecture: a screen mounted by the shell next to the unchanged `CvRoute`:
@@ -31,11 +32,11 @@ Rules and limits:
 - The LLM is never on the critical path: missing narration → the manifest's fallback lines,
   failed replies → a scripted line; automation (`navigator.webdriver`) runs fully scripted.
 - Guards: `scenario.test.ts` (every layer/decoration removed exactly once), `layers.test.tsx`
-  (every rule-layer selector matches the real CV, every token exists). Renaming a CV hook or token
-  fails them; fix the layer, never the guard.
+  (every rule-layer selector matches the real CV, every token exists), and in `e2e/retro.spec.ts`
+  guards 3 and 4. Renaming a CV hook or token fails them; fix the layer, never the guard.
 - EN only by decision: `strings.ts` has no `uk` (it falls back to English).
-- Stubs: IBM Plex Mono isn't installed (the panels fall back to Courier New); Vitest blanks
-  `.css?raw`, so tests read layer files from disk (`layerFilesTestHarness.tsx`, `TODO(scaffold)`).
+- Stubs: IBM Plex Mono isn't installed (the panels fall back to Courier New). Tests import layer
+  files with `?raw` like the app (`vite.config.ts` → `test.css.include`).
 - Dev harness: `harness/` (not a build entry): `npm run dev`, then
   `/src/screens/retro/harness/index.html`.
-- Desktop only; later rounds: the full 7-step fix list, `focus` effects, replay.
+- Desktop only; later rounds: `focus` effects, replay.
