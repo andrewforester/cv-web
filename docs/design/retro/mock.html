@@ -450,7 +450,9 @@
         background: none;
       }
       body.docked .target-hl.page {
-        right: calc(var(--retro-dock-width) + 2 * var(--retro-dock-inset) + var(--retro-page-frame-inset));
+        right: calc(
+          var(--retro-dock-width) + 2 * var(--retro-dock-inset) + var(--retro-page-frame-inset)
+        );
       }
       @keyframes retro-blink {
         50% {
@@ -1157,8 +1159,18 @@
             ['layer', 'type-family', 'page', 'page'],
             ['layer', 'type-scale-headings', 'name & titles', ["[data-testid='cv-name']", 'h2']],
             ['layer', 'type-scale-text', 'body text', ["[data-testid='cv-summary']"]],
-            ['layer', 'type-scale-cards', 'cards & dates', ["[data-agent-id='section:technologies']"]],
-            ['layer', 'type-scale-details', 'education & books', ["[data-agent-id='section:education']", "[data-agent-id='section:about']"]],
+            [
+              'layer',
+              'type-scale-cards',
+              'cards & dates',
+              ["[data-agent-id='section:technologies']"],
+            ],
+            [
+              'layer',
+              'type-scale-details',
+              'education & books',
+              ["[data-agent-id='section:education']", "[data-agent-id='section:about']"],
+            ],
           ],
         },
         {
@@ -1180,7 +1192,12 @@
             ['layer', 'page-frame', 'page', 'page'],
             ['layer', 'header-layout', 'header', ["[data-agent-id='section:header']"]],
             ['layer', 'tech-grid', 'technologies', ["[data-agent-id='section:technologies']"]],
-            ['layer', 'experience-heads', 'experience', [`${LATEST} [data-testid='cv-experience-entry']`]],
+            [
+              'layer',
+              'experience-heads',
+              'experience',
+              [`${LATEST} [data-testid='cv-experience-entry']`],
+            ],
             ['layer', 'app-stack', 'apps', ["[data-agent-id='section:apps']"]],
           ],
         },
@@ -1224,7 +1241,12 @@
           fallback: 'Time to say goodbye to the marquee and the hit counter.',
           effects: [
             ['deco', 'top-bar', 'nav bar', ['#top-bar']],
-            ['layer', 'new-bursts', 'NEW! badges', ["[data-agent-id='technology:ai-tools']", `${LATEST} h2`]],
+            [
+              'layer',
+              'new-bursts',
+              'NEW! badges',
+              ["[data-agent-id='technology:ai-tools']", `${LATEST} h2`],
+            ],
             ['deco', 'page-footer', 'footer', ['#page-footer']],
             ['layer', 'decor-room', 'page', 'page'],
             ['layer', 'hide-header', 'language switcher', ["[data-testid='app-header']"]],
@@ -1268,7 +1290,7 @@
         finale: [
           T(
             20,
-            16,
+            17,
             'agent',
             "Done. This is Andrew's CV as it looks today. Questions? The chat button is bottom right.",
           ),
@@ -1383,14 +1405,18 @@
         const targets = STEPS[step]?.effects[chunk]?.[3];
         if (!targets) return;
         const add = (cls) =>
-          portal.append(Object.assign(document.createElement('div'), { className: `target-hl ${cls}` }));
+          portal.append(
+            Object.assign(document.createElement('div'), { className: `target-hl ${cls}` }),
+          );
         if (targets === 'page') return add(`page ${st.hl}`);
         const offset = 4;
         for (const sel of targets)
           for (const el of document.querySelectorAll(`[data-retro-stage] ${sel}, #portal ${sel}`)) {
             const r = el.getBoundingClientRect();
             if (r.bottom < 0 || r.top > innerHeight || r.width === 0) continue;
-            const box = Object.assign(document.createElement('div'), { className: `target-hl ${st.hl}` });
+            const box = Object.assign(document.createElement('div'), {
+              className: `target-hl ${st.hl}`,
+            });
             Object.assign(box.style, {
               left: `${r.left + scrollX - offset}px`,
               top: `${r.top + scrollY - offset}px`,

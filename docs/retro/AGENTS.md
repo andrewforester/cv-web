@@ -19,14 +19,14 @@ Start here, in this order:
 4. Background only: `ARCHITECTURE.md` sections 0–8 (the design as planned, with the reasoning) and
    [`../adr/0003-retro-live-fix-show.md`](../adr/0003-retro-live-fix-show.md) (rejected options).
 
-Domain terms: **damage layer** (a CSS override removed by a fix step), **decoration** (show-only
+Domain terms: **damage layer** (a CSS override removed by a fix chunk), **decoration** (show-only
 element such as the "Oh, snap!" note), **step** / **chunk** / **effect** (a step is a group of
 chunks under one narration line; a chunk is one visible change: one effect, its target and its
 motion), **beat** (the pause after a chunk applies), **highlight** (the show's pointer on the
-chunk's target), **manifest** (step
-ids, titles, LLM intents, scripted fallbacks), **narration** (the LLM's commentary lines),
-**stage** (the app shell while the show runs), **hook contract** (the selectors layers may use),
-**guards 1–4** (the tests that keep the show honest across redesigns).
+chunk's target), **manifest** (step ids, titles, LLM intents, scripted fallbacks),
+**narration** (the LLM's commentary lines), **stage** (the app shell while the show runs), **hook
+contract** (the selectors layers may use), **guards 1–4** (the tests that keep the show honest
+across redesigns).
 
 Rules for implementers: the CV screen is never changed for the show (except adding a missing hook
 in its own task); the end state is always the real site with zero layers; the model never supplies
