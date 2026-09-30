@@ -2,13 +2,11 @@ import { RETRO_SHOW } from '../scenario';
 import { planShow } from './consolePlan';
 import { createLayerHost, readLiveToken } from './layerHost';
 
-const source = RETRO_SHOW;
-
 describe('console plan (code shown = code applied)', () => {
   it('types a rule layer verbatim, one removed line per non-blank line of the file', () => {
-    const plan = planShow(source, () => undefined);
+    const plan = planShow(RETRO_SHOW, () => undefined);
     const layout = plan.steps[1]?.effects[0];
-    const css = source.layers['layout-shift']?.css ?? '';
+    const css = RETRO_SHOW.layers['layout-shift']?.css ?? '';
     expect(layout?.lines[0]).toEqual({ kind: 'file', text: '--- layers/layout-shift.css' });
     expect(layout?.lines.slice(1).map(({ text }) => text)).toEqual(
       css.split('\n').filter((line) => line.trim()),
@@ -19,7 +17,7 @@ describe('console plan (code shown = code applied)', () => {
 
   it('types a token layer as a diff against the live values', () => {
     const live: Record<string, string> = { '--color-bg': '#ffffff', '--color-text': '#001670' };
-    const plan = planShow(source, (name) => live[name]);
+    const plan = planShow(RETRO_SHOW, (name) => live[name]);
     const colors = plan.steps[0]?.effects.find(({ key }) => key === 'layer:tokens-colors');
     expect(colors?.lines.slice(1, 5)).toEqual([
       { kind: 'del', text: '--color-bg: #ffffcc;' },
@@ -33,7 +31,7 @@ describe('console plan (code shown = code applied)', () => {
   });
 
   it('generates decoration and module lines from their ids', () => {
-    const effects = planShow(source, () => undefined).steps.flatMap((step) => step.effects);
+    const effects = planShow(RETRO_SHOW, () => undefined).steps.flatMap((step) => step.effects);
     const note = effects.find(({ key }) => key === 'decoration:oh-snap');
     const chat = effects.find(({ key }) => key === 'module:ai-chat');
     expect(note?.lines).toEqual([
@@ -46,7 +44,7 @@ describe('console plan (code shown = code applied)', () => {
   });
 
   it('ends each effect where its own text ends, so it applies right there', () => {
-    const step = planShow(source, () => undefined).steps[0];
+    const step = planShow(RETRO_SHOW, () => undefined).steps[0];
     const ends = step?.effects.map(({ end }) => end) ?? [];
     expect(ends).toEqual([...ends].sort((a, b) => a - b));
     expect(ends.at(-1)).toBe(step?.chars);
@@ -55,8 +53,8 @@ describe('console plan (code shown = code applied)', () => {
   });
 
   it('lists every layer and decoration the show starts with', () => {
-    const plan = planShow(source, () => undefined);
-    expect(plan.layers).toHaveLength(Object.keys(source.layers).length);
+    const plan = planShow(RETRO_SHOW, () => undefined);
+    expect(plan.layers).toHaveLength(Object.keys(RETRO_SHOW.layers).length);
     expect(plan.decorations).toEqual(['oh-snap', 'top-bar', 'page-footer']);
   });
 });
@@ -69,7 +67,9 @@ describe('layer host', () => {
     site.textContent =
       ':root { --color-bg: #ffffff; } @media print { :root { --color-bg: #000; } }';
     document.head.append(site);
-    const host = createLayerHost(document, source.layers, { '--retro-tile-stars': 'url("x.svg")' });
+    const host = createLayerHost(document, RETRO_SHOW.layers, {
+      '--retro-tile-stars': 'url("x.svg")',
+    });
 
     host.sync(['tokens-colors', 'page-colors']);
     const injected = () =>

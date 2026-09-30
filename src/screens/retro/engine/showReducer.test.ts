@@ -5,8 +5,6 @@ import { ShowTestRun, TEST_COPY } from './showTestRun';
 import { TIMING } from './timing';
 import type { ShowState } from './showTypes';
 
-const source = RETRO_SHOW;
-
 const agentLines = (state: ShowState) =>
   state.chat.filter(({ kind }) => kind === 'agent').map(({ text }) => text);
 const inStep = (id: string, stage?: string) => (state: ShowState) =>
@@ -16,7 +14,7 @@ const inStep = (id: string, stage?: string) => (state: ShowState) =>
 
 describe('showReducer: timeline', () => {
   it('opens the chat after 3 s, then the console, then runs every step to done', () => {
-    const run = new ShowTestRun(source);
+    const run = new ShowTestRun(RETRO_SHOW);
     run.advance(TIMING.chatDelayMs - 1);
     expect(run.state.phase).toBe('idle');
     expect(run.state.chat).toEqual([]);
@@ -47,7 +45,7 @@ describe('showReducer: timeline', () => {
   });
 
   it('applies each effect when its own text is typed, not at the end of the step', () => {
-    const run = new ShowTestRun(source);
+    const run = new ShowTestRun(RETRO_SHOW);
     run.advanceUntil(inStep('tokens', 'type'));
     run.advanceUntil(() => run.status('layer:tokens-type') === 'applied', 10_000);
     expect(run.status('layer:tokens-colors')).toBe('pending');
@@ -59,7 +57,7 @@ describe('showReducer: timeline', () => {
   });
 
   it('shows the LLM line for a step when it arrived, and the fallback otherwise', () => {
-    const run = new ShowTestRun(source, { llm: true });
+    const run = new ShowTestRun(RETRO_SHOW, { llm: true });
     run.dispatch({ type: 'narrationLine', key: 'layout', text: 'LLM says: layout.' });
     run.dispatch({ type: 'narrationLine', key: 'layout', text: 'A second line is ignored.' });
     run.advanceUntil(inStep('tokens'));
@@ -69,7 +67,7 @@ describe('showReducer: timeline', () => {
   });
 
   it('with reduced motion applies a step at once, 1 s after its code shows', () => {
-    const run = new ShowTestRun(source, { reducedMotion: true });
+    const run = new ShowTestRun(RETRO_SHOW, { reducedMotion: true });
     run.advanceUntil(inStep('tokens', 'type'));
     run.advance(TIMING.reducedMotionApplyMs - 1);
     expect(run.status('layer:tokens-type')).toBe('pending');
@@ -84,7 +82,7 @@ describe('showReducer: timeline', () => {
 
 describe('showReducer: holds', () => {
   it('freezes everything while the tab is hidden and resumes where it stopped', () => {
-    const run = new ShowTestRun(source);
+    const run = new ShowTestRun(RETRO_SHOW);
     run.advance(2_000).dispatch({ type: 'visibility', hidden: true });
     run.advance(60_000);
     expect(run.state.phase).toBe('idle');
@@ -94,7 +92,7 @@ describe('showReducer: holds', () => {
   });
 
   it('holds before typing while the visitor composes, up to 15 s', () => {
-    const run = new ShowTestRun(source);
+    const run = new ShowTestRun(RETRO_SHOW);
     run.advanceUntil(inStep('tokens', 'narrate'));
     run.dispatch({ type: 'composing', on: true });
     run.advance(TIMING.narrateMs + 5_000);
@@ -112,7 +110,7 @@ describe('showReducer: holds', () => {
   });
 
   it('never holds mid-typing: a step always completes as shown', () => {
-    const run = new ShowTestRun(source);
+    const run = new ShowTestRun(RETRO_SHOW);
     run.advanceUntil(inStep('tokens', 'type'));
     run.dispatch({ type: 'composing', on: true });
     run.advanceUntil(inStep('tokens', 'settle'), 10_000);
@@ -120,7 +118,7 @@ describe('showReducer: holds', () => {
   });
 
   it('holds the next step while a reply streams, up to 12 s', () => {
-    const run = new ShowTestRun(source, { llm: true });
+    const run = new ShowTestRun(RETRO_SHOW, { llm: true });
     run.advanceUntil(inStep('tokens', 'settle'));
     run.dispatch({ type: 'visitorSent', text: 'nice' });
     expect(run.state.visitor.request).not.toBeNull();
@@ -133,7 +131,7 @@ describe('showReducer: holds', () => {
 
 describe('showReducer: failures never block', () => {
   it('skips a module that fails and still reaches done', () => {
-    const run = new ShowTestRun(source);
+    const run = new ShowTestRun(RETRO_SHOW);
     run.advanceUntil(() => run.status('module:ai-chat') === 'running');
     run.dispatch({ type: 'effectFailed', key: 'module:ai-chat', reason: 'network error' });
     expect(run.state.effects['module:ai-chat']).toMatchObject({
@@ -145,7 +143,7 @@ describe('showReducer: failures never block', () => {
   });
 
   it('skips a module that does not load in 5 s', () => {
-    const run = new ShowTestRun(source);
+    const run = new ShowTestRun(RETRO_SHOW);
     run.advanceUntil(() => run.status('module:ai-chat') === 'running');
     run.advance(TIMING.moduleTimeoutMs);
     expect(run.state.effects['module:ai-chat']).toMatchObject({
@@ -163,7 +161,7 @@ describe('showReducer: the visitor', () => {
   const chatOpen = (run: ShowTestRun) => run.advanceUntil((state) => state.phase === 'chat');
 
   it('answers with the scripted reply when the LLM is off', () => {
-    const run = new ShowTestRun(source, { llm: false });
+    const run = new ShowTestRun(RETRO_SHOW, { llm: false });
     chatOpen(run);
     run.dispatch({ type: 'visitorSent', text: '  wow, a marquee!  ' });
     expect(run.state.visitor.request).toBeNull();
@@ -174,7 +172,7 @@ describe('showReducer: the visitor', () => {
   });
 
   it('requests a reply with the step on screen and the conversation so far', () => {
-    const run = new ShowTestRun(source, { llm: true });
+    const run = new ShowTestRun(RETRO_SHOW, { llm: true });
     chatOpen(run);
     run.dispatch({ type: 'visitorSent', text: 'first' });
     expect(run.state.visitor.request?.input).toEqual({
@@ -201,7 +199,7 @@ describe('showReducer: the visitor', () => {
   });
 
   it('falls back to a scripted reply on failure, and stays scripted after two in a row', () => {
-    const run = new ShowTestRun(source, { llm: true });
+    const run = new ShowTestRun(RETRO_SHOW, { llm: true });
     chatOpen(run);
     run
       .dispatch({ type: 'visitorSent', text: 'one' })
@@ -218,7 +216,7 @@ describe('showReducer: the visitor', () => {
   });
 
   it('stays scripted right after `unavailable` or `rate_limited`', () => {
-    const run = new ShowTestRun(source, { llm: true });
+    const run = new ShowTestRun(RETRO_SHOW, { llm: true });
     chatOpen(run);
     run
       .dispatch({ type: 'visitorSent', text: 'one' })
@@ -227,7 +225,7 @@ describe('showReducer: the visitor', () => {
   });
 
   it('takes 10 messages, refuses long ones, and ignores messages before the chat opens', () => {
-    const run = new ShowTestRun(source);
+    const run = new ShowTestRun(RETRO_SHOW);
     run.dispatch({ type: 'visitorSent', text: 'too early' });
     expect(run.state.chat).toEqual([]);
     chatOpen(run);
@@ -243,7 +241,7 @@ describe('showReducer: the visitor', () => {
   });
 
   it('says once when the visitor goes offline', () => {
-    const run = new ShowTestRun(source);
+    const run = new ShowTestRun(RETRO_SHOW);
     run.dispatch({ type: 'offline', offline: true }).dispatch({ type: 'offline', offline: true });
     expect(run.state.chat.map(({ text }) => text)).toEqual([TEST_COPY.offline]);
   });
