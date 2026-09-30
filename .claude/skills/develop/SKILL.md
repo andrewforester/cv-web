@@ -8,7 +8,7 @@ description: Work a CV Andrew Panasiuk task as a developer session — stay insi
 You are one working session on one task. The orchestrator launched you; a human is usually not watching. Concrete tools for every step (tracker, code host, marking a PR ready) are in `docs/COORDINATION.md` → Tooling.
 
 ## Start
-1. `git fetch origin && git merge origin/main` on your branch (`claude/<short>`). Never rebase or force-push. The orchestrator already opened a **draft PR** from this branch (the prompt names it): never open another one.
+1. Local session in the main checkout? Create your worktree first (`COORDINATION.md` → General rules). Then `git fetch origin && git merge origin/main` on your branch (`claude/<short>`). Never rebase or force-push. The orchestrator already opened a **draft PR** from this branch (the prompt names it): never open another one.
 2. Read the root `AGENTS.md`, `docs/COORDINATION.md` and the **ticket** named in the prompt with all its comments: the brief (task, design package, zone, out of scope, dependencies, done-when) is there and only there. Everything about the process goes into ticket comments; the PR holds only code and review.
 3. **Environment.** A cloud container is prepared by the session-start hook. In a local session install what you need yourself (see `AGENTS.md` → Commands for the toolchain and the *web check* browser) and say in your report what you installed.
 4. If the task starts on another task's branch that isn't in `main` yet, merge that branch as soon as it exists. Use only the API contract the brief names.

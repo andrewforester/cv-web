@@ -7,7 +7,7 @@ description: Turn a screenshot (or photo/mock) of an app screen into a CV Andrew
 
 Output: `docs/design/<screen>/` in the same shape as the packages already in `docs/design/` (the first one is your reference for format and depth). A developer session will build the screen **only** from this package, so anything you leave out gets guessed.
 
-**Never call design-tool MCPs** (Figma etc.): they are rationed and only the orchestrator uses them. Your zone is `docs/design/<screen>/**` and nothing else.
+**Never call design-tool MCPs** (Figma etc.): they are rationed and only the orchestrator uses them. Your zone is `docs/design/<screen>/**` and nothing else. A local session works in its own worktree, never in the main checkout (`docs/COORDINATION.md` → General rules).
 
 ## 1. Get the image into the repo
 - Find the screenshot:
