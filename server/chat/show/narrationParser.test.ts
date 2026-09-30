@@ -11,9 +11,9 @@ function parse(pieces: string[], complete = true) {
 describe('NarrationParser', () => {
   it('emits a line as soon as it is complete, across arbitrary pieces', () => {
     const parser = new NarrationParser();
-    expect(parser.push('tok')).toEqual([]);
-    expect(parser.push('ens: Fonts first.\nlay')).toEqual([
-      { key: 'tokens', text: 'Fonts first.' },
+    expect(parser.push('fon')).toEqual([]);
+    expect(parser.push('ts: Fonts first.\nlay')).toEqual([
+      { key: 'fonts', text: 'Fonts first.' },
     ]);
     expect(parser.push('out: Now the layout.\r\n')).toEqual([
       { key: 'layout', text: 'Now the layout.' },
@@ -38,23 +38,23 @@ describe('NarrationParser', () => {
     const { lines, count } = parse([
       'Sure! Here are the lines:\n\n',
       'marquee: Not a step.\n',
-      'tokens:\n',
-      'tokens: First.\n',
-      'tokens: Second.\n',
+      'fonts:\n',
+      'fonts: First.\n',
+      'fonts: Second.\n',
       'just some words\n',
     ]);
-    expect(lines).toEqual([{ key: 'tokens', text: 'First.' }]);
+    expect(lines).toEqual([{ key: 'fonts', text: 'First.' }]);
     expect(count).toBe(1);
   });
 
   it('accepts keys in any case and strips list markers, markdown, tags and quotes', () => {
     const { lines } = parse([
-      '1. **Tokens**: Fonts *first*.\n',
+      '1. **Fonts**: Fonts *first*.\n',
       '- LAYOUT: "Now the `layout`."\n',
       '> links :  <b>All</b>   of it.\n',
     ]);
     expect(lines).toEqual([
-      { key: 'tokens', text: 'Fonts first.' },
+      { key: 'fonts', text: 'Fonts first.' },
       { key: 'layout', text: 'Now the layout.' },
       { key: 'links', text: 'All of it.' },
     ]);
@@ -62,7 +62,7 @@ describe('NarrationParser', () => {
 
   it('shortens a text over 200 characters at a word boundary', () => {
     const text = `${'word '.repeat(60)}end.`;
-    const [line] = parse([`tokens: ${text}\n`]).lines;
+    const [line] = parse([`fonts: ${text}\n`]).lines;
     expect(line?.text.length).toBeLessThanOrEqual(200);
     expect(line?.text).toMatch(/^word( word)*…$/);
   });
@@ -70,7 +70,7 @@ describe('NarrationParser', () => {
   it('drops a runaway line, even one that arrives without a line break for a while', () => {
     const runaway = 'x'.repeat(MAX_RAW_LINE_CHARS + 1);
     const { lines } = parse([
-      `tokens: ${runaway}\n`,
+      `fonts: ${runaway}\n`,
       `layout: ${runaway.slice(0, 300)}`,
       runaway.slice(0, 400),
       ' still going\n',

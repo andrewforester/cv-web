@@ -1,0 +1,15 @@
+[data-retro-stage] [data-agent-id='section:header'] {
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 'photo intro' 'contacts contacts';
+  text-align: center;
+}
+
+[data-retro-stage] [data-agent-id='section:header'] address {
+  display: block;
+  justify-self: center;
+}
+
+[data-retro-stage] [data-agent-id='section:header'] address p {
+  display: inline;
+  margin: 0 4px;
+}

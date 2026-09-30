@@ -16,7 +16,7 @@ import { REPLY_INSTRUCTIONS, SHOW_PROMPT_VERSION } from './show/showPrompt.js';
 
 const NARRATION = [
   'Sure, here you go:\n',
-  'tokens: Fonts first.\nlay',
+  'fonts: Fonts first.\nlay',
   'out: Leaning left since 2002.\n',
   'marquee: unknown key\n',
   'links: Fast-forward.\nfinale: Done.',
@@ -33,7 +33,7 @@ describe('handleChat v3: narrate', () => {
     expect(response.headers.get('x-chat-api-version')).toBe('3');
     const { events } = await readSse(response);
     expect(events.map(({ event, data }) => (event === 'line' ? data : event))).toEqual([
-      { key: 'tokens', text: 'Fonts first.' },
+      { key: 'fonts', text: 'Fonts first.' },
       { key: 'layout', text: 'Leaning left since 2002.' },
       { key: 'links', text: 'Fast-forward.' },
       { key: 'finale', text: 'Done.' },
@@ -105,7 +105,7 @@ describe('handleChat v3: reply', () => {
   it.each([
     ['an unknown kind', { ...NARRATE_BODY, kind: 'chat' }, 400, 'invalid_request'],
     ['an unknown scenario', { ...NARRATE_BODY, scenario: 'retro-0' }, 400, 'unsupported_version'],
-    ['a bad step', replyBody({ step: 'fonts' as never }), 400, 'invalid_request'],
+    ['a bad step', replyBody({ step: 'tokens' as never }), 400, 'invalid_request'],
     [
       'a long message',
       replyBody({ messages: [{ role: 'user', content: 'a'.repeat(1_001) }] }),

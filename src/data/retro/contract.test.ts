@@ -39,13 +39,13 @@ describe('show contract v3', () => {
     };
     const requests: ShowRequest[] = [narrate, reply];
     const line: ShowSsePayloads['line'] = {
-      key: 'tokens',
-      text: 'First, fonts and colours: let me bring them into this decade.',
+      key: 'fonts',
+      text: 'First, the fonts: let me bring them into this decade.',
     };
 
     expect(requests.map((request) => request.kind)).toEqual(['narrate', 'reply']);
     expect(JSON.stringify(line)).toBe(
-      '{"key":"tokens","text":"First, fonts and colours: let me bring them into this decade."}',
+      '{"key":"fonts","text":"First, the fonts: let me bring them into this decade."}',
     );
   });
 });

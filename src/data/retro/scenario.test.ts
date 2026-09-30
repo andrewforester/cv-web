@@ -36,9 +36,10 @@ describe('retro scenario manifest', () => {
   });
 
   it('uses the design package copy verbatim', () => {
-    expect(RETRO_SCENARIO_ID).toBe('retro-2');
+    expect(RETRO_SCENARIO_ID).toBe('retro-3');
     expect(RETRO_STEPS.map((step) => step.title)).toEqual([
-      'fonts & colours',
+      'fonts',
+      'colours',
       'layout',
       'images',
       'cards',
@@ -47,7 +48,8 @@ describe('retro scenario manifest', () => {
       'links & contacts',
     ]);
     expect(RETRO_STEPS.map((step) => step.fallback)).toEqual([
-      'First, fonts and colours: let me bring them into this decade.',
+      'First, the fonts: let me bring them into this decade.',
+      'Now the colours. Goodbye, star field.',
       "Now the layout. It's been leaning left since 2002.",
       'The pictures were in the wrong folder. Fixing the paths.',
       'Tables are for data. Turning these into cards.',

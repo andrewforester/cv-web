@@ -1,5 +1,5 @@
-import { holdEndsAt, stepTyping } from './showProgress';
-import { currentStep } from './showState';
+import { applyDueAt, chunkTyping, holdEndsAt } from './showProgress';
+import { currentPlannedChunk, currentStep } from './showState';
 import { revealMs, TIMING } from './timing';
 import type { ShowState } from './showTypes';
 
@@ -12,8 +12,21 @@ export function isAnimating(state: ShowState): boolean {
       entry.revealFrom !== null && state.t < entry.revealFrom + revealMs(entry.text, false),
   );
   if (revealing) return true;
-  const step = currentStep(state);
-  return !!step && state.stage === 'type' && stepTyping(state, step).typed < step.chars;
+  const chunk = currentPlannedChunk(state);
+  return !!chunk && state.stage === 'type' && chunkTyping(state, chunk).shown < chunk.chars;
+}
+
+/**
+ * Moments inside a beat the screen renders differently, though the runner doesn't move: the
+ * highlight starts fading, a leaving decoration unmounts.
+ */
+function beatMoments(state: ShowState): number[] {
+  const chunk = currentPlannedChunk(state);
+  if (!chunk || state.stage !== 'beat') return [];
+  const leave = chunk.motion === 'leave' && !state.config.reducedMotion;
+  const moments = [state.stageAt + TIMING.highlightHoldMs];
+  if (leave) moments.push(state.stageAt + TIMING.leaveMs);
+  return moments.filter((at) => at > state.t);
 }
 
 /** Show time of the next transition that no event will announce, or `null` when none is due. */
@@ -25,15 +38,17 @@ function nextDeadline(state: ShowState): number | null {
   switch (state.stage) {
     case 'narrate':
       return state.stageAt + TIMING.narrateMs;
-    case 'settle':
-      return state.stageAt + TIMING.settleMs;
     case 'type': {
-      const running = step.effects
-        .map(({ key }) => state.effects[key])
-        .filter((run) => run?.status === 'running')
-        .map((run) => (run?.at ?? 0) + TIMING.moduleTimeoutMs);
-      return running.length ? Math.min(...running) : state.stageAt + stepTyping(state, step).ms;
+      const chunk = step.chunks[state.chunk];
+      if (!chunk) return state.t;
+      const run = state.effects[chunk.key];
+      if (run?.status === 'running') return run.at + TIMING.moduleTimeoutMs;
+      return applyDueAt(state, chunk);
     }
+    case 'beat':
+      return Math.min(state.stageAt + TIMING.beatMs, ...beatMoments(state));
+    case 'stepDone':
+      return state.stageAt + TIMING.stepDoneMs;
   }
 }
 

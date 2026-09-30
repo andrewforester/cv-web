@@ -1,7 +1,7 @@
 import type { ChatErrorCode, ChatMessage } from '../../../data/chat';
 import { RETRO_LIMITS } from '../../../data/retro';
 import { progress } from './showProgress';
-import { addChat, advanceClock, stepOnScreen, stepsDone } from './showState';
+import { addChat, advanceClock, currentPlannedChunk, stepOnScreen, stepsDone } from './showState';
 import type { ShowEvent, ShowState, VisitorState } from './showTypes';
 
 /** The visitor may send this many messages per show (ARCHITECTURE §3). */
@@ -14,7 +14,7 @@ const FINAL_REPLY_ERRORS: readonly ChatErrorCode[] = ['unavailable', 'rate_limit
 
 /** Whether the composer takes a message now (the chat is open, no reply streaming, under limit). */
 export function canSend(state: ShowState): boolean {
-  const open = state.phase !== 'idle' && state.phase !== 'done';
+  const open = state.phase !== 'idle' && state.phase !== 'closing' && state.phase !== 'done';
   return open && state.visitor.request === null && state.visitor.sent < MAX_VISITOR_MESSAGES;
 }
 
@@ -91,6 +91,12 @@ function replyFinished(state: ShowState, failed: ChatErrorCode | null): ShowStat
   return addChat(next, { kind: 'agent', text: reply, revealFrom: state.t });
 }
 
+/** The camera settled on the typing chunk's target: its apply may happen as soon as it is typed. */
+function focusSettled(state: ShowState, key: string): ShowState {
+  const typing = state.stage === 'type' && currentPlannedChunk(state)?.key === key;
+  return typing && state.focusAt === null ? { ...state, focusAt: state.t } : state;
+}
+
 function resolveEffect(state: ShowState, key: string, reason?: string): ShowState {
   const run = state.effects[key];
   if (run?.status !== 'running') return state;
@@ -119,6 +125,8 @@ function handle(state: ShowState, event: ShowEvent): ShowState {
       return replyFinished(state, null);
     case 'replyFailed':
       return replyFinished(state, event.code);
+    case 'focusSettled':
+      return focusSettled(state, event.key);
     case 'moduleLoaded':
       return resolveEffect(state, event.key);
     case 'effectFailed':

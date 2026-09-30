@@ -1,0 +1,11 @@
+[data-retro-stage] {
+  max-width: none;
+  margin: 0;
+  padding: 8px;
+}
+
+[data-retro-stage] main {
+  width: 640px;
+  padding: 6px;
+  border: 3px outset #c0c0c0;
+}

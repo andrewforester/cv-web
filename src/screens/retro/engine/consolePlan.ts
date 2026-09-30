@@ -1,9 +1,11 @@
 import type { RetroStepMeta } from '../../../data/retro';
 import type {
+  ChunkMotion,
   ConsoleLine,
   DamageLayer,
-  PlannedEffect,
+  PlannedChunk,
   PlannedStep,
+  RetroChunk,
   RetroEffect,
   RetroStep,
   ShowPlan,
@@ -70,7 +72,7 @@ function effectText(
   effect: RetroEffect,
   source: ShowSource,
   readToken: TokenReader,
-): Pick<PlannedEffect, 'lines' | 'doneText'> {
+): Pick<PlannedChunk, 'lines' | 'doneText'> {
   switch (effect.kind) {
     case 'removeLayer': {
       const layer = source.layers[effect.layer];
@@ -100,22 +102,42 @@ function effectText(
   }
 }
 
+function motionOf({ effect, motion }: RetroChunk): ChunkMotion {
+  switch (effect.kind) {
+    case 'removeLayer':
+      return motion ?? 'fade';
+    case 'removeDecoration':
+      return 'leave';
+    case 'loadModule':
+      return 'none';
+  }
+}
+
+function planChunk(chunk: RetroChunk, source: ShowSource, readToken: TokenReader): PlannedChunk {
+  const text = effectText(chunk.effect, source, readToken);
+  // The target line is a comment: it names where the change lands and changes nothing itself.
+  const lines: ConsoleLine[] = chunk.target
+    ? [{ kind: 'comment', text: `// → ${chunk.target.label}` }, ...text.lines]
+    : [...text.lines];
+  return {
+    key: effectKey(chunk.effect),
+    effect: chunk.effect,
+    target: chunk.target,
+    motion: motionOf(chunk),
+    lines,
+    doneText: text.doneText,
+    chars: lines.reduce((sum, line) => sum + line.text.length, 0),
+  };
+}
+
 function planStep(step: RetroStep, source: ShowSource, readToken: TokenReader): PlannedStep {
   const meta = source.meta.find(({ id }) => id === step.id);
   if (!meta) throw new Error(`Step without manifest entry: ${step.id}`);
-  let chars = 0;
-  const effects = step.effects.map((effect): PlannedEffect => {
-    const text = effectText(effect, source, readToken);
-    chars += text.lines.reduce((sum, line) => sum + line.text.length, 0);
-    return { key: effectKey(effect), effect, ...text, end: chars };
-  });
   return {
     id: step.id,
     title: meta.title,
     fallback: meta.fallback,
-    fast: step.speed === 'fast',
-    effects,
-    chars,
+    chunks: step.chunks.map((chunk) => planChunk(chunk, source, readToken)),
   };
 }
 
@@ -125,7 +147,7 @@ function planStep(step: RetroStep, source: ShowSource, readToken: TokenReader): 
  */
 export function planShow(source: ShowSource, readToken: TokenReader): ShowPlan {
   const steps = source.steps.map((step) => planStep(step, source, readToken));
-  const all = steps.flatMap((step) => step.effects.map(({ effect }) => effect));
+  const all = steps.flatMap((step) => step.chunks.map(({ effect }) => effect));
   return {
     steps,
     finaleFallback: source.finaleFallback,

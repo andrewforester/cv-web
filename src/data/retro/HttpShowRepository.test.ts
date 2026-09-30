@@ -55,10 +55,10 @@ const bodyOf = (fetchFn: ReturnType<typeof repository>['fetchFn']): unknown =>
 describe('HttpShowRepository.narrate', () => {
   it('POSTs a v3 narrate request and yields lines then done', async () => {
     const { events, fetchFn } = narrate(
-      sse(`${line('tokens', 'Fonts first.')}: ping\n\n${line('finale', 'Done.')}${done}`),
+      sse(`${line('fonts', 'Fonts first.')}: ping\n\n${line('finale', 'Done.')}${done}`),
     );
     expect(await events).toEqual([
-      { type: 'line', key: 'tokens', text: 'Fonts first.' },
+      { type: 'line', key: 'fonts', text: 'Fonts first.' },
       { type: 'line', key: 'finale', text: 'Done.' },
       { type: 'done', stopReason: 'end_turn', usage },
     ]);
@@ -86,7 +86,7 @@ describe('HttpShowRepository.narrate', () => {
   it.each([
     ['a malformed line', 'event: line\ndata: {"key":"rest"}\n\n'],
     ['a done with an unknown stop reason', 'event: done\ndata: {"stopReason":"tool_use"}\n\n'],
-    ['a stream without a terminal event', line('tokens', 'Fonts first.')],
+    ['a stream without a terminal event', line('fonts', 'Fonts first.')],
   ])('turns %s into a retryable upstream_error', async (_, body) => {
     const events = await narrate(sse(body)).events;
     expect(events.at(-1)).toMatchObject({
@@ -98,7 +98,7 @@ describe('HttpShowRepository.narrate', () => {
   it('passes a mid-stream error event through after the lines so far', async () => {
     const error = { code: 'upstream_error', message: 'Deadline exceeded', retryable: true };
     const { events } = narrate(
-      sse(`${line('tokens', 'Fonts first.')}event: error\ndata: ${JSON.stringify(error)}\n\n`),
+      sse(`${line('fonts', 'Fonts first.')}event: error\ndata: ${JSON.stringify(error)}\n\n`),
     );
     expect(await events).toMatchObject([{ type: 'line' }, { type: 'error', error }]);
   });

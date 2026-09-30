@@ -32,9 +32,9 @@ describe('planShow', () => {
 describe('narrationStreamer', () => {
   it('encodes parsed lines as line events and counts them', () => {
     const streamer = narrationStreamer();
-    expect(streamer.text('tokens: Fonts')).toEqual([]);
+    expect(streamer.text('fonts: Fonts')).toEqual([]);
     expect(streamer.text(' first.\nfinale: Done.')).toEqual([
-      'event: line\ndata: {"key":"tokens","text":"Fonts first."}\n\n',
+      'event: line\ndata: {"key":"fonts","text":"Fonts first."}\n\n',
     ]);
     expect(streamer.end('end_turn')).toEqual([
       'event: line\ndata: {"key":"finale","text":"Done."}\n\n',
