@@ -1,15 +1,17 @@
 <!doctype html>
 <!--
   Static mock of the Retro Rebuild show (docs/design/retro/SPEC.md). Not product code.
-  One CV markup styled by the real src/theme/tokens.css (= today's design). The 2002 look is a stack
-  of damage layers listed in <html data-dmg>; each fix step removes layers. Open in a browser.
+  It follows docs/retro/ARCHITECTURE.md: the page is today's CV (same element types and hooks as
+  src/screens/cv: data-testid, data-agent-id) styled by the real src/theme/tokens.css; the 2002 look
+  is the damage layers in layers/*.css, injected as <link data-retro-layer> at the end of <head>,
+  plus show-owned decorations in a portal. A fix step removes layers and decorations.
+  The console text is generated from the layer files, so open it over http or with render.sh:
+    python3 -m http.server  (repo root)  →  http://localhost:8000/docs/design/retro/mock.html
   Query params:
-    state = broken (default) | chat | console | step1-mid | step1 | step2-mid | step2 | end
+    state = broken (default) | chat | console | step1-mid | step1 | step2-mid | step2 | rest-mid | end
     dock  = 0   hide the chat/console dock (full-page renders)
-    dmg   = space-separated layer list, overrides the state's (e.g. dmg=images%20chrome)
-  Screenshots: render.sh next to this file.
 -->
-<html lang="en" data-dmg="fonts colours layout images cards rhythm chrome links">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -22,7 +24,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=IBM+Plex+Mono:wght@400;600&display=block"
     />
     <style>
-      /* ---- Proposed retro- tokens (SPEC → Proposed tokens). Chat, console, dock only. ---- */
+      /* ---- Proposed retro- tokens (SPEC → Proposed tokens): dock, chat, console only ---- */
       :root {
         --retro-dock-width: 384px;
         --retro-dock-inset: 16px;
@@ -55,25 +57,24 @@
         --retro-code-del: #ff5555;
         --retro-code-del-bg: rgba(255, 85, 85, 0.1);
         --retro-progress: #000080;
-        --retro-z-index: 1000;
+        --retro-z-index: 1001;
       }
 
       /* =====================================================================================
-         BASE = today's design (approximation of src/screens/cv/*.module.css, tokens only)
+         TODAY'S SITE: approximation of src/theme/global.css, src/app and src/screens/cv modules.
+         Classes stand in for CSS Module classes; layers never select them.
          ===================================================================================== */
       *,
       *::before,
       *::after {
         box-sizing: border-box;
       }
-      html,
       body {
         margin: 0;
-      }
-      body {
         font-family: var(--font-family);
         font-size: var(--font-body-size);
         line-height: var(--font-body-line-height);
+        font-weight: var(--font-body-weight);
         letter-spacing: var(--letter-spacing);
         color: var(--color-text);
         background: var(--color-bg);
@@ -81,36 +82,46 @@
       h1,
       h2,
       h3,
-      p {
+      p,
+      figure {
         margin: 0;
-        font: inherit;
       }
-      a {
-        color: inherit;
-        text-decoration: none;
+      h1,
+      h2,
+      h3 {
+        font-size: inherit;
+        font-weight: inherit;
       }
-      .site {
-        position: relative;
-        padding: 64px var(--page-gutter) 48px;
-      }
-      html.docked .site {
-        margin-right: calc(var(--retro-dock-width) + 2 * var(--retro-dock-inset));
-      }
-      .cv {
-        max-width: var(--content-max-width);
+      .shell {
+        max-width: calc(var(--content-max-width) + 2 * var(--page-gutter));
         margin: 0 auto;
+        padding: var(--space-4) var(--page-gutter) calc(var(--chat-fab-size) + 2 * var(--space-6));
       }
-      .r-only,
-      .r-hr,
-      .r-label,
-      .broken,
-      .r-note {
-        display: none;
+      .app-header {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: var(--space-8);
       }
-
-      /* Header */
-      .header {
-        position: relative;
+      .switcher {
+        display: inline-flex;
+        gap: var(--space-1);
+      }
+      .switcher button {
+        padding: var(--space-1) var(--space-3);
+        font: inherit;
+        font-size: var(--font-meta-size);
+        color: var(--color-text);
+        background: var(--color-bg);
+        border: var(--border-card) solid var(--color-card-border);
+        border-radius: var(--radius-logo);
+      }
+      .switcher button[aria-pressed='true'] {
+        color: var(--color-bg);
+        background: var(--color-text);
+        border-color: var(--color-text);
+      }
+      /* HeaderSection */
+      .hdr {
         display: grid;
         grid-template-columns: 1fr auto;
         grid-template-areas: 'intro photo' 'intro contacts';
@@ -133,14 +144,12 @@
       .photo {
         grid-area: photo;
         justify-self: end;
-      }
-      .photo img {
-        display: block;
         width: 120px;
         height: 120px;
         border-radius: 50%;
         object-fit: cover;
       }
+      /* ContactList */
       .contacts {
         grid-area: contacts;
         justify-self: end;
@@ -148,46 +157,50 @@
         flex-direction: column;
         align-items: flex-end;
         gap: var(--space-2);
+        font-style: normal;
       }
-      .contact {
+      .row {
         display: flex;
         align-items: center;
         gap: var(--space-1);
       }
-      .contact img {
+      .row a {
+        display: inline-flex;
+      }
+      .icon {
         width: 18px;
         height: 18px;
       }
-      .contact .link {
+      .link {
         margin-left: var(--space-1);
+        color: inherit;
+        text-decoration: none;
       }
-
-      /* Sections */
-      .section-title {
+      /* SectionTitle */
+      .title {
         margin: var(--space-8) 0 var(--space-3);
         font-size: var(--font-section-size);
         line-height: var(--font-section-line-height);
         font-weight: var(--font-section-weight);
       }
-      .section-title.first {
+      .title.first {
         margin-top: var(--space-7);
       }
-      b.medium {
+      .medium {
         font-weight: 500;
       }
-      b.bi {
+      .bi {
         font-weight: 700;
         font-style: italic;
       }
-
-      /* Technologies */
-      .tech {
+      /* TechnologiesSection, TechnologyCardView */
+      .grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         column-gap: var(--space-7);
         align-items: start;
       }
-      .tech-col {
+      .column {
         display: flex;
         flex-direction: column;
         gap: 18px;
@@ -215,7 +228,7 @@
       .card.hl {
         border-color: var(--color-highlight);
       }
-      .card .star {
+      .star {
         position: absolute;
         top: 0;
         right: 0;
@@ -237,25 +250,22 @@
           linear-gradient(#000 0 0) content-box exclude,
           linear-gradient(#000 0 0);
       }
-
-      /* Experience */
+      /* ExperienceList, ExperienceEntry */
       .xp-list {
         display: flex;
         flex-direction: column;
         gap: var(--space-7);
       }
-      .xp-head {
+      .head {
         display: grid;
         grid-template-columns: 36px 1fr auto;
         grid-template-areas: 'logo company period' 'logo role role';
         column-gap: var(--space-3);
         row-gap: var(--space-1);
+        align-items: start;
       }
-      .xp-logo {
+      .logo {
         grid-area: logo;
-      }
-      .xp-logo img {
-        display: block;
         width: 36px;
         height: 36px;
         border-radius: var(--radius-logo);
@@ -292,8 +302,7 @@
       .bullets {
         margin-top: 9px;
       }
-
-      /* Apps */
+      /* AppsSection, AppCardView, AppStat */
       .apps {
         display: flex;
         gap: var(--space-4);
@@ -326,8 +335,8 @@
         gap: var(--space-3);
         margin-top: var(--space-2);
       }
-      .app-icon img {
-        display: block;
+      .app-icon {
+        flex: none;
         width: 36px;
         height: 36px;
         border-radius: var(--radius-logo);
@@ -356,12 +365,12 @@
         color: var(--color-app-muted);
       }
       .divider {
+        flex: none;
         width: 0.75px;
         height: 27px;
         background: color-mix(in srgb, var(--color-app-muted) 40%, transparent);
       }
-
-      /* Education, about */
+      /* EducationSection, AboutSection, BookView */
       .edu {
         font-size: var(--font-education-size);
         line-height: var(--font-education-line-height);
@@ -379,7 +388,7 @@
         padding: 0;
         list-style: none;
       }
-      .cover img {
+      .cover {
         display: block;
         width: 100px;
         height: 150px;
@@ -409,294 +418,40 @@
       }
 
       /* =====================================================================================
-         DAMAGE LAYERS: each block is one deviation from today's design (SPEC → Broken page).
-         A fix step removes its layer(s) from <html data-dmg>.
+         SHOW: stage reserve for the dock, decorations (show-owned DOM in a portal).
          ===================================================================================== */
-
-      /* -- fonts (step 1a): families and sizes of 2002 -- */
-      html[data-dmg~='fonts'] {
-        --font-family: Verdana, Geneva, sans-serif;
-        --letter-spacing: normal;
-        --letter-spacing-app: normal;
-        --font-body-size: 11px;
-        --font-body-line-height: 15px;
-        --font-name-size: 34px;
-        --font-name-line-height: 38px;
-        --font-section-size: 24px;
-        --font-section-line-height: 28px;
-        --font-subsection-size: 15px;
-        --font-subsection-line-height: 18px;
-        --font-card-title-size: 12px;
-        --font-card-title-line-height: 15px;
-        --font-card-body-size: 11px;
-        --font-card-body-line-height: 14px;
-        --font-meta-size: 11px;
-        --font-meta-line-height: 14px;
-        --font-education-size: 13px;
-        --font-education-line-height: 16px;
-        --font-book-title-size: 11px;
-        --font-book-title-line-height: 13px;
-        --font-book-author-size: 10px;
-        --font-book-author-line-height: 12px;
-        --font-app-name-size: 13px;
-        --font-app-name-line-height: 16px;
-        --font-app-publisher-size: 10px;
-        --font-app-publisher-line-height: 12px;
-        --font-app-value-size: 11px;
-        --font-app-value-line-height: 13px;
-        --font-app-label-size: 10px;
-        --font-app-label-line-height: 12px;
+      body.docked {
+        padding-right: calc(var(--retro-dock-width) + 2 * var(--retro-dock-inset));
       }
-      html[data-dmg~='fonts'] :is(.name, .section-title, .company, .subtitle) {
-        font-family: 'Times New Roman', Times, serif;
-        font-weight: 700;
+      .deco {
+        position: absolute;
+        z-index: 1;
+        letter-spacing: normal;
       }
-      html[data-dmg~='fonts'] :is(.card-title, .app-name) {
-        font-family: Arial, Helvetica, sans-serif;
-        font-weight: 700;
-      }
-
-      /* -- colours (step 1b): garish palette + tiled background -- */
-      html[data-dmg~='colours'] {
-        --color-bg: #ffffcc;
-        --color-text: #000000;
-        --color-text-secondary: #008000;
-        --color-text-muted: #808080;
-        --color-card-border: #808080;
-        --color-highlight: #ffff00;
-        --color-app-text: #000000;
-        --color-app-muted: #666666;
-        --color-app-accent: #0000ff;
-        --color-app-border: #000000;
-      }
-      html[data-dmg~='colours'] body {
-        background: #000033 url('assets/retro_tile_stars.svg') repeat;
-      }
-      html[data-dmg~='colours'] .cv {
-        background: var(--color-bg);
-      }
-      html[data-dmg~='colours'] .name {
-        color: #800080;
-      }
-      html[data-dmg~='colours'] .section-title {
-        color: #cc0000;
-      }
-      html[data-dmg~='colours'] .card {
-        background: #ccffff;
-      }
-      html[data-dmg~='colours'] .card.hl {
-        background: #ffff00;
-      }
-      html[data-dmg~='colours'] .card.ai {
-        background: #ffccff;
-      }
-      html[data-dmg~='colours'] .app {
-        background: #ccffcc;
-      }
-
-      /* -- layout (step 2): fixed 640 px table pushed to the left, centred header, cramped grid -- */
-      html[data-dmg~='layout'] .site {
-        padding: 8px;
-      }
-      html[data-dmg~='layout'] .cv {
-        width: 640px;
-        max-width: none;
-        margin: 0;
-        padding: 6px;
-        border: 3px outset #c0c0c0;
-      }
-      html[data-dmg~='layout'] .header {
-        display: block;
-        text-align: center;
-      }
-      html[data-dmg~='layout'] .photo {
-        float: left;
-        margin: 0 8px 4px 0;
-      }
-      html[data-dmg~='layout'] .r-note {
-        top: 40px;
-        right: auto;
-        left: calc(100% + 36px);
-      }
-      html[data-dmg~='layout'] .contacts {
-        display: block;
-        justify-self: auto;
-        clear: both;
-        padding-top: 6px;
-      }
-      html[data-dmg~='layout'] .contact {
-        display: inline;
-        text-align: center;
-        margin: 0 4px;
-      }
-      html[data-dmg~='layout'] .tech {
-        column-gap: 2px;
-      }
-      html[data-dmg~='layout'] .tech-col {
-        gap: 2px;
-      }
-      html[data-dmg~='layout'] .title-tech {
-        text-align: center;
-      }
-      html[data-dmg~='layout'] .xp-head {
-        display: block;
-      }
-      html[data-dmg~='layout'] .xp-logo {
-        float: left;
-        margin: 2px 6px 0 0;
-      }
-      html[data-dmg~='layout'] :is(.company, .role) {
-        display: block;
-      }
-      html[data-dmg~='layout'] .period {
-        display: block;
-        font-style: italic;
-      }
-      html[data-dmg~='layout'] .bullets {
-        clear: both;
-      }
-      html[data-dmg~='layout'] .apps {
-        display: block;
-        margin-left: 40px; /* a <blockquote> used for indentation */
-      }
-      html[data-dmg~='layout'] .app {
-        margin-bottom: 4px;
-      }
-      html[data-dmg~='layout'] .books {
-        column-gap: 12px;
-      }
-
-      /* -- images (step 3): broken files, squashed logos -- */
-      html[data-dmg~='images'] .img.is-broken > img {
-        display: none;
-      }
-      html[data-dmg~='images'] .img.is-broken > .broken {
-        display: inline-flex;
-        align-items: flex-start;
-        gap: 2px;
-        padding: 2px;
-        overflow: hidden;
-        border: 1px inset #c0c0c0;
+      #top-bar {
         font:
-          11px/13px Verdana,
+          11px/14px Verdana,
           Geneva,
           sans-serif;
-        letter-spacing: normal;
-        color: #000000;
-        text-align: left;
-        vertical-align: top;
       }
-      html[data-dmg~='images'] .broken img {
-        flex: none;
-        width: 16px;
-        height: 16px;
-      }
-      html[data-dmg~='images'] .xp-logo:not(.is-broken) img {
-        width: 64px;
-        height: 28px;
-        object-fit: fill;
-        border-radius: 0;
-      }
-      html[data-dmg~='images'] .xp-head {
-        grid-template-columns: auto 1fr auto;
-      }
-      html[data-dmg~='images'] .photo img {
-        border-radius: 0;
-      }
-      html[data-dmg~='images'] .r-note {
-        display: block;
-      }
-
-      /* -- cards (step 4): table cells instead of cards -- */
-      html[data-dmg~='cards'] .card {
-        padding: 4px;
-        border: 2px inset #c0c0c0;
-        border-radius: 0;
-        box-shadow: none;
-        gap: 2px;
-      }
-      html[data-dmg~='cards'] .card .star,
-      html[data-dmg~='cards'] .card.ai::before {
-        display: none;
-      }
-      html[data-dmg~='cards'] .app {
-        padding: 4px;
-        border: 1px solid var(--color-app-border);
-        border-radius: 0;
-        box-shadow: none;
-      }
-      html[data-dmg~='cards'] .app-icon img,
-      html[data-dmg~='cards'] .xp-logo img {
-        border-radius: 0;
-      }
-      html[data-dmg~='cards'] .cover img {
-        box-shadow: none;
-        border: 2px solid #000000;
-      }
-
-      /* -- rhythm (step 5): <hr> under titles, bullets, cramped spacing -- */
-      html[data-dmg~='rhythm'] .section-title {
-        margin: 16px 0 2px;
-      }
-      html[data-dmg~='rhythm'] .r-hr {
-        display: block;
-        margin: 0 0 8px;
-        border: 0;
-        border-top: 2px groove #c0c0c0;
-      }
-      html[data-dmg~='rhythm'] :is(.summary p, .bullets p) {
-        display: list-item;
-        margin-left: 28px;
-        list-style: disc outside;
-      }
-      html[data-dmg~='rhythm'] .bullets p {
-        list-style-type: square;
-      }
-      html[data-dmg~='rhythm'] .xp-list {
-        gap: 12px;
-      }
-      html[data-dmg~='rhythm'] .bullets {
-        margin-top: 2px;
-      }
-      html[data-dmg~='rhythm'] .tagline {
-        margin-top: 2px;
-      }
-      html[data-dmg~='rhythm'] .interests-title {
-        margin-top: 12px;
-      }
-      html[data-dmg~='rhythm'] .subtitle {
-        margin-bottom: 4px;
-      }
-
-      /* -- chrome (step 6): 2002 homepage furniture -- */
-      html[data-dmg~='chrome'] .r-only {
-        display: block;
-      }
-      html[data-dmg~='chrome'] .r-only.inline {
-        display: inline-block;
-      }
-      .r-nav {
-        margin: -2px -2px 6px;
+      #top-bar nav {
+        margin-bottom: 8px;
         padding: 3px;
         text-align: center;
         background: #000080;
       }
-      .r-nav a {
+      #top-bar nav span {
         display: inline-block;
         margin: 1px;
         padding: 2px 10px;
-        font:
-          bold 11px/14px Verdana,
-          Geneva,
-          sans-serif;
+        font-weight: 700;
         color: #000000;
         background: #c0c0c0;
         border: 2px outset #ffffff;
-        text-decoration: none;
+        text-decoration: underline;
       }
-      .r-marquee {
+      #top-bar .marquee {
         overflow: hidden;
-        margin-bottom: 8px;
         border: 1px solid #ff0000;
         background: #000000;
         color: #ffff00;
@@ -706,7 +461,7 @@
           cursive;
         white-space: nowrap;
       }
-      .r-marquee span {
+      #top-bar .marquee span {
         display: inline-block;
         padding-left: 100%;
         animation: marquee 18s linear infinite;
@@ -716,18 +471,7 @@
           transform: translateX(-100%);
         }
       }
-      .r-new {
-        margin-left: 6px;
-        vertical-align: middle;
-        animation: blink 1s steps(1) infinite;
-      }
-      @keyframes blink {
-        50% {
-          visibility: hidden;
-        }
-      }
-      .r-footer {
-        margin-top: 20px;
+      #page-footer {
         padding-top: 8px;
         border-top: 2px groove #c0c0c0;
         text-align: center;
@@ -736,23 +480,21 @@
           Geneva,
           sans-serif;
         color: #000000;
-        letter-spacing: normal;
       }
-      .r-footer p {
+      #page-footer p {
         margin: 4px 0;
       }
-      .r-footer a {
+      #page-footer u {
         color: #0000ee;
-        text-decoration: underline;
       }
-      .r-counter {
+      .counter {
         display: inline-flex;
         gap: 1px;
         padding: 2px;
         background: #404040;
         vertical-align: middle;
       }
-      .r-counter span {
+      .counter span {
         width: 12px;
         font:
           bold 14px/18px 'Courier New',
@@ -761,16 +503,11 @@
         background: #000000;
         text-align: center;
       }
-      .r-badges img {
+      #page-footer .badges img {
         margin: 0 3px;
         vertical-align: middle;
       }
-      /* On the photo corner once the layout is fixed; in the margin right of the table before. */
-      .r-note {
-        position: absolute;
-        top: -12px;
-        right: -28px;
-        z-index: 1;
+      #oh-snap {
         width: 184px;
         padding: 10px 12px;
         background: #ffff99;
@@ -781,30 +518,13 @@
           'Comic Neue',
           cursive;
         color: #000000;
-        letter-spacing: normal;
         transform: rotate(2.5deg);
-        text-align: left;
       }
-      .r-note strong {
+      #oh-snap strong {
         display: block;
         font-size: 18px;
         line-height: 24px;
         color: #cc0000;
-      }
-
-      /* -- links (step 7): blue underlined links, text labels instead of icons -- */
-      html[data-dmg~='links'] .cv a,
-      html[data-dmg~='links'] .contact .link {
-        color: #0000ee;
-        text-decoration: underline;
-      }
-      html[data-dmg~='links'] .contact .ico {
-        display: none;
-      }
-      html[data-dmg~='links'] .r-label {
-        display: inline;
-        margin-right: 4px;
-        font-weight: 700;
       }
 
       /* =====================================================================================
@@ -822,7 +542,7 @@
         gap: var(--retro-dock-gap);
         width: var(--retro-dock-width);
       }
-      html.docked .dock {
+      body.docked .dock {
         display: flex;
       }
       .win {
@@ -1053,12 +773,12 @@
         width: 32px;
         text-align: right;
       }
+
       @media (prefers-reduced-motion: reduce) {
-        .r-marquee span {
-          animation: none;
+        #top-bar .marquee span {
           padding-left: 8px;
+          animation: none;
         }
-        .r-new,
         .caret {
           animation: none;
         }
@@ -1066,9 +786,16 @@
     </style>
   </head>
   <body>
-    <div class="site">
-      <main class="cv" id="cv"></main>
+    <div class="shell" data-retro-stage="">
+      <header class="app-header" data-testid="app-header">
+        <div class="switcher">
+          <button type="button" aria-pressed="true">EN</button
+          ><button type="button" aria-pressed="false">UA</button>
+        </div>
+      </header>
+      <main class="main" id="main"></main>
     </div>
+    <div id="portal" aria-hidden="true"></div>
 
     <div class="dock" aria-label="Live fix">
       <section class="win console" id="console" aria-label="Live fix console">
@@ -1104,16 +831,11 @@
     </div>
 
     <script>
-      /* ------------------------------------------------------------------ CV data (cv.en.json) */
+      /* ------------------------------------------------------------------ CV (cv.en.json) */
       const A = '../cv/assets/';
       const CV = {
-        name: 'Andrew Panasiuk',
-        headline: 'Senior Android Engineer with iOS experience',
-        tagline: 'Creating Android apps since 2012',
-        email: 'andriipanasiuk@gmail.com',
-        phone: '+38 093 897-71-10',
         summary: [
-          'Product-minded <b class="medium">Senior Android Engineer</b> with 12+ years of experience.',
+          'Product-minded <span class="medium">Senior Android Engineer</span> with 12+ years of experience.',
           'Proficient in Kotlin, Coroutines, Jetpack, MVVM/MVI.',
           'Integrating modern AI-driven tools and approaches into workflow.',
           'Autonomous end-to-end feature delivery combined with trust and respect for team leadership.',
@@ -1123,80 +845,88 @@
         tech: [
           [
             [
+              'android',
               'Android',
               'Jetpack Compose, Hilt, Room/SQLite, Picasso/Glide, Custom UI, Custom Animations',
             ],
             [
+              'product-mindset',
               'Product mindset',
               'Feature ownership, Pixel-perfect UI, Human-centric UX, Product analytics basics',
               'hl',
             ],
-            ['Unit/UI testing', 'JUnit, Mockk, Robolectric, JaCoCo'],
-          ],
-          [
-            ['Kotlin', 'Coroutines, Ktor, Flow, Kotlinx-serialization, Kotlin Multiplatform'],
-            ['Architecture', 'MVVM, MVI, Redux, Clean, SOLID'],
-            ['Integrations', 'Firebase Cloud Messaging, Locations API, SocketIO, REST/RPC API'],
+            ['testing', 'Unit/UI testing', 'JUnit, Mockk, Robolectric, JaCoCo'],
           ],
           [
             [
+              'kotlin',
+              'Kotlin',
+              'Coroutines, Ktor, Flow, Kotlinx-serialization, Kotlin Multiplatform',
+            ],
+            ['architecture', 'Architecture', 'MVVM, MVI, Redux, Clean, SOLID'],
+            [
+              'integrations',
+              'Integrations',
+              'Firebase Cloud Messaging, Locations API, SocketIO, REST/RPC API',
+            ],
+          ],
+          [
+            [
+              'ai-tools',
               'AI Tools',
               'Copilot, agents.md, Cursor IDE, hallucination prevention, MCP, orchestration approach',
               'ai',
             ],
-            ['Tools', 'Gradle, Git, Github Actions, CircleCI, CocoaPods'],
-            ['iOS', 'Swift, UIKit, AutoLayout, Stevia'],
+            ['tools', 'Tools', 'Gradle, Git, Github Actions, CircleCI, CocoaPods'],
+            ['ios', 'iOS', 'Swift, UIKit, AutoLayout, Stevia'],
           ],
         ],
-        latest: {
-          company: 'Transcenda',
-          role: 'Senior Android Developer',
-          period: 'Feb 2021 - Feb 2026',
-          logo: 'logo_transcenda.png',
-          broken: true,
-          bullets: [
-            'Took ownership on key features delivery for <b class="bi">Cync</b> and <b class="bi">August Home</b> smart home apps, both serving 1M+ users',
-            'Boosted engineering efficiency by integrating AI-driven workflows (Copilot, LLMs)',
-            'Developed complex custom graphics using Jetpack Compose Canvas',
-            'Supported BLE communication for realtime devices discovery, status sync and offline resilience',
+        latest: [
+          [
+            'transcenda',
+            'Transcenda',
+            0,
+            'Senior Android Developer',
+            'Feb 2021 - Feb 2026',
+            'logo_transcenda.png',
+            [
+              'Took ownership on key features delivery for <span class="bi">Cync</span> and <span class="bi">August Home</span> smart home apps, both serving 1M+ users',
+              'Boosted engineering efficiency by integrating AI-driven workflows (Copilot, LLMs)',
+              'Developed complex custom graphics using Jetpack Compose Canvas',
+              'Supported BLE communication for realtime devices discovery, status sync and offline resilience',
+            ],
           ],
-        },
+        ],
         apps: [
-          {
-            name: 'Cync',
-            pub: 'Savant Systems, Inc.',
-            icon: 'app_cync.png',
-            rating: '5.0',
-            reviews: '91.8K',
-            dl: '1M+',
-          },
-          {
-            name: 'August Home',
-            pub: 'August Home, Inc.',
-            icon: 'app_august.png',
-            rating: '4.1',
-            reviews: '18.7K',
-            dl: '1M+',
-          },
-          {
-            name: 'Savant',
-            pub: 'Savant Systems, Inc.',
-            icon: 'app_savant.png',
-            dl: '100k+',
-            broken: true,
-          },
+          ['cync', 'Cync', 'Savant Systems, Inc.', 'app_cync.png', '5.0', '91.8K', '1M+'],
+          [
+            'august-home',
+            'August Home',
+            'August Home, Inc.',
+            'app_august.png',
+            '4.1',
+            '18.7K',
+            '1M+',
+          ],
+          ['savant', 'Savant', 'Savant Systems, Inc.', 'app_savant.png', null, null, '100k+'],
         ],
         education: ['Applied Mathematics, Cybernetics', 'Kyiv National University 2007 - 2012'],
         books: [
-          ['Antifragile', 'Nassim Nicholas Taleb', 'book_antifragile.jpg'],
-          ['Siddhartha', 'Hermann Hesse', 'book_siddhartha.jpg', true],
-          ['The Goal', 'Eliyahu Goldratt', 'book_the_goal.jpg'],
-          ['A Pattern Language', 'Christopher Alexander', 'book_pattern_language.png'],
+          ['antifragile', 'Antifragile', 'Nassim Nicholas Taleb', 'book_antifragile.jpg'],
+          ['siddhartha', 'Siddhartha', 'Hermann Hesse', 'book_siddhartha.jpg'],
+          ['the-goal', 'The Goal', 'Eliyahu Goldratt', 'book_the_goal.jpg'],
+          [
+            'a-pattern-language',
+            'A Pattern Language',
+            'Christopher Alexander',
+            'book_pattern_language.png',
+          ],
         ],
         interests:
           'Sports, forest hiking, e-bike riding, good books, volunteering, playing guitar, AI experiments',
         previous: [
           [
+            'wisehouse',
             'WiseHouse',
             0,
             'Android Developer',
@@ -1210,6 +940,7 @@
             ],
           ],
           [
+            'attendify',
             'Attendify',
             0,
             'Android/iOS Developer',
@@ -1222,6 +953,7 @@
             ],
           ],
           [
+            'rosfines',
             'RosFines',
             1,
             'Android Lead',
@@ -1233,6 +965,7 @@
             ],
           ],
           [
+            'smartling',
             'Smartling',
             1,
             'Android SDK Developer',
@@ -1245,6 +978,7 @@
             ],
           ],
           [
+            'rokkit',
             'Rokkit',
             0,
             'Android Developer',
@@ -1255,6 +989,7 @@
             ],
           ],
           [
+            'ivi',
             'ivi',
             1,
             'Android Teamlead',
@@ -1267,6 +1002,7 @@
             ],
           ],
           [
+            'samsung',
             'Samsung',
             0,
             'Android Developer',
@@ -1277,289 +1013,448 @@
         ],
       };
 
-      /* An image that can "fail to load": the broken box keeps the element's size and shows the
-         file name as alt text, like a 2002 browser did. */
-      const img = (cls, file, alt, w, h, broken) =>
-        `<span class="img ${cls}${broken ? ' is-broken' : ''}"><img src="${A}${file}" alt="${alt}">` +
-        (broken
-          ? `<span class="broken" style="width:${w}px;height:${h}px"><img src="assets/icon_broken_image.svg" alt="">${file}</span>`
-          : '') +
-        `</span>`;
-      const title = (text, extra = '', cls = '') =>
-        `<h2 class="section-title ${cls}">${text}${extra}</h2><hr class="r-hr">`;
-      const NEW = '<img class="r-only inline r-new" src="assets/badge_new.svg" alt="New">';
-      const xp = (company, remote, role, period, logo, bullets, broken) => `
-        <article class="xp">
-          <div class="xp-head">
-            ${img('xp-logo', logo, company, 36, 36, broken)}
+      /* Same element types and hooks as the real components (src/screens/cv/*.tsx). */
+      const entry = ([id, company, remote, role, period, logo, bullets]) => `
+        <div class="xp" data-testid="cv-experience-entry" data-agent-id="experience:${id}">
+          <div class="head">
+            <img class="logo" src="${A}${logo}" alt="${company}">
             <h3 class="company">${company}${remote ? '<span class="remote">remotely</span>' : ''}</h3>
             <p class="role">${role}</p>
             <p class="period">${period}</p>
           </div>
           <div class="bullets">${bullets.map((b) => `<p>${b}</p>`).join('')}</div>
-        </article>`;
+        </div>`;
+      const xpSection = (id, testId, title, entries) => `
+        <section data-testid="${testId}" data-agent-id="section:${id}">
+          <h2 class="title">${title}</h2>
+          <div class="xp-list">${entries.map(entry).join('')}</div>
+        </section>`;
       const stat = (value, label, star) =>
-        `<span class="stat"><span class="stat-value">${value}${star ? `<img src="${A}icon_star_rating.svg" alt="">` : ''}</span><span class="stat-label">${label}</span></span>`;
+        `<div class="stat"><p class="stat-value">${value}${star ? `<img src="${A}icon_star_rating.svg" alt="">` : ''}</p><p class="stat-label">${label}</p></div>`;
 
-      document.getElementById('cv').innerHTML = `
-        <nav class="r-only r-nav">
-          <a href="#">Home</a><a href="#">Resume</a><a href="#">My Apps</a><a href="#">Books</a><a href="#">Guestbook</a><a href="#">Links</a>
-        </nav>
-        <div class="r-only r-marquee"><span>*** Welcome to my homepage! *** Senior Android Engineer *** Creating Android apps since 2012 *** Please sign my guestbook! ***</span></div>
-        <header class="header">
-          <aside class="r-note"><strong>Oh, snap!</strong>Some pictures didn't load. Try pressing F5... or just wait a minute.</aside>
-          ${img('photo', 'photo.jpg', CV.name, 120, 120, true)}
-          <div class="intro">
-            <h1 class="name">${CV.name}</h1>
-            <p class="headline">${CV.headline}</p>
-            <p class="tagline">${CV.tagline}</p>
-          </div>
-          <address class="contacts" style="font-style:normal">
-            <span class="contact"><img class="ico" src="${A}icon_gmail.png" alt=""><span class="r-label">E-mail me:</span><a class="link" href="#">${CV.email}</a></span>
-            <span class="contact"><img class="ico" src="${A}icon_whatsapp.png" alt="WhatsApp"><img class="ico" src="${A}icon_telegram.png" alt="Telegram"><span class="r-label">Phone:</span><a class="link" href="#">${CV.phone}</a></span>
-          </address>
-        </header>
-        <section class="summary">${title('Summary', '', 'first')}${CV.summary.map((l) => `<p>${l}</p>`).join('')}</section>
-        <section>${title('Technologies', '', 'title-tech')}
-          <div class="tech">${CV.tech
-            .map(
-              (col) =>
-                `<div class="tech-col">${col
-                  .map(
-                    ([t, body, v]) =>
-                      `<div class="card ${v || ''}"><h3 class="card-title">${t}${v === 'ai' ? NEW : ''}</h3><p class="card-body">${body}</p>${v === 'hl' ? `<img class="star" src="${A}icon_star_card.svg" alt="">` : ''}</div>`,
-                  )
-                  .join('')}</div>`,
-            )
-            .join('')}</div>
-        </section>
-        <section>${title('Latest relevant experience', NEW)}
-          ${xp(CV.latest.company, 0, CV.latest.role, CV.latest.period, CV.latest.logo, CV.latest.bullets, true)}
-        </section>
-        <section>${title('Apps')}
-          <div class="apps">${CV.apps
-            .map(
-              (
-                a,
-              ) => `<div class="app"><p class="app-name">${a.name}</p><p class="app-pub">${a.pub}</p>
-              <div class="app-stats">${img('app-icon', a.icon, a.name, 36, 36, a.broken)}
-                ${a.rating ? stat(a.rating, `${a.reviews} reviews`, true) + '<span class="divider"></span>' : ''}${stat(a.dl, 'Downloads')}</div></div>`,
-            )
-            .join('')}</div>
-        </section>
-        <section>${title('Education')}${CV.education.map((l) => `<p class="edu">${l}</p>`).join('')}</section>
-        <section>${title('About me')}
-          <h3 class="subtitle">Favourite books</h3>
-          <ul class="books">${CV.books
-            .map(
-              ([t, a, f, broken]) =>
-                `<li class="book">${img('cover', f, t, 100, 150, broken)}<span class="book-cap"><span class="book-title">${t}</span><span class="book-author">${a}</span></span></li>`,
-            )
-            .join('')}</ul>
-          <h3 class="subtitle interests-title">Interests</h3>
-          <p class="interests">${CV.interests}</p>
-        </section>
-        <section>${title('Previous Experience')}
-          <div class="xp-list">${CV.previous.map((e) => xp(...e)).join('')}</div>
-        </section>
-        <footer class="r-only r-footer">
-          <img src="assets/sign_under_construction.svg" alt="Under construction" width="208" height="40">
-          <p>You are visitor number <span class="r-counter">${'004271'
+      document.getElementById('main').innerHTML = `
+        <div class="cv" data-testid="cv">
+          <header class="hdr" data-agent-id="section:header">
+            <div class="intro">
+              <h1 class="name" data-testid="cv-name">Andrew Panasiuk</h1>
+              <p>Senior Android Engineer with iOS experience</p>
+              <p class="tagline">Creating Android apps since 2012</p>
+            </div>
+            <img class="photo" src="${A}photo.jpg" alt="Andrew Panasiuk">
+            <address class="contacts">
+              <p class="row" data-agent-id="contact:email"><img class="icon" src="${A}icon_gmail.png" alt="Email"><a class="link" href="#">andriipanasiuk@gmail.com</a></p>
+              <p class="row"><a href="#" data-agent-id="contact:whatsapp"><img class="icon" src="${A}icon_whatsapp.png" alt="WhatsApp"></a><a href="#" data-agent-id="contact:telegram"><img class="icon" src="${A}icon_telegram.png" alt="Telegram"></a><a class="link" href="#" data-agent-id="contact:phone">+38 093 897-71-10</a></p>
+            </address>
+          </header>
+          <section data-testid="cv-summary" data-agent-id="section:summary">
+            <h2 class="title first">Summary</h2>${CV.summary.map((l) => `<p>${l}</p>`).join('')}
+          </section>
+          <section data-agent-id="section:technologies">
+            <h2 class="title">Technologies</h2>
+            <div class="grid">${CV.tech
+              .map(
+                (col) =>
+                  `<div class="column">${col
+                    .map(
+                      ([id, t, body, v]) =>
+                        `<div class="card ${v || ''}" data-testid="cv-technology-card" data-agent-id="technology:${id}"><h3 class="card-title">${t}</h3><p class="card-body">${body}</p>${v === 'hl' ? `<img class="star" src="${A}icon_star_card.svg" alt="">` : ''}</div>`,
+                    )
+                    .join('')}</div>`,
+              )
+              .join('')}</div>
+          </section>
+          ${xpSection('latest-experience', 'cv-latest-experience', 'Latest relevant experience', CV.latest)}
+          <section data-agent-id="section:apps">
+            <h2 class="title">Apps</h2>
+            <div class="apps">${CV.apps
+              .map(
+                ([
+                  id,
+                  name,
+                  pub,
+                  icon,
+                  rating,
+                  reviews,
+                  dl,
+                ]) => `<div class="app" data-testid="cv-app-card" data-agent-id="app:${id}"><h3 class="app-name">${name}</h3><p class="app-pub">${pub}</p>
+                <div class="app-stats"><img class="app-icon" src="${A}${icon}" alt="${name}">${rating ? stat(rating, `${reviews} reviews`, true) + '<span class="divider"></span>' : ''}${stat(dl, 'Downloads')}</div></div>`,
+              )
+              .join('')}</div>
+          </section>
+          <section data-testid="cv-education" data-agent-id="section:education">
+            <h2 class="title">Education</h2>${CV.education.map((l) => `<p class="edu">${l}</p>`).join('')}
+          </section>
+          <section data-agent-id="section:about">
+            <h2 class="title">About me</h2>
+            <h3 class="subtitle">Favourite books</h3>
+            <ul class="books">${CV.books
+              .map(
+                ([id, t, a, f]) =>
+                  `<li><figure data-testid="cv-book" data-agent-id="book:${id}"><img class="cover" src="${A}${f}" alt="${t}"><figcaption class="book-cap"><span class="book-title">${t}</span><span class="book-author">${a}</span></figcaption></figure></li>`,
+              )
+              .join('')}</ul>
+            <h3 class="subtitle interests-title">Interests</h3>
+            <p class="interests" data-testid="cv-interests">${CV.interests}</p>
+          </section>
+          ${xpSection('previous-experience', 'cv-previous-experience', 'Previous Experience', CV.previous)}
+        </div>`;
+
+      /* ------------------------------------------------------------------ decorations */
+      const DECORATIONS = {
+        'top-bar': `<nav><span>Home</span><span>Resume</span><span>My Apps</span><span>Books</span><span>Guestbook</span><span>Links</span></nav>
+          <div class="marquee"><span>*** Welcome to my homepage! *** Senior Android Engineer *** Creating Android apps since 2012 *** Please sign my guestbook! ***</span></div>`,
+        'page-footer': `<img src="assets/sign_under_construction.svg" alt="" width="208" height="40">
+          <p>You are visitor number <span class="counter">${'004271'
             .split('')
             .map((d) => `<span>${d}</span>`)
             .join('')}</span></p>
-          <p class="r-badges"><img src="assets/badge_800x600.svg" alt="Best viewed at 800x600" width="88" height="31"><img src="assets/badge_guestbook.svg" alt="Sign my guestbook" width="88" height="31"></p>
-          <p>[ <a href="#">&lt;&lt; Prev</a> | <a href="#">Android Devs Webring</a> | <a href="#">Next &gt;&gt;</a> ]</p>
-          <p>Last updated: 14.03.2002 &middot; &copy; 2002 Andrew Panasiuk. All rights reserved.</p>
-        </footer>`;
+          <p class="badges"><img src="assets/badge_800x600.svg" alt="" width="88" height="31"><img src="assets/badge_guestbook.svg" alt="" width="88" height="31"></p>
+          <p>[ <u>&lt;&lt; Prev</u> | <u>Android Devs Webring</u> | <u>Next &gt;&gt;</u> ]</p>
+          <p>Last updated: 14.03.2002 &middot; &copy; 2002 Andrew Panasiuk. All rights reserved.</p>`,
+        'oh-snap': `<strong>Oh, snap!</strong>Some pictures didn't load. Try pressing F5... or just wait a minute.`,
+      };
 
-      /* ------------------------------------------------------------------ show states */
+      /* ------------------------------------------------------------------ scenario (POC) */
       const STEPS = [
-        'fonts & colours',
-        'layout',
-        'images',
-        'cards',
-        'spacing & lists',
-        '2002 chrome',
-        'links & contacts',
+        {
+          id: 'tokens',
+          title: 'fonts & colours',
+          fallback: 'First, fonts and colours: let me bring them into this decade.',
+          effects: [
+            ['layer', 'tokens-type'],
+            ['layer', 'tokens-colors'],
+            ['layer', 'type-faces'],
+            ['layer', 'page-colors'],
+          ],
+        },
+        {
+          id: 'layout',
+          title: 'layout',
+          fallback: "Now the layout. It's been leaning left since 2002.",
+          effects: [['layer', 'layout-shift']],
+        },
+        {
+          id: 'rest',
+          title: 'the rest',
+          fast: true,
+          fallback: 'And the rest: pictures, cards, spacing and that marquee. Fast-forwarding.',
+          effects: [
+            ['layer', 'broken-images'],
+            ['deco', 'oh-snap'],
+            ['layer', 'table-cells'],
+            ['layer', 'old-rhythm'],
+            ['layer', 'new-bursts'],
+            ['deco', 'top-bar'],
+            ['deco', 'page-footer'],
+            ['layer', 'decor-room'],
+            ['layer', 'hide-header'],
+            ['layer', 'old-links'],
+            ['module', 'ai-chat'],
+          ],
+        },
       ];
-      const ALL = ['fonts', 'colours', 'layout', 'images', 'cards', 'rhythm', 'chrome', 'links'];
-      const without = (...fixed) => ALL.filter((l) => !fixed.includes(l));
+      const TOKEN_LAYERS = ['tokens-type', 'tokens-colors'];
 
-      // Chat lines: [time, kind, text]; kind = sys | agent | visitor
-      const CHAT_OPEN = [
-        ['20:14', 'sys', '*** Now talking in #andrew-cv'],
-        ['20:14', 'sys', '*** agent has joined'],
-        [
-          '20:14',
-          'agent',
-          'Oops... looks like this site got stuck in 2002 and is a bit broken. Tell me what you think while I fix it.',
+      const T = (h, m, kind, text) => [`${h}:${m}`, kind, text];
+      const CHAT = {
+        open: [
+          T(20, 14, 'sys', '*** Now talking in #andrew-cv'),
+          T(20, 14, 'sys', '*** agent has joined'),
+          T(
+            20,
+            14,
+            'agent',
+            'Oops... looks like this site got stuck in 2002 and is a bit broken. Tell me what you think while I fix it.',
+          ),
         ],
-      ];
-      const CHAT_EXCHANGE = [
-        ['20:14', 'visitor', "wow, a marquee! haven't seen one in 20 years"],
-        ['20:14', 'agent', "Enjoy it while it lasts. It's on my list, near the end."],
-      ];
-      const CHAT_CONSOLE = [
-        [
-          '20:15',
-          'agent',
-          'Opening my console. Watch the page: every line I type lands on it right away.',
+        exchange: [
+          T(20, 14, 'visitor', "wow, a marquee! haven't seen one in 20 years"),
+          T(20, 14, 'agent', "Enjoy it while it lasts. It's on my list."),
         ],
-      ];
-      const CHAT_STEP1 = [
-        ['20:15', 'agent', 'Fonts and colours are from this decade now. Easier on the eyes?'],
-      ];
-      const CHAT_STEP2 = [
-        ['20:15', 'visitor', 'much better already'],
-        ['20:16', 'agent', 'Thanks! Layout is next: it has been leaning left since 2002.'],
-        ['20:16', 'agent', 'Centred on a proper grid. Next up: the pictures that never loaded.'],
-      ];
-      const CHAT_END = [
-        [
-          '20:17',
-          'agent',
-          "Done. This is Andrew's CV as it looks today. Ask me anything about his experience.",
+        console: [
+          T(20, 15, 'agent', 'Opening my console. Every line I type lands on the page right away.'),
         ],
-      ];
-
-      // Console lines: [kind, text]; kind = prompt | step | file | hunk | add | del | ctx | ok | com
-      const PROMPT = [['prompt', '$ agent fix --live andrew-cv']];
-      const STEP1_FONTS = [
-        ['step', '# 1/7 fonts & colours: Verdana 11px -> Inter 15px, navy on white'],
-        ['file', '--- src/theme/global.css'],
-        ['add', "@import '@fontsource/inter/latin-400.css';"],
-        ['add', "@import '@fontsource/inter/latin-500.css';"],
-        ['del', "h1, h2, h3 { font-family: 'Times New Roman', serif; }"],
-        ['file', '--- src/theme/tokens.css'],
-        ['hunk', ':root {'],
-        ['del', '  --font-family: Verdana, Geneva, sans-serif;'],
-        ['add', "  --font-family: 'Inter', system-ui, sans-serif;"],
-        ['del', '  --font-body-size: 11px;'],
-        ['add', '  --font-body-size: 15px;'],
-        ['add', '  --font-section-size: 21px;'],
-        ['ok', '  ok fonts applied'],
-      ];
-      const STEP1_COLOURS = [
-        ['del', '  --color-bg: #ffffcc;'],
-        ['add', '  --color-bg: #ffffff;'],
-        ['del', '  --color-text: #000000;'],
-        ['add', '  --color-text: #001670;'],
-        ['del', '  --color-text-secondary: #008000;'],
-        ['add', '  --color-text-secondary: #445598;'],
-        ['file', '--- src/theme/global.css'],
-        ['hunk', 'body {'],
-        ['del', "  background: #000033 url('stars.gif');"],
-        ['add', '  background: var(--color-bg);'],
-        ['ok', '  ok colours applied'],
-      ];
-      const STEP2_LAYOUT = [
-        ['step', '# 2/7 layout: 640px table on the left -> centred 672px column'],
-        ['file', '--- src/app/App.module.css'],
-        ['hunk', '.shell {'],
-        ['del', '  width: 640px;'],
-        ['del', '  border: 3px outset #c0c0c0;'],
-        ['add', '  max-width: calc(var(--content-max-width) + 2 * var(--page-gutter));'],
-        ['add', '  margin: 0 auto;'],
-        ['file', '--- src/screens/cv/HeaderSection.module.css'],
-        ['hunk', '.root {'],
-        ['del', '  text-align: center;'],
-        ['add', '  display: grid;'],
-        ['add', '  grid-template-columns: 1fr auto;'],
-        ['file', '--- src/screens/cv/TechnologiesSection.module.css'],
-        ['hunk', '.grid {'],
-        ['del', '  column-gap: 2px;'],
-        ['add', '  column-gap: var(--space-7);'],
-        ['ok', '  ok layout applied'],
-      ];
-      const done = (n) => [['ok', `ok ${n}/7 ${STEPS[n - 1]}`]];
-
-      const S = {
-        broken: { dmg: ALL, dock: false },
+        s1: [T(20, 15, 'agent', STEPS[0].fallback)],
+        between: [
+          T(20, 15, 'visitor', 'much better already'),
+          T(20, 15, 'agent', 'Thanks! Wait till you see it centred.'),
+        ],
+        s2: [T(20, 15, 'agent', STEPS[1].fallback)],
+        s3: [T(20, 16, 'agent', STEPS[2].fallback)],
+        finale: [
+          T(
+            20,
+            16,
+            'agent',
+            "Done. This is Andrew's CV as it looks today. Questions? The chat button is bottom right.",
+          ),
+        ],
+      };
+      // at: [step index, effect index, lines typed of that effect]; effects before it are applied.
+      const STATES = {
+        broken: { at: [0, 0, 0], dock: false },
         chat: {
-          dmg: ALL,
-          chat: [...CHAT_OPEN, ...CHAT_EXCHANGE],
+          at: [0, 0, 0],
+          chat: [...CHAT.open, ...CHAT.exchange],
           typing: 'the purple name is a bold choice',
-          console: null,
+          console: false,
         },
         console: {
-          dmg: ALL,
-          chat: [...CHAT_OPEN, ...CHAT_EXCHANGE, ...CHAT_CONSOLE],
-          console: [...PROMPT, ...STEP1_FONTS.slice(0, 4)],
-          caret: true,
-          step: 1,
-          pct: 4,
+          at: [0, 0, 5],
+          chat: [...CHAT.open, ...CHAT.exchange, ...CHAT.console, ...CHAT.s1],
         },
         'step1-mid': {
-          dmg: without('fonts'),
-          chat: [...CHAT_OPEN, ...CHAT_EXCHANGE, ...CHAT_CONSOLE],
-          console: [...PROMPT, ...STEP1_FONTS, ...STEP1_COLOURS.slice(0, 3)],
-          caret: true,
-          step: 1,
-          pct: 9,
+          at: [0, 1, 9],
+          chat: [...CHAT.open, ...CHAT.exchange, ...CHAT.console, ...CHAT.s1],
         },
         step1: {
-          dmg: without('fonts', 'colours'),
-          chat: [...CHAT_OPEN, ...CHAT_EXCHANGE, ...CHAT_CONSOLE, ...CHAT_STEP1],
-          console: [...PROMPT, ...STEP1_FONTS, ...STEP1_COLOURS, ...done(1)],
-          caret: true,
-          step: 2,
-          pct: 14,
+          at: [0, 4, 0],
+          chat: [...CHAT.open, ...CHAT.exchange, ...CHAT.console, ...CHAT.s1],
         },
         'step2-mid': {
-          dmg: without('fonts', 'colours'),
+          at: [1, 0, 14],
           chat: [
-            ...CHAT_OPEN,
-            ...CHAT_EXCHANGE,
-            ...CHAT_CONSOLE,
-            ...CHAT_STEP1,
-            ...CHAT_STEP2.slice(0, 2),
+            ...CHAT.open,
+            ...CHAT.exchange,
+            ...CHAT.console,
+            ...CHAT.s1,
+            ...CHAT.between,
+            ...CHAT.s2,
           ],
-          console: [...PROMPT, ...done(1), ...STEP2_LAYOUT.slice(0, 6)],
-          caret: true,
-          step: 2,
-          pct: 20,
         },
         step2: {
-          dmg: without('fonts', 'colours', 'layout'),
-          chat: [...CHAT_OPEN, ...CHAT_EXCHANGE, ...CHAT_CONSOLE, ...CHAT_STEP1, ...CHAT_STEP2],
-          console: [...PROMPT, ...done(1), ...STEP2_LAYOUT, ...done(2)],
-          caret: true,
-          step: 3,
-          pct: 29,
+          at: [1, 1, 0],
+          chat: [
+            ...CHAT.open,
+            ...CHAT.exchange,
+            ...CHAT.console,
+            ...CHAT.s1,
+            ...CHAT.between,
+            ...CHAT.s2,
+          ],
+        },
+        'rest-mid': {
+          at: [2, 4, 6],
+          chat: [
+            ...CHAT.open,
+            ...CHAT.exchange,
+            ...CHAT.console,
+            ...CHAT.s1,
+            ...CHAT.between,
+            ...CHAT.s2,
+            ...CHAT.s3,
+          ],
         },
         end: {
-          dmg: [],
+          at: [3, 0, 0],
           chat: [
-            ...CHAT_OPEN,
-            ...CHAT_EXCHANGE,
-            ...CHAT_CONSOLE,
-            ...CHAT_STEP1,
-            ...CHAT_STEP2,
-            ...CHAT_END,
+            ...CHAT.open,
+            ...CHAT.exchange,
+            ...CHAT.console,
+            ...CHAT.s1,
+            ...CHAT.between,
+            ...CHAT.s2,
+            ...CHAT.s3,
+            ...CHAT.finale,
           ],
-          console: [
-            ...PROMPT,
-            ...[1, 2, 3, 4, 5, 6, 7].flatMap(done),
-            ['prompt', '$ '],
-            ['ok', 'all 7 fixes applied. Welcome to 2026.'],
-          ],
-          caret: false,
-          step: 7,
-          pct: 100,
         },
       };
 
       const q = new URLSearchParams(location.search);
-      const st = S[q.get('state')] || S.broken;
-      const dmg = q.has('dmg') ? q.get('dmg').split(/\s+/).filter(Boolean) : st.dmg;
-      document.documentElement.dataset.dmg = dmg.join(' ');
+      const st = STATES[q.get('state')] || STATES.broken;
+      const [atStep, atEffect, atLines] = st.at;
+      const active = STEPS.flatMap((s, i) =>
+        s.effects.filter((_, j) => i > atStep || (i === atStep && j >= atEffect)),
+      );
+      const isActive = (kind, id) => active.some(([k, x]) => k === kind && x === id);
+
+      /* ------------------------------------------------------------------ layer host */
+      const url = (p) => new URL(p, location.href).href;
+      const root = document.documentElement.style;
+      root.setProperty('--retro-broken-image', `url('${url('assets/icon_broken_image.svg')}')`);
+      root.setProperty('--retro-tile-stars', `url('${url('assets/retro_tile_stars.svg')}')`);
+      root.setProperty('--retro-badge-new', `url('${url('assets/badge_new.svg')}')`);
+      const loads = active
+        .filter(([k]) => k === 'layer')
+        .map(
+          ([, id]) =>
+            new Promise((done) => {
+              const link = Object.assign(document.createElement('link'), {
+                rel: 'stylesheet',
+                href: `layers/${id}.css`,
+              });
+              link.dataset.retroLayer = id;
+              link.onload = link.onerror = done;
+              document.head.append(link);
+            }),
+        );
       const docked = st.dock !== false && q.get('dock') !== '0';
-      document.documentElement.classList.toggle('docked', docked);
+      document.body.classList.toggle('docked', docked);
+
+      /* Decorations: absolutely positioned over the page, anchored to hook elements. */
+      const portal = document.getElementById('portal');
+      for (const [k, id] of active) {
+        if (k !== 'deco') continue;
+        const el = Object.assign(document.createElement('div'), {
+          id,
+          className: 'deco',
+          innerHTML: DECORATIONS[id],
+        });
+        portal.append(el);
+      }
+      const box = (sel) => {
+        const r = document.querySelector(sel).getBoundingClientRect();
+        return {
+          left: r.left + scrollX,
+          top: r.top + scrollY,
+          right: r.right + scrollX,
+          bottom: r.bottom + scrollY,
+          width: r.width,
+        };
+      };
+      const place = () => {
+        const cv = box('[data-testid="cv"]');
+        const set = (id, s) => {
+          const el = document.getElementById(id);
+          if (el) Object.assign(el.style, s);
+        };
+        set('top-bar', { left: `${cv.left}px`, top: `${cv.top}px`, width: `${cv.width}px` });
+        set('page-footer', {
+          left: `${cv.left}px`,
+          top: `${cv.bottom - 200}px`,
+          width: `${cv.width}px`,
+        });
+        if (isActive('layer', 'layout-shift')) {
+          const main = box('main');
+          const header = box('[data-agent-id="section:header"]');
+          set('oh-snap', { left: `${main.right + 28}px`, top: `${header.top + 40}px` });
+        } else {
+          const photo = box('[data-agent-id="section:header"] > img');
+          set('oh-snap', { left: `${photo.right + 28 - 184}px`, top: `${photo.top - 12}px` });
+        }
+      };
+      Promise.all(loads)
+        .then(() => document.fonts.ready)
+        .then(place);
+      addEventListener('resize', place);
+
+      /* ------------------------------------------------------------------ console text */
+      const read = (path) => {
+        try {
+          const x = new XMLHttpRequest();
+          x.open('GET', path, false);
+          x.send();
+          return x.responseText;
+        } catch {
+          return null;
+        }
+      };
+      const liveTokens = Object.fromEntries(
+        [...(read('../../../src/theme/tokens.css') || '').matchAll(/(--[\w-]+):\s*([^;]+);/g)].map(
+          (m) => [m[1], m[2].replace(/\s+/g, ' ')],
+        ),
+      );
+      const effectLines = ([kind, id]) => {
+        if (kind === 'deco')
+          return [
+            ['js', `document.getElementById('${id}').remove();`],
+            ['ok', `  ok ${id} removed`],
+          ];
+        if (kind === 'module')
+          return [
+            ['js', "const { ChatRoute } = await import('./chat');"],
+            ['ok', '  ok chat button loaded'],
+          ];
+        const css = read(`layers/${id}.css`);
+        if (css == null) return [['com', `// layers/${id}.css (open over http to see the code)`]];
+        const head = [['file', `--- layers/${id}.css`]];
+        if (TOKEN_LAYERS.includes(id)) {
+          const decls = [...css.matchAll(/(--[\w-]+):\s*([^;]+);/g)];
+          return [
+            ...head,
+            ...decls.flatMap(([, p, v]) => [
+              ['del', `${p}: ${v};`],
+              ['add', `${p}: ${liveTokens[p] ?? '?'};`],
+            ]),
+            ['ok', `  ok ${id} removed`],
+          ];
+        }
+        const lines = css
+          .split('\n')
+          .filter((l) => l.trim())
+          .map((l) => ['del', l]);
+        return [...head, ...lines, ['ok', `  ok ${id} removed`]];
+      };
+      const consoleLines = [['prompt', '$ agent fix --live andrew-cv']];
+      STEPS.forEach((s, i) => {
+        const name = `${i + 1}/${STEPS.length} ${s.title}`;
+        if (i < atStep) return consoleLines.push(['ok', `ok ${name}`]);
+        if (i > atStep) return;
+        consoleLines.push(['com', `// ${name}`]);
+        s.effects.forEach((e, j) => {
+          if (j < atEffect) consoleLines.push(...effectLines(e));
+          if (j === atEffect) consoleLines.push(...effectLines(e).slice(0, atLines));
+        });
+        if (atEffect >= s.effects.length) consoleLines.push(['ok', `ok ${name}`]);
+      });
+      if (atStep >= STEPS.length)
+        consoleLines.push(['prompt', '$'], ['ok', 'all fixes applied. Welcome to 2026.']);
 
       const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const hlCode = (s) =>
+        esc(s)
+          .replace(/\b(const|await|import|document)\b/g, '<span class="c-sel">$1</span>')
+          .replace(/(@keyframes|@media|:root)/g, '<span class="c-num">$1</span>')
+          .replace(/^(\s*)(--[\w-]+|[a-z-]+)(:\s)/, '$1<span class="c-prop">$2</span>$3')
+          .replace(
+            /(#[0-9a-f]{3,6}\b|\b\d+(?:px|%|fr|deg|s)?)(?![^<]*>)/gi,
+            '<span class="c-num">$1</span>',
+          );
+      const hl = (s) =>
+        s
+          .split(/('[^']*')/)
+          .map((part, i) => (i % 2 ? `<span class="c-str">${esc(part)}</span>` : hlCode(part)))
+          .join('');
+      const typing = atStep < STEPS.length && atEffect < STEPS[atStep].effects.length;
+      const term = document.getElementById('console-term');
+      term.innerHTML = consoleLines
+        .map(([k, s], i) => {
+          const caret =
+            typing && i === consoleLines.length - 1 ? '<span class="caret"></span>' : '';
+          switch (k) {
+            case 'prompt':
+              return `<div class="ln"><span class="c-prompt">${esc(s)}</span>${caret}</div>`;
+            case 'com':
+              return `<div class="ln"><span class="c-com">${esc(s)}</span>${caret}</div>`;
+            case 'file':
+              return `<div class="ln"><span class="c-file">${esc(s)}</span>${caret}</div>`;
+            case 'add':
+              return `<div class="ln add"><span class="g">+</span>${hl(s)}${caret}</div>`;
+            case 'del':
+              return `<div class="ln del"><span class="g">-</span>${esc(s)}${caret}</div>`;
+            case 'js':
+              return `<div class="ln"><span class="g"> </span>${hl(s)}${caret}</div>`;
+            case 'ok':
+              return `<div class="ln"><span class="c-ok">${esc(s).replace(/^(\s*)ok/, '$1&#10003;')}</span>${caret}</div>`;
+            default:
+              return `<div class="ln">${esc(s)}${caret}</div>`;
+          }
+        })
+        .join('');
 
-      // Chat
+      const total = STEPS.length;
+      const frac =
+        atStep >= total ? total : atStep + Math.min(1, atEffect / STEPS[atStep].effects.length);
+      const pct = Math.round((frac / total) * 100);
+      const stepDone = atStep < total && atEffect >= STEPS[atStep].effects.length;
+      const shown = Math.min(total, stepDone ? atStep + 2 : atStep + 1);
+      document.getElementById('progress-label').textContent =
+        pct === 100 ? 'All fixes applied' : `Step ${shown} of ${total}: ${STEPS[shown - 1].title}`;
+      document.getElementById('progress-bar').style.width = `${pct}%`;
+      document.getElementById('progress-pct').textContent = `${pct}%`;
+      document.getElementById('console').style.display = st.console === false ? 'none' : '';
+
+      /* ------------------------------------------------------------------ chat */
       const NICK = { agent: '&lt;agent&gt;', visitor: '&lt;you&gt;' };
       document.getElementById('chat-log').innerHTML = (st.chat || [])
         .map(([t, k, text]) =>
@@ -1571,54 +1466,6 @@
       document.getElementById('composer').innerHTML = st.typing
         ? `<span>you&gt;</span><span>${esc(st.typing)}<span class="caret"></span></span>`
         : `<span>you&gt;</span><span><span class="caret"></span><span class="ph"> type here, press Enter</span></span>`;
-
-      // Console: a tiny CSS highlighter
-      const hlCode = (s) =>
-        esc(s)
-          .replace(/(@import|@media)/g, '<span class="c-num">$1</span>')
-          .replace(/^(\s*)(--[\w-]+|[a-z-]+)(:)/, '$1<span class="c-prop">$2</span>$3')
-          .replace(
-            /(#[0-9a-f]{3,6}\b|\b\d+(?:px|%|fr)?)(?![^<]*>)/gi,
-            '<span class="c-num">$1</span>',
-          )
-          .replace(/^([.:\w][\w\s,.-]*)(\s\{)/, '<span class="c-sel">$1</span>$2');
-      const hl = (s) =>
-        s
-          .split(/('[^']*')/)
-          .map((part, i) => (i % 2 ? `<span class="c-str">${esc(part)}</span>` : hlCode(part)))
-          .join('');
-      const lines = st.console || [];
-      const html = lines.map(([k, s], i) => {
-        const last = i === lines.length - 1 && st.caret ? '<span class="caret"></span>' : '';
-        switch (k) {
-          case 'prompt':
-            return `<div class="ln"><span class="c-prompt">${esc(s)}</span>${last}</div>`;
-          case 'step':
-            return `<div class="ln"><span class="c-com">${esc(s)}</span>${last}</div>`;
-          case 'file':
-            return `<div class="ln"><span class="c-file">${esc(s)}</span>${last}</div>`;
-          case 'hunk':
-            return `<div class="ln"><span class="g"> </span>${hl(s)}${last}</div>`;
-          case 'add':
-            return `<div class="ln add"><span class="g">+</span>${hl(s)}${last}</div>`;
-          case 'del':
-            return `<div class="ln del"><span class="g">-</span>${esc(s)}${last}</div>`;
-          case 'ok':
-            return `<div class="ln"><span class="c-ok">${esc(s).replace(/^(\s*)ok/, '$1&#10003;')}</span>${last}</div>`;
-          default:
-            return `<div class="ln">${esc(s)}${last}</div>`;
-        }
-      });
-      const term = document.getElementById('console-term');
-      term.innerHTML = html.join('');
-      document.getElementById('console').style.display = st.console ? '' : 'none';
-      if (st.step) {
-        document.getElementById('progress-label').textContent =
-          st.pct === 100 ? 'All fixes applied' : `Step ${st.step} of 7: ${STEPS[st.step - 1]}`;
-        document.getElementById('progress-bar').style.width = `${st.pct}%`;
-        document.getElementById('progress-pct').textContent = `${st.pct}%`;
-      }
-      // Terminals follow their last line.
       for (const el of [term, document.getElementById('chat-log')]) el.scrollTop = el.scrollHeight;
     </script>
   </body>
