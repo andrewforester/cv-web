@@ -15,6 +15,7 @@ Rules and limits:
   literal; screen-local values are marked `TODO(theme)`.
 - The `--retro-*` block ("Retro Rebuild show panels", from `docs/design/retro/SPEC.md`) styles only
   the terminal chat and console windows of the live-fix show (Win98 face, bevel light/inner
-  light/shadow/dark, window shadow, terminal and code colours); damage values live in the screen's layers.
+  light/shadow/dark, window shadow, terminal and code colours) and the round-3 motion: highlight look,
+  page frame, fade/morph/leave/close/reserve timings and the close easing; damage values live in the screen's layers.
 - Fonts are self-hosted Inter, Latin and Cyrillic only, a fixed set of weights; Cyrillic files
   load only when Cyrillic text is on the page.

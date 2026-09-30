@@ -144,7 +144,7 @@
   --retro-win-font: Tahoma, Verdana, 'Segoe UI', sans-serif;
   --retro-win-font-size: 11px;
   --retro-term-bg: #000000;
-  --retro-term-font: 'IBM Plex Mono', 'Courier New', monospace;
+  --retro-term-font: 'Courier New', Courier, monospace;
   --retro-term-font-size: 13px;
   --retro-term-line-height: 18px;
   --retro-code-font-size: 12px;
@@ -163,4 +163,16 @@
   --retro-code-del-bg: rgba(255, 85, 85, 0.1);
   --retro-progress: #000080;
   --retro-z-index: 1001;
+  --retro-highlight-ink: #000000;
+  --retro-page-frame-inset: 6px;
+  --retro-highlight-fade-in: 150ms;
+  --retro-highlight-fade-out: 800ms;
+  --retro-motion-duration: 450ms;
+  --retro-morph-duration: 500ms;
+  --retro-leave-duration: 250ms;
+  --retro-close-collapse: 150ms;
+  --retro-close-fly: 250ms;
+  --retro-close-stagger: 100ms;
+  --retro-close-easing: cubic-bezier(0.4, 0, 1, 1);
+  --retro-reserve-duration: 400ms;
 }
