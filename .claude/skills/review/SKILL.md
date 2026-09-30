@@ -32,15 +32,15 @@ Read the diff by file (`git diff origin/main...HEAD -- <path>`), not as one huge
 Only blocking findings send the PR back: a broken rule, a bug, missing tests or docs. Style preferences and ideas for later are non-blocking notes in the same review, marked as such.
 
 **Changes needed:**
-1. Submit a GitHub review with **Request changes**: one inline comment per finding (file and line, what is wrong, which rule, what to do), plus a short summary.
+1. Submit a GitHub review with **Comment** (not *Request changes*: the reviewer and the author are the same GitHub account, and GitHub refuses both approving and requesting changes on your own PR): one inline comment per finding (file and line, what is wrong, which rule, what to do), plus a short summary starting with "Changes needed".
 2. Convert the PR back to **draft** and set the ticket to **In Progress** with a comment linking the review.
 3. Keep following the PR. When the developer marks it Ready again (and CI is green), review only what changed since your last round and whether each finding is resolved.
 4. After the **3rd** round that still needs changes, stop sending it back: comment on the ticket with **Needs human** (what is still open and why), and stop.
 
 **Approved:**
-1. Submit a GitHub review with **Approve** and a one-line summary (plus any non-blocking notes).
+1. Post one PR comment: "Review passed", a one-line summary and any non-blocking notes. **Never submit an Approve review**: GitHub refuses it on your own account's PR, and a failed approval followed by a merge gets the merge denied as self-approval.
 2. Merge only if all of these hold: the orchestrator's launch comment on the ticket says autonomous merging is allowed; CI on the PR is green, including the web smoke job; the latest CI run on `main` isn't red; the branch has no conflicts with `main`. Squash-merge (the repository's usual method). The merge is the orchestrator's signal.
-   If merging isn't allowed, or `main` is red, or there's a conflict: leave the PR approved and ready, comment on the ticket with the reason, and stop without archiving.
+   If merging isn't allowed, or `main` is red, or there's a conflict: leave the PR ready with your "Review passed" comment, comment on the ticket with the reason, and stop without archiving.
 3. Post your closing comment on the ticket: rounds, findings fixed, and your token usage: model, in (cache), out, total (`COORDINATION.md` → Tracker → Usage; cloud: `get_session` without an id). The orchestrator puts it into the ticket's usage table.
 4. Archive your own session (Tooling → Sessions → Review sessions).
 
