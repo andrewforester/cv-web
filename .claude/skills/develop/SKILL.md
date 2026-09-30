@@ -13,7 +13,18 @@ You are one working session on one task. The orchestrator launched you; a human 
 3. **Environment.** A cloud container is prepared by the session-start hook. In a local session install what you need yourself (see `AGENTS.md` → Commands for the toolchain and the *web check* browser) and say in your report what you installed.
 4. If the task starts on another task's branch that isn't in `main` yet, merge that branch as soon as it exists. Use only the API contract the brief names.
 
+## Plan before code
+Before the first edit, post a short **plan** as a PR comment: the files you'll add or change, the existing module you follow as the model (`AGENTS.md` → Reference implementation), the tests you'll add, and any step outside the zone. Keep it to a few lines. It anchors your work to the project's patterns and lets the orchestrator steer early.
+
+## Keep the context small
+Guessing starts when the context is full of the wrong things.
+- Read the `AGENTS.md` of the folders in your zone and the files you'll change. Don't open whole unrelated folders or huge test files "for context".
+- When you must search wide (who calls this, where is X decided), delegate the search to a subagent (e.g. `Explore`) and take back only the answer, not the file dumps.
+- Library and SDK APIs: check the installed version's types in `node_modules` (or its docs) before using a call, not memory. The versions are pinned in `package-lock.json`.
+- Long command output (test runs, builds): read the failing part (`| tail`, grep for `FAIL`/`error`), not the whole log.
+
 ## Work
+- **Lint errors from the edit hook** (`AGENTS.md` → Commands) come right after an edit: fix them before moving on. A boundary error (`no-restricted-imports`) means the code belongs in another layer; don't disable the rule.
 - **Zone.** Change only the paths the brief lists. If you need something outside the zone (a token, a dependency, a route registration that isn't listed), comment with exactly what and why, and continue on a local stub (e.g. a private constant marked `TODO(<owner>)`). List every stub in your final report.
 - **Questions never block you.** Nobody is watching. Post the question as a comment, take the most conservative option, note it, continue.
 - **Out of scope** items stay untouched even if the design package or screenshot shows them.
@@ -33,7 +44,7 @@ You are one working session on one task. The orchestrator launched you; a human 
 - List in your report what you could not verify (real devices, other browsers, external services).
 
 ## Finish
-0. Self-review the diff: no file past ≈250 lines, no copy-pasted blocks, no hardcoded colours/sizes/strings, `AGENTS.md` (with its `CLAUDE.md`) present and current in each folder you touched.
+0. Self-review the diff (`git diff origin/main...`): it follows the plan you posted (or says why not), no `eslint-disable`, no copy-pasted blocks, no hardcoded colours/sizes/strings, `AGENTS.md` (with its `CLAUDE.md`) present and current in each folder you touched.
 1. Re-read the brief and all comments: scope or decisions may have changed while you worked. Adjust.
 2. `git merge origin/main` again, re-run the checks, then push.
 3. Upload the web screenshot(s) to the ticket as `COORDINATION.md` → Tracker → Screenshots says (never into git) and write the **report** as a PR comment (and on the ticket if you can):
