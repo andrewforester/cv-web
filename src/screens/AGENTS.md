@@ -10,4 +10,6 @@ for the app shell. Each screen owns its strings namespace, test ids, assets and 
 `AGENTS.md` + `CLAUDE.md`, and has at least one UI test. Files and naming: root `AGENTS.md` →
 Conventions.
 
-A piece needed by a second screen moves to `src/shared/`, it is not copied.
+A piece needed by a second screen moves to `src/shared/`, it is not copied. *Lint* enforces this:
+a screen importing another screen, or a mock from `src/data/mock/` outside tests, fails.
+`cv/` is the reference screen to copy the shape from.

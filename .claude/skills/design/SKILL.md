@@ -51,6 +51,6 @@ Write `SPEC.md` with these sections:
 ## 5. Deliver
 - Re-read the brief and all comments first: scope may have changed while you worked.
 - Commit only `docs/design/<screen>/**`.
-- **Comment** (on the PR, and on the ticket if you can) with the open questions (each with the default you put in Decisions), the new tokens, and anything you're unsure of. Never stop to wait for an answer: nobody is watching.
+- **Comment** on the ticket with the open questions (each with the default you put in Decisions), the new tokens, and anything you're unsure of. Never stop to wait for an answer: nobody is watching.
 - Push to the draft PR the orchestrator opened (never open another), add a short summary to its body next to the ticket reference, and mark it **Ready for review** as your last step (`docs/COORDINATION.md` → Tooling): that starts CI and signals the orchestrator.
 - Don't merge; the orchestrator merges and then files the theme and screen tasks from your package.
