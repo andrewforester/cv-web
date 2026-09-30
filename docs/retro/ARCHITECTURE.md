@@ -163,8 +163,8 @@ Rules:
 
 ```
 idle ──3 s──▶ chat ──greeting typed, 2 s──▶ console ──▶ step[i]: narrate ▶ type ▶ apply ▶ settle ──▶ … ──▶ finale ──▶ done
-                                                            ▲ safe points: holds are checked only here ▲
-holds (orthogonal): hidden (tab not visible) · composing (visitor typing, ≤ 15 s) · answering (reply streaming, ≤ 12 s)
+                                                            ▲ safe points: composing/answering hold only here ▲
+holds (orthogonal): hidden (tab not visible, freezes the clock anywhere) · composing (visitor typing, ≤ 15 s) · answering (reply streaming, ≤ 12 s)
 ```
 
 - The runner is a **pure reducer** (`showReducer(state, event) → state`) plus a tiny effect loop in
@@ -180,8 +180,9 @@ holds (orthogonal): hidden (tab not visible) · composing (visitor typing, ≤ 1
   with a short `✓ applied` line) → settle 2.5 s. POC ≈ 25 s; a 12-step show ≈ 1.5–2 min.
   Typing progress is time-based (chars = elapsed × rate), so throttled tabs catch up instead of
   drifting.
-- **Holds** only at safe points (before *type* and before the next step), never mid-typing, so a
-  step always completes as shown. `hidden` pauses all timers (resume where it stopped).
+- **Holds** `composing` and `answering` act only at safe points (before *type* and before the next
+  step), never mid-typing, so a step always completes as shown. `hidden` is different: it freezes
+  the clock anywhere (resume where it stopped), so nothing happens unseen.
   `composing` (composer focused and non-empty) and `answering` hold the next step up to their
   caps, then the show goes on while the reply keeps streaming.
 - `prefers-reduced-motion`: code appears at once (no typing), apply after 1 s; same steps
