@@ -78,6 +78,6 @@ The tracker is **Linear** (team Grandtorino, one project per epic, one ticket `G
 
 ## Git & CI
 
-- Work in feature branches; `main` is updated only via PRs.
+- Work in feature branches; `main` is updated only via PRs. Local sessions work in their own git worktree under `.claude/worktrees/`, never in the main checkout, which stays on `main` (`docs/COORDINATION.md` → General rules).
 - CI (`.github/workflows/ci.yml`): non-draft PRs run *lint* and *test* (job `Lint & tests`) plus `web-smoke`: *build* and the Playwright startup check in both locales, screenshots uploaded as the `web-smoke-screenshots` artifact. Pushes to feature branches and draft PRs trigger no CI; a PR's CI starts when it is marked Ready for review.
 - Deliverables: the web on Vercel (Hobby), deployed by Vercel's GitHub App, not by CI. Production = `main`: https://cv-web-inky-five.vercel.app/ (Vercel project `cv-web`); every PR/branch gets a preview deployment (URL in the PR's Vercel check/comment). Previews may be behind Vercel Authentication (Deployment Protection) by default, so they can require a Vercel login. Build config is in `vercel.json`. Pushes to `main` run `Lint & tests` in CI so the QA role sees main's health.

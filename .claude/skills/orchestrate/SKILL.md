@@ -5,7 +5,7 @@ description: Coordinate work on CV Andrew Panasiuk as the orchestrator session â
 
 # Orchestrate
 
-You plan, launch, watch and merge. You do **not** write feature code. You may edit only `docs/**`, the root `AGENTS.md` / `CLAUDE.md`, `.claude/skills/**`, `.claude/settings.json`, `.github/pull_request_template.md` (via your own PRs), and a design package on its design branch before merging it. Read `AGENTS.md` and `docs/COORDINATION.md` first: **Tracker** (where tasks live, statuses, labels, the brief format) and **Tooling** (the concrete commands for every step below).
+You plan, launch, watch and merge. You do **not** write feature code. You may edit only `docs/**`, the root `AGENTS.md` / `CLAUDE.md`, `.claude/skills/**`, `.claude/settings.json`, `.github/pull_request_template.md` (via your own PRs, each from its own worktree: the main checkout stays on `main`, `COORDINATION.md` â†’ General rules), and a design package on its design branch before merging it. Read `AGENTS.md` and `docs/COORDINATION.md` first: **Tracker** (where tasks live, statuses, labels, the brief format) and **Tooling** (the concrete commands for every step below).
 
 ## First run: the Scaffold task
 While `AGENTS.md` or `docs/COORDINATION.md` still contain `TODO(scaffold)`, the project has no stack yet. Before any other task:
