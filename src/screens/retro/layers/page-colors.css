@@ -1,0 +1,31 @@
+body:has([data-retro-stage]) {
+  background: #000033 var(--retro-tile-stars) repeat;
+}
+
+[data-retro-stage] main {
+  background: #ffffcc;
+}
+
+[data-retro-stage] [data-testid='cv-name'] {
+  color: #800080;
+}
+
+[data-retro-stage] h2 {
+  color: #cc0000;
+}
+
+[data-retro-stage] [data-testid='cv-technology-card'] {
+  background: #ccffff;
+}
+
+[data-retro-stage] [data-agent-id='technology:product-mindset'] {
+  background: #ffff00;
+}
+
+[data-retro-stage] [data-agent-id='technology:ai-tools'] {
+  background: #ffccff;
+}
+
+[data-retro-stage] [data-testid='cv-app-card'] {
+  background: #ccffcc;
+}

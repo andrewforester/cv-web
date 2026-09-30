@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="208" height="40" viewBox="0 0 208 40">
+  <!-- "Under construction" sign, 2000s homepage style. Made for GRA-38, CC0. -->
+  <defs>
+    <pattern id="s" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="16" height="16" fill="#ffcc00"/><rect width="8" height="16" fill="#000000"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="208" height="8" fill="url(#s)"/>
+  <rect x="0" y="32" width="208" height="8" fill="url(#s)"/>
+  <rect x="0" y="8" width="208" height="24" fill="#ffcc00"/>
+  <!-- little digger: a shovel man, pixel style -->
+  <g fill="#000000" shape-rendering="crispEdges">
+    <rect x="10" y="11" width="4" height="4"/><rect x="11" y="15" width="2" height="8"/>
+    <rect x="8" y="16" width="8" height="2"/><rect x="9" y="23" width="2" height="6"/><rect x="13" y="23" width="2" height="6"/>
+    <rect x="16" y="17" width="2" height="2"/><rect x="18" y="19" width="2" height="2"/><rect x="20" y="21" width="2" height="4"/><rect x="19" y="25" width="5" height="3"/>
+  </g>
+  <text x="118" y="25" text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="12" fill="#000000">UNDER CONSTRUCTION</text>
+</svg>
