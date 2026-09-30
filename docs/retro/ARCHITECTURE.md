@@ -2,8 +2,11 @@
 
 > GRA-39. Decision record: [`../adr/0003-retro-live-fix-show.md`](../adr/0003-retro-live-fix-show.md).
 > The look (retro values, copy, the full fix list, `--retro-*` tokens) is the design package
-> `docs/design/retro/` (GRA-38, in progress at the time of writing); this file is the mechanism.
+> `docs/design/retro/` (GRA-38); this file is the mechanism.
 > Epic: Linear project *Retro Rebuild*; integration branch `claude/retro-rebuild`.
+> **Round 1 (POC) is built** (GRA-40…44). Sections 0–7 are the design as planned; **section 9**
+> records what was built, the final decisions, how to add a fix step and the known debt. Where
+> they differ, section 9 and the code win.
 
 The CV opens as a broken 2000s site. After a few seconds a terminal-style chat appears on the right
 ("oops, looks bad, tell me what you think while I fix it"), then a console above it where an
@@ -418,6 +421,8 @@ a file: `src/data/retro/HttpShowRepository*` belongs to R2 only; `handler.ts` to
 
 ## 8. Open questions for the human (defaults taken)
 
+Resolved: the defaults below stand; final answers are in section 9 → Decisions.
+
 | # | Question | Default taken |
 |---|---|---|
 | Q1 | Visitor message analytics: Vercel Hobby has no custom events and 1-hour logs. Keep it in the backlog, or allow a Vercel Blob store (no new account; 2,000 writes/month; a dependency `@vercel/blob`)? | Backlog (your decision); round 1 stores no message text. |
@@ -427,3 +432,75 @@ a file: `src/data/retro/HttpShowRepository*` belongs to R2 only; `handler.ts` to
 | Q5 | The damage CSS (`src/screens/retro/layers/*.css`) hardcodes retro colours and fonts on purpose, as displayed code. OK as the one exception to "tokens only"? (It needs a line in the root `AGENTS.md`.) | Yes, only in `layers/`. |
 | Q6 | Model and switch for the show: share `CHAT_MODEL` and `CHAT_ENABLED` with the AI chat, or separate ones? | Shared; revisit after the golden check. |
 | Q7 | Should the terminal conversation carry over into the AI chat after the show? | No: the terminal closes at the end; the AI chat starts empty. |
+
+## 9. As built (round 1) and working rules
+
+Round 1 (POC) is merged into `claude/retro-rebuild`: GRA-40 (tokens), GRA-41 (contract +
+manifest), GRA-42 (server v3), GRA-43 (show screen), GRA-44 (shell + e2e). Open the show with
+`?retro=1` on the branch's preview.
+
+### Where things are
+
+| Path | What |
+|---|---|
+| `src/data/retro/` | Manifest (`scenario.ts`: `RETRO_SCENARIO_ID`, `RETRO_STEPS` with id, title, LLM intent, fallback), v3 contract, `ShowRepository` + `FakeShowRepository` + `HttpShowRepository`. Shared with the server. |
+| `src/screens/retro/` | `scenario.ts` (`DAMAGE_LAYERS`, `DECORATION_IDS`, `SHOW_MODULES`, `HOST_VARIABLES`, `RETRO_EFFECTS`), `engine/` (reducer, clock, layer host, console plan), `layers/*.css` (the damage), panels (`TerminalChat`, `LiveConsole`, `Win98Window`, decorations), `harness/` (dev-only, not shipped). |
+| `src/app/` | `retroMode.ts` (mode decision), `useRetroMode`, `useLazyChat` (chat chunk, the `ai-chat` loader), `App.tsx` (one tree shape, `data-retro-stage`), `AppProviders` (repository binding, `retroMode` seam). |
+| `server/chat/show/` | v3 validation, narrate/reply prompts, narration line parser, fake scripts; v3 branch in `server/chat/handler.ts`. |
+| `src/theme/tokens.css` | `--retro-*` panel tokens (not the damage values). |
+| `e2e/retro.spec.ts`, `e2e/retroShow.ts` | End-state and token guards; other specs open the normal site with `?retro=0`. |
+
+### Decisions (final)
+
+- **Branch:** every task of this epic branches from `claude/retro-rebuild` and its PR targets it; it
+  is never merged into `main`. The orchestrator writes this, and "read `docs/retro/AGENTS.md`
+  first", into every brief.
+- **Hybrid:** authored steps; the LLM writes only narration and replies, through `/api/chat` `v: 3`
+  on the existing `@anthropic-ai/sdk` pipeline (no other AI SDK).
+- **EN only** for the show, now and later; **desktop only** for now.
+- **Q1 analytics:** backlog. Round 1 logs counts only, never message text. Only Vercel-native
+  options (Hobby has no custom events); no new accounts or databases without the human.
+- **Q2 who:** `?retro=1` forces, `?retro=0` skips; otherwise locale `en` + `min-width: 1024px` +
+  not yet seen in this browser session. **Q3:** once per session (`sessionStorage['retro.done']`).
+- **Q4 reduced motion:** the show runs without typing (the screen reads the media query itself).
+- **Q5 literals:** allowed only in `src/screens/retro/layers/*.css` and `Decorations.module.css`
+  (they are displayed code); recorded in `src/screens/retro/AGENTS.md`, not in the root rules.
+- **Q6:** the show shares `CHAT_MODEL` and `CHAT_ENABLED` with the AI chat. **Q7:** the terminal
+  conversation doesn't carry over into the AI chat.
+- Narration lines over 200 chars are trimmed at a word boundary; runaway lines (> 600, no newline)
+  are dropped and the fallback is used.
+- **Replay** (later): an "open the old site" button restarts the show.
+
+### How to add or change a fix step
+
+1. **Look first.** Anything visible goes into `docs/design/retro/SPEC.md` (damage layers table,
+   full fix list, copy) before code.
+2. **Damage:** a new `src/screens/retro/layers/<id>.css` on stable hooks only (`data-testid`,
+   `data-agent-id`, design tokens), registered in `DAMAGE_LAYERS`. A decoration: an id in
+   `DECORATION_IDS` plus its component. If the CV lacks a hook, add it to the CV screen in its own
+   task; otherwise the CV screen is not changed for the show.
+3. **Step:** a manifest entry in `src/data/retro/scenario.ts` (id, title, intent, fallback) and its
+   effects, in typing order, in `RETRO_EFFECTS`. Bump `RETRO_SCENARIO_ID` whenever the step list
+   changes (the server rejects unknown ids).
+4. **Server:** nothing to change; the narrate outline is built from `RETRO_STEPS`. Keep the fake
+   script in step with new ids.
+5. **Guards catch the rest:** guard 1 (every layer and decoration removed exactly once, steps =
+   manifest, every `layers/` file registered), guard 2 (every layer selector matches the real CV,
+   every token exists in `tokens.css`), guard 3 e2e (the end state equals the `?retro=0` page),
+   guard 4 e2e (the tokens the console prints are the applied ones).
+6. **A redesign of the real site** needs no show change unless a hook is renamed: guard 2 fails and
+   names the selector to fix. Token layers read the "after" values live from the stylesheet.
+
+### Known debt (for later rounds)
+
+- The full fix list (SPEC → Full fix list) beyond the POC's 3 steps; the `focus` effect via
+  `src/agent`.
+- Real-model run blocked by the Preview `ANTHROPIC_API_KEY` (GRA-45); prompts not golden-checked.
+- `RetroShowRoute` is a static import: the show ships in the main bundle for every visitor.
+- Guard 4 covers only the tokens step.
+- Tests still read layer CSS from disk (`layerFilesTestHarness.tsx`, `TODO(scaffold)`) although
+  `vite.config.ts` now serves `?raw` in Vitest: remove the helper.
+- Two panel values without a token (inner bevel `#dfdfdf`, window shadow); the terminal font falls
+  back from IBM Plex Mono.
+- `src/screens/AGENTS.md` doesn't list `retro/` yet.
+- Analytics (Q1), replay button, mobile.
