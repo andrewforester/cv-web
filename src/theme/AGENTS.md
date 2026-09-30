@@ -1,0 +1,17 @@
+# theme
+
+Why it exists: the site's visual language in one place, so every screen looks like the Figma
+reference (`docs/COORDINATION.md` → Design source of truth) and a style change is a token change,
+not a hunt through components. Tokens come from `docs/design/cv/SPEC.md`: colours, the AI
+gradient, shadows, radii, the type scale per role, the spacing scale, content width and gutters,
+and the page-agent highlight.
+
+Place in the architecture: global CSS custom properties, fonts and base styles, imported once by
+`src/main.tsx`; every CSS Module reads `var(--token)`. No TypeScript mirror: add one only when code
+needs a value.
+
+Rules and limits:
+- Owner: Theme. A screen that needs a value adds a token here (through the Theme task), not a
+  literal; screen-local values are marked `TODO(theme)`.
+- Fonts are self-hosted Inter, Latin and Cyrillic only, a fixed set of weights; Cyrillic files
+  load only when Cyrillic text is on the page.

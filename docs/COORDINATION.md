@@ -1,6 +1,6 @@
 # Parallel sessions in one repository
 
-Standing rules: who changes which files, how sessions stay out of each other's way, and **which concrete tools** the process uses. The skills in `.claude/skills/` describe roles in general terms ("the tracker", "open a draft PR", "launch a session"); this file and `CLAUDE.md` say how that is done in this project. This file does **not** change per task.
+Standing rules: who changes which files, how sessions stay out of each other's way, and **which concrete tools** the process uses. The skills in `.claude/skills/` describe roles in general terms ("the tracker", "open a draft PR", "launch a session"); this file and `AGENTS.md` say how that is done in this project. This file does **not** change per task.
 
 - **Tasks, their status and the whole working process** live in the tracker: Linear (see Tracker).
 - **Orchestration** (who launches sessions, who merges, when to notify the human) is in `.claude/skills/orchestrate`; the commands it uses are in Tooling.
@@ -10,7 +10,7 @@ Standing rules: who changes which files, how sessions stay out of each other's w
 1. **One session, one zone.** A zone is the set of paths a session may change. The task sets it. Everything else is read-only for that session.
 2. **One screen part, one session.** A screen lives in its own folder (screen, components, test ids) with its test next to it or in the mirrored test folder. A screen can be built in several rounds (one design package and one task per round).
 3. **Small PRs, frequent merges of `main`.** Run `git merge origin/main` before starting and before the PR. No rebase.
-4. **CI is the referee.** Before pushing, run *lint* and *test* (`CLAUDE.md` → Commands). PR CI runs only once the PR is out of draft. If `main` goes red after a merge, fixing it is the top priority.
+4. **CI is the referee.** Before pushing, run *lint* and *test* (`AGENTS.md` → Commands). PR CI runs only once the PR is out of draft. If `main` goes red after a merge, fixing it is the top priority.
 5. **Need something outside your zone?** Don't change it. Say so in a comment (see Tracker → Where sessions write) and continue on a local stub.
 6. **Roles are skills:** `orchestrate` (coordinator), `develop` (session on a task), `design` (design package from a screenshot), `quick-fix` (small fixes), `qa-release` (health of `main` after merges: CI, deploy checks, reverts). The task's **Role** label says which one runs it (Tracker → Labels).
 7. **Only the coordinator calls design-tool MCPs** (Figma etc.): they are usually rationed. The coordinator exports each frame once into `docs/design/<screen>/` (`SPEC.md`, `screenshot.png`, `assets/`). Sessions work from those files.
@@ -46,7 +46,7 @@ Label groups, one label from each group per ticket:
 
 | Group | Labels | Meaning |
 |---|---|---|
-| **Role** (team) | Research · Architecture · Design · Development · QA · DevOps · Docs | who (which role/skill) executes the task. Research → a written answer/comparison, no code; Architecture → system design, ADR, API contract (docs only); Design → a design package (`design` skill or the orchestrator from Figma); Development → screens, theme, features, backend (`develop`); QA → verification, device checks, reverts (`qa-release`); DevOps → CI, build, hosting, domains, environment; Docs → process rules, skills, `CLAUDE.md`. |
+| **Role** (team) | Research · Architecture · Design · Development · QA · DevOps · Docs | who (which role/skill) executes the task. Research → a written answer/comparison, no code; Architecture → system design, ADR, API contract (docs only); Design → a design package (`design` skill or the orchestrator from Figma); Development → screens, theme, features, backend (`develop`); QA → verification, device checks, reverts (`qa-release`); DevOps → CI, build, hosting, domains, environment; Docs → process rules, skills, the root `AGENTS.md`. |
 | **Type** (workspace) | Feature · Improvement · Bug · Chore | what kind of change. A Bug with Role Development is a quick fix (`quick-fix` skill). |
 
 Plus **Needs human**: waiting for the human's answer or action (the question is in a ticket comment). The zone (which folders) is in the brief, not in labels.
@@ -99,7 +99,7 @@ The orchestrator launches each task as a new agent in a **new session of the sam
 
 ### Notifications and deploy checks
 - To the human: chat message + `PushNotification` (reaches the phone only while Remote Control is connected); anything the human must do (a key, a setting, a DNS record) also goes into a ticket comment with **Needs human**, since the Linear app notifies the phone.
-- Vercel: production and previews per `CLAUDE.md` → Git & CI. Previews sit behind Vercel Authentication and the Vercel MCP may lack the team scope, so a session can only prove the build; for backend changes the orchestrator calls the endpoint on production right after merging (e.g. GET → `405` JSON, POST without a key → `503 unavailable`) and reverts on `FUNCTION_INVOCATION_FAILED`.
+- Vercel: production and previews per `AGENTS.md` → Git & CI. Previews sit behind Vercel Authentication and the Vercel MCP may lack the team scope, so a session can only prove the build; for backend changes the orchestrator calls the endpoint on production right after merging (e.g. GET → `405` JSON, POST without a key → `503 unavailable`) and reverts on `FUNCTION_INVOCATION_FAILED`.
 
 ## Hot spots
 
@@ -116,7 +116,7 @@ Each has one owner: a role, not a particular session. The task names the role.
 | `src/data/**` (`models.ts`, `CvRepository.ts`) | the first screen that needs them | a screen's mocks live in `src/data/mock/` under its own file names |
 | API contract between frontend and backend (`src/data/CvRepository.ts`, `src/data/models.ts`) | Scaffold (DevOps) until a backend owner exists | changes go through their own task |
 | `api/**`, `server/**`, `src/data/chat/contract.ts` (the `/api/chat` contract, `docs/chat/API.md`), `vercel.json` `functions` | Backend (Development) | contract changes go through their own task and a PR comment; breaking ones bump `v` |
-| `docs/**`, `CLAUDE.md`, `.claude/skills/**`, `.claude/settings.json`, `.github/pull_request_template.md` | coordinator or human | others propose changes in a PR |
+| `docs/**`, root `AGENTS.md` and `CLAUDE.md`, `.claude/skills/**`, `.claude/settings.json`, `.github/pull_request_template.md` | coordinator or human | others propose changes in a PR |
 
 ## Merge order
 
@@ -126,8 +126,8 @@ Scaffold first, then theme, then screens (in parallel, any order). A screen can 
 
 - **Stack:** Vite 8 + React 19 + TypeScript 6 (strict, `noUncheckedIndexedAccess`), npm with a committed `package-lock.json`, Node 22 (`.nvmrc`). Static SPA, no router yet (add one with the second page).
 - **Hosting:** Vercel (Hobby, Git integration: production = `main`, a preview per PR), Vite `base: '/'`. Reference public files as `/favicon.svg` in `index.html` and use `import.meta.env.BASE_URL` in code, never a bare `/`, so the base can change again.
-- **Layout:** `src/app` (shell, providers), `src/theme`, `src/i18n`, `src/data` (`models.ts`, `CvRepository.ts`, `mock/`), `src/shared/<Component>/`, `src/screens/<screen>/`, `e2e/`. Every code folder has an `AGENTS.md` and a `CLAUDE.md` with `@AGENTS.md` (`CLAUDE.md` → Package docs).
-- **Tokens:** CSS custom properties in `src/theme/tokens.css` (CV design tokens, names fixed in the Theme task; see `src/theme/agents.md`), fonts in `src/theme/fonts.css`, used from CSS Modules. No TS mirror yet.
+- **Layout:** `src/app` (shell, providers), `src/theme`, `src/i18n`, `src/data` (`models.ts`, `CvRepository.ts`, `mock/`), `src/shared/<Component>/`, `src/screens/<screen>/`, `e2e/`. Every code folder has an `AGENTS.md` and a `CLAUDE.md` with `@AGENTS.md` (root `AGENTS.md` → Package docs).
+- **Tokens:** CSS custom properties in `src/theme/tokens.css` (CV design tokens, names fixed in the Theme task; see `src/theme/AGENTS.md`), fonts in `src/theme/fonts.css`, used from CSS Modules. No TS mirror yet.
 - **i18n:** in-house, no library. Locales `en`, `uk` (label "UA"). Detection: `localStorage['cv.locale']` → `navigator.language` → `en`; mirrored into `<html lang>`. Namespaces are `defineStrings({ en, uk })` objects (a missing `uk` key fails `tsc`), read with `useStrings(ns)`. CV content is localized data from the repository, not strings.
 - **Data:** `CvRepository.getCv(locale): Promise<Cv>`; `StaticCvRepository` reads `src/data/mock/cv.<locale>.json`. Bound once in `src/app/AppProviders.tsx` (a backend swaps that line); state holders get it with `useCvRepository()`.
 - **Screen pattern:** `use<Screen>State()` (state holder) → `<Screen>UiState` → stateless `<Screen>Screen` (`className?`, `state`, callbacks) ← glued by `<Screen>Route`. Test ids in `testIds.ts`.

@@ -5,10 +5,10 @@ description: Coordinate work on CV Andrew Panasiuk as the orchestrator session �
 
 # Orchestrate
 
-You plan, launch, watch and merge. You do **not** write feature code. You may edit only `docs/**`, `CLAUDE.md`, `.claude/skills/**`, `.claude/settings.json`, `.github/pull_request_template.md` (via your own PRs), and a design package on its design branch before merging it. Read `CLAUDE.md` and `docs/COORDINATION.md` first: **Tracker** (where tasks live, statuses, labels, the brief format) and **Tooling** (the concrete commands for every step below).
+You plan, launch, watch and merge. You do **not** write feature code. You may edit only `docs/**`, the root `AGENTS.md` / `CLAUDE.md`, `.claude/skills/**`, `.claude/settings.json`, `.github/pull_request_template.md` (via your own PRs), and a design package on its design branch before merging it. Read `AGENTS.md` and `docs/COORDINATION.md` first: **Tracker** (where tasks live, statuses, labels, the brief format) and **Tooling** (the concrete commands for every step below).
 
 ## First run: the Scaffold task
-While `CLAUDE.md` or `docs/COORDINATION.md` still contain `TODO(scaffold)`, the project has no stack yet. Before any other task:
+While `AGENTS.md` or `docs/COORDINATION.md` still contain `TODO(scaffold)`, the project has no stack yet. Before any other task:
 1. Agree the stack with the human (frontend, backend, hosting, test tools). Record the choice and why in the task, not in chat only.
 2. File one Scaffold task (Role DevOps): create the apps/packages, fill every `TODO(scaffold)` (Layout, Commands, Conventions, Hot spots with real paths, Scaffold decisions, Design source of truth), the session-start hook, CI jobs (lint, test, web smoke with screenshots, deploy), a hello-world screen with one UI test, and package docs (`AGENTS.md` + `CLAUDE.md`). Zone: everything. Done when: no `TODO(scaffold)` is left and CI is green on the PR.
 3. Nothing else runs in parallel with it.
@@ -74,7 +74,7 @@ The human sends tasks one after another. File each one as soon as it arrives; do
 
 ## Verify and merge (only if the human has allowed autonomous merging; otherwise ask)
 Merge a PR yourself when all of these hold:
-1. The diff stays inside the task's zone (and outside its out-of-scope list). Code quality per `CLAUDE.md` → Architecture & code quality: no oversized files, no duplicated components, an up-to-date `AGENTS.md` (with its `CLAUDE.md`, `CLAUDE.md` → Package docs) in every code folder the PR touches, about purpose and domain rather than implementation.
+1. The diff stays inside the task's zone (and outside its out-of-scope list). Code quality per `AGENTS.md` → Architecture & code quality: no oversized files, no duplicated components, an up-to-date `AGENTS.md` (with its `CLAUDE.md`, root `AGENTS.md` → Package docs) in every code folder the PR touches, about purpose and domain rather than implementation.
 2. There is a test, and for UI changes the session posted a web screenshot.
 3. CI on the PR is green, including the web smoke job. Look at 1–2 screenshots. Don't build locally, except when two ready PRs touch the same files: then check their merge locally, or merge them one after another and let CI re-run on the second. Backend: follow the deploy check in Tooling.
 4. Post the result on the ticket: what you checked, with your screenshot.
@@ -86,7 +86,7 @@ After merging:
 - Then run **Dispatch**.
 - Don't watch CI on `main`: the `qa-release` session does and reverts or files a fix when it goes red. Before each merge, check that the latest CI run on `main` isn't red; if it is, merge only the fix or revert.
 - Report to the human with links (Tooling → Notifications):
-  - the deliverables from `CLAUDE.md` → Git & CI;
+  - the deliverables from `AGENTS.md` → Git & CI;
   - **Cost** table: each task's session (model, USD, context used, output tokens), your own spend since the previous report and your current context, and the round total;
   - the queue: tickets still Todo/Backlog and what each waits for;
   - what a human still has to check on a real device or another browser.

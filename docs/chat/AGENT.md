@@ -209,7 +209,7 @@ Vercel, too much power for this). The hard cap remains the Anthropic workspace s
 ## 7. Implementation tasks
 
 All shipped: a1 = GRA-32, a2 = GRA-33, b = GRA-34, c = GRA-35, d = GRA-36. The table is the plan
-as written; the code and `agents.md` files are the truth.
+as written; the code and `AGENTS.md` files are the truth.
 
 | # | Task | Zone | Depends on | Model | Size |
 |---|---|---|---|---|---|

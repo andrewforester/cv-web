@@ -9,8 +9,8 @@ You are one working session on one task. The orchestrator launched you; a human 
 
 ## Start
 1. `git fetch origin && git merge origin/main` on your branch (`claude/<short>`). Never rebase or force-push. The orchestrator already opened a **draft PR** from this branch (the prompt names it): never open another one.
-2. Read `CLAUDE.md`, `docs/COORDINATION.md` and the **brief**: your launch prompt carries it; if you can read the tracker, read the ticket and all its comments too (task, design package, zone, out of scope, dependencies, done-when). The brief is your only source; everything about the process goes into comments.
-3. **Environment.** A cloud container is prepared by the session-start hook. In a local session install what you need yourself (see `CLAUDE.md` → Commands for the toolchain and the *web check* browser) and say in your report what you installed.
+2. Read the root `AGENTS.md`, `docs/COORDINATION.md` and the **brief**: your launch prompt carries it; if you can read the tracker, read the ticket and all its comments too (task, design package, zone, out of scope, dependencies, done-when). The brief is your only source; everything about the process goes into comments.
+3. **Environment.** A cloud container is prepared by the session-start hook. In a local session install what you need yourself (see `AGENTS.md` → Commands for the toolchain and the *web check* browser) and say in your report what you installed.
 4. If the task starts on another task's branch that isn't in `main` yet, merge that branch as soon as it exists. Use only the API contract the brief names.
 
 ## Work
@@ -18,17 +18,17 @@ You are one working session on one task. The orchestrator launched you; a human 
 - **Questions never block you.** Nobody is watching. Post the question as a comment, take the most conservative option, note it, continue.
 - **Out of scope** items stay untouched even if the design package or screenshot shows them.
 - **Style comes from the style reference**, not from screenshots (`COORDINATION.md` → Design source of truth).
-- **How to write the code** is in `CLAUDE.md` → Conventions (including *Building a screen or UI component*) and → Architecture & code quality, and it is not repeated here. **Never call design-tool MCPs.** If another screen already has the piece you need, say so instead of copying it.
+- **How to write the code** is in `AGENTS.md` → Conventions (including *Building a screen or UI component*) and → Architecture & code quality, and it is not repeated here. **Never call design-tool MCPs.** If another screen already has the piece you need, say so instead of copying it.
 - **Tests:** decide what to test with `engineering:testing-strategy` when available; every screen gets a UI test.
 - **A bug or failing test you don't understand:** `engineering:debug` when available (reproduce, isolate, then fix).
-- **Package docs** (`AGENTS.md` + `CLAUDE.md` with `@AGENTS.md`, `CLAUDE.md` → Package docs) in every folder you touch, updated in the same commit as the code.
+- **Package docs** (`AGENTS.md` + `CLAUDE.md` with `@AGENTS.md`, root `AGENTS.md` → Package docs) in every folder you touch, updated in the same commit as the code.
 - Commit and push early and often: the environment can restart and a shared usage limit can stop you mid-task. After a stop, `git status` first: uncommitted work may still be there.
 - Backend: previews may be behind authentication. Push a minimal deploy spike early so the preview proves the build, and say in the report if you couldn't call it.
 
 ## Verify before every push
-- *lint* and *test* (`CLAUDE.md` → Commands) must be green. Run *format* to auto-fix.
+- *lint* and *test* (`AGENTS.md` → Commands) must be green. Run *format* to auto-fix.
 - CI skips draft PRs, so your local run is the only gate until you mark the PR ready.
-- For UI, the *web check* from `CLAUDE.md` → Commands: build, serve, screenshot at the target viewport, treat any page error or console error as a failure, compare with the design and fix visible differences.
+- For UI, the *web check* from `AGENTS.md` → Commands: build, serve, screenshot at the target viewport, treat any page error or console error as a failure, compare with the design and fix visible differences.
 - For backend changes: the endpoint/contract tests the brief names; call the changed endpoints once locally and put the request/response in your report.
 - List in your report what you could not verify (real devices, other browsers, external services).
 

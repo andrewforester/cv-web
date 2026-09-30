@@ -86,7 +86,7 @@ Backend (new zone, backend ticket):
 | `server/chat/llm/modelOptions.ts` | Allowlist of models and their request knobs (section 7). |
 | `server/chat/log.ts` | One structured JSON log line per request (section 10). |
 | `server/dev/chatApiPlugin.ts` | Vite dev-server plugin mounting `/api/chat` for `npm run dev` (section 12). |
-| `server/agents.md`, `server/chat/agents.md`, `api/agents.md` | Package docs. |
+| `server/AGENTS.md`, `server/chat/AGENTS.md`, `api/AGENTS.md` (+ `CLAUDE.md` with `@AGENTS.md`) | Package docs. |
 | `knowledge/<locale>/*.md` | Later: extra professional material for `MarkdownKnowledgeSource` (not now). |
 
 Tests sit next to the code (`*.test.ts`). Never add a root `server.ts` or `src/server.ts`: Vercel
