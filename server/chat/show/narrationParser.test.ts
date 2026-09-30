@@ -12,9 +12,7 @@ describe('NarrationParser', () => {
   it('emits a line as soon as it is complete, across arbitrary pieces', () => {
     const parser = new NarrationParser();
     expect(parser.push('fon')).toEqual([]);
-    expect(parser.push('ts: Fonts first.\nlay')).toEqual([
-      { key: 'fonts', text: 'Fonts first.' },
-    ]);
+    expect(parser.push('ts: Fonts first.\nlay')).toEqual([{ key: 'fonts', text: 'Fonts first.' }]);
     expect(parser.push('out: Now the layout.\r\n')).toEqual([
       { key: 'layout', text: 'Now the layout.' },
     ]);

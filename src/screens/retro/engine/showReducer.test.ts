@@ -1,4 +1,4 @@
-import { RETRO_FINALE_FALLBACK, RETRO_STEPS } from '../../../data/retro';
+import { RETRO_FINALE_FALLBACK, RETRO_STEP_IDS, RETRO_STEPS } from '../../../data/retro';
 import { RETRO_SHOW } from '../scenario';
 import { canSend, MAX_VISITOR_MESSAGES } from './showReducer';
 import { ShowTestRun, TEST_COPY } from './showTestRun';
@@ -11,9 +11,14 @@ const inStep = (id: string, stage?: string) => (state: ShowState) =>
   state.phase === 'steps' &&
   state.config.plan.steps[state.step]?.id === id &&
   (!stage || state.stage === stage);
+const inChunk = (key: string, stage: 'type' | 'beat') => (state: ShowState) =>
+  state.phase === 'steps' &&
+  state.stage === stage &&
+  state.config.plan.steps[state.step]?.chunks[state.chunk]?.key === key;
+const appliedAt = (run: ShowTestRun, key: string) => run.state.effects[key]?.at ?? NaN;
 
 describe('showReducer: timeline', () => {
-  it('opens the chat after 3 s, then the console, then runs every step to done', () => {
+  it('opens the chat after 3 s, then the console, then runs every step, closes and ends', () => {
     const run = new ShowTestRun(RETRO_SHOW);
     run.advance(TIMING.chatDelayMs - 1);
     expect(run.state.phase).toBe('idle');
@@ -30,53 +35,67 @@ describe('showReducer: timeline', () => {
     run.advanceUntil((state) => state.phase === 'console');
     expect(agentLines(run.state).at(-1)).toBe(TEST_COPY.handoff);
 
-    run.advanceUntil(inStep('tokens'));
-    expect(agentLines(run.state).at(-1)).toBe(RETRO_STEPS[0]?.fallback);
-
-    run.advanceUntil(() => run.status('module:ai-chat') === 'running');
-    expect(run.status('module:ai-chat')).toBe('running');
+    const steps: string[] = [];
+    run.advanceUntil((state) => {
+      const id = state.config.plan.steps[state.step]?.id;
+      if (state.phase === 'steps' && id && steps.at(-1) !== id) steps.push(id);
+      return run.status('module:ai-chat') === 'running';
+    });
+    expect(steps).toEqual([...RETRO_STEP_IDS]);
+    expect(agentLines(run.state)).toEqual([
+      TEST_COPY.greeting,
+      TEST_COPY.handoff,
+      ...RETRO_STEPS.map(({ fallback }) => fallback),
+    ]);
     run.dispatch({ type: 'moduleLoaded', key: 'module:ai-chat' });
     run.advanceUntil((state) => state.phase === 'finale');
     expect(agentLines(run.state).at(-1)).toBe(RETRO_FINALE_FALLBACK);
     expect(Object.values(run.state.effects).every(({ status }) => status === 'applied')).toBe(true);
 
+    const finaleAt = run.state.t;
+    run.advanceUntil((state) => state.phase === 'closing');
+    expect(run.state.t - finaleAt).toBeGreaterThanOrEqual(TIMING.closeDelayMs);
+    expect(canSend(run.state)).toBe(false);
+    const closingAt = run.state.t;
     run.advanceUntil((state) => state.phase === 'done');
-    expect(run.state.phase).toBe('done');
+    expect(run.state.t - closingAt).toBe(TIMING.closingMs);
   });
 
-  it('applies each effect when its own text is typed, not at the end of the step', () => {
+  it('applies one chunk at a time: the next one waits for the beat', () => {
     const run = new ShowTestRun(RETRO_SHOW);
-    run.advanceUntil(inStep('tokens', 'type'));
-    run.advanceUntil(() => run.status('layer:tokens-type') === 'applied', 10_000);
-    expect(run.status('layer:tokens-colors')).toBe('pending');
-    expect(run.status('layer:page-colors')).toBe('pending');
-    const typedFor = run.advanceUntil(() => run.status('layer:page-colors') === 'applied');
-    expect(typedFor).toBeGreaterThan(0);
-    // The step is clamped to 5 s of typing (SPEC: 1.2–5 s).
-    expect(run.state.t - run.state.stageAt).toBeLessThanOrEqual(TIMING.stepMaxMs);
+    run.advanceUntil(inChunk('layer:type-faces', 'type'));
+    run.advanceUntil(() => run.status('layer:type-faces') === 'applied', 10_000);
+    expect(run.status('layer:type-family')).toBe('pending');
+    expect(run.state.stage).toBe('beat');
+    run.advance(TIMING.beatMs - 20);
+    expect(run.status('layer:type-family')).toBe('pending');
+    expect(inChunk('layer:type-faces', 'beat')(run.state)).toBe(true);
+    run.advanceUntil(inChunk('layer:type-family', 'type'));
+    expect(run.state.stageAt).toBe(appliedAt(run, 'layer:type-faces') + TIMING.beatMs);
   });
 
   it('shows the LLM line for a step when it arrived, and the fallback otherwise', () => {
     const run = new ShowTestRun(RETRO_SHOW, { llm: true });
-    run.dispatch({ type: 'narrationLine', key: 'layout', text: 'LLM says: layout.' });
-    run.dispatch({ type: 'narrationLine', key: 'layout', text: 'A second line is ignored.' });
-    run.advanceUntil(inStep('tokens'));
+    run.dispatch({ type: 'narrationLine', key: 'colours', text: 'LLM says: colours.' });
+    run.dispatch({ type: 'narrationLine', key: 'colours', text: 'A second line is ignored.' });
+    run.advanceUntil(inStep('fonts'));
     expect(agentLines(run.state).at(-1)).toBe(RETRO_STEPS[0]?.fallback);
-    run.advanceUntil(inStep('layout'));
-    expect(agentLines(run.state).at(-1)).toBe('LLM says: layout.');
+    run.advanceUntil(inStep('colours'));
+    expect(agentLines(run.state).at(-1)).toBe('LLM says: colours.');
   });
 
-  it('with reduced motion applies a step at once, 1 s after its code shows', () => {
+  it('with reduced motion shows a chunk at once, applies it 0.6 s later and closes at once', () => {
     const run = new ShowTestRun(RETRO_SHOW, { reducedMotion: true });
-    run.advanceUntil(inStep('tokens', 'type'));
-    run.advance(TIMING.reducedMotionApplyMs - 1);
-    expect(run.status('layer:tokens-type')).toBe('pending');
+    run.advanceUntil(inChunk('layer:type-family', 'type'));
+    const start = run.state.stageAt;
+    run.advanceUntil(() => run.status('layer:type-family') === 'applied');
+    expect(appliedAt(run, 'layer:type-family')).toBe(start + TIMING.reducedMotionApplyMs);
+
+    run.advanceUntil(() => run.status('module:ai-chat') === 'running');
+    run.dispatch({ type: 'moduleLoaded', key: 'module:ai-chat' });
+    run.advanceUntil((state) => state.phase === 'closing');
     run.advance(1);
-    expect(
-      ['tokens-type', 'tokens-colors', 'type-faces', 'page-colors'].map((id) =>
-        run.status(`layer:${id}`),
-      ),
-    ).toEqual(['applied', 'applied', 'applied', 'applied']);
+    expect(run.state.phase).toBe('done');
   });
 });
 
@@ -91,41 +110,59 @@ describe('showReducer: holds', () => {
     expect(run.state.phase).toBe('chat');
   });
 
-  it('holds before typing while the visitor composes, up to 15 s', () => {
+  it("holds before a step's first chunk while the visitor composes, up to 15 s", () => {
     const run = new ShowTestRun(RETRO_SHOW);
-    run.advanceUntil(inStep('tokens', 'narrate'));
+    run.advanceUntil(inStep('fonts', 'narrate'));
     run.dispatch({ type: 'composing', on: true });
     run.advance(TIMING.narrateMs + 5_000);
     expect(run.state.stage).toBe('narrate');
     run.dispatch({ type: 'composing', on: false });
     expect(run.state.stage).toBe('type');
 
-    run.advanceUntil(inStep('layout', 'narrate'));
+    run.advanceUntil(inStep('colours', 'narrate'));
     run.dispatch({ type: 'composing', on: true });
-    run.advance(TIMING.narrateMs + TIMING.composingCapMs - 10);
+    const ready = run.state.stageAt + TIMING.narrateMs;
+    run.advance(ready + TIMING.composingCapMs - 1 - run.state.t);
     expect(run.state.stage).toBe('narrate');
-    run.advance(10);
+    run.advance(1);
     expect(run.state.stage).toBe('type');
+    expect(run.state.stageAt).toBe(ready + TIMING.composingCapMs);
+  });
+
+  it('never holds mid-chunk: a chunk that started finishes as shown, then the next one waits', () => {
+    const run = new ShowTestRun(RETRO_SHOW);
+    run.advanceUntil(inChunk('layer:type-faces', 'type'));
+    run.dispatch({ type: 'composing', on: true });
+    run.advanceUntil(() => run.status('layer:type-faces') === 'applied', 5_000);
+    const beatEnd = appliedAt(run, 'layer:type-faces') + TIMING.beatMs;
+    run.advance(TIMING.beatMs + 5_000);
+    expect(inChunk('layer:type-faces', 'beat')(run.state)).toBe(true);
+    expect(run.state.heldSince).toBe(beatEnd);
+    run.dispatch({ type: 'composing', on: false });
+    expect(inChunk('layer:type-family', 'type')(run.state)).toBe(true);
     expect(run.state.stageAt).toBe(run.state.t);
   });
 
-  it('never holds mid-typing: a step always completes as shown', () => {
-    const run = new ShowTestRun(RETRO_SHOW);
-    run.advanceUntil(inStep('tokens', 'type'));
-    run.dispatch({ type: 'composing', on: true });
-    run.advanceUntil(inStep('tokens', 'settle'), 10_000);
-    expect(run.state.stage).toBe('settle');
-  });
-
-  it('holds the next step while a reply streams, up to 12 s', () => {
+  it('holds the next chunk while a reply streams, up to 12 s', () => {
     const run = new ShowTestRun(RETRO_SHOW, { llm: true });
-    run.advanceUntil(inStep('tokens', 'settle'));
+    run.advanceUntil(inChunk('layer:type-faces', 'beat'));
     run.dispatch({ type: 'visitorSent', text: 'nice' });
     expect(run.state.visitor.request).not.toBeNull();
-    run.advance(TIMING.settleMs + TIMING.answeringCapMs - 10);
-    expect(run.state.step).toBe(0);
+    const beatEnd = run.state.stageAt + TIMING.beatMs;
+    run.advance(beatEnd + TIMING.answeringCapMs - 10 - run.state.t);
+    expect(inChunk('layer:type-faces', 'beat')(run.state)).toBe(true);
     run.advance(10);
-    expect(inStep('layout')(run.state)).toBe(true);
+    expect(inChunk('layer:type-family', 'type')(run.state)).toBe(true);
+  });
+
+  it('holds before the next step too, after its `✓ n/8` line', () => {
+    const run = new ShowTestRun(RETRO_SHOW);
+    run.advanceUntil(inStep('fonts', 'stepDone'));
+    run.dispatch({ type: 'composing', on: true });
+    run.advance(TIMING.stepDoneMs + 1_000);
+    expect(inStep('fonts', 'stepDone')(run.state)).toBe(true);
+    run.dispatch({ type: 'composing', on: false });
+    expect(inStep('colours', 'narrate')(run.state)).toBe(true);
   });
 });
 
@@ -189,7 +226,7 @@ describe('showReducer: the visitor', () => {
     run.dispatch({ type: 'visitorSent', text: 'second' });
     expect(run.state.visitor.request?.input).toEqual({
       step: 'layout',
-      stepsDone: 1,
+      stepsDone: 2,
       messages: [
         { role: 'user', content: 'first' },
         { role: 'assistant', content: 'Hello' },

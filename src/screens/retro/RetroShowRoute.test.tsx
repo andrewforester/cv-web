@@ -41,7 +41,7 @@ describe('retro show screen', () => {
     const { loaders, onDone } = renderShow();
     await advance(0);
     expect(screen.getByTestId(cvTestIds.name)).toBeInTheDocument();
-    expect(layers()).toHaveLength(12);
+    expect(layers()).toHaveLength(32);
     expect(document.getElementById('oh-snap')).toHaveTextContent(strings.noteTitle);
     expect(screen.queryByTestId(retroTestIds.dock)).not.toBeInTheDocument();
     expect(document.title).toBe(strings.pageTitle);
@@ -56,9 +56,9 @@ describe('retro show screen', () => {
     expect(chatText()).toContain(strings.handoff);
 
     await advance(4_000);
-    expect(screen.getByRole('progressbar', { name: 'Step 1 of 7: fonts & colours' })).toBeVisible();
+    expect(screen.getByRole('progressbar', { name: 'Step 1 of 8: fonts' })).toBeVisible();
 
-    await advance(70_000);
+    await advance(90_000);
     expect(loaders['ai-chat']).toHaveBeenCalledTimes(1);
     expect(layers()).toHaveLength(0);
     expect(document.head.querySelector('style[data-retro-host]')).toBeNull();
