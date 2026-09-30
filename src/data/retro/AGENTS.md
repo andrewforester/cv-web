@@ -22,6 +22,8 @@ through its context; `src/app/AppProviders.tsx` binds the implementation. `serve
 imports `scenario.ts` and `contract.ts` (framework-free, `.js` specifiers); errors, usage and
 chat messages are reused from `../chat/contract`.
 
-Stubs and limits: EN only, by decision. The HTTP implementation (`HttpShowRepository`) belongs to
-the server task (R2); until then the scripted fake is the only implementation. Change the
-contract only through the ticket that owns it; breaking changes bump `v` or the scenario id.
+Implementations: `HttpShowRepository` (the real one, over `/api/chat` `v: 3`, served by
+`server/chat/show/`) and the scripted `FakeShowRepository` for tests and dev.
+
+Stubs and limits: EN only, by decision. Change the contract only through the ticket that owns
+it; breaking changes bump `v` or the scenario id.

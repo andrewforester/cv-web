@@ -1,4 +1,8 @@
-import { CHAT_LIMITS_V2, type ChatError } from '../../src/data/chat/contract.js';
+import {
+  CHAT_LIMITS_V2,
+  type ChatError,
+  type ChatStopReasonV2,
+} from '../../src/data/chat/contract.js';
 import type { DayCostMeter } from './dayCost.js';
 import { baseHeaders, chatError, errorResponse, HTTP_STATUS_BY_CODE } from './errors.js';
 import { LlmError, type LlmClient, type LlmEvent, type LlmRequest } from './llm/LlmClient.js';
@@ -7,11 +11,26 @@ import type { ChatLogEntry, ChatLogger } from './log.js';
 import { encodeProviderState } from './providerState.js';
 import { encodeSseEvent, SSE_HEADERS, SSE_PING } from './sse.js';
 
+/**
+ * Turns the model's text into SSE events when a request doesn't stream it as `delta`s (v3
+ * `narrate` streams parsed `line`s instead).
+ */
+export interface TextStreamer {
+  /** Events for the next piece of model text; possibly none. */
+  text(text: string): string[];
+  /** Events due when the model stops, sent before `done`. */
+  end(stopReason: ChatStopReasonV2): string[];
+  /** Extra fields for the log line, read when it is written. */
+  logFields(): Partial<ChatLogEntry>;
+}
+
 export interface StreamContext {
   llm: LlmClient;
   llmRequest: LlmRequest;
   /** The request's API version: 2 streams `tool_call` events. */
   version: number;
+  /** Default: each piece of text is a `delta` event. */
+  streamer?: TextStreamer;
   model: ModelOptions;
   dayCost: DayCostMeter;
   /** Fires when the visitor goes away (Stop, closed tab). */
@@ -108,6 +127,11 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
         }
       };
       let firstDeltaAt: number | undefined;
+      const sendEvents = (chunks: string[]) => {
+        if (chunks.length === 0) return;
+        firstDeltaAt ??= now();
+        chunks.forEach(send);
+      };
       const ping = setInterval(() => {
         if (firstDeltaAt === undefined) send(SSE_PING);
       }, ctx.pingIntervalMs);
@@ -120,8 +144,9 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
         try {
           for await (const event of events) {
             if (event.type === 'text') {
-              firstDeltaAt ??= now();
-              send(encodeSseEvent('delta', { text: event.text }));
+              sendEvents(
+                ctx.streamer?.text(event.text) ?? [encodeSseEvent('delta', { text: event.text })],
+              );
               continue;
             }
             if (event.type === 'tool_call') {
@@ -133,6 +158,7 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
               send(encodeSseEvent('tool_call', event.call));
               continue;
             }
+            sendEvents(ctx.streamer?.end(event.stopReason) ?? []);
             const providerState =
               ctx.version === 2 && event.stopReason === 'tool_use' && event.blocks
                 ? encodeProviderState(event.blocks)
@@ -173,7 +199,7 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
         clearInterval(ping);
         cleanup();
         const ttftMs = firstDeltaAt === undefined ? null : firstDeltaAt - startedAt;
-        writeLog({ status: 200, ttftMs, ...toolFields(), ...fields });
+        writeLog({ status: 200, ttftMs, ...toolFields(), ...ctx.streamer?.logFields(), ...fields });
         open = false;
         try {
           controller.close();
