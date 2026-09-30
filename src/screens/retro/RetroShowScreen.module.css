@@ -40,18 +40,65 @@
   pointer-events: auto;
 }
 
-/* On `body` while the show is mounted: the page makes room for the dock, never sits under it. */
+/*
+ * On `body` while the show is mounted: the page makes room for the dock, never sits under it.
+ * When the windows close, the room is released once they have collapsed (SPEC → End of the show).
+ */
 .stage {
-  transition: padding-right 300ms var(--chat-motion-easing);
+  transition: padding-right var(--retro-reserve-duration) var(--chat-motion-easing)
+    calc(var(--retro-close-stagger) + var(--retro-close-collapse));
 }
 
 .stage.docked {
   padding-right: calc(var(--retro-dock-width) + 2 * var(--retro-dock-inset));
+  transition-delay: 0s;
+}
+
+/*
+ * The windows close like a Win98 minimise: each collapses to its title bar, then shrinks away
+ * towards the bottom-right corner; the chat follows the console after the stagger.
+ */
+.closing > * {
+  transform-origin: right bottom;
+  animation:
+    retro-collapse var(--retro-close-collapse) var(--retro-close-easing) forwards,
+    retro-fly var(--retro-close-fly) var(--retro-close-easing) var(--retro-close-collapse) forwards;
+}
+
+.closing > * + * {
+  animation-delay:
+    var(--retro-close-stagger), calc(var(--retro-close-stagger) + var(--retro-close-collapse));
+}
+
+@keyframes retro-collapse {
+  from {
+    clip-path: inset(
+      0 calc(-1 * var(--retro-window-shadow-offset)) calc(-1 * var(--retro-window-shadow-offset)) 0
+    );
+  }
+
+  to {
+    clip-path: inset(
+      0 calc(-1 * var(--retro-window-shadow-offset))
+        calc(100% - var(--retro-title-height) - 2 * var(--retro-window-padding)) 0
+    );
+  }
+}
+
+@keyframes retro-fly {
+  to {
+    opacity: 0;
+    transform: translate(var(--space-6), var(--space-6)) scale(0.2);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .stage {
     transition: none;
+  }
+
+  .closing > * {
+    animation: none;
   }
 }
 

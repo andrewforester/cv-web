@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useShowRepository } from '../../data/retro';
 import { useStrings } from '../../i18n';
+import { highlightOf } from './engine/chunkSelectors';
 import type { ShowClock } from './engine/clock';
 import { planShow } from './engine/consolePlan';
 import { readLiveToken } from './engine/layerHost';
@@ -10,7 +11,9 @@ import type { RetroShowUiState } from './RetroShowUiState';
 import { toRetroShowUiState } from './retroShowUi';
 import { RETRO_SHOW, type ShowModuleLoaders } from './scenario';
 import { retroStrings } from './strings';
+import { useChunkFocus } from './useChunkFocus';
 import { useDecorationPlacement } from './useDecorationPlacement';
+import { useHighlightBoxes } from './useHighlightBoxes';
 import { useShowLlm } from './useShowLlm';
 import { useShowRunner } from './useShowRunner';
 import { useShowStage } from './useShowStage';
@@ -51,12 +54,17 @@ export function useRetroShowState({ loaders, onDone, clock }: RetroShowOptions):
     clock,
   );
   useShowLlm(state, dispatch, repository);
-  const { layers, layersKey } = useShowStage(state, dispatch, {
+  const { layers, layersKey, chunk } = useShowStage(state, dispatch, {
     loaders,
     onDone,
     pageTitle: strings.pageTitle,
   });
-  const placement = useDecorationPlacement(layersKey, layers.includes('page-frame'));
+  const { reducedMotion } = state.config;
+  useChunkFocus(chunk, reducedMotion, dispatch);
+  const highlight = useHighlightBoxes(highlightOf(state));
+  // After a fade or morph applies, its targets move for a moment; the decorations follow them.
+  const moving = !reducedMotion && chunk?.status === 'applied' && chunk.motion !== 'none';
+  const placement = useDecorationPlacement(layersKey, layers.includes('page-frame'), moving);
 
   const [draft, setDraft] = useState('');
   const [focused, setFocused] = useState(false);
@@ -78,7 +86,11 @@ export function useRetroShowState({ loaders, onDone, clock }: RetroShowOptions):
   );
 
   return {
-    state: toRetroShowUiState(state, { draft, canSend: sendable, minimised, placement }, strings),
+    state: toRetroShowUiState(
+      state,
+      { draft, canSend: sendable, minimised, placement, highlight },
+      strings,
+    ),
     onDraftChange: setDraft,
     onComposerFocusChange: setFocused,
     onSend,

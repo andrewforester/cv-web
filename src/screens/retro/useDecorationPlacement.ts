@@ -56,9 +56,14 @@ const same = (a: Placement, b: Placement) => JSON.stringify(a) === JSON.stringif
 
 /**
  * Measures the decorations' anchors on the page (stable hooks only) and keeps them in place while
- * layers come off, the CV loads, fonts arrive or the window resizes.
+ * layers come off, the CV loads, fonts arrive or the window resizes; every animation frame while
+ * a change is `moving` the page (a fade or a morph running).
  */
-export function useDecorationPlacement(layersKey: string, layoutShifted: boolean): Placement {
+export function useDecorationPlacement(
+  layersKey: string,
+  layoutShifted: boolean,
+  moving: boolean,
+): Placement {
   const [placement, setPlacement] = useState<Placement>({});
 
   useLayoutEffect(() => {
@@ -77,6 +82,20 @@ export function useDecorationPlacement(layersKey: string, layoutShifted: boolean
       observer?.disconnect();
     };
   }, [layersKey, layoutShifted]);
+
+  useLayoutEffect(() => {
+    if (!moving) return;
+    let frame = 0;
+    const follow = () => {
+      setPlacement((current) => {
+        const next = place(layoutShifted);
+        return same(current, next) ? current : next;
+      });
+      frame = requestAnimationFrame(follow);
+    };
+    frame = requestAnimationFrame(follow);
+    return () => cancelAnimationFrame(frame);
+  }, [moving, layoutShifted]);
 
   return placement;
 }

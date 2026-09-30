@@ -9,4 +9,6 @@ export const retroTestIds = {
   progress: 'retro-progress',
   minimise: 'retro-minimise',
   decoration: 'retro-decoration',
+  highlight: 'retro-highlight',
+  highlightBox: 'retro-highlight-box',
 } as const;

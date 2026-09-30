@@ -1,0 +1,46 @@
+/*
+ * How page changes land (docs/design/retro/SPEC.md → Transitions; ARCHITECTURE §9 → Motion). The
+ * classes are switched on only while a chunk applies, so the CV's own motion and the retro page's
+ * marquee and blink are never touched, and nothing is left once the show is gone.
+ */
+
+/* On `body` from a fade chunk's start to the end of its beat: removing its layer animates. */
+.fade :global([data-retro-stage]),
+.fade :global([data-retro-stage] *),
+.fade :global([data-retro-stage] *)::before,
+.fade :global([data-retro-stage] *)::after {
+  transition-property:
+    color, background-color, border-color, outline-color, text-decoration-color, font-size,
+    line-height, letter-spacing, margin, padding, gap, row-gap, column-gap, border-width,
+    border-radius, box-shadow, width, height, opacity;
+  transition-duration: var(--retro-motion-duration);
+  transition-timing-function: var(--chat-motion-easing);
+  transition-delay: 0s;
+}
+
+/*
+ * On `<html>` while a morph chunk's view transition runs: the old page cross-fades into the new
+ * one and the chunk's targets move and resize. The show's own windows, decorations and highlight
+ * carry `view-transition-class: retro-live` (below): they stay live instead of freezing.
+ */
+.morph::view-transition-group(*),
+.morph::view-transition-old(*),
+.morph::view-transition-new(*) {
+  animation-duration: var(--retro-morph-duration);
+  animation-timing-function: var(--chat-motion-easing);
+}
+
+.morph::view-transition-group(*:global(.retro-live)),
+.morph::view-transition-new(*:global(.retro-live)) {
+  animation: none;
+}
+
+.morph::view-transition-old(*:global(.retro-live)) {
+  display: none;
+}
+
+/* Show-owned elements that must not freeze during a morph; each needs a unique name. */
+.morph .live {
+  view-transition-name: var(--retro-live-name);
+  view-transition-class: retro-live;
+}

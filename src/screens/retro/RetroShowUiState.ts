@@ -26,10 +26,32 @@ export interface WindowUi {
   minimised: boolean;
 }
 
+/** A highlighted target's border box, in page (document) pixels. */
+export interface HighlightBox {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+/** The show's pointer on the current chunk's target (SPEC → Show what changed). */
+export interface HighlightUi {
+  /** The chunk's key: a new chunk's highlight fades in afresh. */
+  key: string;
+  /** `typing`: the outline; `applied`: plus the fill flash; `fading`: going away. */
+  phase: 'typing' | 'applied' | 'fading';
+  /** A page-wide chunk: a frame around the page area instead of boxes. */
+  page: boolean;
+  boxes: HighlightBox[];
+}
+
 /** Everything the show's stateless screen renders (docs/design/retro/SPEC.md). */
 export interface RetroShowUiState {
-  /** Which windows the dock shows; the page reserves the dock's width while any is open. */
-  windows: 'none' | 'chat' | 'chatAndConsole';
+  /**
+   * Which windows the dock shows; the page reserves the dock's width while any is open.
+   * `closing`: both windows are flying off and the reserve is being released.
+   */
+  windows: 'none' | 'chat' | 'chatAndConsole' | 'closing';
   chat: WindowUi & {
     lines: ChatLineUi[];
     draft: string;
@@ -37,6 +59,8 @@ export interface RetroShowUiState {
     canSend: boolean;
     /** The visitor used up their messages: the composer is dim and shows the limit line. */
     limitReached: boolean;
+    /** The windows are closing: the composer stops taking input. */
+    readOnly: boolean;
   };
   console: WindowUi & {
     lines: ConsoleLineUi[];
@@ -46,5 +70,7 @@ export interface RetroShowUiState {
     /** Visually hidden live line for the last finished step. */
     announcement: string;
   };
-  decorations: { id: DecorationId; box: DecorationBox | null }[];
+  /** `leaving`: removed a moment ago, fading out before it unmounts. */
+  decorations: { id: DecorationId; box: DecorationBox | null; leaving: boolean }[];
+  highlight: HighlightUi | null;
 }
