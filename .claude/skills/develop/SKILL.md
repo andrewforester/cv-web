@@ -18,10 +18,10 @@ You are one working session on one task. The orchestrator launched you; a human 
 - **Questions never block you.** Nobody is watching. Post the question as a comment, take the most conservative option, note it, continue.
 - **Out of scope** items stay untouched even if the design package or screenshot shows them.
 - **Style comes from the style reference**, not from screenshots (`COORDINATION.md` → Design source of truth).
-- **Screens and UI components:** follow `.claude/skills/implement-screen`. Work from `docs/design/<screen>/`. **Never call design-tool MCPs.**
-- **Conventions** are in `CLAUDE.md`: tokens only (no hardcoded colours or sizes), strings through the i18n mechanism, hoisted state, mocks behind an interface in the data layer.
-- **Architecture and code quality** (`CLAUDE.md` → Architecture & code quality): layered data → state → stateless UI, small files, no duplication (if another screen already has the piece you need, say so instead of copying it).
-- **`agents.md` in every folder you touch**, updated in the same commit as the code it describes.
+- **How to write the code** is in `CLAUDE.md` → Conventions (including *Building a screen or UI component*) and → Architecture & code quality, and it is not repeated here. **Never call design-tool MCPs.** If another screen already has the piece you need, say so instead of copying it.
+- **Tests:** decide what to test with `engineering:testing-strategy` when available; every screen gets a UI test.
+- **A bug or failing test you don't understand:** `engineering:debug` when available (reproduce, isolate, then fix).
+- **Package docs** (`AGENTS.md` + `CLAUDE.md` with `@AGENTS.md`, `CLAUDE.md` → Package docs) in every folder you touch, updated in the same commit as the code.
 - Commit and push early and often: the environment can restart and a shared usage limit can stop you mid-task. After a stop, `git status` first: uncommitted work may still be there.
 - Backend: previews may be behind authentication. Push a minimal deploy spike early so the preview proves the build, and say in the report if you couldn't call it.
 
@@ -33,7 +33,7 @@ You are one working session on one task. The orchestrator launched you; a human 
 - List in your report what you could not verify (real devices, other browsers, external services).
 
 ## Finish
-0. Self-review the diff: no file past ≈250 lines, no copy-pasted blocks, no hardcoded colours/sizes/strings, `agents.md` present and current in each folder you touched.
+0. Self-review the diff: no file past ≈250 lines, no copy-pasted blocks, no hardcoded colours/sizes/strings, `AGENTS.md` (with its `CLAUDE.md`) present and current in each folder you touched.
 1. Re-read the brief and all comments: scope or decisions may have changed while you worked. Adjust.
 2. `git merge origin/main` again, re-run the checks, then push.
 3. Upload the web screenshot(s) to the ticket as `COORDINATION.md` → Tracker → Screenshots says (never into git) and write the **report** as a PR comment (and on the ticket if you can):
