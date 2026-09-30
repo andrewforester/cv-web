@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import type { RetroShowRoute } from '../screens/retro/RetroShowRoute';
 
+/**
+ * Awaited on its own: Vite wraps an `import()` together with a `.then` chained onto it in its
+ * preload helper, so a failed CSS preload would skip handlers chained there and go uncaught.
+ */
+async function importShow() {
+  const { RetroShowRoute } = await import('../screens/retro/RetroShowRoute');
+  return RetroShowRoute;
+}
+
 export interface LazyShow {
   /** The show's route once its chunk has loaded; the shell renders it. */
   Show: typeof RetroShowRoute | null;
@@ -17,9 +26,9 @@ export function useLazyShow(wanted: boolean, onFailed: () => void): LazyShow {
   useEffect(() => {
     if (!wanted || Show) return;
     let active = true;
-    import('../screens/retro/RetroShowRoute').then(
-      (module) => {
-        if (active) setShow(() => module.RetroShowRoute);
+    importShow().then(
+      (route) => {
+        if (active) setShow(() => route);
       },
       () => {
         if (active) onFailed();
