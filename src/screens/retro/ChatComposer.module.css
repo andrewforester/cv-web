@@ -1,0 +1,60 @@
+/* SPEC → Terminal chat panel → Input: `you>` prompt, amber text, block caret, dim placeholder. */
+.composer {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 1ch;
+  padding: var(--retro-composer-padding);
+  color: var(--retro-chat-visitor);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  caret-color: var(--retro-chat-visitor);
+}
+
+.input::placeholder {
+  color: var(--retro-term-dim);
+  opacity: 1;
+}
+
+/* The block caret stands in for the native one while the input is empty. */
+.empty {
+  caret-color: transparent;
+}
+
+.caret {
+  flex: none;
+  width: 1ch;
+  height: 1.1em;
+  margin-right: -1ch;
+  background: currentColor;
+  animation: retro-caret-blink 1s steps(1) infinite;
+}
+
+.limited {
+  color: var(--retro-term-dim);
+}
+
+.limited .caret {
+  display: none;
+}
+
+@keyframes retro-caret-blink {
+  50% {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    animation: none;
+  }
+}

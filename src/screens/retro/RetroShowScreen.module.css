@@ -1,0 +1,69 @@
+/*
+ * The dock of the live-fix show (docs/design/retro/SPEC.md → Screen layout): console above the
+ * terminal chat, fixed to the right. Window metrics of the Win98 chrome are screen-local; the
+ * two values without a `--retro-*` token are marked. TODO(theme): move them to tokens.css if
+ * another screen needs them.
+ */
+.dock {
+  --retro-bevel: 1px;
+  --retro-window-padding: 3px;
+  --retro-window-gap: 2px;
+  --retro-title-height: 18px;
+  --retro-title-icon-size: 14px;
+  --retro-button-width: 16px;
+  --retro-button-height: 14px;
+  --retro-term-padding: 6px 8px;
+  --retro-composer-padding: 5px 8px;
+  --retro-cell-padding: 1px 4px;
+  --retro-console-progress-gap: 6px;
+  --retro-console-progress-padding: 3px 4px;
+  --retro-console-progress-label-width: 158px;
+  --retro-console-progress-height: 16px;
+  --retro-console-progress-block: 8px;
+  --retro-console-progress-step: 10px;
+  --retro-console-progress-percent-width: 32px;
+  --retro-window-shadow-offset: 4px;
+  /* TODO(theme): SPEC's inner bevel light and window shadow have no tokens yet. */
+  --retro-win-light-inner: #dfdfdf;
+  --retro-window-shadow: rgba(0, 0, 0, 0.35);
+
+  position: fixed;
+  top: var(--retro-dock-inset);
+  right: var(--retro-dock-inset);
+  bottom: var(--retro-dock-inset);
+  z-index: var(--retro-z-index);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--retro-dock-gap);
+  width: var(--retro-dock-width);
+  pointer-events: none;
+}
+
+.dock > * {
+  pointer-events: auto;
+}
+
+/* On `body` while the show is mounted: the page makes room for the dock, never sits under it. */
+.stage {
+  transition: padding-right 300ms var(--chat-motion-easing);
+}
+
+.stage.docked {
+  padding-right: calc(var(--retro-dock-width) + 2 * var(--retro-dock-inset));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage {
+    transition: none;
+  }
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

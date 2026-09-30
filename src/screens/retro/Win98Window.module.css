@@ -1,0 +1,96 @@
+/* Windows 98 window chrome (SPEC → Terminal chat panel → Window, Title bar). */
+.window {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: var(--retro-window-padding);
+  background: var(--retro-win-face);
+  box-shadow:
+    inset calc(-1 * var(--retro-bevel)) calc(-1 * var(--retro-bevel)) var(--retro-win-dark),
+    inset var(--retro-bevel) var(--retro-bevel) var(--retro-win-light),
+    inset calc(-2 * var(--retro-bevel)) calc(-2 * var(--retro-bevel)) var(--retro-win-shadow),
+    inset calc(2 * var(--retro-bevel)) calc(2 * var(--retro-bevel)) var(--retro-win-light-inner),
+    var(--retro-window-shadow-offset) var(--retro-window-shadow-offset) 0 var(--retro-window-shadow);
+  font-family: var(--retro-win-font);
+  font-size: var(--retro-win-font-size);
+  letter-spacing: normal;
+  color: var(--retro-win-dark);
+}
+
+.window.minimised {
+  flex: none;
+  height: auto;
+}
+
+.window.minimised > :not(.title) {
+  display: none;
+}
+
+.title {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--retro-window-padding);
+  height: var(--retro-title-height);
+  padding: 0 var(--retro-window-gap) 0 var(--retro-window-padding);
+  background: var(--retro-win-title);
+  color: var(--retro-win-title-text);
+  font-weight: 700;
+  cursor: default;
+}
+
+.icon {
+  flex: none;
+  width: var(--retro-title-icon-size);
+  height: var(--retro-title-icon-size);
+}
+
+.caption {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.button {
+  flex: none;
+  width: var(--retro-button-width);
+  height: var(--retro-button-height);
+  padding: 0;
+  border: 0;
+  background: var(--retro-win-face);
+  box-shadow:
+    inset calc(-1 * var(--retro-bevel)) calc(-1 * var(--retro-bevel)) var(--retro-win-dark),
+    inset var(--retro-bevel) var(--retro-bevel) var(--retro-win-light),
+    inset calc(-2 * var(--retro-bevel)) calc(-2 * var(--retro-bevel)) var(--retro-win-shadow);
+  font: 700 var(--retro-win-font-size) / 1 var(--retro-win-font);
+  color: var(--retro-win-dark);
+  text-align: center;
+}
+
+.button:active {
+  box-shadow:
+    inset var(--retro-bevel) var(--retro-bevel) var(--retro-win-dark),
+    inset calc(-1 * var(--retro-bevel)) calc(-1 * var(--retro-bevel)) var(--retro-win-light);
+}
+
+/* Sunken black field: the chat log, the composer and the console screen. */
+.field {
+  margin-top: var(--retro-window-gap);
+  background: var(--retro-term-bg);
+  box-shadow:
+    inset var(--retro-bevel) var(--retro-bevel) var(--retro-win-shadow),
+    inset calc(-1 * var(--retro-bevel)) calc(-1 * var(--retro-bevel)) var(--retro-win-light),
+    inset calc(2 * var(--retro-bevel)) calc(2 * var(--retro-bevel)) var(--retro-win-dark);
+  font-family: var(--retro-term-font);
+  font-size: var(--retro-term-font-size);
+  line-height: var(--retro-term-line-height);
+  color: var(--retro-term-text);
+}
+
+/* Sunken cell of a status or progress row. */
+.cell {
+  box-shadow:
+    inset var(--retro-bevel) var(--retro-bevel) var(--retro-win-shadow),
+    inset calc(-1 * var(--retro-bevel)) calc(-1 * var(--retro-bevel)) var(--retro-win-light);
+}

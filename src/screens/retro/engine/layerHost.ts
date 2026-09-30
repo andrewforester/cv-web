@@ -49,6 +49,10 @@ export function createLayerHost(
         if (injected.has(id) || !layer) continue;
         injected.set(id, style(LAYER_ATTRIBUTE, id, layer.css));
       }
+      if (!injected.size) {
+        host?.remove();
+        host = null;
+      }
     },
     dispose() {
       for (const element of injected.values()) element.remove();
