@@ -58,6 +58,8 @@
         --retro-code-del-bg: rgba(255, 85, 85, 0.1);
         --retro-progress: #000080;
         --retro-z-index: 1001;
+        --retro-highlight-ink: #000000;
+        --retro-page-frame-inset: 6px;
       }
 
       /* =====================================================================================
@@ -427,6 +429,33 @@
         position: absolute;
         z-index: 1;
         letter-spacing: normal;
+      }
+      /* Highlight of the chunk's target (SPEC → Show what changed): a Paint-style selection in the
+         console's green, drawn over the page by the show; `.page` frames the whole page area. */
+      .target-hl {
+        position: absolute;
+        z-index: 2;
+        box-sizing: border-box;
+        border: var(--agent-highlight-width) solid var(--retro-code-add);
+        outline: var(--agent-highlight-width) dashed var(--retro-highlight-ink);
+        outline-offset: calc(-1 * var(--agent-highlight-width));
+        pointer-events: none;
+      }
+      .target-hl.applied {
+        background: var(--retro-code-add-bg);
+      }
+      .target-hl.page {
+        position: fixed;
+        inset: var(--retro-page-frame-inset);
+        background: none;
+      }
+      body.docked .target-hl.page {
+        right: calc(var(--retro-dock-width) + 2 * var(--retro-dock-inset) + var(--retro-page-frame-inset));
+      }
+      @keyframes retro-blink {
+        50% {
+          visibility: hidden;
+        }
       }
       #top-bar {
         font:
@@ -1114,46 +1143,104 @@
         'oh-snap': `<strong>Oh, snap!</strong>Some pictures didn't load. Try pressing F5... or just wait a minute.`,
       };
 
-      /* ------------------------------------------------------------------ scenario (POC) */
+      /* ------------------------------------------------------------------ scenario (atomic, GRA-49) */
+      // A chunk: [kind, id, target label, target selectors | 'page' | null]. One chunk = one change.
+      const TECH = "[data-testid='cv-technology-card']";
+      const LATEST = "[data-agent-id='section:latest-experience']";
       const STEPS = [
         {
-          id: 'tokens',
-          title: 'fonts & colours',
-          fallback: 'First, fonts and colours: let me bring them into this decade.',
+          id: 'fonts',
+          title: 'fonts',
+          fallback: 'First, the fonts: let me bring them into this decade.',
           effects: [
-            ['layer', 'tokens-type'],
-            ['layer', 'tokens-colors'],
-            ['layer', 'type-faces'],
-            ['layer', 'page-colors'],
+            ['layer', 'type-faces', 'headings', ["[data-testid='cv-name']", 'h2']],
+            ['layer', 'type-family', 'page', 'page'],
+            ['layer', 'type-scale-headings', 'name & titles', ["[data-testid='cv-name']", 'h2']],
+            ['layer', 'type-scale-text', 'body text', ["[data-testid='cv-summary']"]],
+            ['layer', 'type-scale-cards', 'cards & dates', ["[data-agent-id='section:technologies']"]],
+            ['layer', 'type-scale-details', 'education & books', ["[data-agent-id='section:education']", "[data-agent-id='section:about']"]],
+          ],
+        },
+        {
+          id: 'colours',
+          title: 'colours',
+          fallback: 'Now the colours. Goodbye, star field.',
+          effects: [
+            ['layer', 'page-background', 'page', 'page'],
+            ['layer', 'base-colors', 'page', 'page'],
+            ['layer', 'heading-colors', 'name & titles', ["[data-testid='cv-name']", 'h2']],
+            ['layer', 'tech-fills', 'technologies', [TECH]],
           ],
         },
         {
           id: 'layout',
           title: 'layout',
           fallback: "Now the layout. It's been leaning left since 2002.",
-          effects: [['layer', 'layout-shift']],
+          effects: [
+            ['layer', 'page-frame', 'page', 'page'],
+            ['layer', 'header-layout', 'header', ["[data-agent-id='section:header']"]],
+            ['layer', 'tech-grid', 'technologies', ["[data-agent-id='section:technologies']"]],
+            ['layer', 'experience-heads', 'experience', [`${LATEST} [data-testid='cv-experience-entry']`]],
+            ['layer', 'app-stack', 'apps', ["[data-agent-id='section:apps']"]],
+          ],
         },
         {
-          id: 'rest',
-          title: 'the rest',
-          fast: true,
-          fallback: 'And the rest: pictures, cards, spacing and that marquee. Fast-forwarding.',
+          id: 'images',
+          title: 'images',
+          fallback: 'The pictures were in the wrong folder. Fixing the paths.',
           effects: [
-            ['layer', 'broken-images'],
-            ['deco', 'oh-snap'],
-            ['layer', 'table-cells'],
-            ['layer', 'old-rhythm'],
-            ['layer', 'new-bursts'],
-            ['deco', 'top-bar'],
-            ['deco', 'page-footer'],
-            ['layer', 'decor-room'],
-            ['layer', 'hide-header'],
-            ['layer', 'old-links'],
-            ['module', 'ai-chat'],
+            ['layer', 'broken-photo', 'photo', ["[data-agent-id='section:header'] > img"]],
+            ['deco', 'oh-snap', 'note', ['#oh-snap']],
+            ['layer', 'squashed-logos', 'logos', ["[data-testid='cv-experience-entry'] img"]],
+            ['layer', 'broken-icon', 'Savant icon', ["[data-agent-id='app:savant'] img"]],
+            ['layer', 'broken-cover', 'book cover', ["[data-agent-id='book:siddhartha'] img"]],
+          ],
+        },
+        {
+          id: 'cards',
+          title: 'cards',
+          fallback: 'Tables are for data. Turning these into cards.',
+          effects: [
+            ['layer', 'tech-cells', 'technologies', [TECH]],
+            ['layer', 'app-cells', 'apps', ["[data-testid='cv-app-card']"]],
+            ['layer', 'card-colors', 'card borders', [TECH, "[data-testid='cv-app-card']"]],
+            ['layer', 'book-frames', 'books', ["[data-testid='cv-book'] img"]],
+          ],
+        },
+        {
+          id: 'spacing',
+          title: 'spacing & lists',
+          fallback: 'Giving everything room to breathe. Goodbye, <hr>.',
+          effects: [
+            ['layer', 'heading-rules', 'section titles', ['h2']],
+            ['layer', 'bullets', 'bullets', ["[data-testid='cv-summary']", LATEST]],
+            ['layer', 'experience-rhythm', 'experience', [LATEST]],
+            ['layer', 'about-spacing', 'about me', ["[data-agent-id='section:about']"]],
+          ],
+        },
+        {
+          id: 'chrome',
+          title: '2002 chrome',
+          fallback: 'Time to say goodbye to the marquee and the hit counter.',
+          effects: [
+            ['deco', 'top-bar', 'nav bar', ['#top-bar']],
+            ['layer', 'new-bursts', 'NEW! badges', ["[data-agent-id='technology:ai-tools']", `${LATEST} h2`]],
+            ['deco', 'page-footer', 'footer', ['#page-footer']],
+            ['layer', 'decor-room', 'page', 'page'],
+            ['layer', 'hide-header', 'language switcher', ["[data-testid='app-header']"]],
+          ],
+        },
+        {
+          id: 'links',
+          title: 'links & contacts',
+          fallback: 'Last: links, contacts, and a real chat button.',
+          effects: [
+            ['layer', 'link-style', 'contacts', ["[data-agent-id='section:header'] address"]],
+            ['layer', 'contact-labels', 'contacts', ["[data-agent-id='section:header'] address"]],
+            ['module', 'ai-chat', null, null],
           ],
         },
       ];
-      const TOKEN_LAYERS = ['tokens-type', 'tokens-colors'];
 
       const T = (h, m, kind, text) => [`${h}:${m}`, kind, text];
       const CHAT = {
@@ -1174,13 +1261,10 @@
         console: [
           T(20, 15, 'agent', 'Opening my console. Every line I type lands on the page right away.'),
         ],
-        s1: [T(20, 15, 'agent', STEPS[0].fallback)],
         between: [
           T(20, 15, 'visitor', 'much better already'),
           T(20, 15, 'agent', 'Thanks! Wait till you see it centred.'),
         ],
-        s2: [T(20, 15, 'agent', STEPS[1].fallback)],
-        s3: [T(20, 16, 'agent', STEPS[2].fallback)],
         finale: [
           T(
             20,
@@ -1190,7 +1274,18 @@
           ),
         ],
       };
-      // at: [step index, effect index, lines typed of that effect]; effects before it are applied.
+      // Chat up to the start of step `n` (its narration included); the exchange sits after step 2.
+      const chatAt = (n) => [
+        ...CHAT.open,
+        ...CHAT.exchange,
+        ...CHAT.console,
+        ...STEPS.slice(0, n + 1).flatMap((s, i) => [
+          ...(i === 2 ? CHAT.between : []),
+          T(20, 15 + Math.floor(i / 3), 'agent', s.fallback),
+        ]),
+      ];
+      // at: [step, chunk, lines typed of that chunk]; chunks before it are applied.
+      // hl: 'typing' marks the chunk being typed; 'applied' the chunk that just applied (its beat).
       const STATES = {
         broken: { at: [0, 0, 0], dock: false },
         chat: {
@@ -1199,65 +1294,14 @@
           typing: 'the purple name is a bold choice',
           console: false,
         },
-        console: {
-          at: [0, 0, 5],
-          chat: [...CHAT.open, ...CHAT.exchange, ...CHAT.console, ...CHAT.s1],
-        },
-        'step1-mid': {
-          at: [0, 1, 9],
-          chat: [...CHAT.open, ...CHAT.exchange, ...CHAT.console, ...CHAT.s1],
-        },
-        step1: {
-          at: [0, 4, 0],
-          chat: [...CHAT.open, ...CHAT.exchange, ...CHAT.console, ...CHAT.s1],
-        },
-        'step2-mid': {
-          at: [1, 0, 14],
-          chat: [
-            ...CHAT.open,
-            ...CHAT.exchange,
-            ...CHAT.console,
-            ...CHAT.s1,
-            ...CHAT.between,
-            ...CHAT.s2,
-          ],
-        },
-        step2: {
-          at: [1, 1, 0],
-          chat: [
-            ...CHAT.open,
-            ...CHAT.exchange,
-            ...CHAT.console,
-            ...CHAT.s1,
-            ...CHAT.between,
-            ...CHAT.s2,
-          ],
-        },
-        'rest-mid': {
-          at: [2, 4, 6],
-          chat: [
-            ...CHAT.open,
-            ...CHAT.exchange,
-            ...CHAT.console,
-            ...CHAT.s1,
-            ...CHAT.between,
-            ...CHAT.s2,
-            ...CHAT.s3,
-          ],
-        },
-        end: {
-          at: [3, 0, 0],
-          chat: [
-            ...CHAT.open,
-            ...CHAT.exchange,
-            ...CHAT.console,
-            ...CHAT.s1,
-            ...CHAT.between,
-            ...CHAT.s2,
-            ...CHAT.s3,
-            ...CHAT.finale,
-          ],
-        },
+        console: { at: [0, 0, 5], chat: chatAt(0), hl: 'typing' },
+        'step1-mid': { at: [0, 3, 6], chat: chatAt(0), hl: 'typing' },
+        step1: { at: [2, 0, 0], chat: chatAt(1) },
+        'colours-mid': { at: [1, 2, 0], chat: chatAt(1), hl: 'applied' },
+        'step2-mid': { at: [2, 2, 0], chat: chatAt(2), hl: 'applied' },
+        step2: { at: [3, 0, 0], chat: chatAt(2) },
+        'rest-mid': { at: [4, 1, 0], chat: chatAt(4), hl: 'applied' },
+        end: { at: [8, 0, 0], chat: [...chatAt(7), ...CHAT.finale] },
       };
 
       const q = new URLSearchParams(location.search);
@@ -1324,7 +1368,7 @@
           top: `${cv.bottom - 200}px`,
           width: `${cv.width}px`,
         });
-        if (isActive('layer', 'layout-shift')) {
+        if (isActive('layer', 'page-frame')) {
           const main = box('main');
           const header = box('[data-agent-id="section:header"]');
           set('oh-snap', { left: `${main.right + 28}px`, top: `${header.top + 40}px` });
@@ -1333,9 +1377,33 @@
           set('oh-snap', { left: `${photo.right + 28 - 184}px`, top: `${photo.top - 12}px` });
         }
       };
+      const highlight = () => {
+        if (!st.hl) return;
+        const [step, chunk] = st.hl === 'applied' ? [atStep, atEffect - 1] : [atStep, atEffect];
+        const targets = STEPS[step]?.effects[chunk]?.[3];
+        if (!targets) return;
+        const add = (cls) =>
+          portal.append(Object.assign(document.createElement('div'), { className: `target-hl ${cls}` }));
+        if (targets === 'page') return add(`page ${st.hl}`);
+        const offset = 4;
+        for (const sel of targets)
+          for (const el of document.querySelectorAll(`[data-retro-stage] ${sel}, #portal ${sel}`)) {
+            const r = el.getBoundingClientRect();
+            if (r.bottom < 0 || r.top > innerHeight || r.width === 0) continue;
+            const box = Object.assign(document.createElement('div'), { className: `target-hl ${st.hl}` });
+            Object.assign(box.style, {
+              left: `${r.left + scrollX - offset}px`,
+              top: `${r.top + scrollY - offset}px`,
+              width: `${r.width + 2 * offset}px`,
+              height: `${r.height + 2 * offset}px`,
+            });
+            portal.append(box);
+          }
+      };
       Promise.all(loads)
         .then(() => document.fonts.ready)
-        .then(place);
+        .then(place)
+        .then(highlight);
       addEventListener('resize', place);
 
       /* ------------------------------------------------------------------ console text */
@@ -1354,7 +1422,11 @@
           (m) => [m[1], m[2].replace(/\s+/g, ' ')],
         ),
       );
-      const effectLines = ([kind, id]) => {
+      const effectLines = (effect) => {
+        const target = effect[2] ? [['com', `// → ${effect[2]}`]] : [];
+        return [...target, ...codeLines(effect)];
+      };
+      const codeLines = ([kind, id]) => {
         if (kind === 'deco')
           return [
             ['js', `document.getElementById('${id}').remove();`],
@@ -1368,7 +1440,7 @@
         const css = read(`layers/${id}.css`);
         if (css == null) return [['com', `// layers/${id}.css (open over http to see the code)`]];
         const head = [['file', `--- layers/${id}.css`]];
-        if (TOKEN_LAYERS.includes(id)) {
+        if (css.trimStart().startsWith(':root')) {
           const decls = [...css.matchAll(/(--[\w-]+):\s*([^;]+);/g)];
           return [
             ...head,
