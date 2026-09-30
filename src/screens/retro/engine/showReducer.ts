@@ -53,7 +53,11 @@ function visitorSent(state: ShowState, raw: string): ShowState {
       revealFrom: state.t,
     });
   }
-  const input = { step: stepOnScreen(state), stepsDone: stepsDone(state), messages: history(visitor, text) };
+  const input = {
+    step: stepOnScreen(state),
+    stepsDone: stepsDone(state),
+    messages: history(visitor, text),
+  };
   return withVisitor(sent, { request: { id: sent.nextId, input, text }, replyEntry: null });
 }
 

@@ -39,7 +39,10 @@ function enterStep(state: ShowState, index: number, at: number): ShowState {
   if (!step) return enterFinale(state, at);
   const moved = { ...state, phase: 'steps' as const, step: index, stage: 'narrate' as const };
   const text = state.narration[step.id] ?? step.fallback;
-  return addChat({ ...moved, stageAt: at, heldSince: null }, { kind: 'agent', text, revealFrom: at, at });
+  return addChat(
+    { ...moved, stageAt: at, heldSince: null },
+    { kind: 'agent', text, revealFrom: at, at },
+  );
 }
 
 function enterFinale(state: ShowState, at: number): ShowState {

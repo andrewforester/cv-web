@@ -34,7 +34,9 @@ export function createLayerHost(
   return {
     sync(ids) {
       if (!host && ids.length) {
-        const declarations = Object.entries(hostVariables).map(([name, value]) => `${name}: ${value};`);
+        const declarations = Object.entries(hostVariables).map(
+          ([name, value]) => `${name}: ${value};`,
+        );
         host = style(HOST_ATTRIBUTE, '', `:root { ${declarations.join(' ')} }`);
       }
       for (const [id, element] of injected) {
@@ -70,7 +72,8 @@ function scanRules(rules: CSSRuleList, name: string, win: Window): string | unde
     if (rule.selectorText === ':root' && rule.style) {
       value = rule.style.getPropertyValue(name).trim() || value;
     } else if (rule.cssRules && rule.media) {
-      const matches = typeof win.matchMedia !== 'function' || win.matchMedia(rule.media.mediaText).matches;
+      const matches =
+        typeof win.matchMedia !== 'function' || win.matchMedia(rule.media.mediaText).matches;
       if (matches) value = scanRules(rule.cssRules, name, win) ?? value;
     }
   }

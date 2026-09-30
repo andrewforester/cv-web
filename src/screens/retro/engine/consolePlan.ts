@@ -89,7 +89,10 @@ function effectText(
       if (!module) throw new Error(`Unknown show module: ${effect.module}`);
       return {
         lines: [
-          { kind: 'code', text: `const { ${module.exportName} } = await import('${module.path}');` },
+          {
+            kind: 'code',
+            text: `const { ${module.exportName} } = await import('${module.path}');`,
+          },
         ],
         doneText: `${module.label} loaded`,
       };

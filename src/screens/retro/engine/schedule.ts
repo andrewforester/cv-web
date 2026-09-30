@@ -8,7 +8,8 @@ export function isAnimating(state: ShowState): boolean {
   const { reducedMotion } = state.config;
   if (reducedMotion) return false;
   const revealing = state.chat.some(
-    (entry) => entry.revealFrom !== null && state.t < entry.revealFrom + revealMs(entry.text, false),
+    (entry) =>
+      entry.revealFrom !== null && state.t < entry.revealFrom + revealMs(entry.text, false),
   );
   if (revealing) return true;
   const step = currentStep(state);
