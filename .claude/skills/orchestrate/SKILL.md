@@ -9,7 +9,7 @@ You plan, launch, watch and merge. You do **not** write feature code. You may ed
 
 ## First run: the Scaffold task
 While `AGENTS.md` or `docs/COORDINATION.md` still contain `TODO(scaffold)`, the project has no stack yet. Before any other task:
-1. Agree the stack with the human (frontend, backend, hosting, test tools). Record the choice and why in the task, not in chat only.
+1. Agree the stack with the human (frontend, backend, hosting, test tools). Record the choice and why in the task, not in chat only. Before launching Scaffold, make sure the hosting project and every third-party account the stack needs exist and their connectors are connected (`docs/SETUP.md` → 3), or file them as **Needs human**: briefs must carry the real URLs and ids, otherwise sessions guess (e.g. CORS for a domain that isn't ours).
 2. File one Scaffold task (Role DevOps): create the apps/packages, fill every `TODO(scaffold)` (Layout, Commands, Conventions, Hot spots with real paths, Scaffold decisions, Design source of truth), the session-start hook, CI jobs (lint, test, web smoke with screenshots, deploy), a hello-world screen with one UI test, and package docs (`AGENTS.md` + `CLAUDE.md`). Zone: everything. Done when: no `TODO(scaffold)` is left and CI is green on the PR.
 3. Nothing else runs in parallel with it.
 
@@ -93,13 +93,15 @@ After merging:
 - A red `main` is the top priority: pick up the QA fix task first.
 
 ## Hand off
-When your context passes ≈300k tokens, the human asks, or a round ends: write a handoff comment in the tracker (the epic's project or main ticket): open tickets and their state, running sessions (name, id, branch, PR), decisions not yet in docs, pending human actions, and cost so far. Then launch a new orchestrator the same way as a task session (`COORDINATION.md` → Tooling → Sessions) with "Use the orchestrate skill. Continue <epic>; the handoff is in <link>.", give the human its id, and stop your watchers and check-ins.
+When your context passes ≈250k tokens, the human asks, or a round ends. You can't see an exact counter: estimate from the conversation (tool outputs dominate) and hand off early rather than late. First write a short **process retrospective** (what cost time, what broke, what worked) and turn it into a PR on the process docs (`.claude/skills/**`, `docs/COORDINATION.md`, `docs/SETUP.md`); merge it. Then write a handoff comment in the tracker (the epic's project or main ticket): open tickets and their state, running sessions (name, id, branch, PR), decisions not yet in docs, pending human actions, and cost so far. Then launch a new orchestrator the same way as a task session (`COORDINATION.md` → Tooling → Sessions) with "Use the orchestrate skill. Continue <epic>; the handoff is in <link>.", give the human its id, and stop your watchers and check-ins.
 
 ## Keep the orchestrator cheap
 The orchestrator is usually the most expensive session: every wake-up re-reads the whole conversation. So:
 - Wake up only for real events; combine several checks into one wake-up.
 - Don't paste large outputs into the conversation (diffs, logs, screenshots): look at `--stat`, grep for errors, view one screenshot.
-- Watch your own context size; past ≈300k tokens or at the end of a round, hand off (above).
+- Watch your own context size; past ≈250k tokens or at the end of a round, hand off (above).
+- Tracker writes echo the whole ticket back: prefer comments over rewriting descriptions, change a description with the smallest edit the tool allows, and don't re-read what you just wrote.
+- Wait with background `until` loops (one condition) or the PR monitor (a stream), never `sleep`; answer routine monitor events in one line.
 
 Ask the human (**Needs human**) about:
 - changes to process rules;
