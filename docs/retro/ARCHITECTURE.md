@@ -438,26 +438,28 @@ Resolved: the defaults below stand; final answers are in section 9 → Decisions
 
 Merged into `claude/retro-rebuild`: round 1 (POC) GRA-40 (tokens), GRA-41 (contract + manifest),
 GRA-42 (server v3), GRA-43 (show screen), GRA-44 (shell + e2e); then GRA-46 (the 7-step show,
-`retro-2`, guard 4 for every step), GRA-47 (panel tokens), GRA-48 (the show as a lazy chunk). Open
-the show with `?retro=1` on the branch's preview.
+`retro-2`, guard 4 for every step), GRA-47 (panel tokens), GRA-48 (the show as a lazy chunk). Round
+3, designed in GRA-49 and **built**: GRA-50 (R10: the 8-step, 36-chunk scenario and the per-chunk
+runner, `retro-3`), GRA-51 (R11: motion tokens), GRA-52 (R12: motion, highlight, camera, smooth
+close), GRA-53 (R13: e2e for round 3 and this section). Open the show with `?retro=1` on the
+branch's preview.
 
-**GRA-49 (round 3, designed, not built yet)** answers the human's notes on the POC: the page
-changes in **atomic chunks** with a beat after each, changes **transition** instead of jumping,
-the visitor **sees where** each change lands, and the windows **close smoothly**. The look and
-timing are `docs/design/retro/SPEC.md` (The fix list, Chunk rhythm, Transitions, Show what changed,
-End of the show); the mechanism is *Round 3: atomic chunks* below. Everything else in this section
-is built.
+Round 3 answers the human's notes on the POC: the page changes in **atomic chunks** with a beat
+after each, changes **transition** instead of jumping, the visitor **sees where** each change
+lands, and the windows **close smoothly**. The look and timing are `docs/design/retro/SPEC.md` (The
+fix list, Chunk rhythm, Transitions, Show what changed, End of the show); the mechanism, as built,
+is *Round 3* below. Everything in this section is built.
 
 ### Where things are
 
 | Path | What |
 |---|---|
 | `src/data/retro/` | Manifest (`scenario.ts`: `RETRO_SCENARIO_ID`, `RETRO_STEPS` with id, title, LLM intent, fallback), v3 contract, `ShowRepository` + `FakeShowRepository` + `HttpShowRepository`. Shared with the server. |
-| `src/screens/retro/` | `scenario.ts` (`DAMAGE_LAYERS`, `DECORATION_IDS`, `SHOW_MODULES`, `HOST_VARIABLES`, `RETRO_EFFECTS`), `engine/` (reducer, clock, layer host, console plan), `layers/*.css` (the damage), panels (`TerminalChat`, `LiveConsole`, `Win98Window`, decorations), `harness/` (dev-only, not shipped). |
+| `src/screens/retro/` | `scenario.ts` (`DAMAGE_LAYERS`, `DECORATION_IDS`, `SHOW_MODULES`, `HOST_VARIABLES`) and `scenarioSteps.ts` (`RETRO_CHUNKS`: the fix list as data, 8 steps of 36 chunks with target and motion); `engine/` (reducer, clock, timing, layer host with `morph`, console plan, `chunkSelectors.ts`: `currentChunk`, `highlightOf`, `leavingDecorations`, `targetQuery`); `layers/*.css` (the 32 damage layers); panels (`TerminalChat`, `LiveConsole`, `Win98Window`, decorations); motion and pointer (`RetroMotion.module.css`, `useShowStage`, `Highlight` + `useHighlightBoxes`, `useChunkFocus`); `harness/` (dev-only, not shipped). |
 | `src/app/` | `retroMode.ts` (mode decision), `useRetroMode`, `useLazyShow` (the show's chunk, requested only in show mode; the shell stays hidden until it loads), `useLazyChat` (chat chunk, the `ai-chat` loader), `App.tsx` (one tree shape, `data-retro-stage`), `AppProviders` (repository binding, `retroMode` seam). |
 | `server/chat/show/` | v3 validation, narrate/reply prompts, narration line parser, fake scripts; v3 branch in `server/chat/handler.ts`. |
 | `src/theme/tokens.css` | `--retro-*` panel tokens (not the damage values). |
-| `e2e/retro.spec.ts`, `e2e/retroShow.ts`, `e2e/retroLazy.spec.ts` | End-state guard, guard 4 per step, lazy-chunk checks; other specs open the normal site with `?retro=0`. |
+| `e2e/retro.spec.ts`, `e2e/retroShow.ts`, `e2e/retroLazy.spec.ts` | End-state guard and guard 4 per step (reduced motion), one motion-on run with the timing smoke, lazy-chunk checks; other specs open the normal site with `?retro=0`. |
 
 ### Decisions (final)
 
@@ -471,8 +473,8 @@ is built.
   options (Hobby has no custom events); no new accounts or databases without the human.
 - **Q2 who:** `?retro=1` forces, `?retro=0` skips; otherwise locale `en` + `min-width: 1024px` +
   not yet seen in this browser session. **Q3:** once per session (`sessionStorage['retro.done']`).
-- **Q4 reduced motion:** the show runs without typing and without motion (the screen reads the
-  media query itself).
+- **Q4 reduced motion:** the show runs without typing and without motion: no motion classes, no
+  view transitions, no leave, instant close (the screen reads the media query itself).
 - **Q5 literals:** allowed only in `src/screens/retro/layers/*.css` and `Decorations.module.css`
   (they are displayed code); recorded in `src/screens/retro/AGENTS.md`, not in the root rules.
 - **Q6:** the show shares `CHAT_MODEL` and `CHAT_ENABLED` with the AI chat. **Q7:** the terminal
@@ -482,170 +484,172 @@ is built.
 - **The show is a lazy chunk** (GRA-48): normal-mode visitors never download it; a failed chunk
   falls back to the normal site.
 - **Replay** (later): an "open the old site" button restarts the show.
-- **Round 3 (GRA-49):** one visible change per chunk with a beat; fade or morph per chunk; a
-  show-owned highlight and camera, not the page agent's registry; 8 steps, one narration line per
-  step; a `closing` phase for the windows. Details and the reasons below and in SPEC → Decisions
-  12–22.
+- **Round 3 (GRA-49, built in GRA-50–52):** one visible change per chunk with a beat; fade or morph
+  per chunk; a show-owned highlight and camera, not the page agent's registry; 8 steps, one
+  narration line per step; a `closing` phase for the windows. Details and the reasons below and in
+  SPEC → Decisions 12–22.
 
-### Round 3: atomic chunks (GRA-49, to build)
+### Round 3: atomic chunks (designed in GRA-49, built in GRA-50–52)
 
-#### Context: what the code does today
+#### Before round 3
 
-- **Apply per effect already works:** `applyTyped` (`engine/showProgress.ts`) applies each effect
-  when the typed count passes its `end` offset, and the console prints its `✓` there.
-- **Typing is timed per step:** `typingMs(step.chars)` spreads a whole step's text over 1.2–5 s
-  (every GRA-46 step hits the 5 s cap), so the rate runs from ~50 to ~250 chars/s depending on how
-  much the step holds, and a step with one 50-line layer (`layout-shift`) changes everything in
-  one moment. Nothing waits between effects. That is the "code piles up, then it all changes"
-  the human saw.
-- **No motion:** a layer is a `<style>` that is inserted or removed; the page jumps. The dock
-  unmounts at `done`; only `body` `padding-right` transitions (300 ms literal).
-- **No pointer:** nothing says where a change lands; the page never scrolls.
+Typing was timed per step (`typingMs(step.chars)` spread a whole step's text over 1.2–5 s, every
+step hit the 5 s cap), nothing waited between effects, a layer was a `<style>` that was inserted or
+removed so the page jumped, the dock unmounted at `done`, and nothing said where a change landed.
+That is the "code piles up, then it all changes" the human saw.
 
-#### Runner: per-chunk timing
+#### Runner: per-chunk timing (GRA-50)
 
-- **Scenario shape.** A step becomes a list of **chunks**; a chunk is one effect plus how it is
-  shown (the effect kinds don't change; the round-2 `focus` effect is dropped, see Highlight):
+- **Scenario shape.** `RETRO_CHUNKS` (`scenarioSteps.ts`) lists, per step, its chunks in show order:
   ```ts
   type ChunkTarget = { label: string; selectors: readonly string[] | 'page' };
   interface RetroChunk {
     effect: RetroEffect;                 // removeLayer | removeDecoration | loadModule
     target: ChunkTarget | null;          // null: the module chunk
-    motion?: 'fade' | 'morph';           // layers only; decorations always leave
+    motion?: LayerMotion;                // 'fade' | 'morph', layers only; decorations always leave
   }
-  interface RetroStep { id: RetroStepId; chunks: readonly RetroChunk[] }   // `speed` goes
   ```
-  Selectors are hook-contract selectors resolved under `[data-retro-stage]`, or `#<decoration id>`.
-  The target label is typed as the chunk's first console line (`// → header`); it is a comment,
-  so "code shown = code applied" holds.
+  36 chunks: 18 morph, 14 fade, 3 leave (decorations), 1 module. Selectors are hook-contract
+  selectors resolved under `[data-retro-stage]` (`targetQuery`), or `#<decoration id>`. The target
+  label is typed as the chunk's first console line (`// → header`, a comment, so "code shown = code
+  applied" holds). The round-2 `focus` effect is gone.
 - **Plan.** `planShow` gives each planned chunk its own `lines`, `chars` and typing time
-  (`chars ÷ 240/s`, clamped to 0.4–1.3 s; reduced motion: code at once, apply at 0.6 s). The
-  step-level `end` offsets and `chars` go.
-- **State.** `step`, plus `chunk` (index in the step) and `stage`:
-  `narrate` (0.6 s) → per chunk `type` → apply → `beat` (1 s) → … → `stepDone` (0.3 s) → next
-  step's `narrate`. The chunk applies when its typing ends **and** the camera has settled
-  (event `focusSettled(key)` from the state holder, or 0.8 s after the chunk started, whichever
-  comes first). A module chunk is `running` until `moduleLoaded`/timeout as today; its beat starts
-  when it resolves. `effectFailed` prints `// skipped: …` and the beat still runs.
-- **Holds** move to **chunk boundaries**: `composing` and `answering` hold before a chunk starts
-  typing (and before the next step), with the same caps. A chunk that started always finishes as
-  shown. `hidden` still freezes the clock anywhere.
-- **`timing.ts`**: `codeCharsPerSecond` 240, `chunkMinMs` 400, `chunkMaxMs` 1 300, `beatMs`
-  1 000, `narrateMs` 600, `stepDoneMs` 300, `focusSettleCapMs` 800, `reducedMotionApplyMs` 600,
-  `closeDelayMs` 3 000 (was 4 000), `closingMs` 650, `visitorScrollQuietMs` 4 000; `stepMinMs`,
-  `stepMaxMs`, `fastStepMaxMs` and `settleMs` go. Budget ≈ 92 s (SPEC → Chunk rhythm).
-- **Selectors.** `consoleView` prints, for the current step, every started chunk's lines and its
-  `✓` under it; finished steps still collapse to `✓ n/8 title`. New pure selectors for the stage
-  hooks: `currentChunk(state)` (key, target, motion, typing/applied, applied-at) and
-  `leavingDecorations(state)` (decorations applied less than `--retro-leave-duration` ago, still
-  rendered with a leaving modifier). `progressOf` keeps its formula over chunks.
+  (`chars ÷ 240/s`, clamped to 0.4–1.3 s; reduced motion: code at once, apply at 0.6 s).
+- **State.** `step`, `chunk` (index in the step) and `stage`: `narrate` (0.6 s) → per chunk `type`
+  → apply → `beat` (1 s) → … → `stepDone` (0.3 s) → next step's `narrate`. A chunk applies when its
+  typing ends **and** the camera has settled (event `focusSettled(key)` from the state holder, or
+  0.8 s after the chunk started, whichever comes first); `page` and module chunks skip that wait,
+  the camera never scrolls for them. A `focusSettled` for another chunk's key is ignored. A module
+  chunk is `running` until `moduleLoaded`/timeout (5 s); its beat starts when it resolves.
+  `effectFailed` prints `// skipped: …` and the beat still runs.
+- **Holds** are at **chunk boundaries**: `composing` (≤ 15 s) and `answering` (≤ 12 s) hold before
+  a chunk starts typing (and before the next step). A chunk that started always finishes as shown.
+  `hidden` still freezes the clock anywhere.
+- **`timing.ts`**: `codeCharsPerSecond` 240, `chunkMinMs` 400, `chunkMaxMs` 1 300, `beatMs` 1 000,
+  `narrateMs` 600, `stepDoneMs` 300, `focusSettleCapMs` 800, `reducedMotionApplyMs` 600,
+  `highlightHoldMs` 200, `leaveMs` 250, `closeDelayMs` 3 000, `closingMs` 650,
+  `visitorScrollQuietMs` 4 000. Show time on the fake clock: ≈ 89 s with an instantly settling
+  camera, ≈ 92 s when every targeted chunk waits the cap, ≈ 73 s with reduced motion; the e2e
+  motion-on run measures ≈ 93 s and fails past 110 s (SPEC → Chunk rhythm budgets ≈ 92 s).
+- **Selectors** (`showSelectors.ts`, `chunkSelectors.ts`). `consoleView` prints, for the current
+  step, every started chunk's lines and its `✓` under it; finished steps collapse to
+  `✓ n/8 title`. `currentChunk(state)` (key, target, motion, `typing`/`applied`/`skipped`,
+  `appliedAt`), `highlightOf(state)` (`typing | applied | fading`, `page`, queries; `null` between
+  chunks and for the module chunk) and `leavingDecorations(state)` (decorations removed less than
+  `leaveMs` ago; empty with reduced motion). The runner wakes the screen when the highlight starts
+  to fade (+200 ms) and when a leaving decoration goes (+250 ms).
 
-#### Motion without changing the CV screen
+#### Motion without changing the CV screen (GRA-50 host, GRA-52 screen)
 
 | Option | Verdict |
 |---|---|
-| **A. Show-owned motion CSS switched on by a `body` class for the chunk's window, plus same-document View Transitions for what can't interpolate (chosen)** | CV screen untouched; motion exists only while a chunk applies; the end state has no trace (the class goes with the show). Cost: one CSS module, a few lines in the stage hook. |
-| B. A permanent `[data-retro-stage] * { transition: … }` for the whole show | Also animates the marquee/blink furniture, the CV's own state changes and every reflow during morphs (double animation); harder to reason about. |
+| **A. Show-owned motion CSS switched on by a class for the chunk's window, plus same-document View Transitions for what can't interpolate (chosen)** | CV screen untouched; motion exists only while a chunk applies; the end state has no trace (the classes and the motion `<style>` go with the show). |
+| B. A permanent `[data-retro-stage] * { transition: … }` for the whole show | Also animates the marquee/blink furniture, the CV's own state changes and every reflow during morphs (double animation). |
 | C. Web Animations from computed before/after styles | Re-implements what the browser does; can't interpolate reflow either. |
-| D. Inline styles or classes on CV elements | Changes CV DOM the show doesn't own; breaks the "CV screen is never changed" rule in spirit. |
+| D. Inline styles or classes on CV elements | Changes CV DOM the show doesn't own; breaks "the CV screen is never changed". |
 
-- **fade:** `RetroMotion.module.css` in the screen holds, under a `.fade` body class,
-  `:global([data-retro-stage]) *, ::before, ::after` with the SPEC's `transition-property` list,
-  `--retro-motion-duration` and `--chat-motion-easing`. `useShowStage` puts the class on `body`
-  (as `useBodyClass` already does for the dock reserve) from the chunk's start until 100 ms after
-  its transition ends. The class is on before the layer goes, so removing the layer changes
-  computed values under a live `transition` and the browser animates them. Token layers animate
-  too: a token change changes the computed `font-size`/`color` that reads it.
-- **morph:** for a morph chunk the layer host's removal runs inside
-  `document.startViewTransition(() => host.sync(ids))` when the API exists and motion is allowed;
-  otherwise `host.sync(ids)` directly (instant). During the morph a `.morph` body class turns on
-  the view-transition CSS: the root group uses `--retro-morph-duration` and
-  `--chat-motion-easing`; the dock, the decorations and the highlight carry fixed
-  `view-transition-name`s whose groups have `animation: none` and whose old image is hidden, so
-  they stay live (typing and the chat don't freeze). The chunk's targets get
-  `view-transition-name: match-element` from a short `<style data-retro-motion>` the host writes
-  for the morph and removes after it, when `CSS.supports('view-transition-name', 'match-element')`;
-  otherwise only the root cross-fades (duplicate names would abort the transition). A running
-  view transition is skipped by the next one; the DOM update still happens.
-- **leave:** the decoration stays rendered with a leaving modifier for `--retro-leave-duration`
-  (`leavingDecorations`), then unmounts.
+- **fade:** `RetroMotion.module.css` holds, under a `.fade` class on `body`, `[data-retro-stage]`,
+  its descendants and their `::before`/`::after` with the SPEC's `transition-property` list,
+  `--retro-motion-duration` and `--chat-motion-easing`. `useShowStage` puts the class on from the
+  chunk's start **until its beat ends** (≈ 1 s after the apply, not "100 ms after the transition
+  ends": the runner doesn't wake at +550 ms and nothing else transitions in that window). The class
+  is on before the layer goes, so removing the layer changes computed values under a live
+  `transition`. Token layers animate too: a token change changes the computed values that read it.
+- **morph:** for an applied morph chunk `useShowStage` calls `host.morph(ids, queries)`; the screen
+  never calls `startViewTransition` itself. The host runs its `sync` inside
+  `document.startViewTransition` when the API exists and motion is allowed, otherwise `sync`
+  directly. While it runs the screen keeps a `.morph` class on **`<html>`** (not `body`: the
+  `::view-transition-*` pseudo-elements belong to the root), which sets the groups' duration
+  (`--retro-morph-duration`) and easing. The chunk's targets get `view-transition-name:
+  match-element` from a `<style data-retro-motion>` the host writes for the morph and removes when
+  it finishes, only where `CSS.supports('view-transition-name', 'match-element')`; otherwise only
+  the root cross-fades (duplicate names would abort the transition). A running transition is
+  skipped by the next one; the DOM update still happens.
+- **Live elements** must not freeze inside the page snapshot, so each carries its own name and
+  `view-transition-class: retro-live` (groups `animation: none`, old image hidden): the dock
+  `retro-dock`, decorations `retro-<id>`, highlight boxes `retro-highlight-<n>` and
+  `retro-highlight-frame`. Browsers without `view-transition-class` (Chrome < 125) still morph, but
+  the live elements cross-fade with the page.
+- **leave:** a removed decoration stays rendered (same id, leaving modifier: fade and 96 % scale
+  through the independent `scale` property, so the note keeps its tilt) for `leaveMs` after its
+  `✓`, then unmounts. e2e note: it is in the DOM for 250 ms after the `✓` line.
+- **Blink keyframes:** `@keyframes retro-blink` lives in the layer host's `<style data-retro-host>`
+  inside `@media (prefers-reduced-motion: no-preference)` (the bursts layer no longer carries them).
 - **Reduced motion:** no class, no view transition, no leave: the round-1 behaviour.
 - **Nothing in `src/screens/cv/` changes.** All motion rules live in the show's CSS, keyed on the
-  stage attribute and a body class, and go with the show. The CV's own transitions (none today)
-  are overridden only inside a chunk's 0.5 s window.
+  stage attribute and the two classes, and go with the show.
 
-#### Highlight and camera
+#### Highlight and camera (GRA-52)
 
 | Option | Verdict |
 |---|---|
-| A. The page agent's registry (`highlightElement` / `scrollToSection`), as §3 and §6 planned | Targets only `data-agent-id` items, one at a time (the show needs `h2` sets, `main`, `address`, decorations); `highlightElement` always scrolls (can't respect the visitor's scrolling); the outline is drawn by the CV screen in `--color-text-secondary`, which a damage layer overrides mid-show; tools there are the model's surface and the show's steps must never go through it (ADR-0003). |
-| **B. A show-owned overlay and camera in the retro screen (chosen)** | Any hook selector or decoration, many boxes, one look for the whole show, scrolling that yields to the visitor. Uses the same hooks as the layers; `src/agent` and the CV screen stay untouched. |
-| C. A per-chunk highlight rule layer (outline on the targets) | Styles CV elements (outlines get clipped, shift nothing but interfere with guard 3's computed styles mid-run); can't frame the page area or follow the visitor. |
+| A. The page agent's registry (`highlightElement` / `scrollToSection`), as §3 and §6 planned | Targets only `data-agent-id` items, one at a time (the show needs `h2` sets, `main`, `address`, decorations); `highlightElement` always scrolls (can't respect the visitor's scrolling); the outline is drawn by the CV screen in `--color-text-secondary`, which a damage layer overrides mid-show; the registry is the model's surface and the show's steps must never go through it (ADR-0003). |
+| **B. A show-owned overlay and camera in the retro screen (chosen)** | Any hook selector or decoration, many boxes, one look for the whole show, scrolling that yields to the visitor. `src/agent` and the CV screen stay untouched. |
+| C. A per-chunk highlight rule layer (outline on the targets) | Styles CV elements; can't frame the page area or follow the visitor. |
 
-- **Camera** (`useChunkFocus`, screen): at a chunk's start it resolves the first target
-  (`document.querySelector('[data-retro-stage] ' + selector)` or the decoration's id). If it is out
-  of view (SPEC → Scrolling) and the visitor hasn't scrolled for `visitorScrollQuietMs`, it calls
-  `window.scrollTo({ top, behavior })` with `top` = the target's top − `--agent-scroll-margin-top`,
-  marks the scroll as its own until `scrollend` (or the cap), then dispatches `focusSettled(key)`.
-  Any other `scroll` event is the visitor's and stamps `lastVisitorScrollAt`. No scroll: it
-  dispatches `focusSettled` at once.
-- **Highlight** (`useHighlightBoxes` + stateless `Highlight` in the portal): the UI state gets
-  `highlight: { phase: 'typing' | 'applied' | 'fading'; page: boolean; boxes: Box[] } | null`.
-  The phase comes from a pure selector over `currentChunk` and `t`; the boxes are measured like
-  `useDecorationPlacement` (page coordinates, hooks only), on every animation frame while a chunk
-  is highlighted and not otherwise. Fades are CSS on the phase (`--retro-highlight-fade-*`).
-- **The console names the target** (`// → label`), so the pointer is also in the code.
-- The scroll is camera work, not a page change, so it is not typed; §2's `focus` row is
-  superseded.
+- **Camera** (`useChunkFocus`): at a chunk's start it resolves the first target. If it is out of
+  view (more than half its height, or 160 px) and the visitor hasn't scrolled for
+  `visitorScrollQuietMs`, it smooth-scrolls so the target lands `--agent-scroll-margin-top` (plus
+  24 px) from the top, treats scrolling as its own until `scrollend` or 150 ms without scroll
+  events (Safari has no `scrollend`; there the runner's 0.8 s cap applies the chunk), then
+  dispatches `focusSettled(key)`. Any other `scroll` is the visitor's and stamps the quiet timer.
+  No scroll needed: `focusSettled` at once.
+- **Highlight** (`useHighlightBoxes` + stateless `Highlight` in the portal): `RetroShowUiState`
+  carries `highlight` (phase, `page`, boxes). Up to 12 in-area matches are framed, otherwise the
+  first; `page` chunks get a page-wide frame inset `--retro-page-frame-inset`. Phases: typing
+  (frame fades in), applied (fill flash), fading (`--retro-highlight-fade-*`). Boxes are measured in
+  page coordinates from hooks only, on every animation frame for 600 ms after a fade or morph
+  applies (covers the 500 ms morph) and on target change, scroll and resize, not the whole show.
+- **The console names the target** (`// → label`), so the pointer is also in the code. The scroll is
+  camera work, not a page change, so it is not typed; §2's `focus` row is superseded.
 
-#### Closing the windows
+#### Closing the windows (GRA-50 phase, GRA-52 screen)
 
-- New phase **`closing`** between `finale` and `done`: `finale` ends `closeDelayMs` after its line
-  is typed; `closing` lasts `closingMs` (0 with reduced motion); then `done` and `onDone` as today
-  (the shell unmounts the show and drops the stage).
-- UI: `windows: 'closing'` keeps the dock mounted with a closing modifier; the windows' collapse
-  and fly-off are CSS keyframes with the SPEC's delays (console, then chat after
-  `--retro-close-stagger`); the composer is disabled. The `docked` body class is removed when
-  `closing` starts, and the stage's `padding-right` transition gets a delay of
-  `--retro-close-stagger` + `--retro-close-collapse` and the duration `--retro-reserve-duration`,
-  so the page re-centres while the windows fly off (the 300 ms literal goes).
+- Phase **`closing`** between `finale` and `done`: `finale` ends `closeDelayMs` after its line is
+  typed; `closing` lasts `closingMs` (0 with reduced motion); then `done` and `onDone` (the shell
+  unmounts the show and drops the stage). `canSend` is false during it.
+- UI: `windows: 'closing'` keeps the dock mounted with a closing modifier; the console collapses,
+  then flies off, and the chat follows `--retro-close-stagger` later; the composer is read-only.
+  The `docked` body class is removed when `closing` starts and the stage's `padding-right` is
+  released after 250 ms over `--retro-reserve-duration`, so the page re-centres while the windows
+  fly off (the old 300 ms literal is gone).
 
 #### Guards after the split
 
-1. **Scenario completeness** (Vitest): unchanged rule over 32 layers + 3 decorations + 1 module;
-   plus: every layer and decoration chunk has a target; every layer chunk's `motion` matches its
-   CSS (a layer that sets `font-family`, `display`, `grid-template-*`, `float`, `text-align`,
-   `list-style*`, `content`, `object-position`, `object-fit`, `max-width: none`, a background
-   image, or the token `--font-family` must be `morph`).
-2. **Hook coverage** (Vitest + jsdom): unchanged for the 32 layers; plus every target selector
-   matches at least one element of the rendered CV (decoration targets must be in
-   `DECORATION_IDS`).
-3. **End state** (Playwright): unchanged comparison (it already compares `body`'s class, so a
-   leftover motion class fails it); plus no `<style data-retro-motion>`. It runs with
-   `reducedMotion: 'reduce'` (Playwright's fake clock drives the runner but not CSS transitions or
-   view transitions); one extra run with motion on goes to `done` and checks the same end state and
-   no console errors (a broken view transition logs one).
-4. **Shown = applied** (Playwright): unchanged, per step. The `// → label` lines are comments, so
-   its parser ignores them (it reads only `+`/`-` lines under `--- layers/…`).
+1. **Scenario completeness** (Vitest, `scenario.test.ts`): every layer and decoration is removed by
+   exactly one chunk (32 layers + 3 decorations + 1 module), steps = manifest, every `layers/` file
+   registered; every layer and decoration chunk has a labelled target, only the module has none, a
+   decoration chunk targets `#<its id>`; `motion` ↔ CSS in both directions (a layer with a
+   structural change must be `morph`, every other layer `fade`).
+2. **Hook coverage** (Vitest + jsdom, `layers.test.tsx`): every selector of every rule layer and
+   every chunk target matches the rendered CV; every token a layer sets exists in `tokens.css`;
+   decoration targets are in `DECORATION_IDS`.
+3. **End state** (Playwright, `e2e/retro.spec.ts`): computed styles of every element, plus the
+   `html` and `body` classes, equal the `?retro=0` page; no stage, `<style data-retro-layer>`,
+   host or `<style data-retro-motion>`, decoration or dock left; AI chat button present; no console
+   errors. It runs with `reducedMotion: 'reduce'` because Playwright's fake clock drives the runner
+   but not CSS or view transitions. **One motion-on run** goes to `done` with real view transitions,
+   checks the same end state (retrying until transitions have settled, so a leftover class or
+   style fails) and no console errors (a broken view transition logs one), and is the **timing
+   smoke**: the show ends within 110 s of show time and not under 60 s.
+4. **Shown = applied** (Playwright, reduced motion): unchanged, per step. The `// → label` lines are
+   comments, so its parser ignores them (it reads only `+`/`-` lines under `--- layers/…`).
 
 #### Scenario and contract impact
 
 - **Manifest:** 8 steps `fonts`, `colours`, `layout`, `images`, `cards`, `spacing`, `chrome`,
-  `links` (titles, intents and fallbacks in SPEC → Texts); **`RETRO_SCENARIO_ID` → `'retro-3'`**.
-  A tab opened on `retro-2` gets `400 unsupported_version` and runs scripted, as designed.
+  `links` (titles, intents and fallbacks in SPEC → Texts); `RETRO_SCENARIO_ID` is `'retro-3'`. A tab
+  opened on `retro-2` gets `400 unsupported_version` and runs scripted, as designed.
 - **Server:** no logic change. The narrate outline is built from `RETRO_STEPS`; the fake script and
-  the tests that list step ids follow the new ids. **Narration stays one line per step** (8 lines
-  instead of 7: about +25 output tokens, still ≈ $0.005 per visit on Haiku). Per-chunk narration
-  was rejected: 36 lines would multiply output tokens and latency, and the chat would scroll
-  faster than anyone reads; the console's `// →` lines already name each change.
+  the tests that list step ids follow the new ids. **Narration stays one line per step** (8 lines:
+  ≈ $0.005 per visit on Haiku). Per-chunk narration was rejected: 36 lines would multiply output
+  tokens and latency, and the chat would scroll faster than anyone reads; the `// →` lines already
+  name each change.
 - **v3 contract:** unchanged (`step` is still a step id, `stepsDone` counts steps).
-- **Layer host:** defines `@keyframes retro-blink` in its host `<style>` unless reduced motion is
-  on (the bursts layer no longer carries keyframes); gains the morph wrapper and the
-  `data-retro-motion` style.
 - **Decorations:** the note's "table is still on" anchor is `page-frame` (was `layout-shift`);
-  placement also re-measures on animation frames while a chunk's motion runs.
-- **Tokens:** SPEC's new `--retro-*` tokens; `--retro-term-font` drops IBM Plex Mono (it never
-  shipped; the terminal already renders Courier New, which the human wants kept).
+  placement follows moving targets while a chunk's motion runs.
+- **Tokens:** SPEC's `--retro-*` motion tokens (GRA-51); `--retro-term-font` dropped IBM Plex Mono
+  (it never shipped; the terminal renders Courier New, which the human wants kept).
 
 ### How to add or change a fix chunk
 
@@ -657,7 +661,7 @@ is built.
    hook, add it to the CV screen in its own task; otherwise the CV screen is not changed for the
    show.
 3. **Chunk:** its effect, target (label + selectors, or `page`) and motion, in show order, in its
-   step's `chunks`. A new **step** also needs a manifest entry in `src/data/retro/scenario.ts` (id,
+   step of `RETRO_CHUNKS` (`scenarioSteps.ts`). A new **step** also needs a manifest entry in `src/data/retro/scenario.ts` (id,
    title, intent, fallback) and a `RETRO_SCENARIO_ID` bump (the server rejects unknown ids); new
    chunks inside existing steps don't.
 4. **Server:** nothing to change; the narrate outline is built from `RETRO_STEPS`. Keep the fake
@@ -672,9 +676,8 @@ is built.
 
 ### Known debt (for later rounds)
 
-- ~~The full fix list beyond the POC's 3 steps~~ (GRA-46: 7 steps). **Round 3 (GRA-49) is designed,
-  not built:** atomic chunks (32 layers), per-chunk runner, motion, highlight and camera, smooth
-  close. The task split is on GRA-49.
+- ~~The full fix list beyond the POC's 3 steps~~ (GRA-46: 7 steps; round 3, GRA-50–52: 8 steps of 36
+  chunks with motion, highlight, camera and smooth close).
 - ~~The `focus` effect via `src/agent`~~: superseded by the show-owned highlight and camera
   (round 3).
 - Real-model run blocked by the Preview `ANTHROPIC_API_KEY` (GRA-45); prompts not golden-checked.
@@ -684,5 +687,15 @@ is built.
 - ~~Two panel values without a token~~ (GRA-47). The terminal font stays Courier New (round 3
   drops IBM Plex Mono from the token).
 - ~~`src/screens/AGENTS.md` doesn't list `retro/`~~ (GRA-47).
-- Browsers without same-document View Transitions get morph chunks instantly (by design, noted).
+- Browsers without same-document View Transitions (Firefox) get morph chunks instantly (by design;
+  the highlight still shows where). e2e runs Chromium only, so morphs and Safari's `scrollend`
+  fallback are not covered there.
+- Overlapping morphs: the `.morph` class on `<html>` is removed by the first transition's
+  `finally`, so it can drop while a later morph is still running (GRA-52 review note).
+- A visitor scroll during the show's own smooth scroll isn't counted toward the 4 s quiet rule
+  (GRA-52 review note).
+- `--retro-highlight-flash: 100ms` is a screen-local custom property (`TODO(theme)` in
+  `Highlight.module.css`): the token is missing in `tokens.css`.
+- Guard 1's `isStructural` heuristic (`scenario.test.ts`) doesn't cover every structural property
+  (e.g. `flex-direction`, `position`); widen it when a layer needs them (GRA-50 review note).
 - Analytics (Q1), replay button, mobile.

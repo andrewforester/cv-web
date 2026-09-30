@@ -29,5 +29,5 @@ exist, so every chat scenario mocks the endpoint with scripted SSE, and the show
 (automation gets no LLM). No test here calls a real model. An English desktop browser gets the
 show by default, so specs about today's site open `NORMAL_SITE` (`?retro=0`, `support.ts`).
 Screenshots land in `web-check/` (git-ignored); CI uploads them as an artifact and sessions attach
-them to the ticket (`retro-mid.png` after step 4, `retro-end.png` (reduced-motion run), `retro-loading.png` and
-`retro-first-frame.png` for the show).
+them to the ticket (`retro-mid.png` after step 4, `retro-end.png` from the reduced-motion run,
+`retro-loading.png` and `retro-first-frame.png` for the show).
