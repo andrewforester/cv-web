@@ -13,5 +13,7 @@ needs a value.
 Rules and limits:
 - Owner: Theme. A screen that needs a value adds a token here (through the Theme task), not a
   literal; screen-local values are marked `TODO(theme)`.
+- The `--retro-*` block ("Retro Rebuild show panels", from `docs/design/retro/SPEC.md`) styles only
+  the terminal chat and console windows of the live-fix show; damage values live in the screen's layers.
 - Fonts are self-hosted Inter, Latin and Cyrillic only, a fixed set of weights; Cyrillic files
   load only when Cyrillic text is on the page.
