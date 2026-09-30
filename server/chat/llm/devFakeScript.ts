@@ -51,12 +51,12 @@ const PARAM_BY_TOOL: Record<AgentToolCall['name'], string> = {
 };
 
 /** Splits text into word-sized deltas, like a real stream. */
-function words(text: string): string[] {
+export function words(text: string): string[] {
   return text.match(/\S+\s*/g) ?? [];
 }
 
 /** The visitor's text of a message (v2 questions carry `<page_state>` first). */
-function textOf(message: LlmMessage | undefined): string {
+export function textOf(message: LlmMessage | undefined): string {
   if (!message) return '';
   if (typeof message.content === 'string') return message.content.trim();
   const texts = message.content.filter((block) => block.type === 'text');

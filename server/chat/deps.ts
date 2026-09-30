@@ -9,6 +9,7 @@ import { FakeLlmClient } from './llm/FakeLlmClient.js';
 import type { LlmClient } from './llm/LlmClient.js';
 import { consoleLogger } from './log.js';
 import { RateLimiter } from './rateLimiter.js';
+import { showFakeScript } from './show/showFakeScript.js';
 
 /**
  * Production dependencies from the environment, built once per instance: the fake model when
@@ -33,8 +34,9 @@ export function createChatDeps(env: Record<string, string | undefined>): ChatDep
     );
   }
   let llm: LlmClient | undefined;
-  if (config.fakeLlm) llm = new FakeLlmClient(devFakeScript);
-  else if (config.apiKey) llm = new AnthropicLlmClient({ apiKey: config.apiKey });
+  if (config.fakeLlm) {
+    llm = new FakeLlmClient((request) => showFakeScript(request) ?? devFakeScript(request));
+  } else if (config.apiKey) llm = new AnthropicLlmClient({ apiKey: config.apiKey });
   return {
     config,
     llm,

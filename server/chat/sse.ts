@@ -1,9 +1,13 @@
-import type { ChatSseEventNameV2, ChatSsePayloadsV2 } from '../../src/data/chat/contract.js';
+import type { ChatSsePayloadsV2 } from '../../src/data/chat/contract.js';
+import type { ShowSsePayloads } from '../../src/data/retro/contract.js';
 
-/** One SSE event: `event:` line, one `data:` line of JSON, blank line. v1 uses a subset. */
-export function encodeSseEvent<N extends ChatSseEventNameV2>(
+/** Every event the function streams: v2's (v1 uses a subset) and the show's `line` (v3). */
+type SsePayloads = ChatSsePayloadsV2 & Pick<ShowSsePayloads, 'line'>;
+
+/** One SSE event: `event:` line, one `data:` line of JSON, blank line. */
+export function encodeSseEvent<N extends keyof SsePayloads>(
   name: N,
-  payload: ChatSsePayloadsV2[N],
+  payload: SsePayloads[N],
 ): string {
   return `event: ${name}\ndata: ${JSON.stringify(payload)}\n\n`;
 }

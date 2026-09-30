@@ -4,18 +4,21 @@ import {
   type ChatMessageV2,
   type ChatRequest,
 } from '../../src/data/chat/contract.js';
+import { CHAT_API_VERSION_V3 } from '../../src/data/retro/contract.js';
 import { clientIp } from './clientIp.js';
 import type { ChatConfig } from './config.js';
 import type { DayCostMeter } from './dayCost.js';
 import { chatError, errorResponse, HTTP_STATUS_BY_CODE } from './errors.js';
 import { checkContentType, checkMethod, checkOrigin, readBody } from './guards.js';
 import type { KnowledgeLoader } from './knowledge/assembleKnowledge.js';
-import type { LlmClient } from './llm/LlmClient.js';
+import type { LlmClient, LlmRequest } from './llm/LlmClient.js';
 import type { ChatLogEntry, ChatLogger } from './log.js';
 import { buildLlmRequest } from './prompt/buildLlmRequest.js';
 import { PROMPT_VERSION } from './prompt/systemPrompt.js';
 import type { RateLimiter } from './rateLimiter.js';
-import { streamAnswer } from './streamAnswer.js';
+import { planShow } from './show/planShow.js';
+import { validateShowRequest } from './show/validateShow.js';
+import { streamAnswer, type TextStreamer } from './streamAnswer.js';
 import { validateChatRequest } from './validate.js';
 
 export interface ChatDeps {
@@ -71,6 +74,9 @@ function newEntry(requestId: string, deps: ChatDeps, request: Request): ChatLogE
     toolRound: null,
     toolChoice: null,
     providerStateBytes: null,
+    showKind: null,
+    stepId: null,
+    narrationLines: null,
     dayCostUsd: null,
   };
 }
@@ -93,7 +99,8 @@ function parseJson(text: string): { ok: true; value: unknown } | { ok: false } {
 
 /**
  * `POST /api/chat` (docs/chat/API.md): guards, rate limit, body and validation, knowledge,
- * prompt, then the SSE answer. Every outcome writes exactly one log line.
+ * prompt, then the SSE answer. `v: 3` (the show dialect) shares everything up to the body, then
+ * takes its own validation and prompts (`show/`). Every outcome writes exactly one log line.
  */
 export async function handleChat(request: Request, deps: ChatDeps): Promise<Response> {
   const now = deps.now ?? Date.now;
@@ -112,6 +119,7 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
     return errorResponse(error, requestId, version);
   };
 
+  const deadlineMs = deps.deadlineMs ?? DEFAULT_DEADLINE_MS;
   const guardError = checkMethod(request) ?? checkOrigin(request) ?? checkContentType(request);
   if (guardError) return fail(guardError);
   if (!deps.config.enabled) return fail(chatError('unavailable', 'Chat is switched off'));
@@ -141,6 +149,46 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
   if (!json.ok) return fail(chatError('invalid_request', 'Malformed JSON'));
   const version = (json.value as { v?: unknown } | null)?.v;
   entry.v = typeof version === 'number' ? version : null;
+  const stream = (
+    llm: LlmClient,
+    llmRequest: LlmRequest,
+    streamVersion: number,
+    options: { deadlineMs?: number; streamer?: TextStreamer } = {},
+  ) =>
+    streamAnswer({
+      llm,
+      llmRequest,
+      version: streamVersion,
+      streamer: options.streamer,
+      dayCost: deps.dayCost,
+      model: deps.config.model,
+      requestSignal: request.signal,
+      requestId,
+      deadlineMs: options.deadlineMs ?? deadlineMs,
+      pingIntervalMs: deps.pingIntervalMs ?? DEFAULT_PING_INTERVAL_MS,
+      now,
+      startedAt,
+      entry,
+      log: deps.log,
+    });
+
+  if (entry.v === CHAT_API_VERSION_V3) {
+    const validation = validateShowRequest(json.value);
+    if (!validation.ok) return fail(validation.error, CHAT_API_VERSION_V3);
+    try {
+      const plan = await planShow(
+        validation.request,
+        deps.knowledge,
+        deps.config.model,
+        deadlineMs,
+      );
+      Object.assign(entry, plan.logFields);
+      return await stream(deps.llm, plan.llmRequest, CHAT_API_VERSION_V3, plan);
+    } catch {
+      return fail(chatError('internal_error', 'Unexpected server error'), CHAT_API_VERSION_V3);
+    }
+  }
+
   const validation = validateChatRequest(json.value);
   if (!validation.ok) return fail(validation.error);
 
@@ -156,21 +204,7 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
       entry.toolRound = chat.toolRound;
       entry.toolChoice = llmRequest.tool_choice?.type ?? null;
     }
-    return await streamAnswer({
-      llm: deps.llm,
-      llmRequest,
-      version: chat.v,
-      dayCost: deps.dayCost,
-      model: deps.config.model,
-      requestSignal: request.signal,
-      requestId,
-      deadlineMs: deps.deadlineMs ?? DEFAULT_DEADLINE_MS,
-      pingIntervalMs: deps.pingIntervalMs ?? DEFAULT_PING_INTERVAL_MS,
-      now,
-      startedAt,
-      entry,
-      log: deps.log,
-    });
+    return await stream(deps.llm, llmRequest, chat.v);
   } catch {
     return fail(chatError('internal_error', 'Unexpected server error'), chat.v);
   }
