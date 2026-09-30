@@ -10,7 +10,7 @@ it); it is never merged into `main`.
 
 Start here, in this order:
 1. [`ARCHITECTURE.md`](ARCHITECTURE.md) **section 9**: what is built and where, the final
-   decisions, the round-3 design (atomic chunks, motion, highlight, smooth close; GRA-49), how to
+   decisions, round 3 as built (atomic chunks, motion, highlight, smooth close; GRA-49–53), how to
    add or change a fix chunk, the known debt.
 2. `docs/design/retro/SPEC.md`: the look (retro values, damage layers, copy, the atomic fix list,
    chunk timing, transitions, the highlight, `--retro-*` tokens).

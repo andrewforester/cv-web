@@ -4,14 +4,14 @@ import { expect, type Page } from '@playwright/test';
 // the console printed and what the show left on the page (docs/retro/ARCHITECTURE.md §1 → guards
 // 3 and 4).
 
-/** Fake time per step of the loop; the runner is time-based, so the chunk size only sets the pace. */
-const CHUNK_MS = 250;
-/** The 7-step show takes ≈ 71 s of show time; anything past this is a hang. */
-const SHOW_LIMIT_MS = 120_000;
+/** Fake time per turn of the loop; the runner is time-based, so the slice only sets the pace. */
+const SLICE_MS = 250;
+/** The 8-step, 36-chunk show takes ≈ 73 s of show time with reduced motion, ≈ 90 s with motion. */
+export const SHOW_LIMIT_MS = 110_000;
 
 export const stageSelector = '[data-retro-stage]';
 const leftoverSelector =
-  '[data-retro-stage], style[data-retro-layer], style[data-retro-host], #top-bar, #page-footer, #oh-snap, [data-testid="retro-decoration"], [data-testid="retro-dock"]';
+  '[data-retro-stage], style[data-retro-layer], style[data-retro-host], style[data-retro-motion], #top-bar, #page-footer, #oh-snap, [data-testid="retro-decoration"], [data-testid="retro-dock"]';
 
 /** The console's text, one entry per line (`+`/`-` gutters included). */
 export function consoleLines(page: Page): Promise<string[]> {
@@ -24,19 +24,20 @@ export function consoleLines(page: Page): Promise<string[]> {
 
 /**
  * Runs the show on the installed fake clock until it has ended (no stage left), calling `onTick`
- * after every chunk. The AI chat chunk loads over the real network, so when the console has typed
- * its import the loop waits (in real time) for the chat button before moving the clock on.
+ * after every slice of fake time, and returns the show time it took in ms. The AI chat chunk loads
+ * over the real network, so when the console has typed its import the loop waits (in real time)
+ * for the chat button before moving the clock on.
  */
-export async function runShowToEnd(page: Page, onTick?: () => Promise<void>): Promise<void> {
+export async function runShowToEnd(page: Page, onTick?: () => Promise<void>): Promise<number> {
   let waitedForChat = false;
-  for (let elapsed = 0; elapsed < SHOW_LIMIT_MS; elapsed += CHUNK_MS) {
-    await page.clock.runFor(CHUNK_MS);
+  for (let elapsed = 0; elapsed < SHOW_LIMIT_MS; elapsed += SLICE_MS) {
+    await page.clock.runFor(SLICE_MS);
     await onTick?.();
     if (!waitedForChat && (await consoleLines(page)).some((line) => line.includes("import('"))) {
       waitedForChat = true;
       await expect(page.getByTestId('chat-fab')).toBeVisible();
     }
-    if ((await page.locator(stageSelector).count()) === 0) return;
+    if ((await page.locator(stageSelector).count()) === 0) return elapsed + SLICE_MS;
   }
   throw new Error(`The show did not end within ${SHOW_LIMIT_MS} ms of show time`);
 }
@@ -97,6 +98,8 @@ const PROPERTIES = [
 
 export interface PageSnapshot {
   title: string;
+  /** The motion classes live on `html` (morph) and `body` (fade) while a chunk applies. */
+  htmlClass: string;
   bodyClass: string;
   /** `path → property: value` for `html`, `body` and every element under `#root`. */
   styles: Record<string, string>;
@@ -129,7 +132,12 @@ export async function snapshotPage(page: Page): Promise<PageSnapshot> {
         styles[`${path} → ${property}`] = computed.getPropertyValue(property);
       }
     });
-    return { title: document.title, bodyClass: document.body.className, styles };
+    return {
+      title: document.title,
+      htmlClass: document.documentElement.className,
+      bodyClass: document.body.className,
+      styles,
+    };
   }, PROPERTIES);
 }
 
@@ -140,6 +148,8 @@ export function differences(actual: PageSnapshot, expected: PageSnapshot): strin
     .filter((key) => actual.styles[key] !== expected.styles[key])
     .map((key) => `${key}: ${actual.styles[key]} ≠ ${expected.styles[key]}`);
   if (actual.title !== expected.title) lines.unshift(`title: ${actual.title} ≠ ${expected.title}`);
+  if (actual.htmlClass !== expected.htmlClass)
+    lines.unshift(`html class: ${actual.htmlClass} ≠ ${expected.htmlClass}`);
   if (actual.bodyClass !== expected.bodyClass)
     lines.unshift(`body class: ${actual.bodyClass} ≠ ${expected.bodyClass}`);
   return lines;

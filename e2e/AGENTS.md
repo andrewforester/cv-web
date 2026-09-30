@@ -11,12 +11,16 @@ What it guarantees today:
 - The chat answers a question with a streamed reply, and rate limiting shows its notice.
 - The page agent: asking the chat to show a section scrolls and highlights it; opening a contact
   asks for confirmation and does nothing on Cancel.
-- The Retro Rebuild show (`retro.spec.ts`, docs/retro/ARCHITECTURE.md §1 guards 3 and 4): on the
-  fake clock it runs to the end and leaves exactly the normal page (computed styles of every
-  element compared with `?retro=0`, nothing of the show left, AI chat button present); after every
+- The Retro Rebuild show (`retro.spec.ts`, docs/retro/ARCHITECTURE.md §1 guards 3 and 4; §9 →
+  Guards after the split): on the fake clock it runs all 36 chunks to the end and leaves exactly the
+  normal page (computed styles of every element, `html` and `body` classes compared with `?retro=0`;
+  no stage, layer, motion style, decoration or window left; AI chat button present); after every
   step, what the console printed for it is what the page has (token values live, layer styles and
-  decorations gone, chat button rendered); reduced motion still ends clean; only English desktop
-  visitors get it, once per browser session.
+  decorations gone, chat button rendered). Guards 3 and 4 run with `reducedMotion: 'reduce'`: the
+  fake clock drives the runner but not CSS or view transitions. One extra run with motion on
+  (real view transitions) reaches the same end state with no console errors, and is the timing
+  smoke: the show ends within 110 s of show time (≈ 93 s today) and not under 60 s. Only English
+  desktop visitors get the show, once per browser session.
 - The show is a lazy chunk (`retroLazy.spec.ts`): `?retro=0` never requests it; in show mode no
   frame of today's design is painted before the broken page; a failed chunk leaves the normal site.
 
@@ -25,5 +29,5 @@ exist, so every chat scenario mocks the endpoint with scripted SSE, and the show
 (automation gets no LLM). No test here calls a real model. An English desktop browser gets the
 show by default, so specs about today's site open `NORMAL_SITE` (`?retro=0`, `support.ts`).
 Screenshots land in `web-check/` (git-ignored); CI uploads them as an artifact and sessions attach
-them to the ticket (`retro-mid.png` after step 4, `retro-end.png`, `retro-loading.png` and
-`retro-first-frame.png` for the show).
+them to the ticket (`retro-mid.png` after step 4, `retro-end.png` from the reduced-motion run,
+`retro-loading.png` and `retro-first-frame.png` for the show).
