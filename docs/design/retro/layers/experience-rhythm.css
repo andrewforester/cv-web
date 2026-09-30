@@ -1,0 +1,7 @@
+[data-retro-stage] [data-testid='cv-experience-entry'] div:not(:has(> h3)) {
+  margin-top: 2px;
+}
+
+[data-retro-stage] div:has(> [data-testid='cv-experience-entry']) {
+  gap: 12px;
+}

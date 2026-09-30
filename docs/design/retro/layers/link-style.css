@@ -1,0 +1,8 @@
+[data-retro-stage] address a {
+  color: #0000ee;
+  text-decoration: underline;
+}
+
+[data-retro-stage] address img {
+  display: none;
+}
