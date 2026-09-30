@@ -8,7 +8,8 @@ talk to the LLM. Design: `docs/retro/ARCHITECTURE.md`, `docs/adr/0003-retro-live
 `docs/design/retro/SPEC.md`; wire contract: `docs/chat/API.md` → v3.
 
 Domain terms:
-- **Scenario / step:** the authored fix sequence (POC: `tokens`, `layout`, `rest`). The manifest
+- **Scenario / step:** the authored fix sequence, 7 steps with one concern each (`tokens`,
+  `layout`, `images`, `cards`, `spacing`, `chrome`, `links`; scenario id `retro-2`). The manifest
   here has ids, console titles, an intent line for the LLM and a scripted fallback per step.
   What a step *does* to the page (damage layers, decorations, modules) lives in the retro screen.
 - **Narration:** one commentary line per step plus the `finale`, fetched once per show

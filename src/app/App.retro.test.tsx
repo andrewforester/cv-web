@@ -40,6 +40,8 @@ describe('App modes', () => {
     }
 
     it('runs the show over the same CV, then leaves the normal site with the AI chat', async () => {
+      // The show is a lazy chunk; loaded here first, the shell's import resolves within a frame.
+      await import('../screens/retro/RetroShowRoute');
       renderApp('show');
       await advance(50);
       const name = screen.getByTestId(cvTestIds.name);
@@ -47,7 +49,7 @@ describe('App modes', () => {
       expect(layers().length).toBeGreaterThan(0);
       expect(screen.queryByTestId(chatTestIds.fab)).toBeNull();
 
-      await advance(60_000);
+      await advance(80_000);
 
       expect(stage()).toBeNull();
       expect(layers()).toHaveLength(0);

@@ -6,6 +6,7 @@ import type {
   ChatRequestV2,
 } from '../../src/data/chat/contract.js';
 import type { ShowNarrateRequest, ShowReplyRequest } from '../../src/data/retro/contract.js';
+import { RETRO_SCENARIO_ID } from '../../src/data/retro/scenario.js';
 import { readChatConfig } from '../chat/config.js';
 import type { ChatDeps } from '../chat/handler.js';
 import { DayCostMeter } from '../chat/dayCost.js';
@@ -67,7 +68,7 @@ export const NARRATE_BODY: ShowNarrateRequest = {
   v: 3,
   locale: 'en',
   kind: 'narrate',
-  scenario: 'retro-1',
+  scenario: RETRO_SCENARIO_ID,
 };
 
 export const VISITOR_TEXT = "wow, a marquee! haven't seen one in 20 years";
@@ -76,7 +77,7 @@ export const replyBody = (overrides: Partial<ShowReplyRequest> = {}): ShowReplyR
   v: 3,
   locale: 'en',
   kind: 'reply',
-  scenario: 'retro-1',
+  scenario: RETRO_SCENARIO_ID,
   step: 'layout',
   stepsDone: 1,
   messages: [{ role: 'user', content: VISITOR_TEXT }],

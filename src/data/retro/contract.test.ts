@@ -32,7 +32,7 @@ describe('show contract v3', () => {
       v: 3,
       locale: 'en',
       kind: 'reply',
-      scenario: 'retro-1',
+      scenario: RETRO_SCENARIO_ID,
       step: 'layout',
       stepsDone: 1,
       messages: [{ role: 'user', content: "wow, a marquee! haven't seen one in 20 years" }],

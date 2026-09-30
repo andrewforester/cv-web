@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { AppProviders } from '../../app/AppProviders';
+import tokensCss from '../../theme/tokens.css?raw';
 import { cvTestIds } from '../cv/testIds';
 import { tokenDeclarations } from './engine/consolePlan';
 import type { DamageLayer } from './engine/showTypes';
 import { DAMAGE_LAYERS } from './scenario';
-import { layersFromDisk, readSourceFile } from './layerFilesTestHarness';
 import { RetroStageTestHarness } from './RetroStageTestHarness';
 
 // Guard 2 (docs/retro/ARCHITECTURE.md §1): the layers still hit the real site. A renamed hook or
@@ -71,14 +71,7 @@ const ids = (display: DamageLayer['display']) =>
   Object.values(DAMAGE_LAYERS)
     .filter((layer) => layer.display === display)
     .map(({ id }) => id);
-let layers: Record<string, DamageLayer>;
-let siteTokens: Set<string>;
-
-beforeAll(async () => {
-  layers = await layersFromDisk();
-  const tokensCss = await readSourceFile('../../theme/tokens.css');
-  siteTokens = new Set(tokenDeclarations(tokensCss).map(([name]) => name));
-});
+const siteTokens = new Set(tokenDeclarations(tokensCss).map(([name]) => name));
 
 describe('damage layers (guard 2: hook coverage)', () => {
   beforeEach(async () => {
@@ -91,14 +84,14 @@ describe('damage layers (guard 2: hook coverage)', () => {
   });
 
   it.each(ids('rules'))('%s: every selector matches the real CV', (id) => {
-    const selectors = selectorsOf(layers[id]?.css ?? '').flatMap(queryable);
+    const selectors = selectorsOf(DAMAGE_LAYERS[id].css).flatMap(queryable);
     expect(selectors.length).toBeGreaterThan(0);
     const missing = selectors.filter((selector) => document.querySelector(selector) === null);
     expect(missing).toEqual([]);
   });
 
   it.each(ids('tokens'))('%s: every token it sets exists in tokens.css', (id) => {
-    const names = tokenDeclarations(layers[id]?.css ?? '').map(([name]) => name);
+    const names = tokenDeclarations(DAMAGE_LAYERS[id].css).map(([name]) => name);
     expect(names.length).toBeGreaterThan(0);
     expect(names.filter((name) => !siteTokens.has(name))).toEqual([]);
   });

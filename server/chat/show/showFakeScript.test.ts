@@ -24,7 +24,7 @@ describe('showFakeScript (CHAT_FAKE_LLM=1)', () => {
 
   it('replies with the show state it received', () => {
     expect(showFakeScript(reply('hello'))?.deltas.join('')).toContain(
-      'Show state: {"step":"layout","stepsDone":1,"of":3}.',
+      'Show state: {"step":"layout","stepsDone":1,"of":7}.',
     );
   });
 
