@@ -33,7 +33,9 @@ export function useLazyChat(loadNow: boolean): LazyChat {
   }, [Chat]);
 
   useEffect(() => {
-    if (loadNow) void load();
+    // A failed chunk (e.g. an old tab after a deploy) leaves the page without the chat; the browser
+    // caches a failed import, so there is nothing to retry until the next load.
+    if (loadNow) load().catch(() => undefined);
   }, [loadNow, load]);
 
   return { Chat, load };

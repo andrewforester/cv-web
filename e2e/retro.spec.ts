@@ -16,7 +16,7 @@ import { collectErrors, NORMAL_SITE, SCREENSHOT_DIR, SHOW_SITE } from './support
 // `/api/chat` calls, so nothing here needs a model.
 test.use({ locale: 'en-US' });
 
-/** After the first step's end, before the second starts: its console lines are still on screen. */
+/** Both token layers of step 1 are applied; step 2 hasn't started, so their lines are on screen. */
 const FIRST_STEP_DONE = '✓ tokens-colors removed';
 /** Time for the AI chat's first-visit hint and similar timers, the same on both pages. */
 const AFTER_MS = 3_000;
