@@ -61,9 +61,10 @@ export function useRetroShowState({ loaders, onDone, clock }: RetroShowOptions):
   });
   const { reducedMotion } = state.config;
   useChunkFocus(chunk, reducedMotion, dispatch);
-  const highlight = useHighlightBoxes(highlightOf(state));
-  // After a fade or morph applies, its targets move for a moment; the decorations follow them.
+  // After a fade or morph applies, its targets move for a moment; the highlight and the
+  // decorations follow them.
   const moving = !reducedMotion && chunk?.status === 'applied' && chunk.motion !== 'none';
+  const highlight = useHighlightBoxes(highlightOf(state), moving);
   const placement = useDecorationPlacement(layersKey, layers.includes('page-frame'), moving);
 
   const [draft, setDraft] = useState('');

@@ -1,15 +1,16 @@
-import { useLayoutEffect, useState } from 'react';
-import type { ShowHighlight } from './engine/chunkSelectors';
+import { useLayoutEffect } from 'react';
+import { STAGE_SELECTOR, type ShowHighlight } from './engine/chunkSelectors';
 import type { HighlightBox, HighlightUi } from './RetroShowUiState';
+import { useFollowFrames } from './useFollowFrames';
+import { useMeasuredState } from './useMeasuredState';
 
 /** At most this many rectangles for a many-match target (SPEC → Highlight). */
 const MAX_BOXES = 12;
 const NO_BOXES: HighlightBox[] = [];
 
-/** Right edge of the page area: the viewport minus the dock's reserve while it is shown. */
+/** Right edge of the page area (the viewport minus the dock's reserve): the stage's own edge. */
 function pageAreaRight(): number {
-  const reserve = parseFloat(getComputedStyle(document.body).paddingRight) || 0;
-  return document.documentElement.clientWidth - reserve;
+  return document.querySelector(STAGE_SELECTOR)?.getBoundingClientRect().right ?? window.innerWidth;
 }
 
 /**
@@ -33,30 +34,31 @@ function measure(query: string): HighlightBox[] {
   }));
 }
 
-const same = (a: HighlightBox[], b: HighlightBox[]) => JSON.stringify(a) === JSON.stringify(b);
-
 /**
  * The highlight as the screen draws it: the runner's `highlightOf` plus the targets' boxes,
- * re-measured every animation frame while a chunk is highlighted (a fade resizes its targets, a
- * morph moves them, the camera or the visitor scrolls) and not at all otherwise.
+ * measured when the target changes, on scroll and resize (which matches are in the page area),
+ * and every animation frame while a change is `moving` its targets (a fade or a morph).
  */
-export function useHighlightBoxes(highlight: ShowHighlight | null): HighlightUi | null {
-  const [boxes, setBoxes] = useState(NO_BOXES);
+export function useHighlightBoxes(
+  highlight: ShowHighlight | null,
+  moving: boolean,
+): HighlightUi | null {
+  const [boxes, setBoxes] = useMeasuredState(NO_BOXES);
   const query = highlight && !highlight.page ? highlight.queries.join(', ') : '';
 
   useLayoutEffect(() => {
     if (!query) return;
-    let frame = 0;
-    const update = () => {
-      setBoxes((current) => {
-        const next = measure(query);
-        return same(current, next) ? current : next;
-      });
-      frame = requestAnimationFrame(update);
-    };
+    const update = () => setBoxes(measure(query));
     update();
-    return () => cancelAnimationFrame(frame);
-  }, [query]);
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [query, setBoxes]);
+
+  useFollowFrames(!!query && moving, () => setBoxes(measure(query)));
 
   if (!highlight) return null;
   const { key, phase, page } = highlight;
