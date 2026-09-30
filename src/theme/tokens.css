@@ -127,4 +127,38 @@
   --agent-highlight-offset: 4px;
   --agent-highlight-duration: 3s;
   --agent-scroll-margin-top: var(--space-6);
+
+  /* Retro Rebuild show panels: terminal chat + live console windows only (not the damage values) */
+  --retro-dock-width: 384px;
+  --retro-dock-inset: 16px;
+  --retro-dock-gap: 12px;
+  --retro-chat-height: 344px;
+  --retro-win-face: #c0c0c0;
+  --retro-win-light: #ffffff;
+  --retro-win-shadow: #808080;
+  --retro-win-dark: #0a0a0a;
+  --retro-win-title: linear-gradient(90deg, #000080, #1084d0);
+  --retro-win-title-text: #ffffff;
+  --retro-win-font: Tahoma, Verdana, 'Segoe UI', sans-serif;
+  --retro-win-font-size: 11px;
+  --retro-term-bg: #000000;
+  --retro-term-font: 'IBM Plex Mono', 'Courier New', monospace;
+  --retro-term-font-size: 13px;
+  --retro-term-line-height: 18px;
+  --retro-code-font-size: 12px;
+  --retro-code-line-height: 17px;
+  --retro-term-text: #c0c0c0;
+  --retro-term-dim: #808080;
+  --retro-chat-agent: #33ff66;
+  --retro-chat-visitor: #ffb000;
+  --retro-code-selector: #55ffff;
+  --retro-code-property: #ffff55;
+  --retro-code-string: #55ff55;
+  --retro-code-number: #ff55ff;
+  --retro-code-add: #55ff55;
+  --retro-code-add-bg: rgba(85, 255, 85, 0.1);
+  --retro-code-del: #ff5555;
+  --retro-code-del-bg: rgba(255, 85, 85, 0.1);
+  --retro-progress: #000080;
+  --retro-z-index: 1001;
 }
