@@ -1,8 +1,7 @@
 /*
  * The dock of the live-fix show (docs/design/retro/SPEC.md → Screen layout): console above the
- * terminal chat, fixed to the right. Window metrics of the Win98 chrome are screen-local; the
- * two values without a `--retro-*` token are marked. TODO(theme): move them to tokens.css if
- * another screen needs them.
+ * terminal chat, fixed to the right. Window metrics of the Win98 chrome are screen-local; colours
+ * and the window shadow are `--retro-*` tokens in tokens.css.
  */
 .dock {
   --retro-bevel: 1px;
@@ -23,9 +22,6 @@
   --retro-console-progress-step: 10px;
   --retro-console-progress-percent-width: 32px;
   --retro-window-shadow-offset: 4px;
-  /* TODO(theme): SPEC's inner bevel light and window shadow have no tokens yet. */
-  --retro-win-light-inner: #dfdfdf;
-  --retro-window-shadow: rgba(0, 0, 0, 0.35);
 
   position: fixed;
   top: var(--retro-dock-inset);

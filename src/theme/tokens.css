@@ -136,6 +136,8 @@
   --retro-win-face: #c0c0c0;
   --retro-win-light: #ffffff;
   --retro-win-shadow: #808080;
+  --retro-win-light-inner: #dfdfdf;
+  --retro-window-shadow: rgba(0, 0, 0, 0.35);
   --retro-win-dark: #0a0a0a;
   --retro-win-title: linear-gradient(90deg, #000080, #1084d0);
   --retro-win-title-text: #ffffff;
