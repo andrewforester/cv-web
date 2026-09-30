@@ -77,7 +77,7 @@ function scanRules(rules: CSSRuleList, name: string, win: Window): string | unde
       value = rule.style.getPropertyValue(name).trim() || value;
     } else if (rule.cssRules && rule.media) {
       const matches =
-        typeof win.matchMedia !== 'function' || win.matchMedia(rule.media.mediaText).matches;
+        typeof win.matchMedia === 'function' && win.matchMedia(rule.media.mediaText).matches;
       if (matches) value = scanRules(rule.cssRules, name, win) ?? value;
     }
   }

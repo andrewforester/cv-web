@@ -27,7 +27,9 @@ export function useShowRunner(
   const wake = nextWakeMs(state);
   useEffect(() => {
     if (wake === null) return;
-    const handle = clock.setTimeout(() => dispatch({ type: 'tick' }), wake);
+    // `wake` counts from the state's last event; the render since then took some of it.
+    const delay = Math.max(0, wake - (clock.now() - state.now));
+    const handle = clock.setTimeout(() => dispatch({ type: 'tick' }), delay);
     return () => clock.clearTimeout(handle);
   }, [state, wake, clock, dispatch]);
 
