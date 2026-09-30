@@ -1,0 +1,10 @@
+[data-retro-stage]
+  :is([data-testid='cv-summary'] p, [data-testid='cv-experience-entry'] div:not(:has(> h3)) > p) {
+  display: list-item;
+  margin-left: 28px;
+  list-style: disc outside;
+}
+
+[data-retro-stage] [data-testid='cv-experience-entry'] div:not(:has(> h3)) > p {
+  list-style-type: square;
+}
