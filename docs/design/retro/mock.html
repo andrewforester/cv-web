@@ -1,0 +1,1431 @@
+<!doctype html>
+<!--
+  Static mock of the Retro Rebuild show (docs/design/retro/SPEC.md). Not product code.
+  One CV markup styled by the real src/theme/tokens.css (= today's design). The 2002 look is a stack
+  of damage layers listed in <html data-dmg>; each fix step removes layers. Open in a browser.
+  Query params:
+    state = broken (default) | chat | console | step1-mid | step1 | step2-mid | step2 | end
+    dock  = 0   hide the chat/console dock (full-page renders)
+    dmg   = space-separated layer list, overrides the state's (e.g. dmg=images%20chrome)
+  Screenshots: render.sh next to this file.
+-->
+<html lang="en" data-dmg="fonts colours layout images cards rhythm chrome links">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Andrew Panasiuk - Homepage</title>
+    <!-- Real tokens. Inter and IBM Plex Mono from Google Fonts for standalone viewing. -->
+    <link rel="stylesheet" href="../../../src/theme/tokens.css" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=IBM+Plex+Mono:wght@400;600&display=block"
+    />
+    <style>
+      /* ---- Proposed retro- tokens (SPEC → Proposed tokens). Chat, console, dock only. ---- */
+      :root {
+        --retro-dock-width: 384px;
+        --retro-dock-inset: 16px;
+        --retro-dock-gap: 12px;
+        --retro-chat-height: 344px;
+        --retro-win-face: #c0c0c0;
+        --retro-win-light: #ffffff;
+        --retro-win-shadow: #808080;
+        --retro-win-dark: #0a0a0a;
+        --retro-win-title: linear-gradient(90deg, #000080, #1084d0);
+        --retro-win-title-text: #ffffff;
+        --retro-win-font: Tahoma, Verdana, 'Segoe UI', sans-serif;
+        --retro-win-font-size: 11px;
+        --retro-term-bg: #000000;
+        --retro-term-font: 'IBM Plex Mono', 'Courier New', monospace;
+        --retro-term-font-size: 13px;
+        --retro-term-line-height: 18px;
+        --retro-code-font-size: 12px;
+        --retro-code-line-height: 17px;
+        --retro-term-text: #c0c0c0;
+        --retro-term-dim: #808080;
+        --retro-chat-agent: #33ff66;
+        --retro-chat-visitor: #ffb000;
+        --retro-code-selector: #55ffff;
+        --retro-code-property: #ffff55;
+        --retro-code-string: #55ff55;
+        --retro-code-number: #ff55ff;
+        --retro-code-add: #55ff55;
+        --retro-code-add-bg: rgba(85, 255, 85, 0.1);
+        --retro-code-del: #ff5555;
+        --retro-code-del-bg: rgba(255, 85, 85, 0.1);
+        --retro-progress: #000080;
+        --retro-z-index: 1000;
+      }
+
+      /* =====================================================================================
+         BASE = today's design (approximation of src/screens/cv/*.module.css, tokens only)
+         ===================================================================================== */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      body {
+        font-family: var(--font-family);
+        font-size: var(--font-body-size);
+        line-height: var(--font-body-line-height);
+        letter-spacing: var(--letter-spacing);
+        color: var(--color-text);
+        background: var(--color-bg);
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+        font: inherit;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .site {
+        position: relative;
+        padding: 64px var(--page-gutter) 48px;
+      }
+      html.docked .site {
+        margin-right: calc(var(--retro-dock-width) + 2 * var(--retro-dock-inset));
+      }
+      .cv {
+        max-width: var(--content-max-width);
+        margin: 0 auto;
+      }
+      .r-only,
+      .r-hr,
+      .r-label,
+      .broken,
+      .r-note {
+        display: none;
+      }
+
+      /* Header */
+      .header {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-areas: 'intro photo' 'intro contacts';
+        column-gap: var(--space-4);
+        row-gap: var(--space-4);
+      }
+      .intro {
+        grid-area: intro;
+      }
+      .name {
+        margin-top: var(--space-1);
+        font-size: var(--font-name-size);
+        line-height: var(--font-name-line-height);
+        font-weight: var(--font-name-weight);
+      }
+      .tagline {
+        margin-top: var(--space-5);
+        font-style: italic;
+      }
+      .photo {
+        grid-area: photo;
+        justify-self: end;
+      }
+      .photo img {
+        display: block;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      .contacts {
+        grid-area: contacts;
+        justify-self: end;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: var(--space-2);
+      }
+      .contact {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1);
+      }
+      .contact img {
+        width: 18px;
+        height: 18px;
+      }
+      .contact .link {
+        margin-left: var(--space-1);
+      }
+
+      /* Sections */
+      .section-title {
+        margin: var(--space-8) 0 var(--space-3);
+        font-size: var(--font-section-size);
+        line-height: var(--font-section-line-height);
+        font-weight: var(--font-section-weight);
+      }
+      .section-title.first {
+        margin-top: var(--space-7);
+      }
+      b.medium {
+        font-weight: 500;
+      }
+      b.bi {
+        font-weight: 700;
+        font-style: italic;
+      }
+
+      /* Technologies */
+      .tech {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        column-gap: var(--space-7);
+        align-items: start;
+      }
+      .tech-col {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: var(--space-3) 15px;
+        background: var(--color-bg);
+        border: var(--border-card) solid var(--color-card-border);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card);
+      }
+      .card-title {
+        font-size: var(--font-card-title-size);
+        line-height: var(--font-card-title-line-height);
+        font-weight: var(--font-card-title-weight);
+      }
+      .card-body {
+        font-size: var(--font-card-body-size);
+        line-height: var(--font-card-body-line-height);
+      }
+      .card.hl {
+        border-color: var(--color-highlight);
+      }
+      .card .star {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 18px;
+        height: 18px;
+        transform: translate(50%, -50%);
+      }
+      .card.ai {
+        border-color: transparent;
+      }
+      .card.ai::before {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        padding: 1.5px;
+        border-radius: inherit;
+        background: var(--gradient-ai);
+        mask:
+          linear-gradient(#000 0 0) content-box exclude,
+          linear-gradient(#000 0 0);
+      }
+
+      /* Experience */
+      .xp-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-7);
+      }
+      .xp-head {
+        display: grid;
+        grid-template-columns: 36px 1fr auto;
+        grid-template-areas: 'logo company period' 'logo role role';
+        column-gap: var(--space-3);
+        row-gap: var(--space-1);
+      }
+      .xp-logo {
+        grid-area: logo;
+      }
+      .xp-logo img {
+        display: block;
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-logo);
+        object-fit: contain;
+        background: var(--color-bg);
+      }
+      .company {
+        grid-area: company;
+        font-size: var(--font-subsection-size);
+        line-height: var(--font-subsection-line-height);
+        font-weight: var(--font-subsection-weight);
+      }
+      .remote {
+        position: relative;
+        top: -8px;
+        margin-left: 6px;
+        font-size: var(--font-tag-size);
+        line-height: var(--font-tag-line-height);
+        font-weight: 400;
+        font-style: italic;
+        color: var(--color-text-muted);
+      }
+      .role {
+        grid-area: role;
+        line-height: var(--font-body-size);
+        color: var(--color-text-secondary);
+      }
+      .period {
+        grid-area: period;
+        font-size: var(--font-meta-size);
+        line-height: var(--font-meta-line-height);
+        color: var(--color-text-secondary);
+      }
+      .bullets {
+        margin-top: 9px;
+      }
+
+      /* Apps */
+      .apps {
+        display: flex;
+        gap: var(--space-4);
+      }
+      .app {
+        flex: 1 1 auto;
+        padding: 15px;
+        background: var(--color-bg);
+        border: 0.75px solid var(--color-app-border);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card);
+        letter-spacing: var(--letter-spacing-app);
+        color: var(--color-app-text);
+      }
+      .app-name {
+        font-size: var(--font-app-name-size);
+        line-height: var(--font-app-name-line-height);
+        font-weight: var(--font-app-name-weight);
+      }
+      .app-pub {
+        margin-top: var(--space-1);
+        font-size: var(--font-app-publisher-size);
+        line-height: var(--font-app-publisher-line-height);
+        font-weight: 500;
+        color: var(--color-app-accent);
+      }
+      .app-stats {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin-top: var(--space-2);
+      }
+      .app-icon img {
+        display: block;
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-logo);
+      }
+      .stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-1);
+        white-space: nowrap;
+      }
+      .stat-value {
+        display: inline-flex;
+        align-items: center;
+        font-size: var(--font-app-value-size);
+        line-height: var(--font-app-value-line-height);
+        font-weight: 500;
+      }
+      .stat-value img {
+        width: 15px;
+        height: 15px;
+      }
+      .stat-label {
+        font-size: var(--font-app-label-size);
+        line-height: var(--font-app-label-line-height);
+        color: var(--color-app-muted);
+      }
+      .divider {
+        width: 0.75px;
+        height: 27px;
+        background: color-mix(in srgb, var(--color-app-muted) 40%, transparent);
+      }
+
+      /* Education, about */
+      .edu {
+        font-size: var(--font-education-size);
+        line-height: var(--font-education-line-height);
+      }
+      .subtitle {
+        margin-bottom: var(--space-3);
+        font-size: var(--font-subsection-size);
+        line-height: var(--font-subsection-line-height);
+        font-weight: var(--font-subsection-weight);
+      }
+      .books {
+        display: flex;
+        column-gap: 37px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .cover img {
+        display: block;
+        width: 100px;
+        height: 150px;
+        object-fit: cover;
+        box-shadow: var(--shadow-book);
+      }
+      .book-cap {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        margin-top: var(--space-3);
+      }
+      .book-title {
+        font-size: var(--font-book-title-size);
+        line-height: var(--font-book-title-line-height);
+      }
+      .book-author {
+        font-size: var(--font-book-author-size);
+        line-height: var(--font-book-author-line-height);
+      }
+      .interests-title {
+        margin-top: var(--space-7);
+      }
+      .interests {
+        font-size: var(--font-meta-size);
+        line-height: var(--font-meta-line-height);
+      }
+
+      /* =====================================================================================
+         DAMAGE LAYERS: each block is one deviation from today's design (SPEC → Broken page).
+         A fix step removes its layer(s) from <html data-dmg>.
+         ===================================================================================== */
+
+      /* -- fonts (step 1a): families and sizes of 2002 -- */
+      html[data-dmg~='fonts'] {
+        --font-family: Verdana, Geneva, sans-serif;
+        --letter-spacing: normal;
+        --letter-spacing-app: normal;
+        --font-body-size: 11px;
+        --font-body-line-height: 15px;
+        --font-name-size: 34px;
+        --font-name-line-height: 38px;
+        --font-section-size: 24px;
+        --font-section-line-height: 28px;
+        --font-subsection-size: 15px;
+        --font-subsection-line-height: 18px;
+        --font-card-title-size: 12px;
+        --font-card-title-line-height: 15px;
+        --font-card-body-size: 11px;
+        --font-card-body-line-height: 14px;
+        --font-meta-size: 11px;
+        --font-meta-line-height: 14px;
+        --font-education-size: 13px;
+        --font-education-line-height: 16px;
+        --font-book-title-size: 11px;
+        --font-book-title-line-height: 13px;
+        --font-book-author-size: 10px;
+        --font-book-author-line-height: 12px;
+        --font-app-name-size: 13px;
+        --font-app-name-line-height: 16px;
+        --font-app-publisher-size: 10px;
+        --font-app-publisher-line-height: 12px;
+        --font-app-value-size: 11px;
+        --font-app-value-line-height: 13px;
+        --font-app-label-size: 10px;
+        --font-app-label-line-height: 12px;
+      }
+      html[data-dmg~='fonts'] :is(.name, .section-title, .company, .subtitle) {
+        font-family: 'Times New Roman', Times, serif;
+        font-weight: 700;
+      }
+      html[data-dmg~='fonts'] :is(.card-title, .app-name) {
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: 700;
+      }
+
+      /* -- colours (step 1b): garish palette + tiled background -- */
+      html[data-dmg~='colours'] {
+        --color-bg: #ffffcc;
+        --color-text: #000000;
+        --color-text-secondary: #008000;
+        --color-text-muted: #808080;
+        --color-card-border: #808080;
+        --color-highlight: #ffff00;
+        --color-app-text: #000000;
+        --color-app-muted: #666666;
+        --color-app-accent: #0000ff;
+        --color-app-border: #000000;
+      }
+      html[data-dmg~='colours'] body {
+        background: #000033 url('assets/retro_tile_stars.svg') repeat;
+      }
+      html[data-dmg~='colours'] .cv {
+        background: var(--color-bg);
+      }
+      html[data-dmg~='colours'] .name {
+        color: #800080;
+      }
+      html[data-dmg~='colours'] .section-title {
+        color: #cc0000;
+      }
+      html[data-dmg~='colours'] .card {
+        background: #ccffff;
+      }
+      html[data-dmg~='colours'] .card.hl {
+        background: #ffff00;
+      }
+      html[data-dmg~='colours'] .card.ai {
+        background: #ffccff;
+      }
+      html[data-dmg~='colours'] .app {
+        background: #ccffcc;
+      }
+
+      /* -- layout (step 2): fixed 640 px table pushed to the left, centred header, cramped grid -- */
+      html[data-dmg~='layout'] .site {
+        padding: 8px;
+      }
+      html[data-dmg~='layout'] .cv {
+        width: 640px;
+        max-width: none;
+        margin: 0;
+        padding: 6px;
+        border: 3px outset #c0c0c0;
+      }
+      html[data-dmg~='layout'] .header {
+        display: block;
+        text-align: center;
+      }
+      html[data-dmg~='layout'] .photo {
+        float: left;
+        margin: 0 8px 4px 0;
+      }
+      html[data-dmg~='layout'] .r-note {
+        top: 40px;
+        right: auto;
+        left: calc(100% + 36px);
+      }
+      html[data-dmg~='layout'] .contacts {
+        display: block;
+        justify-self: auto;
+        clear: both;
+        padding-top: 6px;
+      }
+      html[data-dmg~='layout'] .contact {
+        display: inline;
+        text-align: center;
+        margin: 0 4px;
+      }
+      html[data-dmg~='layout'] .tech {
+        column-gap: 2px;
+      }
+      html[data-dmg~='layout'] .tech-col {
+        gap: 2px;
+      }
+      html[data-dmg~='layout'] .title-tech {
+        text-align: center;
+      }
+      html[data-dmg~='layout'] .xp-head {
+        display: block;
+      }
+      html[data-dmg~='layout'] .xp-logo {
+        float: left;
+        margin: 2px 6px 0 0;
+      }
+      html[data-dmg~='layout'] :is(.company, .role) {
+        display: block;
+      }
+      html[data-dmg~='layout'] .period {
+        display: block;
+        font-style: italic;
+      }
+      html[data-dmg~='layout'] .bullets {
+        clear: both;
+      }
+      html[data-dmg~='layout'] .apps {
+        display: block;
+        margin-left: 40px; /* a <blockquote> used for indentation */
+      }
+      html[data-dmg~='layout'] .app {
+        margin-bottom: 4px;
+      }
+      html[data-dmg~='layout'] .books {
+        column-gap: 12px;
+      }
+
+      /* -- images (step 3): broken files, squashed logos -- */
+      html[data-dmg~='images'] .img.is-broken > img {
+        display: none;
+      }
+      html[data-dmg~='images'] .img.is-broken > .broken {
+        display: inline-flex;
+        align-items: flex-start;
+        gap: 2px;
+        padding: 2px;
+        overflow: hidden;
+        border: 1px inset #c0c0c0;
+        font: 11px/13px Verdana, Geneva, sans-serif;
+        letter-spacing: normal;
+        color: #000000;
+        text-align: left;
+        vertical-align: top;
+      }
+      html[data-dmg~='images'] .broken img {
+        flex: none;
+        width: 16px;
+        height: 16px;
+      }
+      html[data-dmg~='images'] .xp-logo:not(.is-broken) img {
+        width: 64px;
+        height: 28px;
+        object-fit: fill;
+        border-radius: 0;
+      }
+      html[data-dmg~='images'] .photo img {
+        border-radius: 0;
+      }
+      html[data-dmg~='images'] .r-note {
+        display: block;
+      }
+
+      /* -- cards (step 4): table cells instead of cards -- */
+      html[data-dmg~='cards'] .card {
+        padding: 4px;
+        border: 2px inset #c0c0c0;
+        border-radius: 0;
+        box-shadow: none;
+        gap: 2px;
+      }
+      html[data-dmg~='cards'] .card .star,
+      html[data-dmg~='cards'] .card.ai::before {
+        display: none;
+      }
+      html[data-dmg~='cards'] .app {
+        padding: 4px;
+        border: 1px solid var(--color-app-border);
+        border-radius: 0;
+        box-shadow: none;
+      }
+      html[data-dmg~='cards'] .app-icon img,
+      html[data-dmg~='cards'] .xp-logo img {
+        border-radius: 0;
+      }
+      html[data-dmg~='cards'] .cover img {
+        box-shadow: none;
+        border: 2px solid #000000;
+      }
+
+      /* -- rhythm (step 5): <hr> under titles, bullets, cramped spacing -- */
+      html[data-dmg~='rhythm'] .section-title {
+        margin: 16px 0 2px;
+      }
+      html[data-dmg~='rhythm'] .r-hr {
+        display: block;
+        margin: 0 0 8px;
+        border: 0;
+        border-top: 2px groove #c0c0c0;
+      }
+      html[data-dmg~='rhythm'] :is(.summary p, .bullets p) {
+        display: list-item;
+        margin-left: 28px;
+        list-style: disc outside;
+      }
+      html[data-dmg~='rhythm'] .bullets p {
+        list-style-type: square;
+      }
+      html[data-dmg~='rhythm'] .xp-list {
+        gap: 12px;
+      }
+      html[data-dmg~='rhythm'] .bullets {
+        margin-top: 2px;
+      }
+      html[data-dmg~='rhythm'] .tagline {
+        margin-top: 2px;
+      }
+      html[data-dmg~='rhythm'] .interests-title {
+        margin-top: 12px;
+      }
+      html[data-dmg~='rhythm'] .subtitle {
+        margin-bottom: 4px;
+      }
+
+      /* -- chrome (step 6): 2002 homepage furniture -- */
+      html[data-dmg~='chrome'] .r-only {
+        display: block;
+      }
+      html[data-dmg~='chrome'] .r-only.inline {
+        display: inline-block;
+      }
+      .r-nav {
+        margin: -2px -2px 6px;
+        padding: 3px;
+        text-align: center;
+        background: #000080;
+      }
+      .r-nav a {
+        display: inline-block;
+        margin: 1px;
+        padding: 2px 10px;
+        font: bold 11px/14px Verdana, Geneva, sans-serif;
+        color: #000000;
+        background: #c0c0c0;
+        border: 2px outset #ffffff;
+        text-decoration: none;
+      }
+      .r-marquee {
+        overflow: hidden;
+        margin-bottom: 8px;
+        border: 1px solid #ff0000;
+        background: #000000;
+        color: #ffff00;
+        font: bold 13px/20px 'Comic Sans MS', 'Comic Neue', cursive;
+        white-space: nowrap;
+      }
+      .r-marquee span {
+        display: inline-block;
+        padding-left: 100%;
+        animation: marquee 18s linear infinite;
+      }
+      @keyframes marquee {
+        to {
+          transform: translateX(-100%);
+        }
+      }
+      .r-new {
+        margin-left: 6px;
+        vertical-align: middle;
+        animation: blink 1s steps(1) infinite;
+      }
+      @keyframes blink {
+        50% {
+          visibility: hidden;
+        }
+      }
+      .r-footer {
+        margin-top: 20px;
+        padding-top: 8px;
+        border-top: 2px groove #c0c0c0;
+        text-align: center;
+        font: 11px/16px Verdana, Geneva, sans-serif;
+        color: #000000;
+        letter-spacing: normal;
+      }
+      .r-footer p {
+        margin: 4px 0;
+      }
+      .r-footer a {
+        color: #0000ee;
+        text-decoration: underline;
+      }
+      .r-counter {
+        display: inline-flex;
+        gap: 1px;
+        padding: 2px;
+        background: #404040;
+        vertical-align: middle;
+      }
+      .r-counter span {
+        width: 12px;
+        font: bold 14px/18px 'Courier New', monospace;
+        color: #33ff33;
+        background: #000000;
+        text-align: center;
+      }
+      .r-badges img {
+        margin: 0 3px;
+        vertical-align: middle;
+      }
+      /* On the photo corner once the layout is fixed; in the margin right of the table before. */
+      .r-note {
+        position: absolute;
+        top: -12px;
+        right: -28px;
+        z-index: 1;
+        width: 184px;
+        padding: 10px 12px;
+        background: #ffff99;
+        border: 1px solid #cc9900;
+        box-shadow: 3px 3px 0 #000000;
+        font: 13px/17px 'Comic Sans MS', 'Comic Neue', cursive;
+        color: #000000;
+        letter-spacing: normal;
+        transform: rotate(2.5deg);
+        text-align: left;
+      }
+      .r-note strong {
+        display: block;
+        font-size: 18px;
+        line-height: 24px;
+        color: #cc0000;
+      }
+
+      /* -- links (step 7): blue underlined links, text labels instead of icons -- */
+      html[data-dmg~='links'] .cv a,
+      html[data-dmg~='links'] .contact .link {
+        color: #0000ee;
+        text-decoration: underline;
+      }
+      html[data-dmg~='links'] .contact .ico {
+        display: none;
+      }
+      html[data-dmg~='links'] .r-label {
+        display: inline;
+        margin-right: 4px;
+        font-weight: 700;
+      }
+
+
+      /* =====================================================================================
+         DOCK: terminal chat (bottom) + live-fix console (above). New UI, retro-styled.
+         ===================================================================================== */
+      .dock {
+        position: fixed;
+        top: var(--retro-dock-inset);
+        right: var(--retro-dock-inset);
+        bottom: var(--retro-dock-inset);
+        z-index: var(--retro-z-index);
+        display: none;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: var(--retro-dock-gap);
+        width: var(--retro-dock-width);
+      }
+      html.docked .dock {
+        display: flex;
+      }
+      .win {
+        display: flex;
+        flex-direction: column;
+        padding: 3px;
+        background: var(--retro-win-face);
+        box-shadow:
+          inset -1px -1px var(--retro-win-dark),
+          inset 1px 1px var(--retro-win-light),
+          inset -2px -2px var(--retro-win-shadow),
+          inset 2px 2px #dfdfdf,
+          4px 4px 0 rgba(0, 0, 0, 0.35);
+        font-family: var(--retro-win-font);
+        font-size: var(--retro-win-font-size);
+        letter-spacing: normal;
+        color: #000000;
+      }
+      .win.chat {
+        flex: none;
+        height: var(--retro-chat-height);
+      }
+      .win.console {
+        flex: 1;
+        min-height: 0;
+      }
+      .win-title {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 18px;
+        padding: 0 2px 0 3px;
+        background: var(--retro-win-title);
+        color: var(--retro-win-title-text);
+        font-weight: 700;
+      }
+      .win-title .t {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .win-title svg {
+        flex: none;
+      }
+      .win-btn {
+        flex: none;
+        width: 16px;
+        height: 14px;
+        padding: 0;
+        background: var(--retro-win-face);
+        border: 0;
+        box-shadow:
+          inset -1px -1px var(--retro-win-dark),
+          inset 1px 1px var(--retro-win-light),
+          inset -2px -2px var(--retro-win-shadow);
+        font: bold 11px/10px var(--retro-win-font);
+        color: #000000;
+        text-align: center;
+      }
+      .term {
+        flex: 1;
+        min-height: 0;
+        margin-top: 2px;
+        padding: 6px 8px;
+        overflow: hidden;
+        background: var(--retro-term-bg);
+        box-shadow:
+          inset 1px 1px var(--retro-win-shadow),
+          inset -1px -1px var(--retro-win-light),
+          inset 2px 2px var(--retro-win-dark);
+        font-family: var(--retro-term-font);
+        font-size: var(--retro-term-font-size);
+        line-height: var(--retro-term-line-height);
+        color: var(--retro-term-text);
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .status {
+        display: flex;
+        gap: 2px;
+        margin-top: 2px;
+      }
+      .status > span {
+        padding: 1px 4px;
+        box-shadow:
+          inset 1px 1px var(--retro-win-shadow),
+          inset -1px -1px var(--retro-win-light);
+        white-space: nowrap;
+      }
+      .status .grow {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* chat log */
+      .msg {
+        margin-bottom: 4px;
+        padding-left: 7ch;
+        text-indent: -7ch;
+      }
+      .ts,
+      .sys {
+        color: var(--retro-term-dim);
+      }
+      .agent {
+        color: var(--retro-chat-agent);
+      }
+      .visitor {
+        color: var(--retro-chat-visitor);
+      }
+      .nick {
+        font-weight: 600;
+      }
+      .composer {
+        display: flex;
+        gap: 1ch;
+        margin-top: 2px;
+        padding: 5px 8px;
+        background: var(--retro-term-bg);
+        box-shadow:
+          inset 1px 1px var(--retro-win-shadow),
+          inset -1px -1px var(--retro-win-light),
+          inset 2px 2px var(--retro-win-dark);
+        font: var(--retro-term-font-size) / var(--retro-term-line-height) var(--retro-term-font);
+        color: var(--retro-chat-visitor);
+      }
+      .composer .ph {
+        color: var(--retro-term-dim);
+      }
+      .caret {
+        display: inline-block;
+        width: 1ch;
+        height: 1.1em;
+        margin-bottom: -0.2em;
+        background: currentColor;
+        animation: blink 1s steps(1) infinite;
+      }
+
+      /* console */
+      .console .term {
+        font-size: var(--retro-code-font-size);
+        line-height: var(--retro-code-line-height);
+      }
+      .ln {
+        min-height: var(--retro-code-line-height);
+        padding-left: 2ch;
+        text-indent: -2ch;
+      }
+      .ln.add {
+        background: var(--retro-code-add-bg);
+      }
+      .ln.del {
+        background: var(--retro-code-del-bg);
+        color: var(--retro-code-del);
+      }
+      .ln .g {
+        display: inline-block;
+        width: 2ch;
+        text-indent: 0;
+      }
+      .ln.add .g {
+        color: var(--retro-code-add);
+      }
+      .c-com {
+        color: var(--retro-term-dim);
+      }
+      .c-sel {
+        color: var(--retro-code-selector);
+      }
+      .c-prop {
+        color: var(--retro-code-property);
+      }
+      .c-str {
+        color: var(--retro-code-string);
+      }
+      .c-num {
+        color: var(--retro-code-number);
+      }
+      .c-file {
+        color: #ffffff;
+        font-weight: 600;
+      }
+      .c-ok {
+        color: var(--retro-code-add);
+      }
+      .c-step {
+        color: #ffffff;
+      }
+      .c-prompt {
+        color: #ffffff;
+      }
+      .progress {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+        padding: 3px 4px;
+      }
+      .progress .label {
+        flex: none;
+        width: 158px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .bar {
+        flex: 1;
+        height: 16px;
+        padding: 2px;
+        background: var(--retro-win-face);
+        box-shadow:
+          inset 1px 1px var(--retro-win-shadow),
+          inset -1px -1px var(--retro-win-light);
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        background: repeating-linear-gradient(
+          90deg,
+          var(--retro-progress) 0 8px,
+          transparent 8px 10px
+        );
+      }
+      .progress .pct {
+        flex: none;
+        width: 32px;
+        text-align: right;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .r-marquee span {
+          animation: none;
+          padding-left: 8px;
+        }
+        .r-new,
+        .caret {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="site">
+      <main class="cv" id="cv"></main>
+    </div>
+
+    <div class="dock" aria-label="Live fix">
+      <section class="win console" id="console" aria-label="Live fix console">
+        <div class="win-title">
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+            <rect x="0.5" y="1.5" width="13" height="11" fill="#000" stroke="#c0c0c0" />
+            <path d="M3 5l2 2-2 2M6.5 9.5h4" stroke="#33ff66" fill="none" />
+          </svg>
+          <span class="t">fix.exe - live console</span>
+          <button class="win-btn" tabindex="-1" aria-label="Minimise">_</button>
+        </div>
+        <div class="term" id="console-term"></div>
+        <div class="progress">
+          <span class="label" id="progress-label"></span>
+          <span class="bar"><i id="progress-bar"></i></span>
+          <span class="pct" id="progress-pct"></span>
+        </div>
+      </section>
+      <section class="win chat" id="chat" aria-label="Chat with the agent">
+        <div class="win-title">
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+            <path d="M1.5 2.5h11v7h-6l-3 3v-3h-2z" fill="#ffff99" stroke="#000" />
+          </svg>
+          <span class="t">#andrew-cv - agent chat</span>
+          <button class="win-btn" tabindex="-1" aria-label="Minimise">_</button>
+        </div>
+        <div class="term" id="chat-log" role="log" aria-live="polite"></div>
+        <div class="composer" id="composer"></div>
+        <div class="status">
+          <span class="grow">&#9679; connected</span><span>2 users</span><span>EN</span>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      /* ------------------------------------------------------------------ CV data (cv.en.json) */
+      const A = '../cv/assets/';
+      const CV = {
+        name: 'Andrew Panasiuk',
+        headline: 'Senior Android Engineer with iOS experience',
+        tagline: 'Creating Android apps since 2012',
+        email: 'andriipanasiuk@gmail.com',
+        phone: '+38 093 897-71-10',
+        summary: [
+          'Product-minded <b class="medium">Senior Android Engineer</b> with 12+ years of experience.',
+          'Proficient in Kotlin, Coroutines, Jetpack, MVVM/MVI.',
+          'Integrating modern AI-driven tools and approaches into workflow.',
+          'Autonomous end-to-end feature delivery combined with trust and respect for team leadership.',
+          'Strong background in Applied Mathematics (M.Sc.).',
+          'Skilled yet maintaining a passion for crafting good software.',
+        ],
+        tech: [
+          [
+            ['Android', 'Jetpack Compose, Hilt, Room/SQLite, Picasso/Glide, Custom UI, Custom Animations'],
+            ['Product mindset', 'Feature ownership, Pixel-perfect UI, Human-centric UX, Product analytics basics', 'hl'],
+            ['Unit/UI testing', 'JUnit, Mockk, Robolectric, JaCoCo'],
+          ],
+          [
+            ['Kotlin', 'Coroutines, Ktor, Flow, Kotlinx-serialization, Kotlin Multiplatform'],
+            ['Architecture', 'MVVM, MVI, Redux, Clean, SOLID'],
+            ['Integrations', 'Firebase Cloud Messaging, Locations API, SocketIO, REST/RPC API'],
+          ],
+          [
+            ['AI Tools', 'Copilot, agents.md, Cursor IDE, hallucination prevention, MCP, orchestration approach', 'ai'],
+            ['Tools', 'Gradle, Git, Github Actions, CircleCI, CocoaPods'],
+            ['iOS', 'Swift, UIKit, AutoLayout, Stevia'],
+          ],
+        ],
+        latest: {
+          company: 'Transcenda', role: 'Senior Android Developer', period: 'Feb 2021 - Feb 2026',
+          logo: 'logo_transcenda.png', broken: true,
+          bullets: [
+            'Took ownership on key features delivery for <b class="bi">Cync</b> and <b class="bi">August Home</b> smart home apps, both serving 1M+ users',
+            'Boosted engineering efficiency by integrating AI-driven workflows (Copilot, LLMs)',
+            'Developed complex custom graphics using Jetpack Compose Canvas',
+            'Supported BLE communication for realtime devices discovery, status sync and offline resilience',
+          ],
+        },
+        apps: [
+          { name: 'Cync', pub: 'Savant Systems, Inc.', icon: 'app_cync.png', rating: '5.0', reviews: '91.8K', dl: '1M+' },
+          { name: 'August Home', pub: 'August Home, Inc.', icon: 'app_august.png', rating: '4.1', reviews: '18.7K', dl: '1M+' },
+          { name: 'Savant', pub: 'Savant Systems, Inc.', icon: 'app_savant.png', dl: '100k+', broken: true },
+        ],
+        education: ['Applied Mathematics, Cybernetics', 'Kyiv National University 2007 - 2012'],
+        books: [
+          ['Antifragile', 'Nassim Nicholas Taleb', 'book_antifragile.jpg'],
+          ['Siddhartha', 'Hermann Hesse', 'book_siddhartha.jpg', true],
+          ['The Goal', 'Eliyahu Goldratt', 'book_the_goal.jpg'],
+          ['A Pattern Language', 'Christopher Alexander', 'book_pattern_language.png'],
+        ],
+        interests: 'Sports, forest hiking, e-bike riding, good books, volunteering, playing guitar, AI experiments',
+        previous: [
+          ['WiseHouse', 0, 'Android Developer', 'Mar 2020 - Feb 2021', 'logo_wisehouse.png', [
+            'Created MyIGB app from scratch to Google Play publication',
+            'Build an architecture based on MVI+Redux supporting offline mode',
+            'Setup CI with automatic builds sent to Telegram and Google Play',
+            'Wrote code 100% on Kotlin using modern libs: Coroutines, Flow, Ktor']],
+          ['Attendify', 0, 'Android/iOS Developer', 'Jan 2018 - Mar 2020', 'logo_attendify.png', [
+            'Created number of features in 2 key projects both on Android and iOS',
+            'Setup CI with daily builds sent to Slack channel; migrated codebase to Kotlin',
+            'Deeply collaborate with designers to implement user-friendly UI']],
+          ['RosFines', 1, 'Android Lead', 'May 2017 - Aug 2017', 'logo_rosfines.jpg', [
+            'Built a development process in collaboration with PM; conducted hiring interviews',
+            'Setup CI with automatic deployment to Fabric Beta']],
+          ['Smartling', 1, 'Android SDK Developer', 'Feb 2016 - Aug 2017', 'logo_smartling.png', [
+            'Implement features for the mobile localization SDK',
+            'Increased code coverage with unit tests to 60+%',
+            'Setup Github as Maven repo for the SDK artifacts, wrote usage docs for the SDK']],
+          ['Rokkit', 0, 'Android Developer', 'Jun 2015 - Jan 2016', 'logo_rokkit.jpg', [
+            'Created an unusual UX to search for the flight tickets and hotels all over the world']],
+          ['ivi', 1, 'Android Teamlead', 'Apr 2013 - Dec 2014', 'logo_ivi.png', [
+            'Ensured regular bug-free releases of the product with 1M+ users',
+            'Mentor a team of 2 developers, made a code review, collaborated with PM',
+            'Develop and support shared codebase for 3 ivi projects']],
+          ['Samsung', 0, 'Android Developer', 'Jan 2012 - Sep 2012', 'logo_samsung.png', [
+            'Created an analogue of Android Layout Inflater for the custom UI framework']],
+        ],
+      };
+
+      /* An image that can "fail to load": the broken box keeps the element's size and shows the
+         file name as alt text, like a 2002 browser did. */
+      const img = (cls, file, alt, w, h, broken) =>
+        `<span class="img ${cls}${broken ? ' is-broken' : ''}"><img src="${A}${file}" alt="${alt}">` +
+        (broken
+          ? `<span class="broken" style="width:${w}px;height:${h}px"><img src="assets/icon_broken_image.svg" alt="">${file}</span>`
+          : '') +
+        `</span>`;
+      const title = (text, extra = '', cls = '') =>
+        `<h2 class="section-title ${cls}">${text}${extra}</h2><hr class="r-hr">`;
+      const NEW = '<img class="r-only inline r-new" src="assets/badge_new.svg" alt="New">';
+      const xp = (company, remote, role, period, logo, bullets, broken) => `
+        <article class="xp">
+          <div class="xp-head">
+            ${img('xp-logo', logo, company, 36, 36, broken)}
+            <h3 class="company">${company}${remote ? '<span class="remote">remotely</span>' : ''}</h3>
+            <p class="role">${role}</p>
+            <p class="period">${period}</p>
+          </div>
+          <div class="bullets">${bullets.map((b) => `<p>${b}</p>`).join('')}</div>
+        </article>`;
+      const stat = (value, label, star) =>
+        `<span class="stat"><span class="stat-value">${value}${star ? `<img src="${A}icon_star_rating.svg" alt="">` : ''}</span><span class="stat-label">${label}</span></span>`;
+
+      document.getElementById('cv').innerHTML = `
+        <nav class="r-only r-nav">
+          <a href="#">Home</a><a href="#">Resume</a><a href="#">My Apps</a><a href="#">Books</a><a href="#">Guestbook</a><a href="#">Links</a>
+        </nav>
+        <div class="r-only r-marquee"><span>*** Welcome to my homepage! *** Senior Android Engineer *** Creating Android apps since 2012 *** Please sign my guestbook! ***</span></div>
+        <header class="header">
+          <aside class="r-note"><strong>Oh, snap!</strong>Some pictures didn't load. Try pressing F5... or just wait a minute.</aside>
+          ${img('photo', 'photo.jpg', CV.name, 120, 120, true)}
+          <div class="intro">
+            <h1 class="name">${CV.name}</h1>
+            <p class="headline">${CV.headline}</p>
+            <p class="tagline">${CV.tagline}</p>
+          </div>
+          <address class="contacts" style="font-style:normal">
+            <span class="contact"><img class="ico" src="${A}icon_gmail.png" alt=""><span class="r-label">E-mail me:</span><a class="link" href="#">${CV.email}</a></span>
+            <span class="contact"><img class="ico" src="${A}icon_whatsapp.png" alt="WhatsApp"><img class="ico" src="${A}icon_telegram.png" alt="Telegram"><span class="r-label">Phone:</span><a class="link" href="#">${CV.phone}</a></span>
+          </address>
+        </header>
+        <section class="summary">${title('Summary', '', 'first')}${CV.summary.map((l) => `<p>${l}</p>`).join('')}</section>
+        <section>${title('Technologies', '', 'title-tech')}
+          <div class="tech">${CV.tech
+            .map((col) => `<div class="tech-col">${col
+              .map(([t, body, v]) => `<div class="card ${v || ''}"><h3 class="card-title">${t}${v === 'ai' ? NEW : ''}</h3><p class="card-body">${body}</p>${v === 'hl' ? `<img class="star" src="${A}icon_star_card.svg" alt="">` : ''}</div>`)
+              .join('')}</div>`)
+            .join('')}</div>
+        </section>
+        <section>${title('Latest relevant experience', NEW)}
+          ${xp(CV.latest.company, 0, CV.latest.role, CV.latest.period, CV.latest.logo, CV.latest.bullets, true)}
+        </section>
+        <section>${title('Apps')}
+          <div class="apps">${CV.apps
+            .map((a) => `<div class="app"><p class="app-name">${a.name}</p><p class="app-pub">${a.pub}</p>
+              <div class="app-stats">${img('app-icon', a.icon, a.name, 36, 36, a.broken)}
+                ${a.rating ? stat(a.rating, `${a.reviews} reviews`, true) + '<span class="divider"></span>' : ''}${stat(a.dl, 'Downloads')}</div></div>`)
+            .join('')}</div>
+        </section>
+        <section>${title('Education')}${CV.education.map((l) => `<p class="edu">${l}</p>`).join('')}</section>
+        <section>${title('About me')}
+          <h3 class="subtitle">Favourite books</h3>
+          <ul class="books">${CV.books
+            .map(([t, a, f, broken]) => `<li class="book">${img('cover', f, t, 100, 150, broken)}<span class="book-cap"><span class="book-title">${t}</span><span class="book-author">${a}</span></span></li>`)
+            .join('')}</ul>
+          <h3 class="subtitle interests-title">Interests</h3>
+          <p class="interests">${CV.interests}</p>
+        </section>
+        <section>${title('Previous Experience')}
+          <div class="xp-list">${CV.previous.map((e) => xp(...e)).join('')}</div>
+        </section>
+        <footer class="r-only r-footer">
+          <img src="assets/sign_under_construction.svg" alt="Under construction" width="208" height="40">
+          <p>You are visitor number <span class="r-counter">${'004271'.split('').map((d) => `<span>${d}</span>`).join('')}</span></p>
+          <p class="r-badges"><img src="assets/badge_800x600.svg" alt="Best viewed at 800x600" width="88" height="31"><img src="assets/badge_guestbook.svg" alt="Sign my guestbook" width="88" height="31"></p>
+          <p>[ <a href="#">&lt;&lt; Prev</a> | <a href="#">Android Devs Webring</a> | <a href="#">Next &gt;&gt;</a> ]</p>
+          <p>Last updated: 14.03.2002 &middot; &copy; 2002 Andrew Panasiuk. All rights reserved.</p>
+        </footer>`;
+
+      /* ------------------------------------------------------------------ show states */
+      const STEPS = [
+        'fonts & colours', 'layout', 'images', 'cards', 'spacing & lists', '2002 chrome', 'links & contacts',
+      ];
+      const ALL = ['fonts', 'colours', 'layout', 'images', 'cards', 'rhythm', 'chrome', 'links'];
+      const without = (...fixed) => ALL.filter((l) => !fixed.includes(l));
+
+      // Chat lines: [time, kind, text]; kind = sys | agent | visitor
+      const CHAT_OPEN = [
+        ['20:14', 'sys', '*** Now talking in #andrew-cv'],
+        ['20:14', 'sys', '*** agent has joined'],
+        ['20:14', 'agent', "Oops... looks like this site got stuck in 2002 and is a bit broken. Tell me what you think while I fix it."],
+      ];
+      const CHAT_EXCHANGE = [
+        ['20:14', 'visitor', "wow, a marquee! haven't seen one in 20 years"],
+        ['20:14', 'agent', "Enjoy it while it lasts. It's on my list, near the end."],
+      ];
+      const CHAT_CONSOLE = [['20:15', 'agent', 'Opening my console. Watch the page: every line I type lands on it right away.']];
+      const CHAT_STEP1 = [['20:15', 'agent', 'Fonts and colours are from this decade now. Easier on the eyes?']];
+      const CHAT_STEP2 = [
+        ['20:15', 'visitor', 'much better already'],
+        ['20:16', 'agent', 'Thanks! Layout is next: it has been leaning left since 2002.'],
+        ['20:16', 'agent', 'Centred on a proper grid. Next up: the pictures that never loaded.'],
+      ];
+      const CHAT_END = [['20:17', 'agent', "Done. This is Andrew's CV as it looks today. Ask me anything about his experience."]];
+
+      // Console lines: [kind, text]; kind = prompt | step | file | hunk | add | del | ctx | ok | com
+      const PROMPT = [['prompt', '$ agent fix --live andrew-cv']];
+      const STEP1_FONTS = [
+        ['step', '# 1/7 fonts & colours: Verdana 11px -> Inter 15px, navy on white'],
+        ['file', '--- src/theme/global.css'],
+        ['add', "@import '@fontsource/inter/latin-400.css';"],
+        ['add', "@import '@fontsource/inter/latin-500.css';"],
+        ['del', "h1, h2, h3 { font-family: 'Times New Roman', serif; }"],
+        ['file', '--- src/theme/tokens.css'],
+        ['hunk', ':root {'],
+        ['del', '  --font-family: Verdana, Geneva, sans-serif;'],
+        ['add', "  --font-family: 'Inter', system-ui, sans-serif;"],
+        ['del', '  --font-body-size: 11px;'],
+        ['add', '  --font-body-size: 15px;'],
+        ['add', '  --font-section-size: 21px;'],
+        ['ok', '  ok fonts applied'],
+      ];
+      const STEP1_COLOURS = [
+        ['del', '  --color-bg: #ffffcc;'],
+        ['add', '  --color-bg: #ffffff;'],
+        ['del', '  --color-text: #000000;'],
+        ['add', '  --color-text: #001670;'],
+        ['del', '  --color-text-secondary: #008000;'],
+        ['add', '  --color-text-secondary: #445598;'],
+        ['file', '--- src/theme/global.css'],
+        ['hunk', 'body {'],
+        ['del', "  background: #000033 url('stars.gif');"],
+        ['add', '  background: var(--color-bg);'],
+        ['ok', '  ok colours applied'],
+      ];
+      const STEP2_LAYOUT = [
+        ['step', '# 2/7 layout: 640px table on the left -> centred 672px column'],
+        ['file', '--- src/app/App.module.css'],
+        ['hunk', '.shell {'],
+        ['del', '  width: 640px;'],
+        ['del', '  border: 3px outset #c0c0c0;'],
+        ['add', '  max-width: calc(var(--content-max-width) + 2 * var(--page-gutter));'],
+        ['add', '  margin: 0 auto;'],
+        ['file', '--- src/screens/cv/HeaderSection.module.css'],
+        ['hunk', '.root {'],
+        ['del', '  text-align: center;'],
+        ['add', '  display: grid;'],
+        ['add', '  grid-template-columns: 1fr auto;'],
+        ['file', '--- src/screens/cv/TechnologiesSection.module.css'],
+        ['hunk', '.grid {'],
+        ['del', '  column-gap: 2px;'],
+        ['add', '  column-gap: var(--space-7);'],
+        ['ok', '  ok layout applied'],
+      ];
+      const done = (n) => [['ok', `ok ${n}/7 ${STEPS[n - 1]}`]];
+
+      const S = {
+        broken: { dmg: ALL, dock: false },
+        chat: { dmg: ALL, chat: [...CHAT_OPEN, ...CHAT_EXCHANGE], typing: 'the purple name is a bold choice', console: null },
+        console: {
+          dmg: ALL,
+          chat: [...CHAT_OPEN, ...CHAT_EXCHANGE, ...CHAT_CONSOLE],
+          console: [...PROMPT, ...STEP1_FONTS.slice(0, 4)],
+          caret: true, step: 1, pct: 4,
+        },
+        'step1-mid': {
+          dmg: without('fonts'),
+          chat: [...CHAT_OPEN, ...CHAT_EXCHANGE, ...CHAT_CONSOLE],
+          console: [...PROMPT, ...STEP1_FONTS, ...STEP1_COLOURS.slice(0, 3)],
+          caret: true, step: 1, pct: 9,
+        },
+        step1: {
+          dmg: without('fonts', 'colours'),
+          chat: [...CHAT_OPEN, ...CHAT_EXCHANGE, ...CHAT_CONSOLE, ...CHAT_STEP1],
+          console: [...PROMPT, ...STEP1_FONTS, ...STEP1_COLOURS, ...done(1)],
+          caret: true, step: 2, pct: 14,
+        },
+        'step2-mid': {
+          dmg: without('fonts', 'colours'),
+          chat: [...CHAT_OPEN, ...CHAT_EXCHANGE, ...CHAT_CONSOLE, ...CHAT_STEP1, ...CHAT_STEP2.slice(0, 2)],
+          console: [...PROMPT, ...done(1), ...STEP2_LAYOUT.slice(0, 6)],
+          caret: true, step: 2, pct: 20,
+        },
+        step2: {
+          dmg: without('fonts', 'colours', 'layout'),
+          chat: [...CHAT_OPEN, ...CHAT_EXCHANGE, ...CHAT_CONSOLE, ...CHAT_STEP1, ...CHAT_STEP2],
+          console: [...PROMPT, ...done(1), ...STEP2_LAYOUT, ...done(2)],
+          caret: true, step: 3, pct: 29,
+        },
+        end: {
+          dmg: [],
+          chat: [...CHAT_OPEN, ...CHAT_EXCHANGE, ...CHAT_CONSOLE, ...CHAT_STEP1, ...CHAT_STEP2, ...CHAT_END],
+          console: [...PROMPT, ...[1, 2, 3, 4, 5, 6, 7].flatMap(done), ['prompt', '$ '], ['ok', 'all 7 fixes applied. Welcome to 2026.']],
+          caret: false, step: 7, pct: 100,
+        },
+      };
+
+      const q = new URLSearchParams(location.search);
+      const st = S[q.get('state')] || S.broken;
+      const dmg = q.has('dmg') ? q.get('dmg').split(/\s+/).filter(Boolean) : st.dmg;
+      document.documentElement.dataset.dmg = dmg.join(' ');
+      const docked = st.dock !== false && q.get('dock') !== '0';
+      document.documentElement.classList.toggle('docked', docked);
+
+      const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+      // Chat
+      const NICK = { agent: '&lt;agent&gt;', visitor: '&lt;you&gt;' };
+      document.getElementById('chat-log').innerHTML = (st.chat || [])
+        .map(([t, k, text]) =>
+          k === 'sys'
+            ? `<div class="msg sys"><span class="ts">[${t}]</span> ${esc(text)}</div>`
+            : `<div class="msg ${k}"><span class="ts">[${t}]</span> <span class="nick">${NICK[k]}</span> ${esc(text)}</div>`,
+        )
+        .join('');
+      document.getElementById('composer').innerHTML = st.typing
+        ? `<span>you&gt;</span><span>${esc(st.typing)}<span class="caret"></span></span>`
+        : `<span>you&gt;</span><span><span class="caret"></span><span class="ph"> type here, press Enter</span></span>`;
+
+      // Console: a tiny CSS highlighter
+      const hlCode = (s) =>
+        esc(s)
+          .replace(/(@import|@media)/g, '<span class="c-num">$1</span>')
+          .replace(/^(\s*)(--[\w-]+|[a-z-]+)(:)/, '$1<span class="c-prop">$2</span>$3')
+          .replace(/(#[0-9a-f]{3,6}\b|\b\d+(?:px|%|fr)?)(?![^<]*>)/gi, '<span class="c-num">$1</span>')
+          .replace(/^([.:\w][\w\s,.-]*)(\s\{)/, '<span class="c-sel">$1</span>$2');
+      const hl = (s) =>
+        s
+          .split(/('[^']*')/)
+          .map((part, i) => (i % 2 ? `<span class="c-str">${esc(part)}</span>` : hlCode(part)))
+          .join('');
+      const lines = st.console || [];
+      const html = lines.map(([k, s], i) => {
+        const last = i === lines.length - 1 && st.caret ? '<span class="caret"></span>' : '';
+        switch (k) {
+          case 'prompt': return `<div class="ln"><span class="c-prompt">${esc(s)}</span>${last}</div>`;
+          case 'step': return `<div class="ln"><span class="c-com">${esc(s)}</span>${last}</div>`;
+          case 'file': return `<div class="ln"><span class="c-file">${esc(s)}</span>${last}</div>`;
+          case 'hunk': return `<div class="ln"><span class="g"> </span>${hl(s)}${last}</div>`;
+          case 'add': return `<div class="ln add"><span class="g">+</span>${hl(s)}${last}</div>`;
+          case 'del': return `<div class="ln del"><span class="g">-</span>${esc(s)}${last}</div>`;
+          case 'ok': return `<div class="ln"><span class="c-ok">${esc(s).replace(/^(\s*)ok/, '$1&#10003;')}</span>${last}</div>`;
+          default: return `<div class="ln">${esc(s)}${last}</div>`;
+        }
+      });
+      const term = document.getElementById('console-term');
+      term.innerHTML = html.join('');
+      document.getElementById('console').style.display = st.console ? '' : 'none';
+      if (st.step) {
+        document.getElementById('progress-label').textContent =
+          st.pct === 100 ? 'All fixes applied' : `Step ${st.step} of 7: ${STEPS[st.step - 1]}`;
+        document.getElementById('progress-bar').style.width = `${st.pct}%`;
+        document.getElementById('progress-pct').textContent = `${st.pct}%`;
+      }
+      // Terminals follow their last line.
+      for (const el of [term, document.getElementById('chat-log')]) el.scrollTop = el.scrollHeight;
+    </script>
+  </body>
+</html>
