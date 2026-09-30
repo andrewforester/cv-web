@@ -1,0 +1,28 @@
+[data-retro-stage] h2 {
+  margin: 16px 0 8px;
+  padding-bottom: 2px;
+  border-bottom: 2px groove #c0c0c0;
+}
+
+[data-retro-stage]
+  :is([data-testid='cv-summary'] p, [data-testid='cv-experience-entry'] div:not(:has(> h3)) > p) {
+  display: list-item;
+  margin-left: 28px;
+  list-style: disc outside;
+}
+
+[data-retro-stage] [data-testid='cv-experience-entry'] div:not(:has(> h3)) > p {
+  list-style-type: square;
+}
+
+[data-retro-stage] [data-testid='cv-experience-entry'] div:not(:has(> h3)) {
+  margin-top: 2px;
+}
+
+[data-retro-stage] div:has(> [data-testid='cv-experience-entry']) {
+  gap: 12px;
+}
+
+[data-retro-stage] [data-agent-id='section:about'] h3 {
+  margin: 12px 0 4px;
+}

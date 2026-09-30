@@ -1,0 +1,28 @@
+[data-retro-stage] [data-testid='cv-technology-card'] {
+  gap: 2px;
+  padding: 4px;
+  border: 2px inset #c0c0c0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+[data-retro-stage] [data-testid='cv-technology-card'] > img,
+[data-retro-stage] [data-testid='cv-technology-card']::before {
+  display: none;
+}
+
+[data-retro-stage] [data-testid='cv-app-card'] {
+  padding: 4px;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+[data-retro-stage] :is([data-testid='cv-app-card'], [data-testid='cv-experience-entry']) img {
+  border-radius: 0;
+}
+
+[data-retro-stage] [data-testid='cv-book'] img {
+  border: 2px solid #000000;
+  box-shadow: none;
+}

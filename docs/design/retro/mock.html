@@ -1,0 +1,1472 @@
+<!doctype html>
+<!--
+  Static mock of the Retro Rebuild show (docs/design/retro/SPEC.md). Not product code.
+  It follows docs/retro/ARCHITECTURE.md: the page is today's CV (same element types and hooks as
+  src/screens/cv: data-testid, data-agent-id) styled by the real src/theme/tokens.css; the 2002 look
+  is the damage layers in layers/*.css, injected as <link data-retro-layer> at the end of <head>,
+  plus show-owned decorations in a portal. A fix step removes layers and decorations.
+  The console text is generated from the layer files, so open it over http or with render.sh:
+    python3 -m http.server  (repo root)  →  http://localhost:8000/docs/design/retro/mock.html
+  Query params:
+    state = broken (default) | chat | console | step1-mid | step1 | step2-mid | step2 | rest-mid | end
+    dock  = 0   hide the chat/console dock (full-page renders)
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Andrew Panasiuk - Homepage</title>
+    <!-- Real tokens. Inter and IBM Plex Mono from Google Fonts for standalone viewing. -->
+    <link rel="stylesheet" href="../../../src/theme/tokens.css" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=IBM+Plex+Mono:wght@400;600&display=block"
+    />
+    <style>
+      /* ---- Proposed retro- tokens (SPEC → Proposed tokens): dock, chat, console only ---- */
+      :root {
+        --retro-dock-width: 384px;
+        --retro-dock-inset: 16px;
+        --retro-dock-gap: 12px;
+        --retro-chat-height: 344px;
+        --retro-win-face: #c0c0c0;
+        --retro-win-light: #ffffff;
+        --retro-win-shadow: #808080;
+        --retro-win-dark: #0a0a0a;
+        --retro-win-title: linear-gradient(90deg, #000080, #1084d0);
+        --retro-win-title-text: #ffffff;
+        --retro-win-font: Tahoma, Verdana, 'Segoe UI', sans-serif;
+        --retro-win-font-size: 11px;
+        --retro-term-bg: #000000;
+        --retro-term-font: 'IBM Plex Mono', 'Courier New', monospace;
+        --retro-term-font-size: 13px;
+        --retro-term-line-height: 18px;
+        --retro-code-font-size: 12px;
+        --retro-code-line-height: 17px;
+        --retro-term-text: #c0c0c0;
+        --retro-term-dim: #808080;
+        --retro-chat-agent: #33ff66;
+        --retro-chat-visitor: #ffb000;
+        --retro-code-selector: #55ffff;
+        --retro-code-property: #ffff55;
+        --retro-code-string: #55ff55;
+        --retro-code-number: #ff55ff;
+        --retro-code-add: #55ff55;
+        --retro-code-add-bg: rgba(85, 255, 85, 0.1);
+        --retro-code-del: #ff5555;
+        --retro-code-del-bg: rgba(255, 85, 85, 0.1);
+        --retro-progress: #000080;
+        --retro-z-index: 1001;
+      }
+
+      /* =====================================================================================
+         TODAY'S SITE: approximation of src/theme/global.css, src/app and src/screens/cv modules.
+         Classes stand in for CSS Module classes; layers never select them.
+         ===================================================================================== */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: var(--font-family);
+        font-size: var(--font-body-size);
+        line-height: var(--font-body-line-height);
+        font-weight: var(--font-body-weight);
+        letter-spacing: var(--letter-spacing);
+        color: var(--color-text);
+        background: var(--color-bg);
+      }
+      h1,
+      h2,
+      h3,
+      p,
+      figure {
+        margin: 0;
+      }
+      h1,
+      h2,
+      h3 {
+        font-size: inherit;
+        font-weight: inherit;
+      }
+      .shell {
+        max-width: calc(var(--content-max-width) + 2 * var(--page-gutter));
+        margin: 0 auto;
+        padding: var(--space-4) var(--page-gutter) calc(var(--chat-fab-size) + 2 * var(--space-6));
+      }
+      .app-header {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: var(--space-8);
+      }
+      .switcher {
+        display: inline-flex;
+        gap: var(--space-1);
+      }
+      .switcher button {
+        padding: var(--space-1) var(--space-3);
+        font: inherit;
+        font-size: var(--font-meta-size);
+        color: var(--color-text);
+        background: var(--color-bg);
+        border: var(--border-card) solid var(--color-card-border);
+        border-radius: var(--radius-logo);
+      }
+      .switcher button[aria-pressed='true'] {
+        color: var(--color-bg);
+        background: var(--color-text);
+        border-color: var(--color-text);
+      }
+      /* HeaderSection */
+      .hdr {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-areas: 'intro photo' 'intro contacts';
+        column-gap: var(--space-4);
+        row-gap: var(--space-4);
+      }
+      .intro {
+        grid-area: intro;
+      }
+      .name {
+        margin-top: var(--space-1);
+        font-size: var(--font-name-size);
+        line-height: var(--font-name-line-height);
+        font-weight: var(--font-name-weight);
+      }
+      .tagline {
+        margin-top: var(--space-5);
+        font-style: italic;
+      }
+      .photo {
+        grid-area: photo;
+        justify-self: end;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      /* ContactList */
+      .contacts {
+        grid-area: contacts;
+        justify-self: end;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: var(--space-2);
+        font-style: normal;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1);
+      }
+      .row a {
+        display: inline-flex;
+      }
+      .icon {
+        width: 18px;
+        height: 18px;
+      }
+      .link {
+        margin-left: var(--space-1);
+        color: inherit;
+        text-decoration: none;
+      }
+      /* SectionTitle */
+      .title {
+        margin: var(--space-8) 0 var(--space-3);
+        font-size: var(--font-section-size);
+        line-height: var(--font-section-line-height);
+        font-weight: var(--font-section-weight);
+      }
+      .title.first {
+        margin-top: var(--space-7);
+      }
+      .medium {
+        font-weight: 500;
+      }
+      .bi {
+        font-weight: 700;
+        font-style: italic;
+      }
+      /* TechnologiesSection, TechnologyCardView */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        column-gap: var(--space-7);
+        align-items: start;
+      }
+      .column {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: var(--space-3) 15px;
+        background: var(--color-bg);
+        border: var(--border-card) solid var(--color-card-border);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card);
+      }
+      .card-title {
+        font-size: var(--font-card-title-size);
+        line-height: var(--font-card-title-line-height);
+        font-weight: var(--font-card-title-weight);
+      }
+      .card-body {
+        font-size: var(--font-card-body-size);
+        line-height: var(--font-card-body-line-height);
+      }
+      .card.hl {
+        border-color: var(--color-highlight);
+      }
+      .star {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 18px;
+        height: 18px;
+        transform: translate(50%, -50%);
+      }
+      .card.ai {
+        border-color: transparent;
+      }
+      .card.ai::before {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        padding: 1.5px;
+        border-radius: inherit;
+        background: var(--gradient-ai);
+        mask:
+          linear-gradient(#000 0 0) content-box exclude,
+          linear-gradient(#000 0 0);
+      }
+      /* ExperienceList, ExperienceEntry */
+      .xp-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-7);
+      }
+      .head {
+        display: grid;
+        grid-template-columns: 36px 1fr auto;
+        grid-template-areas: 'logo company period' 'logo role role';
+        column-gap: var(--space-3);
+        row-gap: var(--space-1);
+        align-items: start;
+      }
+      .logo {
+        grid-area: logo;
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-logo);
+        object-fit: contain;
+        background: var(--color-bg);
+      }
+      .company {
+        grid-area: company;
+        font-size: var(--font-subsection-size);
+        line-height: var(--font-subsection-line-height);
+        font-weight: var(--font-subsection-weight);
+      }
+      .remote {
+        position: relative;
+        top: -8px;
+        margin-left: 6px;
+        font-size: var(--font-tag-size);
+        line-height: var(--font-tag-line-height);
+        font-weight: 400;
+        font-style: italic;
+        color: var(--color-text-muted);
+      }
+      .role {
+        grid-area: role;
+        line-height: var(--font-body-size);
+        color: var(--color-text-secondary);
+      }
+      .period {
+        grid-area: period;
+        font-size: var(--font-meta-size);
+        line-height: var(--font-meta-line-height);
+        color: var(--color-text-secondary);
+      }
+      .bullets {
+        margin-top: 9px;
+      }
+      /* AppsSection, AppCardView, AppStat */
+      .apps {
+        display: flex;
+        gap: var(--space-4);
+      }
+      .app {
+        flex: 1 1 auto;
+        padding: 15px;
+        background: var(--color-bg);
+        border: 0.75px solid var(--color-app-border);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card);
+        letter-spacing: var(--letter-spacing-app);
+        color: var(--color-app-text);
+      }
+      .app-name {
+        font-size: var(--font-app-name-size);
+        line-height: var(--font-app-name-line-height);
+        font-weight: var(--font-app-name-weight);
+      }
+      .app-pub {
+        margin-top: var(--space-1);
+        font-size: var(--font-app-publisher-size);
+        line-height: var(--font-app-publisher-line-height);
+        font-weight: 500;
+        color: var(--color-app-accent);
+      }
+      .app-stats {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        margin-top: var(--space-2);
+      }
+      .app-icon {
+        flex: none;
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-logo);
+      }
+      .stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-1);
+        white-space: nowrap;
+      }
+      .stat-value {
+        display: inline-flex;
+        align-items: center;
+        font-size: var(--font-app-value-size);
+        line-height: var(--font-app-value-line-height);
+        font-weight: 500;
+      }
+      .stat-value img {
+        width: 15px;
+        height: 15px;
+      }
+      .stat-label {
+        font-size: var(--font-app-label-size);
+        line-height: var(--font-app-label-line-height);
+        color: var(--color-app-muted);
+      }
+      .divider {
+        flex: none;
+        width: 0.75px;
+        height: 27px;
+        background: color-mix(in srgb, var(--color-app-muted) 40%, transparent);
+      }
+      /* EducationSection, AboutSection, BookView */
+      .edu {
+        font-size: var(--font-education-size);
+        line-height: var(--font-education-line-height);
+      }
+      .subtitle {
+        margin-bottom: var(--space-3);
+        font-size: var(--font-subsection-size);
+        line-height: var(--font-subsection-line-height);
+        font-weight: var(--font-subsection-weight);
+      }
+      .books {
+        display: flex;
+        column-gap: 37px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .cover {
+        display: block;
+        width: 100px;
+        height: 150px;
+        object-fit: cover;
+        box-shadow: var(--shadow-book);
+      }
+      .book-cap {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        margin-top: var(--space-3);
+      }
+      .book-title {
+        font-size: var(--font-book-title-size);
+        line-height: var(--font-book-title-line-height);
+      }
+      .book-author {
+        font-size: var(--font-book-author-size);
+        line-height: var(--font-book-author-line-height);
+      }
+      .interests-title {
+        margin-top: var(--space-7);
+      }
+      .interests {
+        font-size: var(--font-meta-size);
+        line-height: var(--font-meta-line-height);
+      }
+
+      /* =====================================================================================
+         SHOW: stage reserve for the dock, decorations (show-owned DOM in a portal).
+         ===================================================================================== */
+      body.docked {
+        padding-right: calc(var(--retro-dock-width) + 2 * var(--retro-dock-inset));
+      }
+      .deco {
+        position: absolute;
+        z-index: 1;
+        letter-spacing: normal;
+      }
+      #top-bar {
+        font:
+          11px/14px Verdana,
+          Geneva,
+          sans-serif;
+      }
+      #top-bar nav {
+        margin-bottom: 8px;
+        padding: 3px;
+        text-align: center;
+        background: #000080;
+      }
+      #top-bar nav span {
+        display: inline-block;
+        margin: 1px;
+        padding: 2px 10px;
+        font-weight: 700;
+        color: #000000;
+        background: #c0c0c0;
+        border: 2px outset #ffffff;
+        text-decoration: underline;
+      }
+      #top-bar .marquee {
+        overflow: hidden;
+        border: 1px solid #ff0000;
+        background: #000000;
+        color: #ffff00;
+        font:
+          bold 13px/20px 'Comic Sans MS',
+          'Comic Neue',
+          cursive;
+        white-space: nowrap;
+      }
+      #top-bar .marquee span {
+        display: inline-block;
+        padding-left: 100%;
+        animation: marquee 18s linear infinite;
+      }
+      @keyframes marquee {
+        to {
+          transform: translateX(-100%);
+        }
+      }
+      #page-footer {
+        padding-top: 8px;
+        border-top: 2px groove #c0c0c0;
+        text-align: center;
+        font:
+          11px/16px Verdana,
+          Geneva,
+          sans-serif;
+        color: #000000;
+      }
+      #page-footer p {
+        margin: 4px 0;
+      }
+      #page-footer u {
+        color: #0000ee;
+      }
+      .counter {
+        display: inline-flex;
+        gap: 1px;
+        padding: 2px;
+        background: #404040;
+        vertical-align: middle;
+      }
+      .counter span {
+        width: 12px;
+        font:
+          bold 14px/18px 'Courier New',
+          monospace;
+        color: #33ff33;
+        background: #000000;
+        text-align: center;
+      }
+      #page-footer .badges img {
+        margin: 0 3px;
+        vertical-align: middle;
+      }
+      #oh-snap {
+        width: 184px;
+        padding: 10px 12px;
+        background: #ffff99;
+        border: 1px solid #cc9900;
+        box-shadow: 3px 3px 0 #000000;
+        font:
+          13px/17px 'Comic Sans MS',
+          'Comic Neue',
+          cursive;
+        color: #000000;
+        transform: rotate(2.5deg);
+      }
+      #oh-snap strong {
+        display: block;
+        font-size: 18px;
+        line-height: 24px;
+        color: #cc0000;
+      }
+
+      /* =====================================================================================
+         DOCK: terminal chat (bottom) + live-fix console (above). New UI, retro-styled.
+         ===================================================================================== */
+      .dock {
+        position: fixed;
+        top: var(--retro-dock-inset);
+        right: var(--retro-dock-inset);
+        bottom: var(--retro-dock-inset);
+        z-index: var(--retro-z-index);
+        display: none;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: var(--retro-dock-gap);
+        width: var(--retro-dock-width);
+      }
+      body.docked .dock {
+        display: flex;
+      }
+      .win {
+        display: flex;
+        flex-direction: column;
+        padding: 3px;
+        background: var(--retro-win-face);
+        box-shadow:
+          inset -1px -1px var(--retro-win-dark),
+          inset 1px 1px var(--retro-win-light),
+          inset -2px -2px var(--retro-win-shadow),
+          inset 2px 2px #dfdfdf,
+          4px 4px 0 rgba(0, 0, 0, 0.35);
+        font-family: var(--retro-win-font);
+        font-size: var(--retro-win-font-size);
+        letter-spacing: normal;
+        color: #000000;
+      }
+      .win.chat {
+        flex: none;
+        height: var(--retro-chat-height);
+      }
+      .win.console {
+        flex: 1;
+        min-height: 0;
+      }
+      .win-title {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 18px;
+        padding: 0 2px 0 3px;
+        background: var(--retro-win-title);
+        color: var(--retro-win-title-text);
+        font-weight: 700;
+      }
+      .win-title .t {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .win-title svg {
+        flex: none;
+      }
+      .win-btn {
+        flex: none;
+        width: 16px;
+        height: 14px;
+        padding: 0;
+        background: var(--retro-win-face);
+        border: 0;
+        box-shadow:
+          inset -1px -1px var(--retro-win-dark),
+          inset 1px 1px var(--retro-win-light),
+          inset -2px -2px var(--retro-win-shadow);
+        font: bold 11px/10px var(--retro-win-font);
+        color: #000000;
+        text-align: center;
+      }
+      .term {
+        flex: 1;
+        min-height: 0;
+        margin-top: 2px;
+        padding: 6px 8px;
+        overflow: hidden;
+        background: var(--retro-term-bg);
+        box-shadow:
+          inset 1px 1px var(--retro-win-shadow),
+          inset -1px -1px var(--retro-win-light),
+          inset 2px 2px var(--retro-win-dark);
+        font-family: var(--retro-term-font);
+        font-size: var(--retro-term-font-size);
+        line-height: var(--retro-term-line-height);
+        color: var(--retro-term-text);
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .status {
+        display: flex;
+        gap: 2px;
+        margin-top: 2px;
+      }
+      .status > span {
+        padding: 1px 4px;
+        box-shadow:
+          inset 1px 1px var(--retro-win-shadow),
+          inset -1px -1px var(--retro-win-light);
+        white-space: nowrap;
+      }
+      .status .grow {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* chat log */
+      .msg {
+        margin-bottom: 4px;
+        padding-left: 7ch;
+        text-indent: -7ch;
+      }
+      .ts,
+      .sys {
+        color: var(--retro-term-dim);
+      }
+      .agent {
+        color: var(--retro-chat-agent);
+      }
+      .visitor {
+        color: var(--retro-chat-visitor);
+      }
+      .nick {
+        font-weight: 600;
+      }
+      .composer {
+        display: flex;
+        gap: 1ch;
+        margin-top: 2px;
+        padding: 5px 8px;
+        background: var(--retro-term-bg);
+        box-shadow:
+          inset 1px 1px var(--retro-win-shadow),
+          inset -1px -1px var(--retro-win-light),
+          inset 2px 2px var(--retro-win-dark);
+        font: var(--retro-term-font-size) / var(--retro-term-line-height) var(--retro-term-font);
+        color: var(--retro-chat-visitor);
+      }
+      .composer .ph {
+        color: var(--retro-term-dim);
+      }
+      .caret {
+        display: inline-block;
+        width: 1ch;
+        height: 1.1em;
+        margin-bottom: -0.2em;
+        background: currentColor;
+        animation: blink 1s steps(1) infinite;
+      }
+
+      /* console */
+      .console .term {
+        font-size: var(--retro-code-font-size);
+        line-height: var(--retro-code-line-height);
+      }
+      .ln {
+        min-height: var(--retro-code-line-height);
+        padding-left: 2ch;
+        text-indent: -2ch;
+      }
+      .ln.add {
+        background: var(--retro-code-add-bg);
+      }
+      .ln.del {
+        background: var(--retro-code-del-bg);
+        color: var(--retro-code-del);
+      }
+      .ln .g {
+        display: inline-block;
+        width: 2ch;
+        text-indent: 0;
+      }
+      .ln.add .g {
+        color: var(--retro-code-add);
+      }
+      .c-com {
+        color: var(--retro-term-dim);
+      }
+      .c-sel {
+        color: var(--retro-code-selector);
+      }
+      .c-prop {
+        color: var(--retro-code-property);
+      }
+      .c-str {
+        color: var(--retro-code-string);
+      }
+      .c-num {
+        color: var(--retro-code-number);
+      }
+      .c-file {
+        color: #ffffff;
+        font-weight: 600;
+      }
+      .c-ok {
+        color: var(--retro-code-add);
+      }
+      .c-step {
+        color: #ffffff;
+      }
+      .c-prompt {
+        color: #ffffff;
+      }
+      .progress {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+        padding: 3px 4px;
+      }
+      .progress .label {
+        flex: none;
+        width: 158px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .bar {
+        flex: 1;
+        height: 16px;
+        padding: 2px;
+        background: var(--retro-win-face);
+        box-shadow:
+          inset 1px 1px var(--retro-win-shadow),
+          inset -1px -1px var(--retro-win-light);
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        background: repeating-linear-gradient(
+          90deg,
+          var(--retro-progress) 0 8px,
+          transparent 8px 10px
+        );
+      }
+      .progress .pct {
+        flex: none;
+        width: 32px;
+        text-align: right;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #top-bar .marquee span {
+          padding-left: 8px;
+          animation: none;
+        }
+        .caret {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell" data-retro-stage="">
+      <header class="app-header" data-testid="app-header">
+        <div class="switcher">
+          <button type="button" aria-pressed="true">EN</button
+          ><button type="button" aria-pressed="false">UA</button>
+        </div>
+      </header>
+      <main class="main" id="main"></main>
+    </div>
+    <div id="portal" aria-hidden="true"></div>
+
+    <div class="dock" aria-label="Live fix">
+      <section class="win console" id="console" aria-label="Live fix console">
+        <div class="win-title">
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+            <rect x="0.5" y="1.5" width="13" height="11" fill="#000" stroke="#c0c0c0" />
+            <path d="M3 5l2 2-2 2M6.5 9.5h4" stroke="#33ff66" fill="none" />
+          </svg>
+          <span class="t">fix.exe - live console</span>
+          <button class="win-btn" tabindex="-1" aria-label="Minimise">_</button>
+        </div>
+        <div class="term" id="console-term"></div>
+        <div class="progress">
+          <span class="label" id="progress-label"></span>
+          <span class="bar"><i id="progress-bar"></i></span>
+          <span class="pct" id="progress-pct"></span>
+        </div>
+      </section>
+      <section class="win chat" id="chat" aria-label="Chat with the agent">
+        <div class="win-title">
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+            <path d="M1.5 2.5h11v7h-6l-3 3v-3h-2z" fill="#ffff99" stroke="#000" />
+          </svg>
+          <span class="t">#andrew-cv - agent chat</span>
+          <button class="win-btn" tabindex="-1" aria-label="Minimise">_</button>
+        </div>
+        <div class="term" id="chat-log" role="log" aria-live="polite"></div>
+        <div class="composer" id="composer"></div>
+        <div class="status">
+          <span class="grow">&#9679; connected</span><span>2 users</span><span>EN</span>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      /* ------------------------------------------------------------------ CV (cv.en.json) */
+      const A = '../cv/assets/';
+      const CV = {
+        summary: [
+          'Product-minded <span class="medium">Senior Android Engineer</span> with 12+ years of experience.',
+          'Proficient in Kotlin, Coroutines, Jetpack, MVVM/MVI.',
+          'Integrating modern AI-driven tools and approaches into workflow.',
+          'Autonomous end-to-end feature delivery combined with trust and respect for team leadership.',
+          'Strong background in Applied Mathematics (M.Sc.).',
+          'Skilled yet maintaining a passion for crafting good software.',
+        ],
+        tech: [
+          [
+            [
+              'android',
+              'Android',
+              'Jetpack Compose, Hilt, Room/SQLite, Picasso/Glide, Custom UI, Custom Animations',
+            ],
+            [
+              'product-mindset',
+              'Product mindset',
+              'Feature ownership, Pixel-perfect UI, Human-centric UX, Product analytics basics',
+              'hl',
+            ],
+            ['testing', 'Unit/UI testing', 'JUnit, Mockk, Robolectric, JaCoCo'],
+          ],
+          [
+            [
+              'kotlin',
+              'Kotlin',
+              'Coroutines, Ktor, Flow, Kotlinx-serialization, Kotlin Multiplatform',
+            ],
+            ['architecture', 'Architecture', 'MVVM, MVI, Redux, Clean, SOLID'],
+            [
+              'integrations',
+              'Integrations',
+              'Firebase Cloud Messaging, Locations API, SocketIO, REST/RPC API',
+            ],
+          ],
+          [
+            [
+              'ai-tools',
+              'AI Tools',
+              'Copilot, agents.md, Cursor IDE, hallucination prevention, MCP, orchestration approach',
+              'ai',
+            ],
+            ['tools', 'Tools', 'Gradle, Git, Github Actions, CircleCI, CocoaPods'],
+            ['ios', 'iOS', 'Swift, UIKit, AutoLayout, Stevia'],
+          ],
+        ],
+        latest: [
+          [
+            'transcenda',
+            'Transcenda',
+            0,
+            'Senior Android Developer',
+            'Feb 2021 - Feb 2026',
+            'logo_transcenda.png',
+            [
+              'Took ownership on key features delivery for <span class="bi">Cync</span> and <span class="bi">August Home</span> smart home apps, both serving 1M+ users',
+              'Boosted engineering efficiency by integrating AI-driven workflows (Copilot, LLMs)',
+              'Developed complex custom graphics using Jetpack Compose Canvas',
+              'Supported BLE communication for realtime devices discovery, status sync and offline resilience',
+            ],
+          ],
+        ],
+        apps: [
+          ['cync', 'Cync', 'Savant Systems, Inc.', 'app_cync.png', '5.0', '91.8K', '1M+'],
+          [
+            'august-home',
+            'August Home',
+            'August Home, Inc.',
+            'app_august.png',
+            '4.1',
+            '18.7K',
+            '1M+',
+          ],
+          ['savant', 'Savant', 'Savant Systems, Inc.', 'app_savant.png', null, null, '100k+'],
+        ],
+        education: ['Applied Mathematics, Cybernetics', 'Kyiv National University 2007 - 2012'],
+        books: [
+          ['antifragile', 'Antifragile', 'Nassim Nicholas Taleb', 'book_antifragile.jpg'],
+          ['siddhartha', 'Siddhartha', 'Hermann Hesse', 'book_siddhartha.jpg'],
+          ['the-goal', 'The Goal', 'Eliyahu Goldratt', 'book_the_goal.jpg'],
+          [
+            'a-pattern-language',
+            'A Pattern Language',
+            'Christopher Alexander',
+            'book_pattern_language.png',
+          ],
+        ],
+        interests:
+          'Sports, forest hiking, e-bike riding, good books, volunteering, playing guitar, AI experiments',
+        previous: [
+          [
+            'wisehouse',
+            'WiseHouse',
+            0,
+            'Android Developer',
+            'Mar 2020 - Feb 2021',
+            'logo_wisehouse.png',
+            [
+              'Created MyIGB app from scratch to Google Play publication',
+              'Build an architecture based on MVI+Redux supporting offline mode',
+              'Setup CI with automatic builds sent to Telegram and Google Play',
+              'Wrote code 100% on Kotlin using modern libs: Coroutines, Flow, Ktor',
+            ],
+          ],
+          [
+            'attendify',
+            'Attendify',
+            0,
+            'Android/iOS Developer',
+            'Jan 2018 - Mar 2020',
+            'logo_attendify.png',
+            [
+              'Created number of features in 2 key projects both on Android and iOS',
+              'Setup CI with daily builds sent to Slack channel; migrated codebase to Kotlin',
+              'Deeply collaborate with designers to implement user-friendly UI',
+            ],
+          ],
+          [
+            'rosfines',
+            'RosFines',
+            1,
+            'Android Lead',
+            'May 2017 - Aug 2017',
+            'logo_rosfines.jpg',
+            [
+              'Built a development process in collaboration with PM; conducted hiring interviews',
+              'Setup CI with automatic deployment to Fabric Beta',
+            ],
+          ],
+          [
+            'smartling',
+            'Smartling',
+            1,
+            'Android SDK Developer',
+            'Feb 2016 - Aug 2017',
+            'logo_smartling.png',
+            [
+              'Implement features for the mobile localization SDK',
+              'Increased code coverage with unit tests to 60+%',
+              'Setup Github as Maven repo for the SDK artifacts, wrote usage docs for the SDK',
+            ],
+          ],
+          [
+            'rokkit',
+            'Rokkit',
+            0,
+            'Android Developer',
+            'Jun 2015 - Jan 2016',
+            'logo_rokkit.jpg',
+            [
+              'Created an unusual UX to search for the flight tickets and hotels all over the world',
+            ],
+          ],
+          [
+            'ivi',
+            'ivi',
+            1,
+            'Android Teamlead',
+            'Apr 2013 - Dec 2014',
+            'logo_ivi.png',
+            [
+              'Ensured regular bug-free releases of the product with 1M+ users',
+              'Mentor a team of 2 developers, made a code review, collaborated with PM',
+              'Develop and support shared codebase for 3 ivi projects',
+            ],
+          ],
+          [
+            'samsung',
+            'Samsung',
+            0,
+            'Android Developer',
+            'Jan 2012 - Sep 2012',
+            'logo_samsung.png',
+            ['Created an analogue of Android Layout Inflater for the custom UI framework'],
+          ],
+        ],
+      };
+
+      /* Same element types and hooks as the real components (src/screens/cv/*.tsx). */
+      const entry = ([id, company, remote, role, period, logo, bullets]) => `
+        <div class="xp" data-testid="cv-experience-entry" data-agent-id="experience:${id}">
+          <div class="head">
+            <img class="logo" src="${A}${logo}" alt="${company}">
+            <h3 class="company">${company}${remote ? '<span class="remote">remotely</span>' : ''}</h3>
+            <p class="role">${role}</p>
+            <p class="period">${period}</p>
+          </div>
+          <div class="bullets">${bullets.map((b) => `<p>${b}</p>`).join('')}</div>
+        </div>`;
+      const xpSection = (id, testId, title, entries) => `
+        <section data-testid="${testId}" data-agent-id="section:${id}">
+          <h2 class="title">${title}</h2>
+          <div class="xp-list">${entries.map(entry).join('')}</div>
+        </section>`;
+      const stat = (value, label, star) =>
+        `<div class="stat"><p class="stat-value">${value}${star ? `<img src="${A}icon_star_rating.svg" alt="">` : ''}</p><p class="stat-label">${label}</p></div>`;
+
+      document.getElementById('main').innerHTML = `
+        <div class="cv" data-testid="cv">
+          <header class="hdr" data-agent-id="section:header">
+            <div class="intro">
+              <h1 class="name" data-testid="cv-name">Andrew Panasiuk</h1>
+              <p>Senior Android Engineer with iOS experience</p>
+              <p class="tagline">Creating Android apps since 2012</p>
+            </div>
+            <img class="photo" src="${A}photo.jpg" alt="Andrew Panasiuk">
+            <address class="contacts">
+              <p class="row" data-agent-id="contact:email"><img class="icon" src="${A}icon_gmail.png" alt="Email"><a class="link" href="#">andriipanasiuk@gmail.com</a></p>
+              <p class="row"><a href="#" data-agent-id="contact:whatsapp"><img class="icon" src="${A}icon_whatsapp.png" alt="WhatsApp"></a><a href="#" data-agent-id="contact:telegram"><img class="icon" src="${A}icon_telegram.png" alt="Telegram"></a><a class="link" href="#" data-agent-id="contact:phone">+38 093 897-71-10</a></p>
+            </address>
+          </header>
+          <section data-testid="cv-summary" data-agent-id="section:summary">
+            <h2 class="title first">Summary</h2>${CV.summary.map((l) => `<p>${l}</p>`).join('')}
+          </section>
+          <section data-agent-id="section:technologies">
+            <h2 class="title">Technologies</h2>
+            <div class="grid">${CV.tech
+              .map(
+                (col) =>
+                  `<div class="column">${col
+                    .map(
+                      ([id, t, body, v]) =>
+                        `<div class="card ${v || ''}" data-testid="cv-technology-card" data-agent-id="technology:${id}"><h3 class="card-title">${t}</h3><p class="card-body">${body}</p>${v === 'hl' ? `<img class="star" src="${A}icon_star_card.svg" alt="">` : ''}</div>`,
+                    )
+                    .join('')}</div>`,
+              )
+              .join('')}</div>
+          </section>
+          ${xpSection('latest-experience', 'cv-latest-experience', 'Latest relevant experience', CV.latest)}
+          <section data-agent-id="section:apps">
+            <h2 class="title">Apps</h2>
+            <div class="apps">${CV.apps
+              .map(
+                ([
+                  id,
+                  name,
+                  pub,
+                  icon,
+                  rating,
+                  reviews,
+                  dl,
+                ]) => `<div class="app" data-testid="cv-app-card" data-agent-id="app:${id}"><h3 class="app-name">${name}</h3><p class="app-pub">${pub}</p>
+                <div class="app-stats"><img class="app-icon" src="${A}${icon}" alt="${name}">${rating ? stat(rating, `${reviews} reviews`, true) + '<span class="divider"></span>' : ''}${stat(dl, 'Downloads')}</div></div>`,
+              )
+              .join('')}</div>
+          </section>
+          <section data-testid="cv-education" data-agent-id="section:education">
+            <h2 class="title">Education</h2>${CV.education.map((l) => `<p class="edu">${l}</p>`).join('')}
+          </section>
+          <section data-agent-id="section:about">
+            <h2 class="title">About me</h2>
+            <h3 class="subtitle">Favourite books</h3>
+            <ul class="books">${CV.books
+              .map(
+                ([id, t, a, f]) =>
+                  `<li><figure data-testid="cv-book" data-agent-id="book:${id}"><img class="cover" src="${A}${f}" alt="${t}"><figcaption class="book-cap"><span class="book-title">${t}</span><span class="book-author">${a}</span></figcaption></figure></li>`,
+              )
+              .join('')}</ul>
+            <h3 class="subtitle interests-title">Interests</h3>
+            <p class="interests" data-testid="cv-interests">${CV.interests}</p>
+          </section>
+          ${xpSection('previous-experience', 'cv-previous-experience', 'Previous Experience', CV.previous)}
+        </div>`;
+
+      /* ------------------------------------------------------------------ decorations */
+      const DECORATIONS = {
+        'top-bar': `<nav><span>Home</span><span>Resume</span><span>My Apps</span><span>Books</span><span>Guestbook</span><span>Links</span></nav>
+          <div class="marquee"><span>*** Welcome to my homepage! *** Senior Android Engineer *** Creating Android apps since 2012 *** Please sign my guestbook! ***</span></div>`,
+        'page-footer': `<img src="assets/sign_under_construction.svg" alt="" width="208" height="40">
+          <p>You are visitor number <span class="counter">${'004271'
+            .split('')
+            .map((d) => `<span>${d}</span>`)
+            .join('')}</span></p>
+          <p class="badges"><img src="assets/badge_800x600.svg" alt="" width="88" height="31"><img src="assets/badge_guestbook.svg" alt="" width="88" height="31"></p>
+          <p>[ <u>&lt;&lt; Prev</u> | <u>Android Devs Webring</u> | <u>Next &gt;&gt;</u> ]</p>
+          <p>Last updated: 14.03.2002 &middot; &copy; 2002 Andrew Panasiuk. All rights reserved.</p>`,
+        'oh-snap': `<strong>Oh, snap!</strong>Some pictures didn't load. Try pressing F5... or just wait a minute.`,
+      };
+
+      /* ------------------------------------------------------------------ scenario (POC) */
+      const STEPS = [
+        {
+          id: 'tokens',
+          title: 'fonts & colours',
+          fallback: 'First, fonts and colours: let me bring them into this decade.',
+          effects: [
+            ['layer', 'tokens-type'],
+            ['layer', 'tokens-colors'],
+            ['layer', 'type-faces'],
+            ['layer', 'page-colors'],
+          ],
+        },
+        {
+          id: 'layout',
+          title: 'layout',
+          fallback: "Now the layout. It's been leaning left since 2002.",
+          effects: [['layer', 'layout-shift']],
+        },
+        {
+          id: 'rest',
+          title: 'the rest',
+          fast: true,
+          fallback: 'And the rest: pictures, cards, spacing and that marquee. Fast-forwarding.',
+          effects: [
+            ['layer', 'broken-images'],
+            ['deco', 'oh-snap'],
+            ['layer', 'table-cells'],
+            ['layer', 'old-rhythm'],
+            ['layer', 'new-bursts'],
+            ['deco', 'top-bar'],
+            ['deco', 'page-footer'],
+            ['layer', 'decor-room'],
+            ['layer', 'hide-header'],
+            ['layer', 'old-links'],
+            ['module', 'ai-chat'],
+          ],
+        },
+      ];
+      const TOKEN_LAYERS = ['tokens-type', 'tokens-colors'];
+
+      const T = (h, m, kind, text) => [`${h}:${m}`, kind, text];
+      const CHAT = {
+        open: [
+          T(20, 14, 'sys', '*** Now talking in #andrew-cv'),
+          T(20, 14, 'sys', '*** agent has joined'),
+          T(
+            20,
+            14,
+            'agent',
+            'Oops... looks like this site got stuck in 2002 and is a bit broken. Tell me what you think while I fix it.',
+          ),
+        ],
+        exchange: [
+          T(20, 14, 'visitor', "wow, a marquee! haven't seen one in 20 years"),
+          T(20, 14, 'agent', "Enjoy it while it lasts. It's on my list."),
+        ],
+        console: [
+          T(20, 15, 'agent', 'Opening my console. Every line I type lands on the page right away.'),
+        ],
+        s1: [T(20, 15, 'agent', STEPS[0].fallback)],
+        between: [
+          T(20, 15, 'visitor', 'much better already'),
+          T(20, 15, 'agent', 'Thanks! Wait till you see it centred.'),
+        ],
+        s2: [T(20, 15, 'agent', STEPS[1].fallback)],
+        s3: [T(20, 16, 'agent', STEPS[2].fallback)],
+        finale: [
+          T(
+            20,
+            16,
+            'agent',
+            "Done. This is Andrew's CV as it looks today. Questions? The chat button is bottom right.",
+          ),
+        ],
+      };
+      // at: [step index, effect index, lines typed of that effect]; effects before it are applied.
+      const STATES = {
+        broken: { at: [0, 0, 0], dock: false },
+        chat: {
+          at: [0, 0, 0],
+          chat: [...CHAT.open, ...CHAT.exchange],
+          typing: 'the purple name is a bold choice',
+          console: false,
+        },
+        console: {
+          at: [0, 0, 5],
+          chat: [...CHAT.open, ...CHAT.exchange, ...CHAT.console, ...CHAT.s1],
+        },
+        'step1-mid': {
+          at: [0, 1, 9],
+          chat: [...CHAT.open, ...CHAT.exchange, ...CHAT.console, ...CHAT.s1],
+        },
+        step1: {
+          at: [0, 4, 0],
+          chat: [...CHAT.open, ...CHAT.exchange, ...CHAT.console, ...CHAT.s1],
+        },
+        'step2-mid': {
+          at: [1, 0, 14],
+          chat: [
+            ...CHAT.open,
+            ...CHAT.exchange,
+            ...CHAT.console,
+            ...CHAT.s1,
+            ...CHAT.between,
+            ...CHAT.s2,
+          ],
+        },
+        step2: {
+          at: [1, 1, 0],
+          chat: [
+            ...CHAT.open,
+            ...CHAT.exchange,
+            ...CHAT.console,
+            ...CHAT.s1,
+            ...CHAT.between,
+            ...CHAT.s2,
+          ],
+        },
+        'rest-mid': {
+          at: [2, 4, 6],
+          chat: [
+            ...CHAT.open,
+            ...CHAT.exchange,
+            ...CHAT.console,
+            ...CHAT.s1,
+            ...CHAT.between,
+            ...CHAT.s2,
+            ...CHAT.s3,
+          ],
+        },
+        end: {
+          at: [3, 0, 0],
+          chat: [
+            ...CHAT.open,
+            ...CHAT.exchange,
+            ...CHAT.console,
+            ...CHAT.s1,
+            ...CHAT.between,
+            ...CHAT.s2,
+            ...CHAT.s3,
+            ...CHAT.finale,
+          ],
+        },
+      };
+
+      const q = new URLSearchParams(location.search);
+      const st = STATES[q.get('state')] || STATES.broken;
+      const [atStep, atEffect, atLines] = st.at;
+      const active = STEPS.flatMap((s, i) =>
+        s.effects.filter((_, j) => i > atStep || (i === atStep && j >= atEffect)),
+      );
+      const isActive = (kind, id) => active.some(([k, x]) => k === kind && x === id);
+
+      /* ------------------------------------------------------------------ layer host */
+      const url = (p) => new URL(p, location.href).href;
+      const root = document.documentElement.style;
+      root.setProperty('--retro-broken-image', `url('${url('assets/icon_broken_image.svg')}')`);
+      root.setProperty('--retro-tile-stars', `url('${url('assets/retro_tile_stars.svg')}')`);
+      root.setProperty('--retro-badge-new', `url('${url('assets/badge_new.svg')}')`);
+      const loads = active
+        .filter(([k]) => k === 'layer')
+        .map(
+          ([, id]) =>
+            new Promise((done) => {
+              const link = Object.assign(document.createElement('link'), {
+                rel: 'stylesheet',
+                href: `layers/${id}.css`,
+              });
+              link.dataset.retroLayer = id;
+              link.onload = link.onerror = done;
+              document.head.append(link);
+            }),
+        );
+      const docked = st.dock !== false && q.get('dock') !== '0';
+      document.body.classList.toggle('docked', docked);
+
+      /* Decorations: absolutely positioned over the page, anchored to hook elements. */
+      const portal = document.getElementById('portal');
+      for (const [k, id] of active) {
+        if (k !== 'deco') continue;
+        const el = Object.assign(document.createElement('div'), {
+          id,
+          className: 'deco',
+          innerHTML: DECORATIONS[id],
+        });
+        portal.append(el);
+      }
+      const box = (sel) => {
+        const r = document.querySelector(sel).getBoundingClientRect();
+        return {
+          left: r.left + scrollX,
+          top: r.top + scrollY,
+          right: r.right + scrollX,
+          bottom: r.bottom + scrollY,
+          width: r.width,
+        };
+      };
+      const place = () => {
+        const cv = box('[data-testid="cv"]');
+        const set = (id, s) => {
+          const el = document.getElementById(id);
+          if (el) Object.assign(el.style, s);
+        };
+        set('top-bar', { left: `${cv.left}px`, top: `${cv.top}px`, width: `${cv.width}px` });
+        set('page-footer', {
+          left: `${cv.left}px`,
+          top: `${cv.bottom - 200}px`,
+          width: `${cv.width}px`,
+        });
+        if (isActive('layer', 'layout-shift')) {
+          const main = box('main');
+          const header = box('[data-agent-id="section:header"]');
+          set('oh-snap', { left: `${main.right + 28}px`, top: `${header.top + 40}px` });
+        } else {
+          const photo = box('[data-agent-id="section:header"] > img');
+          set('oh-snap', { left: `${photo.right + 28 - 184}px`, top: `${photo.top - 12}px` });
+        }
+      };
+      Promise.all(loads)
+        .then(() => document.fonts.ready)
+        .then(place);
+      addEventListener('resize', place);
+
+      /* ------------------------------------------------------------------ console text */
+      const read = (path) => {
+        try {
+          const x = new XMLHttpRequest();
+          x.open('GET', path, false);
+          x.send();
+          return x.responseText;
+        } catch {
+          return null;
+        }
+      };
+      const liveTokens = Object.fromEntries(
+        [...(read('../../../src/theme/tokens.css') || '').matchAll(/(--[\w-]+):\s*([^;]+);/g)].map(
+          (m) => [m[1], m[2].replace(/\s+/g, ' ')],
+        ),
+      );
+      const effectLines = ([kind, id]) => {
+        if (kind === 'deco')
+          return [
+            ['js', `document.getElementById('${id}').remove();`],
+            ['ok', `  ok ${id} removed`],
+          ];
+        if (kind === 'module')
+          return [
+            ['js', "const { ChatRoute } = await import('./chat');"],
+            ['ok', '  ok chat button loaded'],
+          ];
+        const css = read(`layers/${id}.css`);
+        if (css == null) return [['com', `// layers/${id}.css (open over http to see the code)`]];
+        const head = [['file', `--- layers/${id}.css`]];
+        if (TOKEN_LAYERS.includes(id)) {
+          const decls = [...css.matchAll(/(--[\w-]+):\s*([^;]+);/g)];
+          return [
+            ...head,
+            ...decls.flatMap(([, p, v]) => [
+              ['del', `${p}: ${v};`],
+              ['add', `${p}: ${liveTokens[p] ?? '?'};`],
+            ]),
+            ['ok', `  ok ${id} removed`],
+          ];
+        }
+        const lines = css
+          .split('\n')
+          .filter((l) => l.trim())
+          .map((l) => ['del', l]);
+        return [...head, ...lines, ['ok', `  ok ${id} removed`]];
+      };
+      const consoleLines = [['prompt', '$ agent fix --live andrew-cv']];
+      STEPS.forEach((s, i) => {
+        const name = `${i + 1}/${STEPS.length} ${s.title}`;
+        if (i < atStep) return consoleLines.push(['ok', `ok ${name}`]);
+        if (i > atStep) return;
+        consoleLines.push(['com', `// ${name}`]);
+        s.effects.forEach((e, j) => {
+          if (j < atEffect) consoleLines.push(...effectLines(e));
+          if (j === atEffect) consoleLines.push(...effectLines(e).slice(0, atLines));
+        });
+        if (atEffect >= s.effects.length) consoleLines.push(['ok', `ok ${name}`]);
+      });
+      if (atStep >= STEPS.length)
+        consoleLines.push(['prompt', '$'], ['ok', 'all fixes applied. Welcome to 2026.']);
+
+      const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const hlCode = (s) =>
+        esc(s)
+          .replace(/\b(const|await|import|document)\b/g, '<span class="c-sel">$1</span>')
+          .replace(/(@keyframes|@media|:root)/g, '<span class="c-num">$1</span>')
+          .replace(/^(\s*)(--[\w-]+|[a-z-]+)(:\s)/, '$1<span class="c-prop">$2</span>$3')
+          .replace(
+            /(#[0-9a-f]{3,6}\b|\b\d+(?:px|%|fr|deg|s)?)(?![^<]*>)/gi,
+            '<span class="c-num">$1</span>',
+          );
+      const hl = (s) =>
+        s
+          .split(/('[^']*')/)
+          .map((part, i) => (i % 2 ? `<span class="c-str">${esc(part)}</span>` : hlCode(part)))
+          .join('');
+      const typing = atStep < STEPS.length && atEffect < STEPS[atStep].effects.length;
+      const term = document.getElementById('console-term');
+      term.innerHTML = consoleLines
+        .map(([k, s], i) => {
+          const caret =
+            typing && i === consoleLines.length - 1 ? '<span class="caret"></span>' : '';
+          switch (k) {
+            case 'prompt':
+              return `<div class="ln"><span class="c-prompt">${esc(s)}</span>${caret}</div>`;
+            case 'com':
+              return `<div class="ln"><span class="c-com">${esc(s)}</span>${caret}</div>`;
+            case 'file':
+              return `<div class="ln"><span class="c-file">${esc(s)}</span>${caret}</div>`;
+            case 'add':
+              return `<div class="ln add"><span class="g">+</span>${hl(s)}${caret}</div>`;
+            case 'del':
+              return `<div class="ln del"><span class="g">-</span>${esc(s)}${caret}</div>`;
+            case 'js':
+              return `<div class="ln"><span class="g"> </span>${hl(s)}${caret}</div>`;
+            case 'ok':
+              return `<div class="ln"><span class="c-ok">${esc(s).replace(/^(\s*)ok/, '$1&#10003;')}</span>${caret}</div>`;
+            default:
+              return `<div class="ln">${esc(s)}${caret}</div>`;
+          }
+        })
+        .join('');
+
+      const total = STEPS.length;
+      const frac =
+        atStep >= total ? total : atStep + Math.min(1, atEffect / STEPS[atStep].effects.length);
+      const pct = Math.round((frac / total) * 100);
+      const stepDone = atStep < total && atEffect >= STEPS[atStep].effects.length;
+      const shown = Math.min(total, stepDone ? atStep + 2 : atStep + 1);
+      document.getElementById('progress-label').textContent =
+        pct === 100 ? 'All fixes applied' : `Step ${shown} of ${total}: ${STEPS[shown - 1].title}`;
+      document.getElementById('progress-bar').style.width = `${pct}%`;
+      document.getElementById('progress-pct').textContent = `${pct}%`;
+      document.getElementById('console').style.display = st.console === false ? 'none' : '';
+
+      /* ------------------------------------------------------------------ chat */
+      const NICK = { agent: '&lt;agent&gt;', visitor: '&lt;you&gt;' };
+      document.getElementById('chat-log').innerHTML = (st.chat || [])
+        .map(([t, k, text]) =>
+          k === 'sys'
+            ? `<div class="msg sys"><span class="ts">[${t}]</span> ${esc(text)}</div>`
+            : `<div class="msg ${k}"><span class="ts">[${t}]</span> <span class="nick">${NICK[k]}</span> ${esc(text)}</div>`,
+        )
+        .join('');
+      document.getElementById('composer').innerHTML = st.typing
+        ? `<span>you&gt;</span><span>${esc(st.typing)}<span class="caret"></span></span>`
+        : `<span>you&gt;</span><span><span class="caret"></span><span class="ph"> type here, press Enter</span></span>`;
+      for (const el of [term, document.getElementById('chat-log')]) el.scrollTop = el.scrollHeight;
+    </script>
+  </body>
+</html>
