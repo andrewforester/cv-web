@@ -4,7 +4,8 @@ import { cvTestIds } from '../cv/testIds';
 import { tokenDeclarations } from './engine/consolePlan';
 import type { DamageLayer } from './engine/showTypes';
 import { DAMAGE_LAYERS } from './scenario';
-import { layersFromDisk, readSourceFile, RetroStageTestHarness } from './RetroStageTestHarness';
+import { layersFromDisk, readSourceFile } from './layerFilesTestHarness';
+import { RetroStageTestHarness } from './RetroStageTestHarness';
 
 // Guard 2 (docs/retro/ARCHITECTURE.md §1): the layers still hit the real site. A renamed hook or
 // token makes a layer a silent no-op on the page; here it fails instead.
