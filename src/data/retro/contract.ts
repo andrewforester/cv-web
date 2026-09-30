@@ -52,13 +52,14 @@ export interface ShowSsePayloads {
 }
 export type ShowSseEventName = keyof ShowSsePayloads;
 
-type Terminal =
+/** What `ShowRepository.narrate` yields: `line`s, then one terminal `done` or `error`. */
+export type ShowNarrateStreamEvent =
+  | { type: 'line'; key: RetroNarrationKey; text: string }
   | { type: 'done'; stopReason: ChatStopReason; usage: ChatUsage }
   | { type: 'error'; error: ChatError };
 
-/** What `ShowRepository.narrate` yields: `line`s, then one terminal `done` or `error`. */
-export type ShowNarrateStreamEvent =
-  { type: 'line'; key: RetroNarrationKey; text: string } | Terminal;
-
 /** What `ShowRepository.reply` yields: `delta`s, then one terminal `done` or `error`. */
-export type ShowReplyStreamEvent = { type: 'delta'; text: string } | Terminal;
+export type ShowReplyStreamEvent =
+  | { type: 'delta'; text: string }
+  | { type: 'done'; stopReason: ChatStopReason; usage: ChatUsage }
+  | { type: 'error'; error: ChatError };
