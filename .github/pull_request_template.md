@@ -2,4 +2,4 @@ Closes GRA-
 
 ## What changed
 
-<!-- Short summary. Process details (screenshots, deviations, stubs, questions, verification) go into PR comments and the Linear ticket. -->
+<!-- Short summary only. Everything about the task (plan, screenshots, deviations, stubs, questions, verification, usage) goes on the Linear ticket; the PR holds the code and its review. -->

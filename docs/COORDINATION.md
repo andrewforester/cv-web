@@ -25,7 +25,9 @@ Style reference: Figma file `Power-Place` (https://www.figma.com/design/ehr6aIVa
 
 ## Tracker: Linear
 
-GitHub Issues are **not** used (since 2026-09-29; the old Issues #2–#16 stay as history and are mirrored in Linear as GRA-11…16). Everything about *how the work is going* lives in Linear: launch (session name/id), scope changes, questions, decisions, blockers, verification results, **web screenshots of the result**, and at closing **the Claude usage of the work (model, USD, context, tokens)**. The repository holds only the product (code, resources, design packages) and the standing rules.
+GitHub Issues are **not** used (since 2026-09-29; the old Issues #2–#16 stay as history and are mirrored in Linear as GRA-11…16). Everything about *how the work is going* lives in Linear: launch (session name/id), scope changes, questions, decisions, blockers, verification results, **web screenshots of the result**, the plan, the report, and at closing **the usage table** (tokens, see Usage). The repository holds only the product (code, resources, design packages) and the standing rules.
+
+**Single source of truth.** Each fact lives in one place and everyone reads it there: the task (brief, plan, questions, decisions, report, screenshots, usage) in the Linear ticket; the code and its review threads in the PR; standing rules in the repo. Launch prompts carry only the ticket id and the role, never a copy of the brief; nobody mirrors comments between PR and ticket. This keeps every session's context small and nothing goes stale in a second copy.
 
 - **Where:** workspace `grandtorino`, team **Grandtorino** (key `GRA`). One Linear **project per epic** (e.g. *CV Web*, *AI CV Chat*); one **ticket per task** (`GRA-N`) = one session = one branch `claude/<short>` = one PR.
 - **Statuses:** Backlog (filed, blocked by a dependency or a decision) → Todo (complete, can be launched) → In Progress (a session works on it, or reworks it after a review sent it back) → In Review (the orchestrator's check passed; a review session reviews it) → Done (merged). Canceled / Duplicate as usual.
@@ -52,13 +54,30 @@ Label groups, one label from each group per ticket:
 Plus **Needs human**: waiting for the human's answer or action (the question is in a ticket comment). The zone (which folders) is in the brief, not in labels.
 
 ### Where sessions write
-Working sessions may not have the Linear tools. They post questions, deviations and their final report as **PR comments**, and on the ticket too when they can. The orchestrator mirrors decisions, the verification result and the closing comment to the ticket.
+Every session (local and cloud) has the Linear tools and writes about the task **on the ticket**: plan, questions, deviations, the final report, screenshots. The PR carries only what belongs to the code: the diff, CI, and the review (the reviewer's inline comments and the developer's replies on those threads). The PR body is `Closes GRA-N` + a short summary. If Linear is unreachable, the session says so in one PR comment, keeps its notes and PNGs in `/tmp/GRA-<N>/`, and posts them to the ticket as soon as it can (or the orchestrator does).
 
-**Screenshots** (web results, before/after, the human's device screenshots) are uploaded **straight to the Linear ticket** and embedded in a ticket comment as `![<name>](<assetUrl>)` (steps in Tooling → Tracker); the PR comment links to that ticket comment. They are never committed to git: not to feature branches and not to a `screens` branch (the old orphan `screens` branch stays as history only). A session without the Linear tools leaves its PNGs in `/tmp/GRA-<N>/` and says so in its PR comment; the orchestrator uploads them.
+**Screenshots** (web results, before/after, the human's device screenshots) are uploaded **straight to the Linear ticket** and embedded in a ticket comment as `![<name>](<assetUrl>)` (steps in Tooling → Tracker). They are never committed to git: not to feature branches and not to a `screens` branch (the old orphan `screens` branch stays as history only).
 
 **Questions never block a session.** Nobody is watching it. Write the question as a comment, pick the most conservative option, note it, and keep going. The coordinator or the human answers.
 
-**Closing comment** (orchestrator, on the ticket): merged PR, verification, review rounds, and each session's Claude usage (developer; the reviewer posts its own line before archiving): model, USD (when known), context used / max, input and output tokens.
+**Closing comment** (orchestrator, on the ticket): merged PR, verification, review rounds.
+
+### Usage (tokens)
+Session spend is counted in **tokens**, not dollars; dollars are only a rough conversion.
+- Per session: **In** = input + cache write + cache read, of which **cache** = cache read; **Out** = output; **Total** = In + Out.
+- **≈ $** = cache read × $0.01 / 1M + (everything else: input + cache write + output) × $0.10 / 1M.
+- Sources: cloud → `get_session` → `external_metadata.usage` (token fields); local → what the session reports at its end (`/cost`-style token counts). The review session posts its own numbers on the ticket before archiving; the orchestrator counts its own session the same way.
+- **Ticket:** when the ticket is Done, the orchestrator puts the table **at the top of the ticket description** (one row per session: developer, reviewer, follow-ups; plus a total row):
+  ```
+  ## Usage
+  | Session | Model | In, k (cache, k) | Out, k | Total, k | ≈ $ |
+  |---|---|---|---|---|---|
+  | develop GRA-N | opus | 3,210 (2,950) | 48 | 3,258 | 0.06 |
+  | review GRA-N | sonnet | 610 (540) | 9 | 619 | 0.01 |
+  | **Total** | | 3,820 (3,490) | 57 | 3,877 | 0.07 |
+  ```
+- **Project (epic):** the same table **at the top of the project description**, one row per ticket (its totals) plus a row for the orchestrator and a total row, updated as each ticket closes, not only at the end.
+- Reports to the human use the same columns.
 
 ## Tooling
 
@@ -85,13 +104,13 @@ Concrete commands behind the general steps in the skills. When a tool here stops
 ### Sessions
 The orchestrator launches each task as a new agent in a **new session of the same kind as itself**, with the brief, the branch, the draft PR, the skill to use and the standing rules in the prompt (template in `.claude/skills/orchestrate` → Launch a session): the orchestrator runs in the cloud → a new cloud session; the orchestrator runs locally → a new local background session **with Remote Control**, so the human can follow and steer it from the Claude app.
 
-- **Cloud orchestrator → new cloud session:** `create_session` with `source_url` = repo, `source_revision` = `outcome_branch` = `claude/<short>`, `permission_mode: auto`, `model` (below), `tags: [cv-web, GRA-N]`, `title: "GRA-N <short title>"`. Fallback check-in with `send_later` at the expected finish (design ≈ 15 min, theme ≈ 10, screen part ≈ 20–25, quick fix ≈ 12); cancel with `delete_trigger` when the ready signal comes. Usage after merge: `get_session` → `external_metadata.usage` (`cost_usd`, tokens) and `context_usage`; then `archive_session`. A cloud session can't be messaged: steer it with a comment it reads, or launch a follow-up session on the same branch. Don't pass messages via Routines (`fire_trigger` always starts a new session).
+- **Cloud orchestrator → new cloud session:** `create_session` with `source_url` = repo, `source_revision` = `outcome_branch` = `claude/<short>`, `permission_mode: auto`, `model` (below), `tags: [cv-web, GRA-N]`, `title: "GRA-N <short title>"`. Fallback check-in with `send_later` at the expected finish (design ≈ 15 min, theme ≈ 10, screen part ≈ 20–25, quick fix ≈ 12); cancel with `delete_trigger` when the ready signal comes. Usage after merge: `get_session` → `external_metadata.usage` (tokens, Tracker → Usage); then `archive_session`. A cloud session can't be messaged: steer it with a comment it reads, or launch a follow-up session on the same branch. Don't pass messages via Routines (`fire_trigger` always starts a new session).
 - **Local orchestrator → new local background session with Remote Control:** one git worktree per task (`git worktree add .claude/worktrees/<short> claude/<short>`), prompt written to `<scratchpad>/prompt-GRA-N.md`, then from the worktree:
   ```
   claude --bg -n "GRA-N <short title>" --remote-control "GRA-N <short title>" \
     --model <model> --effort <effort> --permission-mode auto "$(cat <prompt file>)"
   ```
-  `--bg` runs it in the background and prints its id; `--remote-control` turns Remote Control on from the start (the log shows `/remote-control is active` and a claude.ai/code link), so it appears in the Claude app under that name. Record the id and name on the ticket. It shows in `claude agents` (attach: `claude attach <id>`, log: `claude logs <id>`). Message it with `SendMessage` (name from `ListAgents`), e.g. to resume after a usage-limit stop (`claude --bg --resume <id>` also works). Remove the worktree after merge (`git worktree remove`). Usage: what the session reports (model, tokens, duration; USD when shown).
+  `--bg` runs it in the background and prints its id; `--remote-control` turns Remote Control on from the start (the log shows `/remote-control is active` and a claude.ai/code link), so it appears in the Claude app under that name. Record the id and name on the ticket. It shows in `claude agents` (attach: `claude attach <id>`, log: `claude logs <id>`). Message it with `SendMessage` (name from `ListAgents`), e.g. to resume after a usage-limit stop (`claude --bg --resume <id>` also works). Remove the worktree after merge (`git worktree remove`). Usage: the token counts the session reports at its end (Tracker → Usage).
 - **Review sessions** (`review` skill, one per code task, launched by the orchestrator after its own check): the prompt names only the skill and the ticket; the reviewer reads the brief, the comments and the PR from Linear, so it needs the Linear tools (both kinds of sessions have them). It follows the PR like a developer session (Code host → Follow a PR).
   - Code without touching the developer's branch: cloud → the session is created on the task branch (`source_revision: claude/<short>`, no `outcome_branch`), and it never pushes; local → a detached worktree, `git worktree add --detach .claude/worktrees/review-<short> origin/claude/<short>` (the developer's worktree already has the branch checked out), refreshed each round with `git fetch origin && git checkout --detach origin/claude/<short>`.
   - Send back: `pull_request_review_write` (`REQUEST_CHANGES`) with inline comments, then `update_pull_request` `draft: true` / `gh pr review <P> --request-changes` + `gh pr ready <P> --undo`. Approve and merge: `APPROVE`, then `merge_pull_request` (`squash`) / `gh pr merge <P> --squash`.

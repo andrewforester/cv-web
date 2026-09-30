@@ -12,7 +12,7 @@ You are the code-review session for one task. The orchestrator launched you with
 ## Start
 1. Read the root `AGENTS.md` and `docs/COORDINATION.md`.
 2. Read the ticket and all its comments: the brief (zone, out of scope, done-when), decisions, and the linked PR. No PR on the ticket: comment on the ticket with **Needs human** and stop.
-3. Read the PR: description, the developer's plan and report comments, earlier review rounds, CI status.
+3. Read the developer's plan and report on the ticket, then the PR: earlier review rounds and CI status.
 4. Get the code without touching the developer's branch: a detached checkout of `origin/<head branch>` (Tooling → Sessions → Review sessions). Never push to the branch.
 
 ## Review
@@ -24,7 +24,7 @@ Use `engineering:code-review` for the technique when it's available; the checkli
 - **Tests:** the change is covered; tests check behaviour, not implementation details; every screen keeps a UI test.
 - **Package docs:** an up-to-date `AGENTS.md` (with its `CLAUDE.md`) in every code folder the PR touches, about purpose and domain rather than implementation.
 - **Correctness:** bugs, unhandled errors and edge cases, security (secrets, injection, the chat's server-side guards), contract changes without their own task.
-- **Plan:** what was built matches the developer's plan comment, or the report says why not.
+- **Plan:** what was built matches the developer's plan on the ticket, or the report says why not.
 
 Read the diff by file (`git diff origin/main...HEAD -- <path>`), not as one huge dump. Don't rerun *lint*, *test* or the build: CI did. Run a single test only to confirm a suspected bug.
 
@@ -41,7 +41,7 @@ Only blocking findings send the PR back: a broken rule, a bug, missing tests or 
 1. Submit a GitHub review with **Approve** and a one-line summary (plus any non-blocking notes).
 2. Merge only if all of these hold: the orchestrator's launch comment on the ticket says autonomous merging is allowed; CI on the PR is green, including the web smoke job; the latest CI run on `main` isn't red; the branch has no conflicts with `main`. Squash-merge (the repository's usual method). The merge is the orchestrator's signal.
    If merging isn't allowed, or `main` is red, or there's a conflict: leave the PR approved and ready, comment on the ticket with the reason, and stop without archiving.
-3. Post your closing comment on the ticket: rounds, findings fixed, and your usage line in the format of `orchestrate` → Verify and review → After the merge.
+3. Post your closing comment on the ticket: rounds, findings fixed, and your token usage: model, in (cache), out, total (`COORDINATION.md` → Tracker → Usage; cloud: `get_session` without an id). The orchestrator puts it into the ticket's usage table.
 4. Archive your own session (Tooling → Sessions → Review sessions).
 
 ## Rules
