@@ -7,7 +7,6 @@ import { encodeSseEvent } from '../sse.js';
 import type { TextStreamer } from '../streamAnswer.js';
 import { buildNarrateRequest, buildReplyRequest } from './buildShowRequest.js';
 import { NarrationParser, type NarrationLine } from './narrationParser.js';
-import { SHOW_PROMPT_VERSION } from './showPrompt.js';
 
 /** `narrate` gives up sooner than a chat answer: the show has started and won't wait. */
 export const NARRATE_DEADLINE_MS = 20_000;
@@ -40,20 +39,19 @@ export async function planShow(
   model: ModelOptions,
   deadlineMs: number,
 ): Promise<ShowPlan> {
-  const common = { locale: request.locale, promptVersion: SHOW_PROMPT_VERSION };
   if (request.kind === 'narrate') {
     return {
       llmRequest: buildNarrateRequest(model),
       streamer: narrationStreamer(),
       deadlineMs: Math.min(deadlineMs, NARRATE_DEADLINE_MS),
-      logFields: { ...common, showKind: 'narrate', narrationLines: 0 },
+      logFields: { locale: request.locale, showKind: 'narrate', narrationLines: 0 },
     };
   }
   return {
     llmRequest: buildReplyRequest(request, await knowledge(request.locale), model),
     deadlineMs,
     logFields: {
-      ...common,
+      locale: request.locale,
       showKind: 'reply',
       stepId: request.step,
       messages: request.messages.length,

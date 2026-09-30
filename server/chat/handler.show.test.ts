@@ -119,6 +119,11 @@ describe('handleChat v3: reply', () => {
     expect(response.headers.get('x-chat-api-version')).toBe('3');
     expect(await errorOf(response)).toMatchObject({ code, retryable: false });
     expect(deps.llm.requests).toHaveLength(0);
+    expect(deps.logs[0]).toMatchObject({
+      v: 3,
+      promptVersion: SHOW_PROMPT_VERSION,
+      errorCode: code,
+    });
   });
 });
 

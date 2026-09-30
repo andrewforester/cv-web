@@ -17,6 +17,7 @@ import { buildLlmRequest } from './prompt/buildLlmRequest.js';
 import { PROMPT_VERSION } from './prompt/systemPrompt.js';
 import type { RateLimiter } from './rateLimiter.js';
 import { planShow } from './show/planShow.js';
+import { SHOW_PROMPT_VERSION } from './show/showPrompt.js';
 import { validateShowRequest } from './show/validateShow.js';
 import { streamAnswer, type TextStreamer } from './streamAnswer.js';
 import { validateChatRequest } from './validate.js';
@@ -173,6 +174,7 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
     });
 
   if (entry.v === CHAT_API_VERSION_V3) {
+    entry.promptVersion = SHOW_PROMPT_VERSION;
     const validation = validateShowRequest(json.value);
     if (!validation.ok) return fail(validation.error, CHAT_API_VERSION_V3);
     try {
