@@ -66,7 +66,7 @@ describe('buildReplyRequest', () => {
       {
         role: 'user',
         content: [
-          { type: 'text', text: '<show_state>{"step":"layout","stepsDone":1,"of":3}</show_state>' },
+          { type: 'text', text: '<show_state>{"step":"layout","stepsDone":1,"of":7}</show_state>' },
           { type: 'text', text: VISITOR_TEXT },
         ],
       },
@@ -79,7 +79,7 @@ describe('buildReplyRequest', () => {
     const content = request.messages.at(-1)?.content;
     expect(Array.isArray(content) && content[0]).toEqual({
       type: 'text',
-      text: '<show_state>{"step":null,"stepsDone":0,"of":3}</show_state>',
+      text: '<show_state>{"step":null,"stepsDone":0,"of":7}</show_state>',
     });
   });
 });

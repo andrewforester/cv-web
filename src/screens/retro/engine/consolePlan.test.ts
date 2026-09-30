@@ -1,12 +1,8 @@
-import { layersFromDisk } from '../layerFilesTestHarness';
 import { RETRO_SHOW } from '../scenario';
-import { planShow, type ShowSource } from './consolePlan';
+import { planShow } from './consolePlan';
 import { createLayerHost, readLiveToken } from './layerHost';
 
-let source: ShowSource;
-beforeAll(async () => {
-  source = { ...RETRO_SHOW, layers: await layersFromDisk() };
-});
+const source = RETRO_SHOW;
 
 describe('console plan (code shown = code applied)', () => {
   it('types a rule layer verbatim, one removed line per non-blank line of the file', () => {
@@ -37,9 +33,9 @@ describe('console plan (code shown = code applied)', () => {
   });
 
   it('generates decoration and module lines from their ids', () => {
-    const rest = planShow(source, () => undefined).steps[2];
-    const note = rest?.effects.find(({ key }) => key === 'decoration:oh-snap');
-    const chat = rest?.effects.find(({ key }) => key === 'module:ai-chat');
+    const effects = planShow(source, () => undefined).steps.flatMap((step) => step.effects);
+    const note = effects.find(({ key }) => key === 'decoration:oh-snap');
+    const chat = effects.find(({ key }) => key === 'module:ai-chat');
     expect(note?.lines).toEqual([
       { kind: 'code', text: "document.getElementById('oh-snap').remove();" },
     ]);

@@ -36,13 +36,25 @@ describe('retro scenario manifest', () => {
   });
 
   it('uses the design package copy verbatim', () => {
-    expect(RETRO_SCENARIO_ID).toBe('retro-1');
+    expect(RETRO_SCENARIO_ID).toBe('retro-2');
     expect(RETRO_STEPS.map((step) => step.title)).toEqual([
       'fonts & colours',
       'layout',
-      'the rest',
+      'images',
+      'cards',
+      'spacing & lists',
+      '2002 chrome',
+      'links & contacts',
     ]);
-    expect(RETRO_STEPS[1]?.fallback).toBe("Now the layout. It's been leaning left since 2002.");
+    expect(RETRO_STEPS.map((step) => step.fallback)).toEqual([
+      'First, fonts and colours: let me bring them into this decade.',
+      "Now the layout. It's been leaning left since 2002.",
+      'The pictures were in the wrong folder. Fixing the paths.',
+      'Tables are for data. Turning these into cards.',
+      'Giving everything room to breathe. Goodbye, <hr>.',
+      'Time to say goodbye to the marquee and the hit counter.',
+      'Last: links, contacts, and a real chat button.',
+    ]);
     expect(RETRO_FINALE_FALLBACK).toBe(
       "Done. This is Andrew's CV as it looks today. Questions? The chat button is bottom right.",
     );

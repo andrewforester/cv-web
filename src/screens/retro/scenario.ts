@@ -56,7 +56,7 @@ const layer = (id: DamageLayerId) => ({ kind: 'removeLayer' as const, layer: id 
 const decoration = (id: DecorationId) => ({ kind: 'removeDecoration' as const, decoration: id });
 const loadModule = (id: ShowModuleId) => ({ kind: 'loadModule' as const, module: id });
 
-/** Effects per manifest step (SPEC → POC (round 1)), in the order they are typed and applied. */
+/** Effects per manifest step (SPEC → Full fix list), in the order they are typed and applied. */
 export const RETRO_EFFECTS: readonly RetroStep[] = [
   {
     id: 'tokens',
@@ -68,23 +68,20 @@ export const RETRO_EFFECTS: readonly RetroStep[] = [
     ],
   },
   { id: 'layout', effects: [layer('layout-shift')] },
+  { id: 'images', effects: [layer('broken-images'), decoration('oh-snap')] },
+  { id: 'cards', effects: [layer('table-cells')] },
+  { id: 'spacing', effects: [layer('old-rhythm')] },
   {
-    id: 'rest',
-    speed: 'fast',
+    id: 'chrome',
     effects: [
-      layer('broken-images'),
-      decoration('oh-snap'),
-      layer('table-cells'),
-      layer('old-rhythm'),
       layer('new-bursts'),
       decoration('top-bar'),
       decoration('page-footer'),
       layer('decor-room'),
       layer('hide-header'),
-      layer('old-links'),
-      loadModule('ai-chat'),
     ],
   },
+  { id: 'links', effects: [layer('old-links'), loadModule('ai-chat')] },
 ];
 
 /** Everything the runner needs from the scenario, in one place. */

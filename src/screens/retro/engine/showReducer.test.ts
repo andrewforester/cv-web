@@ -1,16 +1,11 @@
 import { RETRO_FINALE_FALLBACK, RETRO_STEPS } from '../../../data/retro';
-import { layersFromDisk } from '../layerFilesTestHarness';
 import { RETRO_SHOW } from '../scenario';
-import type { ShowSource } from './consolePlan';
 import { canSend, MAX_VISITOR_MESSAGES } from './showReducer';
 import { ShowTestRun, TEST_COPY } from './showTestRun';
 import { TIMING } from './timing';
 import type { ShowState } from './showTypes';
 
-let source: ShowSource;
-beforeAll(async () => {
-  source = { ...RETRO_SHOW, layers: await layersFromDisk() };
-});
+const source = RETRO_SHOW;
 
 const agentLines = (state: ShowState) =>
   state.chat.filter(({ kind }) => kind === 'agent').map(({ text }) => text);

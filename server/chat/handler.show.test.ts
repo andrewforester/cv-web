@@ -19,7 +19,7 @@ const NARRATION = [
   'tokens: Fonts first.\nlay',
   'out: Leaning left since 2002.\n',
   'marquee: unknown key\n',
-  'rest: Fast-forward.\nfinale: Done.',
+  'links: Fast-forward.\nfinale: Done.',
 ];
 
 const errorOf = async (response: Response) => ((await response.json()) as ChatErrorBody).error;
@@ -35,7 +35,7 @@ describe('handleChat v3: narrate', () => {
     expect(events.map(({ event, data }) => (event === 'line' ? data : event))).toEqual([
       { key: 'tokens', text: 'Fonts first.' },
       { key: 'layout', text: 'Leaning left since 2002.' },
-      { key: 'rest', text: 'Fast-forward.' },
+      { key: 'links', text: 'Fast-forward.' },
       { key: 'finale', text: 'Done.' },
       'done',
     ]);

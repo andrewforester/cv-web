@@ -13,7 +13,11 @@ const FAKE_NARRATION = [
   'tokens: Fonts first. Comic Sans had a good run.',
   "layout: Now the layout. It's been leaning left since 2002.",
   'marquee: This key is not in the scenario, so nobody sees it.',
-  'rest: Everything else, on fast-forward. Bye, marquee.',
+  'images: The pictures were in the wrong folder. Fixing the paths.',
+  'cards: Tables are for data. Turning these into cards.',
+  'spacing: Giving everything room to breathe. Goodbye, <hr>.',
+  'chrome: Bye, marquee. Bye, hit counter.',
+  'links: Last: links, contacts, and a real chat button.',
   "finale: Done. Andrew's CV, as it looks today. The chat button is bottom right.",
 ].join('\n');
 

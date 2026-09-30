@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { RETRO_STEP_IDS } from '../../../src/data/retro/scenario.js';
 import { NARRATE_BODY, replyBody } from '../../test/helpers.js';
 import { validateShowRequest } from './validateShow.js';
 
@@ -26,7 +27,7 @@ describe('validateShowRequest', () => {
 
   it.each([
     ['before the first step', null, 0],
-    ['after the last step', null, 3],
+    ['after the last step', null, RETRO_STEP_IDS.length],
     ['during step 1', 'tokens', 0],
   ] as const)('accepts a reply %s', (_, step, stepsDone) => {
     expect(codeOf(replyBody({ step, stepsDone }))).toBe('ok');
@@ -40,7 +41,7 @@ describe('validateShowRequest', () => {
     ['an unknown step', replyBody({ step: 'fonts' as never })],
     ['a missing step', { ...replyBody(), step: undefined }],
     ['stepsDone below 0', replyBody({ stepsDone: -1 })],
-    ['stepsDone past the last step', replyBody({ stepsDone: 4 })],
+    ['stepsDone past the last step', replyBody({ stepsDone: RETRO_STEP_IDS.length + 1 })],
     ['a fractional stepsDone', replyBody({ stepsDone: 1.5 })],
     ['a missing stepsDone', { ...replyBody(), stepsDone: undefined }],
     ['no messages', { ...replyBody(), messages: undefined }],
@@ -56,7 +57,7 @@ describe('validateShowRequest', () => {
 
   it('answers an unknown scenario id with unsupported_version (an old tab goes scripted)', () => {
     expect(codeOf({ ...NARRATE_BODY, scenario: 'retro-0' })).toBe('unsupported_version');
-    expect(codeOf(replyBody({ scenario: 'retro-2' as never }))).toBe('unsupported_version');
+    expect(codeOf(replyBody({ scenario: 'retro-1' as never }))).toBe('unsupported_version');
   });
 
   it('accepts 19 messages (the most that end with the visitor), answers 21 with conversation_limit', () => {
