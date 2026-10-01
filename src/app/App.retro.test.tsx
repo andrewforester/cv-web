@@ -28,7 +28,8 @@ describe('App modes', () => {
     expect(screen.getByTestId('app-header')).toBeVisible();
   });
 
-  describe('show mode', () => {
+  // Plays the whole ~95 s show in 50 ms frames: CPU-bound, so above the 5 s default.
+  describe('show mode', { timeout: 20_000 }, () => {
     beforeEach(() => vi.useFakeTimers());
     afterEach(() => vi.useRealTimers());
 
