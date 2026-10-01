@@ -102,6 +102,8 @@
   --chat-fab-icon-size: 24px;
   --chat-control-size: 44px;
   --chat-icon-size: 20px;
+  --chat-badge-size: 36px;
+  --chat-ai-border-width: 1.5px;
   --chat-panel-width: 400px;
   --chat-panel-height: 600px;
   --chat-hint-max-width: 240px;

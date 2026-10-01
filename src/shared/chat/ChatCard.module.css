@@ -1,0 +1,27 @@
+/* Zero specificity: a screen positions the card itself (the site's panel is `fixed`). */
+:where(.card) {
+  position: relative;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-bg);
+  border-radius: var(--radius-card);
+  box-shadow: var(--chat-shadow-panel);
+}
+
+/* 1.5 px gradient border that keeps the radius (same technique as the CV's AI Tools card). */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: var(--chat-ai-border-width);
+  border-radius: inherit;
+  background: var(--gradient-ai);
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  pointer-events: none;
+}

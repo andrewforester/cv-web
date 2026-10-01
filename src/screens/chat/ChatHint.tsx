@@ -1,7 +1,7 @@
 import { useStrings } from '../../i18n';
-import chat from './chat.module.css';
+import chat from '../../shared/chat/chat.module.css';
 import styles from './ChatHint.module.css';
-import { ChatIcon } from './ChatIcon';
+import { ChatIcon } from '../../shared/chat/ChatIcon';
 import { chatStrings } from './strings';
 import { chatTestIds } from './testIds';
 

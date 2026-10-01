@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { parseAnswer, type AnswerLine } from './answerMarkdown';
 import styles from './AnswerText.module.css';
-import { StreamingCaret } from './StreamingCaret';
+import { StreamingCaret } from '../../shared/chat/StreamingCaret';
 
 interface AnswerTextProps {
   className?: string;

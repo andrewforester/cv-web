@@ -1,7 +1,7 @@
 import { useStrings } from '../../i18n';
-import chat from './chat.module.css';
-import styles from './ChatHeader.module.css';
-import { ChatIcon } from './ChatIcon';
+import chat from '../../shared/chat/chat.module.css';
+import { ChatCardHeader } from '../../shared/chat/ChatCardHeader';
+import { ChatIcon } from '../../shared/chat/ChatIcon';
 import { chatStrings } from './strings';
 import { chatTestIds } from './testIds';
 
@@ -12,32 +12,28 @@ interface ChatHeaderProps {
   onClose: () => void;
 }
 
-/** Panel header: AI badge, title + subtitle (the dialog's label and description), close. */
+/** Panel header: the shared card header with the site's texts and a close button. */
 export function ChatHeader({ className, titleId, subtitleId, onClose }: ChatHeaderProps) {
   const strings = useStrings(chatStrings);
 
   return (
-    <header className={className ? `${styles.header} ${className}` : styles.header}>
-      <span className={styles.badge} aria-hidden="true">
-        <ChatIcon name="sparkle" />
-      </span>
-      <div className={styles.titles}>
-        <h2 id={titleId} className={styles.title}>
-          {strings.title}
-        </h2>
-        <p id={subtitleId} className={styles.subtitle}>
-          {strings.subtitle}
-        </p>
-      </div>
-      <button
-        type="button"
-        className={chat.iconButton}
-        aria-label={strings.close}
-        data-testid={chatTestIds.close}
-        onClick={onClose}
-      >
-        <ChatIcon name="close" />
-      </button>
-    </header>
+    <ChatCardHeader
+      className={className}
+      titleId={titleId}
+      subtitleId={subtitleId}
+      title={strings.title}
+      subtitle={strings.subtitle}
+      action={
+        <button
+          type="button"
+          className={chat.iconButton}
+          aria-label={strings.close}
+          data-testid={chatTestIds.close}
+          onClick={onClose}
+        >
+          <ChatIcon name="close" />
+        </button>
+      }
+    />
   );
 }
