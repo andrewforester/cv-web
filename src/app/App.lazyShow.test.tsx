@@ -38,6 +38,9 @@ function deferred() {
 }
 
 describe('App: the show as a lazy chunk', () => {
+  // The chat is a lazy chunk too: imported once up front, a cold import (Vite transforming it on
+  // demand) can't outlast `findBy`'s 1 s when the machine is busy.
+  beforeAll(() => import('../screens/chat/ChatRoute'));
   afterEach(() => {
     sessionStorage.clear();
     vi.doUnmock(SHOW_MODULE);
