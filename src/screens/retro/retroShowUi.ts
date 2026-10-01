@@ -1,5 +1,11 @@
 import { leavingDecorations } from './engine/chunkSelectors';
-import { activeDecorations, consoleView, progressOf, revealedText } from './engine/showSelectors';
+import {
+  activeDecorations,
+  consoleCounters,
+  consoleRows,
+  lastDoneStep,
+  revealedText,
+} from './engine/showSelectors';
 import { MAX_VISITOR_MESSAGES } from './engine/showReducer';
 import type { ShowState } from './engine/showTypes';
 import type { DecorationBox, HighlightUi, RetroShowUiState } from './RetroShowUiState';
@@ -34,23 +40,21 @@ function windowsOf(state: ShowState): RetroShowUiState['windows'] {
   }
 }
 
-function progressUi(state: ShowState, strings: RetroStrings) {
-  const progress = progressOf(state);
-  const label = progress.step
-    ? fill(strings.progressStep, {
-        n: progress.step.number,
-        total: progress.total,
-        title: progress.step.title,
-      })
-    : strings.progressDone;
-  const announcement = progress.lastDone
-    ? fill(strings.stepDoneAnnouncement, {
-        n: progress.lastDone.number,
-        total: progress.total,
-        title: progress.lastDone.title,
-      })
-    : '';
-  return { progress: { label, percent: progress.percent }, announcement };
+function consoleUi(state: ShowState, strings: RetroStrings): RetroShowUiState['console'] {
+  const { steps } = state.config.plan;
+  const total = steps.length;
+  const opening = fill(strings.consoleOpening, {
+    changes: steps.reduce((sum, step) => sum + step.chunks.length, 0),
+    steps: total,
+  });
+  const done = lastDoneStep(state);
+  return {
+    rows: consoleRows(state, { opening, end: strings.consoleEnd }),
+    counters: consoleCounters(state),
+    announcement: done
+      ? fill(strings.stepDoneAnnouncement, { n: done.number, total, title: done.title })
+      : '',
+  };
 }
 
 /** Decorations on the page in scenario order, with the ones leaving a moment ago. */
@@ -72,7 +76,6 @@ export function toRetroShowUiState(
   local: ScreenLocalState,
   strings: RetroStrings,
 ): RetroShowUiState {
-  const console = consoleView(state, { prompt: strings.consolePrompt, end: strings.consoleEnd });
   return {
     windows: windowsOf(state),
     chat: {
@@ -88,12 +91,7 @@ export function toRetroShowUiState(
       limitReached: state.visitor.sent >= MAX_VISITOR_MESSAGES,
       readOnly: state.phase === 'closing',
     },
-    console: {
-      minimised: local.minimised.console,
-      lines: console.lines,
-      typing: console.typing,
-      ...progressUi(state, strings),
-    },
+    console: consoleUi(state, strings),
     decorations: decorationsUi(state, local.placement),
     highlight: local.highlight,
   };

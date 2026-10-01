@@ -1,93 +1,139 @@
-/* SPEC → Live-fix console: screen, line kinds, syntax colours, progress row. */
-.console {
+/*
+ * SPEC → DevTools console: Chrome DevTools (light), Console tab. Colours, fonts and type sizes are
+ * `--devtools-*` tokens; the panel's metrics are screen-local, as Chrome's are fixed.
+ */
+.panel {
+  --console-bar-height: 28px;
+  --console-button-width: 28px;
+  --console-icon-size: 16px;
+  --console-select-icon-size: 12px;
+  --console-ui-line-height: 16px;
+  --console-strip-padding-left: 2px;
+  --console-separator-height: 16px;
+  --console-separator-margin: 6px 2px;
+  --console-tab-padding: 0 7px;
+  --console-tab-underline: 2px;
+  --console-counters-gap: 6px;
+  --console-counters-padding: 0 4px;
+  --console-counter-gap: 3px;
+  --console-select-padding: 0 4px 0 6px;
+  --console-filter-bar-padding-right: 4px;
+  --console-filter-height: 20px;
+  --console-filter-radius: 10px;
+  --console-filter-padding: 0 8px;
+  --console-filter-margin: 0 4px;
+  --console-row-min-height: 21px;
+  --console-row-padding: 2px 8px 2px 24px;
+  --console-row-icon-left: 4px;
+  --console-row-icon-top: 2px;
+  --console-caret-width: 1px;
+  --console-caret-height: 14px;
+
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  border-left: 1px solid var(--devtools-divider);
+  background: var(--devtools-bg);
+  color: var(--devtools-text);
+  font-family: var(--devtools-ui-font);
+  font-size: var(--devtools-ui-font-size);
+  line-height: var(--console-ui-line-height);
+  letter-spacing: normal;
 }
 
-.screen {
+/* The messages: top-anchored, following the last row once full, no visible scrollbar. */
+.log {
   flex: 1;
   min-height: 0;
-  padding: var(--retro-term-padding);
   overflow-y: auto;
   scrollbar-width: none;
-  font-size: var(--retro-code-font-size);
-  line-height: var(--retro-code-line-height);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  font-family: var(--devtools-code-font);
+  font-size: var(--devtools-code-font-size);
+  line-height: var(--devtools-code-line-height);
 }
 
-.line {
-  min-height: var(--retro-code-line-height);
-  padding-left: 2ch;
-  text-indent: -2ch;
+.row {
+  position: relative;
+  min-height: var(--console-row-min-height);
+  padding: var(--console-row-padding);
+  border-bottom: 1px solid var(--devtools-row-divider);
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 .gutter {
-  display: inline-block;
-  width: 2ch;
-  text-indent: 0;
+  position: absolute;
+  top: var(--console-row-icon-top);
+  left: var(--console-row-icon-left);
 }
 
-.prompt,
-.file {
-  color: var(--retro-win-light);
+.end,
+.group {
+  font-weight: 700;
 }
 
-.file {
-  font-weight: 600;
+.collapsed .triangle {
+  transform: rotate(-90deg);
 }
 
-.comment,
-.skipped {
-  color: var(--retro-term-dim);
+.triangle,
+.result,
+.result .gutter {
+  color: var(--devtools-text-dim);
 }
 
-.del {
-  background: var(--retro-code-del-bg);
-  color: var(--retro-code-del);
+.prompt {
+  border-bottom: none;
 }
 
-.add {
-  background: var(--retro-code-add-bg);
+.prompt .gutter,
+.echo .gutter {
+  color: var(--devtools-accent);
 }
 
-.add .gutter,
-.effectDone,
-.stepDone,
-.end {
-  color: var(--retro-code-add);
+.warn {
+  border-top: 1px solid var(--devtools-warning-border);
+  border-bottom-color: var(--devtools-warning-border);
+  background: var(--devtools-warning-bg);
+  color: var(--devtools-warning-text);
 }
 
-.effectDone {
-  padding-left: 4ch;
+.warning {
+  color: var(--devtools-warning);
+}
+
+.success {
+  color: var(--devtools-success);
 }
 
 /* Syntax tones (consoleSyntax.ts). */
 .plain {
-  color: var(--retro-term-text);
+  color: var(--devtools-text);
 }
 
 .keyword {
-  color: var(--retro-code-selector);
-}
-
-.property {
-  color: var(--retro-code-property);
+  color: var(--devtools-code-keyword);
 }
 
 .string {
-  color: var(--retro-code-string);
+  color: var(--devtools-code-string);
 }
 
 .number {
-  color: var(--retro-code-number);
+  color: var(--devtools-code-number);
+}
+
+.comment {
+  color: var(--devtools-code-comment);
 }
 
 .caret {
   display: inline-block;
-  width: 1ch;
-  height: 1.1em;
-  margin-bottom: -0.2em;
-  background: var(--retro-term-text);
+  width: var(--console-caret-width);
+  height: var(--console-caret-height);
+  vertical-align: text-bottom;
+  background: var(--devtools-text);
   animation: retro-console-blink 1s steps(1) infinite;
 }
 
@@ -101,44 +147,4 @@
   .caret {
     animation: none;
   }
-}
-
-.progress {
-  display: flex;
-  flex: none;
-  align-items: center;
-  gap: var(--retro-console-progress-gap);
-  margin-top: var(--retro-window-gap);
-  padding: var(--retro-console-progress-padding);
-}
-
-.label {
-  flex: none;
-  width: var(--retro-console-progress-label-width);
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.bar {
-  flex: 1;
-  height: var(--retro-console-progress-height);
-  padding: var(--retro-window-gap);
-  background: var(--retro-win-face);
-}
-
-.blocks {
-  display: block;
-  height: 100%;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--retro-progress) 0 var(--retro-console-progress-block),
-    transparent var(--retro-console-progress-block) var(--retro-console-progress-step)
-  );
-}
-
-.percent {
-  flex: none;
-  width: var(--retro-console-progress-percent-width);
-  text-align: right;
 }

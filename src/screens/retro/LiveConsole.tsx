@@ -1,53 +1,50 @@
 import { useStrings } from '../../i18n';
-import consoleIcon from './assets/retro_icon_console.svg';
-import { ConsoleLineView } from './ConsoleLineView';
+import { ConsoleRowView } from './ConsoleRowView';
+import { DevtoolsFilterBar } from './DevtoolsFilterBar';
+import { DevtoolsTabStrip } from './DevtoolsTabStrip';
 import styles from './LiveConsole.module.css';
-import { ProgressRow } from './ProgressRow';
 import type { RetroShowUiState } from './RetroShowUiState';
 import screenStyles from './RetroShowScreen.module.css';
 import { retroStrings } from './strings';
 import { retroTestIds } from './testIds';
 import { useFollowLast } from './useFollowLast';
-import { Win98Window } from './Win98Window';
-import windowStyles from './Win98Window.module.css';
 
 interface LiveConsoleProps {
   className?: string;
   console: RetroShowUiState['console'];
-  onToggleMinimise: () => void;
 }
 
-/** The live-fix console: the agent's code as it is typed and applied, and the fix progress. */
-export function LiveConsole({ className, console, onToggleMinimise }: LiveConsoleProps) {
+/**
+ * The live-fix console as Chrome DevTools' Console tab (SPEC → DevTools console): decorative
+ * chrome with the live ✖ / ⚠ counters, and the log of the agent's commands as they are typed and
+ * run. It fills the box the dock gives it.
+ */
+export function LiveConsole({ className, console }: LiveConsoleProps) {
   const strings = useStrings(retroStrings);
-  const screenRef = useFollowLast<HTMLDivElement>(console.lines);
-  const last = console.lines.length - 1;
+  const logRef = useFollowLast<HTMLDivElement>(console.rows);
   return (
-    <Win98Window
-      className={[styles.console, className].filter(Boolean).join(' ')}
-      title={strings.consoleTitle}
-      icon={consoleIcon}
-      label={strings.consoleLabel}
-      testId={retroTestIds.console}
-      minimised={console.minimised}
-      onToggleMinimise={onToggleMinimise}
+    <section
+      className={[styles.panel, className].filter(Boolean).join(' ')}
+      aria-label={strings.devtoolsLabel}
+      data-testid={retroTestIds.console}
     >
+      <DevtoolsTabStrip counters={console.counters} />
+      <DevtoolsFilterBar />
       <div
-        ref={screenRef}
-        className={`${windowStyles.field} ${styles.screen}`}
+        ref={logRef}
+        className={styles.log}
         role="log"
         aria-live="off"
         aria-label={strings.consoleLabel}
         data-testid={retroTestIds.consoleScreen}
       >
-        {console.lines.map((line, index) => (
-          <ConsoleLineView key={index} line={line} caret={console.typing && index === last} />
+        {console.rows.map((row, index) => (
+          <ConsoleRowView key={index} row={row} />
         ))}
       </div>
-      <ProgressRow label={console.progress.label} percent={console.progress.percent} />
       <p className={screenStyles.visuallyHidden} aria-live="polite">
         {console.announcement}
       </p>
-    </Win98Window>
+    </section>
   );
 }

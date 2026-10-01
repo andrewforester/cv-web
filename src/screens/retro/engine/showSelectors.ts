@@ -1,7 +1,8 @@
 import { chunkTyping } from './showProgress';
-import { chunkResolved, currentPlannedChunk, currentStep, showEnded, stepsDone } from './showState';
+import { effectId } from './consolePlan';
+import { chunkResolved, currentStep, showEnded, stepsDone } from './showState';
 import { TIMING } from './timing';
-import type { ConsoleLine, PlannedChunk, PlannedStep, ShowState } from './showTypes';
+import type { ConsoleRow, PlannedChunk, ShowState, TokenValue } from './showTypes';
 
 const removedBy = (state: ShowState, key: string) =>
   state.phase === 'done' || state.effects[key]?.status === 'applied';
@@ -27,90 +28,104 @@ export function runningModules(state: ShowState): { key: string; module: string 
   );
 }
 
-/** A started chunk's lines as far as they show, then its `✓` (or `// skipped`) once resolved. */
-function chunkLines(state: ShowState, chunk: PlannedChunk, shown: number): ConsoleLine[] {
-  const lines: ConsoleLine[] = [];
+/** Custom properties the applied token chunks have set inline; none once the show is done. */
+export function appliedTokens(state: ShowState): TokenValue[] {
+  if (state.phase === 'done') return [];
+  return state.config.plan.steps.flatMap((step) =>
+    step.chunks.flatMap(({ key, tokens }) =>
+      state.effects[key]?.status === 'applied' ? tokens : [],
+    ),
+  );
+}
+
+const EMPTY_PROMPT: ConsoleRow = { kind: 'prompt', lines: [] };
+
+/** The first `shown` characters of an input, by line (lines not reached yet are left out). */
+function typedLines(input: readonly string[], shown: number): string[] {
+  const lines: string[] = [];
   let offset = 0;
-  for (const line of chunk.lines) {
-    if (offset >= shown) return lines;
-    lines.push({ ...line, text: line.text.slice(0, shown - offset) });
-    offset += line.text.length;
+  for (const line of input) {
+    if (offset >= shown) break;
+    lines.push(line.slice(0, shown - offset));
+    offset += line.length;
   }
-  const run = state.effects[chunk.key];
-  if (run?.status === 'applied') lines.push({ kind: 'effectDone', text: `✓ ${chunk.doneText}` });
-  if (run?.status === 'skipped') lines.push({ kind: 'skipped', text: `// skipped: ${run.reason}` });
-  return lines;
-}
-
-/** Characters of the current chunk's code on screen (with reduced motion: all of it at once). */
-function shownChars(state: ShowState, chunk: PlannedChunk): number {
-  return state.stage === 'type' ? chunkTyping(state, chunk).shown : chunk.chars;
-}
-
-function stepLines(state: ShowState, step: PlannedStep, name: string): ConsoleLine[] {
-  const lines: ConsoleLine[] = [{ kind: 'comment', text: `// ${name}` }];
-  if (state.stage === 'narrate') return lines;
-  const started = state.stage === 'stepDone' ? step.chunks.length : state.chunk + 1;
-  step.chunks.slice(0, started).forEach((chunk, index) => {
-    const shown = index === state.chunk ? shownChars(state, chunk) : chunk.chars;
-    lines.push(...chunkLines(state, chunk, shown));
-  });
-  if (state.stage === 'stepDone') lines.push({ kind: 'stepDone', text: `✓ ${name}` });
   return lines;
 }
 
 /**
- * The console as it reads now: the prompt, one `✓` line per finished step, the current step's
- * chunks typed so far (each chunk's `✓` under its code once applied), and the end lines.
+ * A started chunk's rows: the prompt typing its input; once run, the echo, then `<· undefined` and
+ * its `✓` line (or the warning it was skipped with). A module waiting for its `import()` shows only
+ * the echo, as an awaited input does.
  */
-export function consoleView(
+function chunkRows(state: ShowState, chunk: PlannedChunk): ConsoleRow[] {
+  const run = state.effects[chunk.key];
+  const echo: ConsoleRow = { kind: 'echo', lines: chunk.input };
+  switch (run?.status) {
+    case 'applied':
+      return [echo, { kind: 'result', text: 'undefined' }, { kind: 'done', text: chunk.doneText }];
+    case 'skipped':
+      return [echo, { kind: 'warn', text: `${effectId(chunk.effect)} skipped: ${run.reason}` }];
+    case 'running':
+      return [echo];
+    default: {
+      const shown = state.stage === 'type' ? chunkTyping(state, chunk).shown : chunk.chars;
+      return [{ kind: 'prompt', lines: typedLines(chunk.input, shown) }];
+    }
+  }
+}
+
+/** Groups collapsed to `✓ n/N <title>`: the steps before the current one, all once the show ended. */
+function collapsedSteps(state: ShowState): number {
+  if (showEnded(state)) return state.config.plan.steps.length;
+  return state.phase === 'steps' ? state.step : 0;
+}
+
+const stepTitle = (state: ShowState, index: number) => {
+  const { steps } = state.config.plan;
+  return `${index + 1}/${steps.length} ${steps[index]?.title ?? ''}`;
+};
+
+/**
+ * The DevTools console as it reads now (SPEC → DevTools console → Messages): the opening line, one
+ * collapsed group per finished step, the current step's open group with its chunks so far (from
+ * its first chunk on), and at the end `✓ All fixes applied.`; an empty prompt after every run.
+ */
+export function consoleRows(
   state: ShowState,
-  texts: { prompt: string; end: string },
-): { lines: ConsoleLine[]; typing: boolean } {
-  const { steps } = state.config.plan;
-  const name = (index: number) => `${index + 1}/${steps.length} ${steps[index]?.title ?? ''}`;
-  const ended = showEnded(state);
-  const finished = ended ? steps.length : state.phase === 'steps' ? state.step : 0;
-  const lines: ConsoleLine[] = [
-    { kind: 'prompt', text: texts.prompt },
-    ...steps
-      .slice(0, finished)
-      .map((_, i): ConsoleLine => ({ kind: 'stepDone', text: `✓ ${name(i)}` })),
-  ];
+  texts: { opening: string; end: string },
+): ConsoleRow[] {
+  const rows: ConsoleRow[] = [{ kind: 'log', text: texts.opening }];
+  for (let index = 0; index < collapsedSteps(state); index++) {
+    rows.push({ kind: 'group', title: stepTitle(state, index), collapsed: true });
+  }
   const step = currentStep(state);
-  if (step) lines.push(...stepLines(state, step, name(state.step)));
-  if (ended) lines.push({ kind: 'prompt', text: '$' }, { kind: 'end', text: texts.end });
-  const chunk = currentPlannedChunk(state);
-  const typing = !!chunk && state.stage === 'type' && shownChars(state, chunk) < chunk.chars;
-  return { lines, typing };
+  if (!step || state.stage === 'narrate') {
+    if (showEnded(state)) rows.push({ kind: 'end', text: texts.end });
+    return [...rows, EMPTY_PROMPT];
+  }
+  rows.push({ kind: 'group', title: stepTitle(state, state.step), collapsed: false });
+  const started = state.stage === 'stepDone' ? step.chunks.length : state.chunk + 1;
+  const chunks = step.chunks.slice(0, started);
+  chunks.forEach((chunk) => rows.push(...chunkRows(state, chunk)));
+  const last = chunks.at(-1);
+  return last && chunkResolved(state, last.key) ? [...rows, EMPTY_PROMPT] : rows;
 }
 
-export interface ShowProgress {
-  /** 1-based step the progress row names, or `null` when all fixes are applied. */
-  step: { number: number; title: string } | null;
-  total: number;
-  percent: number;
-  /** The last finished step, for the screen reader line. */
-  lastDone: { number: number; title: string } | null;
-}
-
-/** Progress: (finished steps + share of the current step's chunks resolved) / N (SPEC). */
-export function progressOf(state: ShowState): ShowProgress {
+/** The toolbar's counters (SPEC Decision 27): ✖ chunks not done yet, ⚠ steps not done yet. */
+export function consoleCounters(state: ShowState): { errors: number; warnings: number } {
   const { steps } = state.config.plan;
-  const total = steps.length;
+  const chunks = steps.flatMap((step) => step.chunks);
+  const errors = showEnded(state)
+    ? 0
+    : chunks.filter(({ key }) => !chunkResolved(state, key)).length;
+  return { errors, warnings: steps.length - collapsedSteps(state) };
+}
+
+/** The last finished step, for the console's visually hidden live line. */
+export function lastDoneStep(state: ShowState): { number: number; title: string } | null {
   const done = stepsDone(state);
-  const step = currentStep(state);
-  const resolved = step?.chunks.filter(({ key }) => chunkResolved(state, key)).length ?? 0;
-  const share = step ? resolved / step.chunks.length : 0;
-  const finishedAll = showEnded(state);
-  const shown = Math.min(total - 1, step && share === 1 ? state.step + 1 : state.step);
-  const named = (index: number) => ({ number: index + 1, title: steps[index]?.title ?? '' });
-  return {
-    step: finishedAll ? null : named(Math.max(0, shown)),
-    total,
-    percent: finishedAll ? 100 : Math.round(((state.step + share) / total) * 100),
-    lastDone: done > 0 ? named(done - 1) : null,
-  };
+  const step = state.config.plan.steps[done - 1];
+  return step ? { number: done, title: step.title } : null;
 }
 
 /** A chat entry's text as far as it has revealed (scripted lines type at 40 chars/s). */

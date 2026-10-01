@@ -1,12 +1,13 @@
 import { expect, type Page, test } from '@playwright/test';
 import {
-  consoleLines,
+  consoleRows,
   differences,
-  expectStepApplied,
+  expectChunkApplied,
   leftovers,
+  openGroup,
   type PageSnapshot,
+  ranChunks,
   runShowToEnd,
-  settledStep,
   SHOW_LIMIT_MS,
   snapshotPage,
   stageSelector,
@@ -21,8 +22,9 @@ import { collectErrors, NORMAL_SITE, SCREENSHOT_DIR, SHOW_SITE } from './support
 // a model.
 test.use({ locale: 'en-US' });
 
-/** The mid-show screenshot is taken when this step has settled (SPEC: after the cards step). */
+/** The mid-show screenshot is taken once this step's group has run this many chunks. */
 const MID_SHOW_STEP = 4;
+const MID_SHOW_CHUNKS = 2;
 /** Time for the AI chat's first-visit hint and similar timers, the same on both pages. */
 const AFTER_MS = 3_000;
 /** Below this the show has skipped chunks: 36 chunks with a 1 s beat each take ≈ 90 s. */
@@ -76,27 +78,46 @@ async function expectEndsAsNormalSite(page: Page, screenshot?: string): Promise<
 test.describe('with reduced motion', () => {
   test.use({ contextOptions: { reducedMotion: 'reduce' } });
 
-  test('guard 4: after every step, what the console printed is what the page has', async ({
+  test('guard 4: after every chunk, what the console printed is what the page has', async ({
     page,
   }) => {
     const errors = collectErrors(page);
     await page.clock.install();
     await page.goto(SHOW_SITE);
     await expect(page.getByTestId('cv-name')).toBeVisible();
-    const checked: string[] = [];
+    const checked = new Set<string>();
+    const groups: string[] = [];
+    let screenshot = false;
+    let ended = false;
 
     await runShowToEnd(page, async () => {
-      const step = settledStep(await consoleLines(page));
-      if (!step || checked.includes(step.name)) return;
-      checked.push(step.name);
-      await expectStepApplied(page, step.lines);
-      if (step.name.startsWith(`${MID_SHOW_STEP}/`))
+      const rows = await consoleRows(page);
+      if (!ended && rows.some(({ kind }) => kind === 'end')) {
+        ended = true;
+        await expect(page.getByTestId('retro-console-errors')).toHaveText('0');
+        await expect(page.getByTestId('retro-console-warnings')).toHaveText('0');
+      }
+      const group = openGroup(rows);
+      if (group && !groups.includes(group)) groups.push(group);
+      const ran = ranChunks(rows);
+      for (const chunk of ran.filter(({ input }) => !checked.has(input))) {
+        checked.add(chunk.input);
+        await expectChunkApplied(page, chunk);
+      }
+      if (!screenshot && group?.startsWith(`${MID_SHOW_STEP}/`) && ran.length >= MID_SHOW_CHUNKS) {
+        screenshot = true;
         await page.screenshot({ path: `${SCREENSHOT_DIR}/retro-mid.png` });
+      }
     });
 
-    const numbers = checked.map((name) => name.split(' ')[0]);
-    expect(numbers).toEqual(checked.map((_, index) => `${index + 1}/${checked.length}`));
-    expect(checked.length).toBeGreaterThan(MID_SHOW_STEP);
+    // Every step's group opened in order, every chunk ran and was checked, the counters ended at 0.
+    expect(groups.map((title) => title.split(' ')[0])).toEqual(
+      groups.map((_, index) => `${index + 1}/8`),
+    );
+    expect(groups).toHaveLength(8);
+    expect(checked.size).toBe(36);
+    expect(screenshot).toBe(true);
+    expect(ended).toBe(true);
     expect(errors).toEqual([]);
   });
 

@@ -41,9 +41,9 @@ function runWithInstantCamera(run: ShowTestRun): number {
 }
 
 describe('show timing: one chunk', () => {
-  it('types each chunk at 240 chars/s, clamped to 0.4–1.3 s', () => {
+  it('types each chunk at 100 chars/s, clamped to 0.6–1.3 s', () => {
     expect(typingMs(24, false)).toBe(TIMING.chunkMinMs);
-    expect(typingMs(240, false)).toBe(1_000);
+    expect(typingMs(100, false)).toBe(1_000);
     expect(typingMs(1_000, false)).toBe(TIMING.chunkMaxMs);
     expect(typingMs(1_000, true)).toBe(TIMING.reducedMotionApplyMs);
   });

@@ -31,13 +31,17 @@ export const retroStrings = defineStrings({
     tooLong: '*** Message too long (500 characters max).',
     offline:
       "*** You're offline. The update continues; the chat resumes when the connection is back.",
-    // Live console
-    consoleTitle: 'fix.exe - live console',
+    // DevTools console
+    devtoolsLabel: 'Developer tools: live fix console',
+    devtoolsTabElements: 'Elements',
+    devtoolsTabConsole: 'Console',
+    devtoolsTabSources: 'Sources',
+    devtoolsContext: 'top',
+    devtoolsFilter: 'Filter',
+    devtoolsLevels: 'Default levels',
     consoleLabel: 'Live fix console',
-    consolePrompt: '$ agent fix --live andrew-cv',
-    consoleEnd: '✓ All fixes applied.',
-    progressStep: 'Step {n} of {total}: {title}',
-    progressDone: 'All fixes applied',
+    consoleOpening: 'Agent connected to andrew-cv: {changes} changes in {steps} steps.',
+    consoleEnd: 'All fixes applied.',
     stepDoneAnnouncement: 'Step {n} of {total} done: {title}',
     // Decorations
     navHome: 'Home',

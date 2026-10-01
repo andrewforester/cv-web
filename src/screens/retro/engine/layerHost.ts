@@ -1,4 +1,4 @@
-import type { DamageLayer } from './showTypes';
+import type { DamageLayer, TokenValue } from './showTypes';
 
 export const LAYER_ATTRIBUTE = 'data-retro-layer';
 export const HOST_ATTRIBUTE = 'data-retro-host';
@@ -8,17 +8,29 @@ export const MOTION_ATTRIBUTE = 'data-retro-motion';
 const BLINK_KEYFRAMES =
   '@media (prefers-reduced-motion: no-preference) { @keyframes retro-blink { 50% { visibility: hidden; } } }';
 
+/**
+ * What the show puts on the page: the damage layers still on, and the custom properties the token
+ * chunks' `style.setProperty` calls set inline on `<html>` (ARCHITECTURE §2).
+ */
+export interface StageStyles {
+  layers: readonly string[];
+  tokens: readonly TokenValue[];
+}
+
 export interface LayerHost {
-  /** Makes the injected layers exactly `ids`, in scenario order; new ones go to the end of `<head>`. */
-  sync(ids: readonly string[]): void;
   /**
-   * `sync(ids)` as a morph (ARCHITECTURE §9 → Motion): inside a same-document view transition,
+   * Makes the page carry exactly `styles`: the injected layers (in scenario order; new ones go to
+   * the end of `<head>`) and the inline tokens (set first, so a dropped token layer is inert).
+   */
+  sync(styles: StageStyles): void;
+  /**
+   * `sync(styles)` as a morph (ARCHITECTURE §9 → Motion): inside a same-document view transition,
    * with the elements matching `queries` morphing on their own where the browser names them
    * automatically. Instant where view transitions are missing or reduced motion is on. Resolves
    * when the transition has finished (or was skipped by the next one).
    */
-  morph(ids: readonly string[], queries: readonly string[]): Promise<void>;
-  /** Removes every layer, the host variables and any motion style. */
+  morph(styles: StageStyles, queries: readonly string[]): Promise<void>;
+  /** Removes every layer, inline token, the host variables and any motion style. */
   dispose(): void;
 }
 
@@ -39,7 +51,8 @@ const namesElements = () =>
  * Owns the damage layers on the page (ARCHITECTURE §1): one `<style data-retro-layer="<id>">` per
  * active layer, holding the same CSS string the console types, plus the host variables (bundled
  * asset URLs the layers read, e.g. `--retro-broken-image`) and the `retro-blink` keyframes in one
- * `<style data-retro-host>`; during a morph, a `<style data-retro-motion>` naming its targets.
+ * `<style data-retro-host>`; during a morph, a `<style data-retro-motion>` naming its targets. Inline
+ * tokens on `<html>` are the ones it set; it never touches other inline properties.
  */
 export function createLayerHost(
   doc: Document,
@@ -47,6 +60,7 @@ export function createLayerHost(
   hostVariables: Readonly<Record<string, string>>,
 ): LayerHost {
   const injected = new Map<string, HTMLStyleElement>();
+  const inline = new Map<string, string>();
   const motions = new Set<HTMLStyleElement>();
   let host: HTMLStyleElement | null = null;
 
@@ -58,7 +72,22 @@ export function createLayerHost(
     return element;
   };
 
-  const sync = (ids: readonly string[]) => {
+  const setTokens = (tokens: readonly TokenValue[]) => {
+    const { style } = doc.documentElement;
+    const names = new Set(tokens.map(([name]) => name));
+    for (const name of inline.keys()) {
+      if (names.has(name)) continue;
+      style.removeProperty(name);
+      inline.delete(name);
+    }
+    for (const [name, value] of tokens) {
+      if (inline.get(name) === value) continue;
+      style.setProperty(name, value);
+      inline.set(name, value);
+    }
+  };
+
+  const syncLayers = (ids: readonly string[]) => {
     if (!host && ids.length) {
       const declarations = Object.entries(hostVariables).map(
         ([name, value]) => `${name}: ${value};`,
@@ -81,12 +110,17 @@ export function createLayerHost(
     }
   };
 
+  const sync = ({ layers, tokens }: StageStyles) => {
+    setTokens(tokens);
+    syncLayers(layers);
+  };
+
   return {
     sync,
-    morph(ids, queries) {
+    morph(styles, queries) {
       const win = doc.defaultView;
       if (typeof doc.startViewTransition !== 'function' || !motionAllowed(win)) {
-        sync(ids);
+        sync(styles);
         return Promise.resolve();
       }
       // Duplicate fixed names would abort the transition: without automatic names the page
@@ -100,7 +134,7 @@ export function createLayerHost(
             )
           : null;
       if (naming) motions.add(naming);
-      const transition = doc.startViewTransition(() => sync(ids));
+      const transition = doc.startViewTransition(() => sync(styles));
       return transition.finished
         .catch(() => undefined)
         .finally(() => {
@@ -109,6 +143,7 @@ export function createLayerHost(
         });
     },
     dispose() {
+      setTokens([]);
       for (const element of [...injected.values(), ...motions]) element.remove();
       injected.clear();
       motions.clear();
@@ -141,7 +176,7 @@ function scanRules(rules: CSSRuleList, name: string, win: Window): string | unde
 
 /**
  * The site's own value of a design token: the last `:root` declaration in the page's stylesheets,
- * skipping the damage layers. The console prints it as the `+` side of a token diff.
+ * skipping the damage layers. The console prints it in a token chunk's `style.setProperty` call.
  */
 export function readLiveToken(doc: Document, name: string): string | undefined {
   const win = doc.defaultView;

@@ -185,7 +185,7 @@ describe('showReducer: failures never block', () => {
     run.advance(TIMING.moduleTimeoutMs);
     expect(run.state.effects['module:ai-chat']).toMatchObject({
       status: 'skipped',
-      reason: "ai-chat didn't load in 5 s",
+      reason: 'not loaded after 5 s',
     });
     run.dispatch({ type: 'moduleLoaded', key: 'module:ai-chat' });
     expect(run.status('module:ai-chat')).toBe('skipped');

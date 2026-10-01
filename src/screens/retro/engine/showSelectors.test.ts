@@ -1,74 +1,139 @@
 import { RETRO_SHOW } from '../scenario';
 import { currentChunk, highlightOf, leavingDecorations, targetQuery } from './chunkSelectors';
 import { nextWakeMs } from './schedule';
-import { activeDecorations, consoleView, progressOf } from './showSelectors';
+import {
+  activeDecorations,
+  appliedTokens,
+  consoleCounters,
+  consoleRows,
+  lastDoneStep,
+} from './showSelectors';
 import { currentPlannedChunk } from './showState';
 import { ShowTestRun } from './showTestRun';
 import { TIMING } from './timing';
 import type { ShowState } from './showTypes';
 
-const TEXTS = { prompt: '$ fix', end: 'the end' };
-const texts = (state: ShowState) => consoleView(state, TEXTS).lines.map(({ text }) => text);
+const TEXTS = { opening: 'Agent connected.', end: 'the end' };
+const rows = (state: ShowState) => consoleRows(state, TEXTS);
+/** The rows as one string each: `kind text`. */
+const brief = (state: ShowState) =>
+  rows(state).map((row) => {
+    switch (row.kind) {
+      case 'group':
+        return `group${row.collapsed ? ' ✓' : ''} ${row.title}`;
+      case 'prompt':
+      case 'echo':
+        return `${row.kind} ${row.lines.join(' ⏎ ')}`.trimEnd();
+      default:
+        return `${row.kind} ${row.text}`;
+    }
+  });
 const inChunk = (key: string, stage: 'type' | 'beat') => (state: ShowState) =>
   state.stage === stage && currentPlannedChunk(state)?.key === key;
 const applied = (key: string) => (state: ShowState) => state.effects[key]?.status === 'applied';
 
-describe('consoleView', () => {
-  it("prints each started chunk's target line, code and ✓, and the current one as typed", () => {
+describe('consoleRows (DevTools console)', () => {
+  it('opens with the log line and an empty prompt before the first step', () => {
     const run = new ShowTestRun(RETRO_SHOW);
-    run.advanceUntil(inChunk('layer:type-scale-headings', 'type'));
-    run.advance(100);
-    const { lines, typing } = consoleView(run.state, TEXTS);
-    expect(typing).toBe(true);
-    expect(lines[0]).toEqual({ kind: 'prompt', text: '$ fix' });
-    expect(lines[1]).toEqual({ kind: 'comment', text: '// 1/8 fonts' });
-    const printed = lines.map(({ text }) => text);
-    expect(printed.filter((text) => text.startsWith('// → '))).toEqual([
-      '// → headings',
-      '// → page',
-      '// → name & titles',
-    ]);
-    expect(printed.filter((text) => text.startsWith('✓'))).toEqual([
-      '✓ type-faces removed',
-      '✓ type-family removed',
-    ]);
-    expect(printed.at(-1)?.length).toBeGreaterThan(0);
+    run.advanceUntil((state) => state.phase === 'console');
+    expect(brief(run.state)).toEqual(['log Agent connected.', 'prompt']);
   });
 
-  it('collapses finished steps to their ✓ line and ends each step with it', () => {
+  it('runs each chunk: the prompt types it, then echo, `<· undefined`, its ✓ and an empty prompt', () => {
+    const run = new ShowTestRun(RETRO_SHOW);
+    run.advanceUntil(inChunk('layer:type-faces', 'type'));
+    run.advance(100);
+    const typing = rows(run.state).at(-1);
+    expect(typing?.kind).toBe('prompt');
+    expect(typing?.kind === 'prompt' && typing.lines.join('')).toMatch(/^\/\/ → he/);
+
+    run.advanceUntil(applied('layer:type-faces'));
+    expect(brief(run.state)).toEqual([
+      'log Agent connected.',
+      'group 1/8 fonts',
+      `echo // → headings ⏎ document.querySelector('style[data-retro-layer="type-faces"]').remove()`,
+      'result undefined',
+      'done type-faces removed',
+      'prompt',
+    ]);
+  });
+
+  it('collapses a finished step to ✓ n/N when the next one starts', () => {
     const run = new ShowTestRun(RETRO_SHOW);
     run.advanceUntil((state) => state.stage === 'stepDone');
-    expect(texts(run.state).at(-1)).toBe('✓ 1/8 fonts');
+    expect(brief(run.state).filter((row) => row.startsWith('done'))).toHaveLength(6);
+    expect(brief(run.state).at(-1)).toBe('prompt');
     run.advanceUntil((state) => state.step === 1);
-    expect(texts(run.state)).toEqual(['$ fix', '✓ 1/8 fonts', '// 2/8 colours']);
+    expect(brief(run.state)).toEqual(['log Agent connected.', 'group ✓ 1/8 fonts', 'prompt']);
+    run.advanceUntil((state) => state.stage === 'type');
+    expect(brief(run.state).slice(0, 3)).toEqual([
+      'log Agent connected.',
+      'group ✓ 1/8 fonts',
+      'group 2/8 colours',
+    ]);
   });
 
-  it('shows a chunk at once with reduced motion, with no caret', () => {
+  it('shows a chunk at once with reduced motion', () => {
     const run = new ShowTestRun(RETRO_SHOW, { reducedMotion: true });
     run.advanceUntil(inChunk('layer:type-faces', 'type'));
-    const { lines, typing } = consoleView(run.state, TEXTS);
-    expect(typing).toBe(false);
-    const css = RETRO_SHOW.layers['type-faces']?.css.trimEnd().split('\n').at(-1);
-    expect(lines.at(-1)?.text).toBe(css);
+    expect(rows(run.state).at(-1)).toEqual({
+      kind: 'prompt',
+      lines: currentPlannedChunk(run.state)?.input,
+    });
+  });
+
+  it('ends with every group collapsed, the end line and an empty prompt', () => {
+    const run = new ShowTestRun(RETRO_SHOW, { reducedMotion: true });
+    run.advanceUntil((state) => state.phase === 'finale');
+    expect(brief(run.state)).toEqual([
+      'log Agent connected.',
+      ...RETRO_SHOW.meta.map(({ title }, index) => `group ✓ ${index + 1}/8 ${title}`),
+      'end the end',
+      'prompt',
+    ]);
+  });
+
+  it('shows an awaited import as its echo, and a skipped chunk as a warning', () => {
+    const run = new ShowTestRun(RETRO_SHOW, { reducedMotion: true });
+    run.advanceUntil((state) => state.effects['module:ai-chat']?.status === 'running');
+    expect(brief(run.state).at(-1)).toBe("echo const { ChatRoute } = await import('./chat')");
+    run.dispatch({ type: 'effectFailed', key: 'module:ai-chat', reason: 'failed to load' });
+    expect(brief(run.state).slice(-2)).toEqual(['warn ai-chat skipped: failed to load', 'prompt']);
   });
 });
 
-describe('progressOf', () => {
-  it("counts the current step's resolved chunks", () => {
-    const run = new ShowTestRun(RETRO_SHOW);
-    run.advanceUntil(applied('layer:type-scale-headings'));
-    expect(progressOf(run.state)).toMatchObject({
-      step: { number: 1, title: 'fonts' },
-      total: 8,
-      percent: Math.round((3 / 6 / 8) * 100),
-      lastDone: null,
-    });
+describe('consoleCounters', () => {
+  it('counts chunks (✖) and steps (⚠) not done yet, down to 0 at the end', () => {
+    const run = new ShowTestRun(RETRO_SHOW, { reducedMotion: true });
+    expect(consoleCounters(run.state)).toEqual({ errors: 36, warnings: 8 });
+    run.advanceUntil(applied('layer:type-faces'));
+    expect(consoleCounters(run.state)).toEqual({ errors: 35, warnings: 8 });
     run.advanceUntil((state) => state.step === 1);
-    expect(progressOf(run.state)).toMatchObject({
-      step: { number: 2, title: 'colours' },
-      percent: Math.round((1 / 8) * 100),
-      lastDone: { number: 1, title: 'fonts' },
-    });
+    expect(consoleCounters(run.state)).toEqual({ errors: 30, warnings: 7 });
+    run.advanceUntil((state) => state.phase === 'done');
+    expect(consoleCounters(run.state)).toEqual({ errors: 0, warnings: 0 });
+  });
+});
+
+describe('appliedTokens', () => {
+  it("keeps the applied token chunks' values until the show is done", () => {
+    const run = new ShowTestRun(RETRO_SHOW, { reducedMotion: true }, () => 'today');
+    expect(appliedTokens(run.state)).toEqual([]);
+    run.advanceUntil(applied('layer:type-family'));
+    const family = currentPlannedChunk(run.state);
+    expect(appliedTokens(run.state)).toEqual(family?.tokens);
+    expect(family?.tokens.length).toBeGreaterThan(0);
+    run.advanceUntil((state) => state.phase === 'done');
+    expect(appliedTokens(run.state)).toEqual([]);
+  });
+});
+
+describe('lastDoneStep', () => {
+  it('names the last finished step for the live announcement', () => {
+    const run = new ShowTestRun(RETRO_SHOW);
+    expect(lastDoneStep(run.state)).toBeNull();
+    run.advanceUntil((state) => state.step === 1);
+    expect(lastDoneStep(run.state)).toEqual({ number: 1, title: 'fonts' });
   });
 });
 

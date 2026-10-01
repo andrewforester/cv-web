@@ -99,7 +99,7 @@ function typeStage(state: ShowState, chunk: PlannedChunk): ShowState {
   if (run?.status === 'running') {
     const timeoutAt = run.at + TIMING.moduleTimeoutMs;
     if (state.t < timeoutAt || chunk.effect.kind !== 'loadModule') return state;
-    const reason = `${chunk.effect.module} didn't load in ${TIMING.moduleTimeoutMs / 1000} s`;
+    const reason = `not loaded after ${TIMING.moduleTimeoutMs / 1000} s`;
     return withRun(state, chunk.key, { status: 'skipped', at: timeoutAt, reason });
   }
   if (!chunkResolved(state, chunk.key)) return state;

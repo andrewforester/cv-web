@@ -1,6 +1,6 @@
 /**
  * Show timing (docs/retro/ARCHITECTURE.md §9 → Round 3, docs/design/retro/SPEC.md → Timeline and
- * Chunk rhythm), in ms.
+ * Chunk rhythm; typing rate from GRA-54), in ms.
  */
 export const TIMING = {
   /** The broken page alone before the chat window appears. */
@@ -12,8 +12,8 @@ export const TIMING = {
   /** A step's narration line starts this long before its first chunk types. */
   narrateMs: 600,
   /** Console typing rate per chunk, then the chunk's typing time is clamped to the bounds below. */
-  codeCharsPerSecond: 240,
-  chunkMinMs: 400,
+  codeCharsPerSecond: 100,
+  chunkMinMs: 600,
   chunkMaxMs: 1_300,
   /** After a chunk applies, nothing else starts: the eye catches the change. */
   beatMs: 1_000,
@@ -51,7 +51,7 @@ export function revealMs(text: string, reducedMotion: boolean): number {
   return reducedMotion ? 0 : Math.round((text.length / TIMING.chatCharsPerSecond) * 1000);
 }
 
-/** Typing time of a chunk's code (SPEC: 240 chars/s, clamped to 0.4–1.3 s). */
+/** Typing time of a chunk's code (SPEC: 100 chars/s, clamped to 0.6–1.3 s). */
 export function typingMs(chars: number, reducedMotion: boolean): number {
   if (reducedMotion) return TIMING.reducedMotionApplyMs;
   const ms = (chars / TIMING.codeCharsPerSecond) * 1000;

@@ -1,36 +1,27 @@
-/** Syntax colours of the console (SPEC → Live-fix console: the VGA palette). */
-export type SyntaxTone = 'plain' | 'keyword' | 'property' | 'string' | 'number';
+/** Syntax colours of the console input (SPEC → DevTools console: DevTools light theme). */
+export type SyntaxTone = 'plain' | 'keyword' | 'string' | 'number' | 'comment';
 
 export interface SyntaxToken {
   text: string;
   tone: SyntaxTone;
 }
 
-// Keywords and selectors; `:root` and at-rules; a leading property name; numbers and colours.
+// A comment to the end of the line; a string literal (unterminated while it is being typed);
+// a keyword; a number outside strings.
 const CODE =
-  /(\b(?:const|await|import|document)\b)|(@keyframes|@media|:root)|(^\s*(?:--[\w-]+|[a-z-]+)(?=:\s))|(#[0-9a-f]{3,8}\b|\b\d+(?:\.\d+)?(?:px|%|fr|deg|s|em)?\b)/gi;
-const TONES: SyntaxTone[] = ['keyword', 'number', 'property', 'number'];
+  /(\/\/.*$)|('(?:[^'\\]|\\.)*(?:'|$)|"(?:[^"\\]|\\.)*(?:"|$))|\b(const|await|import)\b|(\b\d+(?:\.\d+)?\b)/g;
+const TONES: SyntaxTone[] = ['comment', 'string', 'keyword', 'number'];
 
-function codeTokens(code: string, atLineStart: boolean): SyntaxToken[] {
+/** Splits one line of console input into coloured tokens; the text stays intact. */
+export function highlight(line: string): SyntaxToken[] {
   const tokens: SyntaxToken[] = [];
   let last = 0;
-  for (const match of code.matchAll(CODE)) {
+  for (const match of line.matchAll(CODE)) {
     const group = match.slice(1).findIndex((value) => value !== undefined);
-    if (group === 2 && !atLineStart) continue;
-    if (match.index > last) tokens.push({ text: code.slice(last, match.index), tone: 'plain' });
+    if (match.index > last) tokens.push({ text: line.slice(last, match.index), tone: 'plain' });
     tokens.push({ text: match[0], tone: TONES[group] ?? 'plain' });
     last = match.index + match[0].length;
   }
-  if (last < code.length) tokens.push({ text: code.slice(last), tone: 'plain' });
+  if (last < line.length) tokens.push({ text: line.slice(last), tone: 'plain' });
   return tokens;
-}
-
-/** Splits one line of CSS or JS into coloured tokens; quoted strings first, then the code rules. */
-export function highlight(line: string): SyntaxToken[] {
-  return line
-    .split(/('[^']*')/)
-    .flatMap((part, index) =>
-      index % 2 ? [{ text: part, tone: 'string' as const }] : codeTokens(part, index === 0),
-    )
-    .filter(({ text }) => text !== '');
 }
