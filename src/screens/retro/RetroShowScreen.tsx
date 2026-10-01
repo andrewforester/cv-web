@@ -53,15 +53,10 @@ export function RetroShowScreen({
           aria-label={strings.dockLabel}
           data-testid={retroTestIds.dock}
         >
-          {consoleOpen && (
-            <LiveConsole
-              console={state.console}
-              onToggleMinimise={() => onToggleMinimise('console')}
-            />
-          )}
+          {consoleOpen && <LiveConsole console={state.console} />}
           <TerminalChat
             chat={state.chat}
-            fill={consoleOpen && state.console.minimised}
+            fill={false}
             onDraftChange={onDraftChange}
             onFocusChange={onComposerFocusChange}
             onSend={onSend}

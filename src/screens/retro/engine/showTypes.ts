@@ -11,7 +11,7 @@ export type RetroEffect =
 export interface DamageLayer {
   id: string;
   css: string;
-  /** `tokens`: `:root` overrides, shown as a diff against the live values; `rules`: shown verbatim. */
+  /** `tokens`: `:root` overrides, applied as `style.setProperty` with the live values; `rules`: removed. */
   display: 'rules' | 'tokens';
 }
 
@@ -44,22 +44,22 @@ export interface RetroStep {
   chunks: readonly RetroChunk[];
 }
 
-export type ConsoleLineKind =
-  | 'prompt'
-  | 'comment'
-  | 'file'
-  | 'del'
-  | 'add'
-  | 'code'
-  | 'effectDone'
-  | 'stepDone'
-  | 'skipped'
-  | 'end';
+/** A custom property the engine sets inline on `<html>` (a token layer's `style.setProperty`). */
+export type TokenValue = readonly [name: string, value: string];
 
-export interface ConsoleLine {
-  kind: ConsoleLineKind;
-  text: string;
-}
+/**
+ * One row of the DevTools console (SPEC → DevTools console → Messages). `prompt`: the input row the
+ * next command types into (with the caret; no lines = empty); `echo`: an input that has run.
+ */
+export type ConsoleRow =
+  | { kind: 'log'; text: string }
+  | { kind: 'group'; title: string; collapsed: boolean }
+  | { kind: 'prompt'; lines: readonly string[] }
+  | { kind: 'echo'; lines: readonly string[] }
+  | { kind: 'result'; text: string }
+  | { kind: 'done'; text: string }
+  | { kind: 'warn'; text: string }
+  | { kind: 'end'; text: string };
 
 /** A chunk with the console text that is typed for it, precomputed when the show starts. */
 export interface PlannedChunk {
@@ -68,10 +68,12 @@ export interface PlannedChunk {
   effect: RetroEffect;
   target: ChunkTarget | null;
   motion: ChunkMotion;
-  /** `// → <label>` (when it has a target), then the code. */
-  lines: readonly ConsoleLine[];
+  /** The console input it types, by line: `// → <label>` (when it has a target), then the command. */
+  input: readonly string[];
   /** Text of the `✓` line printed when the chunk has applied. */
   doneText: string;
+  /** A token layer: the custom properties its `style.setProperty` calls set, in typed order. */
+  tokens: readonly TokenValue[];
   /** Typed characters of the chunk: it applies at the last one. */
   chars: number;
 }

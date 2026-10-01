@@ -1,7 +1,7 @@
 import type { RetroStepMeta } from '../../../data/retro';
+import { LAYER_ATTRIBUTE } from './layerHost';
 import type {
   ChunkMotion,
-  ConsoleLine,
   DamageLayer,
   PlannedChunk,
   PlannedStep,
@@ -9,9 +9,10 @@ import type {
   RetroEffect,
   RetroStep,
   ShowPlan,
+  TokenValue,
 } from './showTypes';
 
-/** How a `loadModule` effect reads in the console: `const { ChatRoute } = await import('./chat');`. */
+/** How a `loadModule` effect reads in the console: `const { ChatRoute } = await import('./chat')`. */
 export interface ModuleDisplay {
   exportName: string;
   path: string;
@@ -32,16 +33,27 @@ export interface ShowSource {
 
 const DECLARATION = /(--[\w-]+)\s*:\s*([^;]+);/g;
 
-export const effectKey = (effect: RetroEffect): string => {
+/** The scenario id of what a chunk changes: its layer, decoration or module. */
+export const effectId = (effect: RetroEffect): string => {
   switch (effect.kind) {
     case 'removeLayer':
-      return `layer:${effect.layer}`;
+      return effect.layer;
     case 'removeDecoration':
-      return `decoration:${effect.decoration}`;
+      return effect.decoration;
     case 'loadModule':
-      return `module:${effect.module}`;
+      return effect.module;
   }
 };
+
+const KEY_PREFIX: Record<RetroEffect['kind'], string> = {
+  removeLayer: 'layer',
+  removeDecoration: 'decoration',
+  loadModule: 'module',
+};
+
+/** A chunk's key, unique in the show: `<layer|decoration|module>:<id>`. */
+export const effectKey = (effect: RetroEffect): string =>
+  `${KEY_PREFIX[effect.kind]}:${effectId(effect)}`;
 
 /** The custom properties a token layer sets, in file order. */
 export function tokenDeclarations(css: string): [name: string, value: string][] {
@@ -51,52 +63,59 @@ export function tokenDeclarations(css: string): [name: string, value: string][] 
   ]);
 }
 
-function layerLines(layer: DamageLayer, readToken: TokenReader): ConsoleLine[] {
-  const file: ConsoleLine = { kind: 'file', text: `--- layers/${layer.id}.css` };
-  if (layer.display === 'rules') {
-    const lines = layer.css.split('\n').filter((line) => line.trim() !== '');
-    return [file, ...lines.map((text): ConsoleLine => ({ kind: 'del', text }))];
-  }
-  return [
-    file,
-    ...tokenDeclarations(layer.css).flatMap(([name, value]): ConsoleLine[] => {
-      const live = readToken(name);
-      const removed: ConsoleLine = { kind: 'del', text: `${name}: ${value};` };
-      // Without a live value, removing the override is the whole change: nothing to print as `+`.
-      return live === undefined ? [removed] : [removed, { kind: 'add', text: `${name}: ${live};` }];
-    }),
-  ];
+/** A JS string literal: single quotes, or double quotes when the value has a `'` (SPEC). */
+export function literal(value: string): string {
+  return /['\\\n]/.test(value) ? JSON.stringify(value) : `'${value}'`;
 }
 
-function effectText(
-  effect: RetroEffect,
-  source: ShowSource,
-  readToken: TokenReader,
-): Pick<PlannedChunk, 'lines' | 'doneText'> {
+type EffectText = Pick<PlannedChunk, 'doneText' | 'tokens'> & { command: string[] };
+
+/**
+ * A token layer sets today's value of each of its tokens inline (the site's own value, read live),
+ * then its `<style>` is inert. A token without a live value has nothing to set: dropping the layer
+ * is its whole change, so it isn't typed.
+ */
+function tokenLayerText(layer: DamageLayer, readToken: TokenReader): EffectText {
+  const tokens = tokenDeclarations(layer.css).flatMap(([name]): TokenValue[] => {
+    const live = readToken(name);
+    return live === undefined ? [] : [[name, live]];
+  });
+  return {
+    command: [
+      'const { style } = document.documentElement',
+      ...tokens.map(([name, value]) => `style.setProperty(${literal(name)}, ${literal(value)})`),
+    ],
+    doneText: `${layer.id}: ${tokens.length} ${tokens.length === 1 ? 'token' : 'tokens'} set`,
+    tokens,
+  };
+}
+
+function effectText(effect: RetroEffect, source: ShowSource, readToken: TokenReader): EffectText {
   switch (effect.kind) {
     case 'removeLayer': {
       const layer = source.layers[effect.layer];
       if (!layer) throw new Error(`Unknown damage layer: ${effect.layer}`);
-      return { lines: layerLines(layer, readToken), doneText: `${layer.id} removed` };
+      if (layer.display === 'tokens') return tokenLayerText(layer, readToken);
+      const selector = `style[${LAYER_ATTRIBUTE}="${layer.id}"]`;
+      return {
+        command: [`document.querySelector(${literal(selector)}).remove()`],
+        doneText: `${layer.id} removed`,
+        tokens: [],
+      };
     }
     case 'removeDecoration':
       return {
-        lines: [
-          { kind: 'code', text: `document.getElementById('${effect.decoration}').remove();` },
-        ],
-        doneText: `${effect.decoration} removed`,
+        command: [`document.getElementById(${literal(effect.decoration)}).remove()`],
+        doneText: `#${effect.decoration} removed`,
+        tokens: [],
       };
     case 'loadModule': {
       const module = source.modules[effect.module];
       if (!module) throw new Error(`Unknown show module: ${effect.module}`);
       return {
-        lines: [
-          {
-            kind: 'code',
-            text: `const { ${module.exportName} } = await import('${module.path}');`,
-          },
-        ],
+        command: [`const { ${module.exportName} } = await import(${literal(module.path)})`],
         doneText: `${module.label} loaded`,
+        tokens: [],
       };
     }
   }
@@ -114,19 +133,18 @@ function motionOf({ effect, motion }: RetroChunk): ChunkMotion {
 }
 
 function planChunk(chunk: RetroChunk, source: ShowSource, readToken: TokenReader): PlannedChunk {
-  const text = effectText(chunk.effect, source, readToken);
+  const { command, doneText, tokens } = effectText(chunk.effect, source, readToken);
   // The target line is a comment: it names where the change lands and changes nothing itself.
-  const lines: ConsoleLine[] = chunk.target
-    ? [{ kind: 'comment', text: `// → ${chunk.target.label}` }, ...text.lines]
-    : [...text.lines];
+  const input = chunk.target ? [`// → ${chunk.target.label}`, ...command] : command;
   return {
     key: effectKey(chunk.effect),
     effect: chunk.effect,
     target: chunk.target,
     motion: motionOf(chunk),
-    lines,
-    doneText: text.doneText,
-    chars: lines.reduce((sum, line) => sum + line.text.length, 0),
+    input,
+    doneText,
+    tokens,
+    chars: input.reduce((sum, line) => sum + line.length, 0),
   };
 }
 
@@ -142,8 +160,8 @@ function planStep(step: RetroStep, source: ShowSource, readToken: TokenReader): 
 }
 
 /**
- * The whole show's console text, generated once at the start from the scenario (code shown = code
- * applied, ARCHITECTURE §2): rule layers verbatim, token layers as a diff against live values.
+ * The whole show's console input, generated once at the start from the scenario (code shown = code
+ * applied, ARCHITECTURE §2): one DevTools command per chunk, token values read live.
  */
 export function planShow(source: ShowSource, readToken: TokenReader): ShowPlan {
   const steps = source.steps.map((step) => planStep(step, source, readToken));

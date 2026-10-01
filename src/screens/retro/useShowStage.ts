@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { currentChunk, targetQuery, type CurrentChunk } from './engine/chunkSelectors';
-import { createLayerHost } from './engine/layerHost';
-import { activeLayers, runningModules } from './engine/showSelectors';
-import type { ShowState } from './engine/showTypes';
+import { createLayerHost, type StageStyles } from './engine/layerHost';
+import { activeLayers, appliedTokens, runningModules } from './engine/showSelectors';
+import type { ShowState, TokenValue } from './engine/showTypes';
 import motionStyles from './RetroMotion.module.css';
 import {
   DAMAGE_LAYERS,
@@ -27,8 +27,8 @@ function morphTargets(chunk: CurrentChunk | null, reducedMotion: boolean): strin
 
 /**
  * What the show does to the page outside its own windows: the damage layers (injected before the
- * first paint, removed as chunks apply, with a fade or a morph), module loads, the tab title, and
- * `onDone` at the end.
+ * first paint, removed as chunks apply, with a fade or a morph) and the tokens the console's
+ * `style.setProperty` calls set (cleared at the end), module loads, the tab title, and `onDone`.
  */
 export function useShowStage(
   state: ShowState,
@@ -38,13 +38,17 @@ export function useShowStage(
   const [host] = useState(() => createLayerHost(document, DAMAGE_LAYERS, HOST_VARIABLES));
   const layers = activeLayers(state);
   const layersKey = layers.join(' ');
+  const tokensKey = JSON.stringify(appliedTokens(state));
   const { reducedMotion } = state.config;
   const chunk = currentChunk(state);
   const morph = morphTargets(chunk, reducedMotion);
   useLayoutEffect(() => {
-    const ids = layersKey ? layersKey.split(' ') : [];
+    const styles: StageStyles = {
+      layers: layersKey ? layersKey.split(' ') : [],
+      tokens: JSON.parse(tokensKey) as TokenValue[],
+    };
     if (morph === null) {
-      host.sync(ids);
+      host.sync(styles);
       return;
     }
     // The view-transition styles live on the root, where the transition's pseudo-elements are.
@@ -52,9 +56,9 @@ export function useShowStage(
     const morphClass = motionStyles.morph ?? '';
     if (morphClass) root.classList.add(morphClass);
     void host
-      .morph(ids, morph ? morph.split(SEPARATOR) : [])
+      .morph(styles, morph ? morph.split(SEPARATOR) : [])
       .finally(() => morphClass && root.classList.remove(morphClass));
-  }, [host, layersKey, morph]);
+  }, [host, layersKey, tokensKey, morph]);
   useLayoutEffect(() => () => host.dispose(), [host]);
   // Transitions are on from a fade chunk's start to its beat's end, so its layer's removal animates.
   useBodyClass(motionStyles.fade, !reducedMotion && chunk?.motion === 'fade');
@@ -75,7 +79,7 @@ export function useShowStage(
         .then(load)
         .then(
           () => dispatch({ type: 'moduleLoaded', key }),
-          () => dispatch({ type: 'effectFailed', key, reason: `${module} failed to load` }),
+          () => dispatch({ type: 'effectFailed', key, reason: 'failed to load' }),
         );
     }
   }, [state, dispatch]);

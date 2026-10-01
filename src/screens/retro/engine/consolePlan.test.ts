@@ -1,7 +1,7 @@
 import { RETRO_SHOW } from '../scenario';
-import { planShow } from './consolePlan';
+import { literal, planShow } from './consolePlan';
 import { createLayerHost, readLiveToken } from './layerHost';
-import type { PlannedChunk } from './showTypes';
+import type { PlannedChunk, TokenValue } from './showTypes';
 
 const chunksOf = (plan = planShow(RETRO_SHOW, () => undefined)) =>
   plan.steps.flatMap((step) => step.chunks);
@@ -9,55 +9,56 @@ const chunk = (key: string, chunks = chunksOf()): PlannedChunk | undefined =>
   chunks.find((planned) => planned.key === key);
 
 describe('console plan (code shown = code applied)', () => {
-  it('types a rule layer verbatim under its target line, one removed line per line of the file', () => {
+  it('types a rule layer as the removal of its own <style>, under its target comment', () => {
     const frame = chunk('layer:page-frame');
-    const css = RETRO_SHOW.layers['page-frame']?.css ?? '';
-    expect(frame?.lines.slice(0, 2)).toEqual([
-      { kind: 'comment', text: '// → page' },
-      { kind: 'file', text: '--- layers/page-frame.css' },
+    expect(frame?.input).toEqual([
+      '// → page',
+      `document.querySelector('style[data-retro-layer="page-frame"]').remove()`,
     ]);
-    expect(frame?.lines.slice(2).map(({ text }) => text)).toEqual(
-      css.split('\n').filter((line) => line.trim()),
-    );
-    expect(frame?.lines.slice(2).every(({ kind }) => kind === 'del')).toBe(true);
     expect(frame?.doneText).toBe('page-frame removed');
+    expect(frame?.tokens).toEqual([]);
     expect(frame?.motion).toBe('morph');
   });
 
-  it('types a token layer as a diff against the live values', () => {
+  it('types a token layer as setProperty calls with the live values, the ones the engine sets', () => {
     const live: Record<string, string> = { '--color-bg': '#ffffff', '--color-text': '#001670' };
     const colors = chunk('layer:base-colors', chunksOf(planShow(RETRO_SHOW, (name) => live[name])));
-    expect(colors?.lines.slice(0, 6)).toEqual([
-      { kind: 'comment', text: '// → page' },
-      { kind: 'file', text: '--- layers/base-colors.css' },
-      { kind: 'del', text: '--color-bg: #ffffcc;' },
-      { kind: 'add', text: '--color-bg: #ffffff;' },
-      { kind: 'del', text: '--color-text: #000000;' },
-      { kind: 'add', text: '--color-text: #001670;' },
+    // No live value (`--color-text-secondary` here): dropping the layer is the whole change.
+    expect(colors?.input).toEqual([
+      '// → page',
+      'const { style } = document.documentElement',
+      "style.setProperty('--color-bg', '#ffffff')",
+      "style.setProperty('--color-text', '#001670')",
     ]);
-    // No live value: removing the override is the whole change.
-    expect(colors?.lines[6]).toEqual({ kind: 'del', text: '--color-text-secondary: #008000;' });
+    expect(colors?.tokens).toEqual([
+      ['--color-bg', '#ffffff'],
+      ['--color-text', '#001670'],
+    ]);
+    expect(colors?.doneText).toBe('base-colors: 2 tokens set');
     expect(colors?.motion).toBe('fade');
   });
 
-  it('generates decoration and module lines from their ids; the module has no target line', () => {
+  it('prints a value with a single quote in double quotes, so the input stays valid JS', () => {
+    const family = "'Inter', system-ui, sans-serif";
+    const planned = chunk('layer:type-family', chunksOf(planShow(RETRO_SHOW, () => family)));
+    expect(planned?.input).toContain(`style.setProperty('--font-family', "${family}")`);
+    expect(literal('a\\b')).toBe('"a\\\\b"');
+  });
+
+  it('generates decoration and module commands from their ids; the module has no target', () => {
     const note = chunk('decoration:oh-snap');
     const chat = chunk('module:ai-chat');
-    expect(note?.lines).toEqual([
-      { kind: 'comment', text: '// → note' },
-      { kind: 'code', text: "document.getElementById('oh-snap').remove();" },
-    ]);
+    expect(note?.input).toEqual(['// → note', "document.getElementById('oh-snap').remove()"]);
+    expect(note?.doneText).toBe('#oh-snap removed');
     expect(note?.motion).toBe('leave');
-    expect(chat?.lines).toEqual([
-      { kind: 'code', text: "const { ChatRoute } = await import('./chat');" },
-    ]);
+    expect(chat?.input).toEqual(["const { ChatRoute } = await import('./chat')"]);
     expect(chat?.doneText).toBe('chat button loaded');
     expect(chat?.motion).toBe('none');
   });
 
   it("counts each chunk's own characters: it applies at its last one", () => {
     for (const planned of chunksOf()) {
-      expect(planned.chars).toBe(planned.lines.reduce((sum, { text }) => sum + text.length, 0));
+      expect(planned.chars).toBe(planned.input.reduce((sum, line) => sum + line.length, 0));
     }
   });
 
@@ -73,6 +74,7 @@ describe('console plan (code shown = code applied)', () => {
 describe('layer host', () => {
   afterEach(() => {
     document.head.replaceChildren();
+    document.documentElement.removeAttribute('style');
     Reflect.deleteProperty(document, 'startViewTransition');
     vi.restoreAllMocks();
   });
@@ -81,6 +83,8 @@ describe('layer host', () => {
     [...document.head.querySelectorAll<HTMLElement>('style[data-retro-layer]')].map(
       (style) => style.dataset.retroLayer,
     );
+  const styles = (layers: string[], tokens: TokenValue[] = []) => ({ layers, tokens });
+  const inlineToken = (name: string) => document.documentElement.style.getPropertyValue(name);
   const newHost = () =>
     createLayerHost(document, RETRO_SHOW.layers, { '--retro-tile-stars': 'url("x.svg")' });
 
@@ -91,7 +95,7 @@ describe('layer host', () => {
     document.head.append(site);
     const host = newHost();
 
-    host.sync(['base-colors', 'page-background']);
+    host.sync(styles(['base-colors', 'page-background']));
     expect(injected()).toEqual(['base-colors', 'page-background']);
     const hostStyle = document.head.querySelector('style[data-retro-host]')?.textContent;
     expect(hostStyle).toContain('--retro-tile-stars: url("x.svg");');
@@ -100,17 +104,42 @@ describe('layer host', () => {
     );
     expect(readLiveToken(document, '--color-bg')).toBe('#ffffff');
 
-    host.sync(['page-background']);
+    host.sync(styles(['page-background']));
     expect(injected()).toEqual(['page-background']);
-    host.sync([]);
+    host.sync(styles([]));
     expect(injected()).toEqual([]);
     expect(document.head.querySelector('style[data-retro-host]')).toBeNull();
   });
 
+  it("sets the token chunks' properties inline and clears only its own", () => {
+    const root = document.documentElement;
+    root.style.setProperty('--not-the-show', '1px');
+    const host = newHost();
+    host.sync(
+      styles(
+        [],
+        [
+          ['--color-bg', '#ffffff'],
+          ['--font-family', 'Inter'],
+        ],
+      ),
+    );
+    expect(inlineToken('--color-bg')).toBe('#ffffff');
+    expect(inlineToken('--font-family')).toBe('Inter');
+
+    host.sync(styles([], [['--color-bg', '#ffffff']]));
+    expect(inlineToken('--font-family')).toBe('');
+    host.dispose();
+    expect(inlineToken('--color-bg')).toBe('');
+    expect(inlineToken('--not-the-show')).toBe('1px');
+  });
+
   it('morphs instantly where view transitions are missing', async () => {
     const host = newHost();
-    host.sync(['page-frame', 'tech-grid']);
-    await host.morph(['tech-grid'], ["[data-retro-stage] [data-agent-id='section:header']"]);
+    host.sync(styles(['page-frame', 'tech-grid']));
+    await host.morph(styles(['tech-grid']), [
+      "[data-retro-stage] [data-agent-id='section:header']",
+    ]);
     expect(injected()).toEqual(['tech-grid']);
     expect(document.head.querySelector('style[data-retro-motion]')).toBeNull();
   });
@@ -118,23 +147,29 @@ describe('layer host', () => {
   it('morphs inside a view transition, naming the targets only while it runs', async () => {
     let finish = () => {};
     const finished = new Promise<void>((resolve) => (finish = resolve));
-    const seen: { layers: (string | undefined)[]; motion: string | null | undefined }[] = [];
+    const seen: { layers: (string | undefined)[]; motion?: string | null; token: string }[] = [];
     const start = vi.fn((update: () => void) => {
       const motion = document.head.querySelector('style[data-retro-motion]')?.textContent;
+      const before = inlineToken('--font-family');
       update();
-      seen.push({ layers: injected(), motion });
+      seen.push({ layers: injected(), motion, token: `${before}→${inlineToken('--font-family')}` });
       return { finished } as ViewTransition;
     });
     Object.defineProperty(document, 'startViewTransition', { value: start, configurable: true });
     vi.spyOn(CSS, 'supports').mockReturnValue(true);
     const host = newHost();
-    host.sync(['page-frame', 'tech-grid']);
+    host.sync(styles(['page-frame', 'tech-grid']));
 
-    const morphing = host.morph(['tech-grid'], ['[data-retro-stage] h2', '#oh-snap']);
+    const morphing = host.morph(styles(['tech-grid'], [['--font-family', 'Inter']]), [
+      '[data-retro-stage] h2',
+      '#oh-snap',
+    ]);
+    // The tokens change inside the transition, with the layers: the old snapshot is the old look.
     expect(seen).toEqual([
       {
         layers: ['tech-grid'],
         motion: '[data-retro-stage] h2, #oh-snap { view-transition-name: match-element; }',
+        token: '→Inter',
       },
     ]);
     expect(document.head.querySelector('style[data-retro-motion]')).not.toBeNull();

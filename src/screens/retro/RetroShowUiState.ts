@@ -1,4 +1,4 @@
-import type { ConsoleLineKind } from './engine/showTypes';
+import type { ConsoleRow } from './engine/showTypes';
 import type { DecorationId } from './scenario';
 
 export interface ChatLineUi {
@@ -7,11 +7,6 @@ export interface ChatLineUi {
   /** `HH:MM`, the visitor's local time. */
   time: string;
   /** As far as it has typed. */
-  text: string;
-}
-
-export interface ConsoleLineUi {
-  kind: ConsoleLineKind;
   text: string;
 }
 
@@ -62,11 +57,11 @@ export interface RetroShowUiState {
     /** The windows are closing: the composer stops taking input. */
     readOnly: boolean;
   };
-  console: WindowUi & {
-    lines: ConsoleLineUi[];
-    /** A caret sits at the end of the last line. */
-    typing: boolean;
-    progress: { label: string; percent: number };
+  /** The DevTools console (SPEC → DevTools console): its rows and the toolbar's ✖ / ⚠ counters. */
+  console: {
+    rows: ConsoleRow[];
+    /** ✖: chunks not done yet; ⚠: steps not done yet (both 0 at the end). */
+    counters: { errors: number; warnings: number };
     /** Visually hidden live line for the last finished step. */
     announcement: string;
   };

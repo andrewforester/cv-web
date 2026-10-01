@@ -75,6 +75,11 @@ describe('retro show screen', { timeout: 20_000 }, () => {
   });
 
   it('opens broken, fixes the page step by step and ends on the real site', async () => {
+    // The site's own token value: the colours step prints it and sets it inline.
+    const site = document.createElement('style');
+    site.textContent = ':root { --color-bg: #ffffff; }';
+    document.head.append(site);
+    const inlineBg = () => document.documentElement.style.getPropertyValue('--color-bg');
     const { loaders, onDone } = renderShow();
     await advance(0);
     expect(screen.getByTestId(cvTestIds.name)).toBeInTheDocument();
@@ -89,13 +94,23 @@ describe('retro show screen', { timeout: 20_000 }, () => {
 
     await advance(8_000);
     const liveConsole = screen.getByTestId(retroTestIds.console);
-    expect(within(liveConsole).getByText(strings.consolePrompt)).toBeInTheDocument();
+    const log = within(liveConsole).getByRole('log', { name: strings.consoleLabel });
+    expect(log).toHaveTextContent('Agent connected to andrew-cv: 36 changes in 8 steps.');
+    expect(screen.getByTestId(retroTestIds.consoleErrors)).toHaveTextContent('36');
+    expect(screen.getByTestId(retroTestIds.consoleWarnings)).toHaveTextContent('8');
     expect(chatText()).toContain(strings.handoff);
 
     await advance(4_000);
-    expect(screen.getByRole('progressbar', { name: 'Step 1 of 8: fonts' })).toBeVisible();
+    expect(log).toHaveTextContent('1/8 fonts');
+    expect(log).toHaveTextContent('✓ type-faces removed');
+    expect(screen.getByTestId(retroTestIds.consoleErrors)).not.toHaveTextContent('36');
 
-    await advance(90_000);
+    await advanceUntil(() => inlineBg() !== '', 40_000);
+    expect(inlineBg()).toBe('#ffffff');
+    expect(log).toHaveTextContent("style.setProperty('--color-bg', '#ffffff')");
+    expect(log).toHaveTextContent('✓ base-colors: 1 token set');
+
+    await advance(80_000);
     expect(loaders['ai-chat']).toHaveBeenCalledTimes(1);
     expect(layers()).toHaveLength(0);
     expect(document.head.querySelector('style[data-retro-host]')).toBeNull();
@@ -104,6 +119,8 @@ describe('retro show screen', { timeout: 20_000 }, () => {
     expect(onDone).toHaveBeenCalledTimes(1);
     expect(screen.queryByTestId(retroTestIds.dock)).not.toBeInTheDocument();
     expect(document.body).not.toHaveClass('docked');
+    expect(document.documentElement.style.length).toBe(0);
+    site.remove();
   });
 
   it('lets the visitor chat with the agent while it fixes', async () => {
