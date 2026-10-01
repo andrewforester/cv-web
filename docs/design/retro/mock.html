@@ -1076,48 +1076,84 @@
     <div class="dock" id="dock" aria-label="Live fix">
       <section class="devtools" id="devtools" aria-label="Developer tools: live fix console">
         <div class="dt-bar dt-tabs" aria-hidden="true">
-          <span class="dt-btn"><i class="ic" style="--icon: url(assets/devtools_inspect.svg)"></i></span>
+          <span class="dt-btn"
+            ><i class="ic" style="--icon: url(assets/devtools_inspect.svg)"></i
+          ></span>
           <span class="dt-sep"></span>
           <span class="dt-tab">Elements</span>
           <span class="dt-tab active">Console</span>
           <span class="dt-tab">Sources</span>
-          <span class="dt-btn"><i class="ic" style="--icon: url(assets/devtools_more.svg)"></i></span>
+          <span class="dt-btn"
+            ><i class="ic" style="--icon: url(assets/devtools_more.svg)"></i
+          ></span>
           <span class="dt-grow"></span>
           <span class="dt-badges" id="badges"></span>
           <span class="dt-sep"></span>
-          <span class="dt-btn"><i class="ic" style="--icon: url(assets/devtools_gear.svg)"></i></span>
-          <span class="dt-btn"><i class="ic" style="--icon: url(assets/devtools_kebab.svg)"></i></span>
+          <span class="dt-btn"
+            ><i class="ic" style="--icon: url(assets/devtools_gear.svg)"></i
+          ></span>
+          <span class="dt-btn"
+            ><i class="ic" style="--icon: url(assets/devtools_kebab.svg)"></i
+          ></span>
         </div>
         <div class="dt-bar dt-filter" aria-hidden="true">
-          <span class="dt-btn"><i class="ic" style="--icon: url(assets/devtools_clear.svg)"></i></span>
+          <span class="dt-btn"
+            ><i class="ic" style="--icon: url(assets/devtools_clear.svg)"></i
+          ></span>
           <span class="dt-sep"></span>
-          <span class="dt-select">top<i class="ic" style="--icon: url(assets/devtools_triangle.svg)"></i></span>
-          <span class="dt-btn"><i class="ic" style="--icon: url(assets/devtools_eye.svg)"></i></span>
+          <span class="dt-select"
+            >top<i class="ic" style="--icon: url(assets/devtools_triangle.svg)"></i
+          ></span>
+          <span class="dt-btn"
+            ><i class="ic" style="--icon: url(assets/devtools_eye.svg)"></i
+          ></span>
           <span class="dt-field">Filter</span>
-          <span class="dt-select">Default levels<i class="ic" style="--icon: url(assets/devtools_triangle.svg)"></i></span>
+          <span class="dt-select"
+            >Default levels<i class="ic" style="--icon: url(assets/devtools_triangle.svg)"></i
+          ></span>
         </div>
-        <div class="dt-console" id="console" role="log" aria-live="off" aria-label="Live fix console"></div>
+        <div
+          class="dt-console"
+          id="console"
+          role="log"
+          aria-live="off"
+          aria-label="Live fix console"
+        ></div>
       </section>
       <section class="agent-chat" id="chat" aria-labelledby="chat-title">
         <header class="ac-header">
-          <span class="ac-badge" aria-hidden="true"><i class="ic" style="--icon: url(../../../src/screens/chat/assets/chat_icon_sparkle.svg)"></i></span>
+          <span class="ac-badge" aria-hidden="true"
+            ><i
+              class="ic"
+              style="--icon: url(../../../src/screens/chat/assets/chat_icon_sparkle.svg)"
+            ></i
+          ></span>
           <div class="ac-titles">
             <h2 class="ac-title" id="chat-title">Agent</h2>
             <span class="ac-subtitle">Fixing this site live</span>
           </div>
-          <span class="ac-btn" aria-label="Minimise chat"><i class="ic" style="--icon: url(assets/retro_icon_chevron.svg)"></i></span>
+          <span class="ac-btn" aria-label="Minimise chat"
+            ><i class="ic" style="--icon: url(assets/retro_icon_chevron.svg)"></i
+          ></span>
         </header>
         <ol class="ac-list" id="chat-log" role="log" aria-live="polite"></ol>
         <div class="ac-composer">
           <div class="ac-field" id="field">
             <span class="ac-input" id="input"></span>
-            <span class="ac-send" id="send"><i class="ic" style="--icon: url(../../../src/screens/chat/assets/chat_icon_send.svg)"></i></span>
+            <span class="ac-send" id="send"
+              ><i
+                class="ic"
+                style="--icon: url(../../../src/screens/chat/assets/chat_icon_send.svg)"
+              ></i
+            ></span>
           </div>
           <span class="ac-meta" id="meta">Answers are AI-generated and may contain mistakes.</span>
         </div>
       </section>
     </div>
-    <span class="fab" aria-label="Open chat with the AI assistant"><i class="ic" style="--icon: url(../../../src/screens/chat/assets/chat_icon_chat.svg)"></i></span>
+    <span class="fab" aria-label="Open chat with the AI assistant"
+      ><i class="ic" style="--icon: url(../../../src/screens/chat/assets/chat_icon_chat.svg)"></i
+    ></span>
 
     <script>
       /* ------------------------------------------------------------------ CV (cv.en.json) */
@@ -1534,7 +1570,10 @@
         ],
         exchange: [
           ['visitor', "wow, a marquee! haven't seen one in 20 years"],
-          ['agent', 'It belongs to the 2002 layout. It goes in the cleanup step, with the hit counter.'],
+          [
+            'agent',
+            'It belongs to the 2002 layout. It goes in the cleanup step, with the hit counter.',
+          ],
         ],
         console: [['agent', 'Opening my console. Every line I type lands on the page right away.']],
         between: [
@@ -1680,7 +1719,10 @@
       const overlay = (el, phase) => {
         const r = el.getBoundingClientRect();
         const cs = getComputedStyle(el);
-        const side = (p) => ['top', 'right', 'bottom', 'left'].map((s) => px(cs[`${p}${s[0].toUpperCase()}${s.slice(1)}`]));
+        const side = (p) =>
+          ['top', 'right', 'bottom', 'left'].map((s) =>
+            px(cs[`${p}${s[0].toUpperCase()}${s.slice(1)}`]),
+          );
         const m = side('margin');
         const b = ['top', 'right', 'bottom', 'left'].map((s) => px(cs[`border-${s}-width`]));
         const p = side('padding');
@@ -1723,7 +1765,9 @@
         if (!targets) return;
         const area = document.documentElement.clientWidth - (docked ? 400 : 0);
         if (targets === 'page') {
-          portal.append(Object.assign(document.createElement('div'), { className: `bm-page ${st.hl}` }));
+          portal.append(
+            Object.assign(document.createElement('div'), { className: `bm-page ${st.hl}` }),
+          );
           // Headless Chrome reports a shorter viewport while scripts run; render.sh passes the real one.
           const vh = Number(q.get('vh')) || document.documentElement.clientHeight;
           return plate('<span class="tag">body</span>', `${area} × ${vh}`);
@@ -1735,7 +1779,9 @@
           const r = el.getBoundingClientRect();
           return r.width > 0 && r.bottom > 0 && r.top < document.documentElement.clientHeight;
         });
-        (inView.length ? inView.slice(0, 12) : matches.slice(0, 1)).forEach((el) => overlay(el, st.hl));
+        (inView.length ? inView.slice(0, 12) : matches.slice(0, 1)).forEach((el) =>
+          overlay(el, st.hl),
+        );
         const first = matches[0];
         const r = first.getBoundingClientRect();
         if (matches.length > 1) plate(nodeLabel(first), `× ${matches.length}`);
@@ -1777,9 +1823,15 @@
       const chunkCode = ([kind, id, label]) => {
         const target = label ? [`// → ${label}`] : [];
         if (kind === 'deco')
-          return { lines: [...target, `document.getElementById('${id}').remove()`], done: `#${id} removed` };
+          return {
+            lines: [...target, `document.getElementById('${id}').remove()`],
+            done: `#${id} removed`,
+          };
         if (kind === 'module')
-          return { lines: ["const { ChatRoute } = await import('./chat')"], done: 'chat button loaded' };
+          return {
+            lines: ["const { ChatRoute } = await import('./chat')"],
+            done: 'chat button loaded',
+          };
         const css = read(`layers/${id}.css`) || '';
         if (css.trimStart().startsWith(':root')) {
           const decls = [...css.matchAll(/(--[\w-]+):\s*([^;]+);/g)];
@@ -1815,7 +1867,8 @@
       const icon = (name) => `<i class="ic" style="--icon: url(assets/devtools_${name}.svg)"></i>`;
       const caret = '<span class="caret"></span>';
       const rows = [];
-      const row = (kind, html, ic) => rows.push(`<div class="cr ${kind}">${ic ? icon(ic) : ''}${html}</div>`);
+      const row = (kind, html, ic) =>
+        rows.push(`<div class="cr ${kind}">${ic ? icon(ic) : ''}${html}</div>`);
       const total = STEPS.reduce((n, s) => n + s.effects.length, 0);
       row('log', esc(`Agent connected to andrew-cv: ${total} changes in ${STEPS.length} steps.`));
       let applied = 0;
@@ -1867,7 +1920,8 @@
       document.getElementById('field').classList.toggle('focus', !!st.draft);
       document.getElementById('send').classList.toggle('disabled', !st.draft);
       function follow() {
-        for (const el of [term, document.getElementById('chat-log')]) el.scrollTop = el.scrollHeight;
+        for (const el of [term, document.getElementById('chat-log')])
+          el.scrollTop = el.scrollHeight;
       }
       follow();
     </script>
