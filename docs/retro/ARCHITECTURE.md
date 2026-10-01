@@ -109,25 +109,36 @@ EN only, desktop only; replay/skip later.
 
 One source per step; the console never displays a string that isn't executed.
 
-| Effect kind | Applied as | Console shows | Honesty argument |
-|---|---|---|---|
-| `removeLayer` (rule layer) | Remove `<style data-retro-layer=id>` | The layer's CSS verbatim as removed lines (`- …`), then a comment line | The text is the file's text, the same string the host injected |
-| `removeLayer` (token layer) | Same | A diff per token: `- --color-bg: #c0c0c0;` (from the layer) and `+ --color-bg: #ffffff;` read live from the site's `:root` rule in `document.styleSheets` (non-retro sheets) | Guard 4 asserts the computed value equals the printed `+` value |
-| `removeDecoration` | Screen state drops the decoration id; React unmounts it | `document.getElementById('oh-snap').remove();`, generated from the decoration id | Same outcome, same id; a test asserts `#oh-snap` is gone after the step |
-| `loadModule` | A real `import()` from a loader map the shell passes in (e.g. `ai-chat` → `import('../screens/chat/ChatRoute')`), then the shell renders it | `const { ChatRoute } = await import('./chat');` | The network tab shows the chunk loading at that moment |
-| `focus` (round 2) | `scrollToSection` / `highlightElement` through the page-agent registry | `document.querySelector('[data-agent-id="section:apps"]').scrollIntoView();` | Same target id |
+**Round 4 (GRA-54): the console is Chrome DevTools and prints console commands**, not the layer
+files. Look: `docs/design/retro/SPEC.md` → DevTools console. Each chunk types one console input:
+its target comment (`// → <label>`, a comment, so it executes nothing), then the command for its
+effect; at the apply the engine does exactly that, and the console prints the result and a done
+line.
+
+| Effect kind | Console shows (typed) | Applied as | Result · done line | Honesty argument |
+|---|---|---|---|---|
+| `removeLayer` (rule layer) | `document.querySelector('style[data-retro-layer="<id>"]').remove()` | The host removes `<style data-retro-layer="<id>">` | `undefined` · `✓ <id> removed` | Same element, same attribute: the command would do the same in the visitor's own console |
+| `removeLayer` (token layer) | `const { style } = document.documentElement`, then `style.setProperty('<token>', '<value>')` per token of the layer, in file order, `<value>` read live from the site's `:root` rule in `document.styleSheets` (non-retro sheets) | `document.documentElement.style.setProperty(token, value)` for exactly those pairs, then the host drops the layer's `<style>`, which is inert by then (every property it sets is overridden inline) | `undefined` · `✓ <id>: <n> tokens set` | The visible change is the printed calls with the printed values; guard 4 asserts the computed value equals the printed `setProperty` value. The shell removes the inline properties at `done` (same values as the stylesheet: no visible change), so the end state has no trace |
+| `removeDecoration` | `document.getElementById('<id>').remove()` | Screen state drops the decoration id; React unmounts it | `undefined` · `✓ #<id> removed` | Same outcome, same id; a test asserts `#<id>` is gone after the chunk |
+| `loadModule` | `const { ChatRoute } = await import('./chat')` | A real `import()` from the loader map the shell passes in, then the shell renders it | `undefined` · `✓ chat button loaded` | The network tab shows the chunk loading at that moment |
+| `focus` (round 2) | superseded in round 3 (the show's camera isn't typed, §9) | | | |
 
 Rules:
 
-- Layer CSS lives in `src/screens/retro/layers/<id>.css`, imported with Vite's `?raw`. Prettier
-  formats it, so what is typed is tidy. It is **content** (the "old code" on stage), so literal
-  retro colours and fonts are allowed there and only there (open question Q5).
+- Layer CSS lives in `src/screens/retro/layers/<id>.css`, imported with Vite's `?raw`, and is
+  injected as is. Since round 4 it is no longer printed; it is the damage source the commands
+  remove. Literal retro colours and fonts are allowed there and only there (open question Q5).
+- String literals in commands use single quotes; a value containing a single quote is printed in
+  double quotes, so every input is valid JavaScript (`style.setProperty('--font-family',
+  "'Inter', system-ui, …")`).
 - No `eval`, no `new Function`, no code strings from the network: the model never supplies code.
-  A "library" step is a pre-declared `import()` of our own chunk. Fonts stay honest as token
-  changes (`- --font-family: 'Comic Sans MS'` / `+ --font-family: 'Inter', …`); Inter itself keeps
+  The engine performs each effect with its own code; the console text is generated from the same
+  effect data (the chunk's effect, the layer id, the token names in the layer file, the live
+  values), never parsed back. A "library" step is a pre-declared `import()` of our own chunk.
+  Fonts stay honest as token changes (`style.setProperty('--font-family', …)`); Inter itself keeps
   loading at boot as today.
-- A step may carry several effects; its console text is their generated texts in order. A
-  catch-all step ("…and the rest") is still the full text, typed faster.
+- Rounds 1–3 printed rule layers verbatim as `-` lines and token layers as `-`/`+` diffs under
+  `--- layers/<id>.css`; superseded by round 4.
 
 ## 3. Scenario format and runner
 
@@ -634,6 +645,9 @@ That is the "code piles up, then it all changes" the human saw.
    smoke**: the show ends within 110 s of show time and not under 60 s.
 4. **Shown = applied** (Playwright, reduced motion): unchanged, per step. The `// → label` lines are
    comments, so its parser ignores them (it reads only `+`/`-` lines under `--- layers/…`).
+   Round 4 (GRA-54, §2): the console prints commands; the parser reads the
+   `style.setProperty('<token>', '<value>')` arguments instead, and asserts each rule layer's
+   `<style>` is gone after its `.remove()` line.
 
 #### Scenario and contract impact
 

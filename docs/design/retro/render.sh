@@ -36,7 +36,7 @@ shot 06-step2-mid.png 1280 800 'state=step2-mid'
 shot 07-after-step2.png 1280 800 'state=step2'
 shot 08-rest-mid.png 1280 800 'state=rest-mid'
 shot 09-finale.png 1280 800 'state=finale'
-shot 10-colours-mid.png 1280 800 'state=colours-mid'
+shot 10-colours-mid.png 1280 800 'state=colours-mid&vh=800'
 shot 11-closing.png 1280 800 'state=closing'
 shot 12-end.png 1280 800 'state=end'
 # Whole pages without the dock, for the deviation list

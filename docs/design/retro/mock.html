@@ -1724,7 +1724,9 @@
         const area = document.documentElement.clientWidth - (docked ? 400 : 0);
         if (targets === 'page') {
           portal.append(Object.assign(document.createElement('div'), { className: `bm-page ${st.hl}` }));
-          return plate('<span class="tag">body</span>', `${area} × ${document.documentElement.clientHeight}`);
+          // Headless Chrome reports a shorter viewport while scripts run; render.sh passes the real one.
+          const vh = Number(q.get('vh')) || document.documentElement.clientHeight;
+          return plate('<span class="tag">body</span>', `${area} × ${vh}`);
         }
         const matches = targets.flatMap((sel) => [
           ...document.querySelectorAll(`[data-retro-stage] ${sel}, #portal ${sel}`),
