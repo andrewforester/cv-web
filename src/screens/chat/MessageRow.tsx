@@ -1,45 +1,13 @@
-import type { ReactNode } from 'react';
+import type { ComponentProps } from 'react';
 import { useStrings } from '../../i18n';
-import chat from './chat.module.css';
-import styles from './MessageRow.module.css';
+import { MessageRow as SharedMessageRow } from '../../shared/chat/MessageRow';
 import { chatStrings } from './strings';
 
-interface MessageRowProps {
-  className?: string;
-  author: 'visitor' | 'assistant';
-  /** `error`: red notice bubble (assistant only). */
-  tone?: 'normal' | 'error';
-  testId?: string;
-  /** The bubble's content; without it the row shows only the footer. */
-  children?: ReactNode;
-  /** Under the bubble, e.g. a caption. */
-  footer?: ReactNode;
-}
+type MessageRowProps = Omit<ComponentProps<typeof SharedMessageRow>, 'authorLabel'>;
 
-/** One `<li>` of the conversation: a hidden "You:" / "Assistant:" prefix, the bubble, a footer. */
-export function MessageRow({
-  className,
-  author,
-  tone = 'normal',
-  testId,
-  children,
-  footer,
-}: MessageRowProps) {
+/** The shared message row with the chat's "You:" / "Assistant:" screen-reader prefixes. */
+export function MessageRow(props: MessageRowProps) {
   const strings = useStrings(chatStrings);
-  const rowClass = `${styles.row} ${styles[author]}${className ? ` ${className}` : ''}`;
-  const bubbleClass = tone === 'error' ? `${styles.bubble} ${styles.error}` : styles.bubble;
-
-  return (
-    <li className={rowClass}>
-      {children != null && (
-        <div className={bubbleClass} data-testid={testId}>
-          <span className={chat.srOnly}>
-            {author === 'visitor' ? strings.you : strings.assistant}{' '}
-          </span>
-          {children}
-        </div>
-      )}
-      {footer}
-    </li>
-  );
+  const authorLabel = props.author === 'visitor' ? strings.you : strings.assistant;
+  return <SharedMessageRow {...props} authorLabel={authorLabel} />;
 }

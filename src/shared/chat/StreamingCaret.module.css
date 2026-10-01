@@ -1,4 +1,7 @@
 .caret {
+  --chat-caret-width: 2px;
+  --chat-caret-height: 18px;
+
   display: inline-block;
   width: var(--chat-caret-width);
   height: var(--chat-caret-height);

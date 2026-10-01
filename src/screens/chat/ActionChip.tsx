@@ -2,7 +2,7 @@ import { useStrings } from '../../i18n';
 import { actionText } from './actionText';
 import styles from './ActionChip.module.css';
 import type { ChatActionCall } from './ChatUiState';
-import { ChatIcon } from './ChatIcon';
+import { ChatIcon } from '../../shared/chat/ChatIcon';
 import { chatStrings } from './strings';
 import { chatTestIds } from './testIds';
 

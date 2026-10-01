@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import chat from './chat.module.css';
+import chat from '../../shared/chat/chat.module.css';
 import styles from './SuggestedQuestions.module.css';
 
 interface ChipGroupProps {

@@ -1,7 +1,7 @@
 import { useId, type Ref } from 'react';
 import { useStrings } from '../../i18n';
 import { ChatHint } from './ChatHint';
-import { ChatIcon } from './ChatIcon';
+import { ChatIcon } from '../../shared/chat/ChatIcon';
 import styles from './ChatLauncher.module.css';
 import { chatStrings } from './strings';
 import { CHAT_PANEL_ID, chatTestIds } from './testIds';

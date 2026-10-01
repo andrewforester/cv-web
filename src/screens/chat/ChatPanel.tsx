@@ -1,5 +1,6 @@
 import { useId, useRef } from 'react';
 import { useLocale } from '../../i18n';
+import { ChatCard } from '../../shared/chat/ChatCard';
 import { ChatComposer } from './ChatComposer';
 import { ChatHeader } from './ChatHeader';
 import styles from './ChatPanel.module.css';
@@ -47,7 +48,7 @@ export function ChatPanel({ className, state, actions, closing, onKeyboardClose 
   };
 
   return (
-    <section
+    <ChatCard
       ref={dialogRef}
       id={CHAT_PANEL_ID}
       className={[styles.panel, closing && styles.closing, className].filter(Boolean).join(' ')}
@@ -87,6 +88,6 @@ export function ChatPanel({ className, state, actions, closing, onKeyboardClose 
         onSend={thenFocusInput(actions.send)}
         onStop={thenFocusInput(actions.stop)}
       />
-    </section>
+    </ChatCard>
   );
 }
