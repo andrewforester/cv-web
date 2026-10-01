@@ -1,5 +1,7 @@
+import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useStrings } from '../../i18n';
+import { AgentChat } from './AgentChat';
 import { Decorations } from './Decorations';
 import { Highlight } from './Highlight';
 import { liveName } from './liveName';
@@ -8,7 +10,6 @@ import motionStyles from './RetroMotion.module.css';
 import type { RetroShowUiState } from './RetroShowUiState';
 import styles from './RetroShowScreen.module.css';
 import { retroStrings } from './strings';
-import { TerminalChat } from './TerminalChat';
 import { retroTestIds } from './testIds';
 import { useBodyClass } from './useBodyClass';
 
@@ -18,13 +19,14 @@ interface RetroShowScreenProps {
   onDraftChange: (draft: string) => void;
   onComposerFocusChange: (focused: boolean) => void;
   onSend: () => void;
-  onToggleMinimise: (window: 'chat' | 'console') => void;
+  onToggleMinimise: () => void;
 }
 
 /**
  * The show over the page, rendered into `document.body` (outside the stage, so damage layers
- * never touch it): the decorations, the highlight and the dock with the live console above the
- * terminal chat. At the end the windows fly off while the page takes the dock's room back.
+ * never touch it): the decorations, the highlight and the dock: DevTools docked to the right with
+ * the agent chat floating over its lower part. At the end DevTools slides out and the chat shrinks
+ * into the site's chat launcher while the page takes the dock's room back.
  */
 export function RetroShowScreen({
   className,
@@ -35,13 +37,20 @@ export function RetroShowScreen({
   onToggleMinimise,
 }: RetroShowScreenProps) {
   const strings = useStrings(retroStrings);
-  const { windows, highlight } = state;
+  const { windows, highlight, chat } = state;
   const closing = windows === 'closing';
-  // The page lays out beside the dock while the windows are open, and re-centres as they close.
+  // The page lays out beside the dock while it is open, and re-centres as it closes.
   useBodyClass(styles.stage, true);
   useBodyClass(styles.docked, windows !== 'none' && !closing);
   const consoleOpen = windows === 'chatAndConsole' || closing;
-  const dockClasses = [styles.dock, motionStyles.live, closing && styles.closing, className];
+  const dockClasses = [
+    styles.dock,
+    motionStyles.live,
+    chat.minimised && styles.chatMinimised,
+    closing && styles.closing,
+    className,
+  ];
+  const dockStyle = { ...state.tokens, ...liveName('retro-dock') } as CSSProperties;
   return createPortal(
     <>
       <Decorations decorations={state.decorations} />
@@ -49,18 +58,18 @@ export function RetroShowScreen({
       {windows !== 'none' && (
         <div
           className={dockClasses.filter(Boolean).join(' ')}
-          style={liveName('retro-dock')}
+          style={dockStyle}
           aria-label={strings.dockLabel}
           data-testid={retroTestIds.dock}
         >
-          {consoleOpen && <LiveConsole console={state.console} />}
-          <TerminalChat
-            chat={state.chat}
-            fill={false}
+          {consoleOpen && <LiveConsole className={styles.devtools} console={state.console} />}
+          <AgentChat
+            className={styles.chat}
+            chat={chat}
             onDraftChange={onDraftChange}
             onFocusChange={onComposerFocusChange}
             onSend={onSend}
-            onToggleMinimise={() => onToggleMinimise('chat')}
+            onToggleMinimise={onToggleMinimise}
           />
         </div>
       )}

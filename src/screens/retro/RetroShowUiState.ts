@@ -3,11 +3,11 @@ import type { DecorationId } from './scenario';
 
 export interface ChatLineUi {
   id: number;
-  kind: 'system' | 'agent' | 'visitor';
-  /** `HH:MM`, the visitor's local time. */
-  time: string;
-  /** As far as it has typed. */
+  kind: 'agent' | 'visitor';
+  /** As far as it has arrived. */
   text: string;
+  /** An agent line still arriving (scripted reveal or LLM tokens): it ends with the caret. */
+  streaming: boolean;
 }
 
 /** Where a decoration sits, in page (document) pixels; `null` until its anchor is on the page. */
@@ -17,44 +17,83 @@ export interface DecorationBox {
   width?: number;
 }
 
-export interface WindowUi {
-  minimised: boolean;
+/** Widths of a box's four sides in px (`top right bottom left`). */
+export interface BoxEdges {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
 }
 
-/** A highlighted target's border box, in page (document) pixels. */
+/**
+ * A highlighted target as DevTools' Elements tab draws it: its border box in page (document)
+ * pixels and the widths of its margin (negative margins as 0), border and padding.
+ */
 export interface HighlightBox {
   left: number;
   top: number;
   width: number;
   height: number;
+  margin: BoxEdges;
+  border: BoxEdges;
+  padding: BoxEdges;
+}
+
+/** The Elements-tab tooltip in the page area's corner (SPEC → Highlight → Plate). */
+export interface HighlightPlate {
+  tag: string;
+  /** `#id`, if the element has one. */
+  id: string;
+  /** `.class`: the first class with its CSS Modules hash stripped; `''` when none reads well. */
+  className: string;
+  /** Border-box `W × H` in whole px; `null` with several matches. */
+  size: { width: number; height: number } | null;
+  /** All matches on the page when there are several (`× N`); `null` for one. */
+  count: number | null;
 }
 
 /** The show's pointer on the current chunk's target (SPEC → Show what changed). */
 export interface HighlightUi {
   /** The chunk's key: a new chunk's highlight fades in afresh. */
   key: string;
-  /** `typing`: the outline; `applied`: plus the fill flash; `fading`: going away. */
+  /** `typing`: the overlay; `applied`: plus the content flash; `fading`: going away. */
   phase: 'typing' | 'applied' | 'fading';
-  /** A page-wide chunk: a frame around the page area instead of boxes. */
+  /** A page-wide chunk: the page area is tinted instead of boxes. */
   page: boolean;
   boxes: HighlightBox[];
+  /** `null` until the target is on the page. */
+  plate: HighlightPlate | null;
 }
 
 /** Everything the show's stateless screen renders (docs/design/retro/SPEC.md). */
 export interface RetroShowUiState {
   /**
-   * Which windows the dock shows; the page reserves the dock's width while any is open.
-   * `closing`: both windows are flying off and the reserve is being released.
+   * Which panels the dock shows; the page reserves the dock's width while any is open.
+   * `closing`: DevTools slides out, the chat shrinks into the launcher, the reserve is released.
    */
   windows: 'none' | 'chat' | 'chatAndConsole' | 'closing';
-  chat: WindowUi & {
+  /**
+   * Token shield (SPEC → Agent chat panel): the site's design tokens with their live values,
+   * re-declared on the dock so the damage token layers on `:root` never restyle it.
+   */
+  tokens: Readonly<Record<string, string>>;
+  chat: {
+    minimised: boolean;
     lines: ChatLineUi[];
+    /** A reply was asked for and its first token hasn't come: the typing dots. */
+    waiting: boolean;
+    /** The browser is offline: the banner under the header. */
+    offline: boolean;
     draft: string;
-    /** The composer takes Enter (the chat is open and no reply is streaming). */
+    /** The composer takes Enter (the chat is open, no reply is streaming, the draft fits). */
     canSend: boolean;
-    /** The visitor used up their messages: the composer is dim and shows the limit line. */
+    /** The draft is over the length limit: error meta text, Send disabled. */
+    tooLong: boolean;
+    /** The draft is long enough to show the `{count} / 500` counter. */
+    counterVisible: boolean;
+    /** The visitor used up their messages: the notice in the list, the field disabled. */
     limitReached: boolean;
-    /** The windows are closing: the composer stops taking input. */
+    /** The show is closing: the composer stops taking input. */
     readOnly: boolean;
   };
   /** The DevTools console (SPEC → DevTools console): its rows and the toolbar's ✖ / ⚠ counters. */

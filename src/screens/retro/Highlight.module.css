@@ -1,67 +1,107 @@
 /*
- * The show's highlight (docs/design/retro/SPEC.md → Show what changed): a Paint-style selection in
- * the console's green, 4 px outside each target, over the page and the decorations, under the dock.
+ * The show's highlight (docs/design/retro/SPEC.md → Show what changed → Highlight): DevTools'
+ * Elements-tab selection, lighter than Chrome's, over the page and the decorations, under the
+ * dock; the plate sits in the page area's bottom-left corner.
  */
 .highlight {
-  /* TODO(theme): the fill flash's 100 ms has no token yet (GRA-52). */
-  --retro-highlight-flash: 100ms;
+  --retro-plate-padding: 4px 8px;
+  --retro-plate-gap: 8px;
+  --retro-plate-line-height: 16px;
 }
 
 .box,
-.frame {
-  --retro-ring-outset: calc(var(--agent-highlight-offset) + var(--agent-highlight-width));
-
+.page,
+.plate {
   z-index: calc(var(--retro-z-index) - 1);
   pointer-events: none;
   animation: retro-highlight-in var(--retro-highlight-fade-in) linear;
   transition: opacity var(--retro-highlight-fade-out) linear;
 }
 
+/* Margin box: the margin is its border; the border and padding rings nest inside. */
+.box,
+.border,
+.padding {
+  box-sizing: border-box;
+  border-style: solid;
+}
+
 .box {
   position: absolute;
+  border-color: var(--retro-highlight-margin);
 }
 
-/* Page-wide chunks: a frame just inside the page area, left of the dock. */
-.frame {
-  --retro-ring-outset: 0px;
-
-  position: fixed;
-  top: var(--retro-page-frame-inset);
-  bottom: var(--retro-page-frame-inset);
-  left: var(--retro-page-frame-inset);
-  right: calc(var(--retro-dock-width) + var(--retro-dock-inset) + var(--retro-page-frame-inset));
-}
-
-/* The green band under the black dashes; the band's box also carries the fill flash. */
-.box::before,
-.box::after,
-.frame::before,
-.frame::after {
-  content: '';
+.border,
+.padding {
   position: absolute;
-  inset: calc(-1 * var(--retro-ring-outset));
-  border: var(--agent-highlight-width) solid var(--retro-code-add);
+  inset: 0;
 }
 
-.box::before {
-  background-color: transparent;
+.border {
+  border-color: var(--retro-highlight-border);
+}
+
+.padding {
+  border-color: var(--retro-highlight-padding);
+  background-color: var(--retro-highlight-content);
   transition: background-color var(--retro-highlight-flash) linear;
 }
 
-.box::after,
-.frame::after {
-  border-style: dashed;
-  border-color: var(--retro-highlight-ink);
+/* Page-wide chunks: the whole page area left of the dock is tinted. */
+.page {
+  position: fixed;
+  inset: 0 var(--retro-dock-width) 0 0;
+  background-color: var(--retro-highlight-page);
+  transition:
+    background-color var(--retro-highlight-flash) linear,
+    opacity var(--retro-highlight-fade-out) linear;
 }
 
-.applied .box::before,
-.fading .box::before {
-  background-color: var(--retro-code-add-bg);
+/* At the apply the content (or the page tint) flashes, and holds until it has faded. */
+.applied .padding,
+.fading .padding {
+  background-color: var(--retro-highlight-content-flash);
+}
+
+.applied .page,
+.fading .page {
+  background-color: var(--retro-highlight-content);
 }
 
 .fading .box,
-.fading .frame {
+.fading .page,
+.fading .plate {
   opacity: 0;
+}
+
+.plate {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  gap: var(--retro-plate-gap);
+  padding: var(--retro-plate-padding);
+  background: var(--devtools-bg);
+  box-shadow: var(--devtools-plate-shadow);
+  color: var(--devtools-text);
+  font-family: var(--devtools-ui-font);
+  font-size: var(--devtools-ui-font-size);
+  line-height: var(--retro-plate-line-height);
+  letter-spacing: normal;
+  white-space: nowrap;
+}
+
+.tag {
+  color: var(--devtools-node-tag);
+}
+
+.selector {
+  color: var(--devtools-node-class);
+}
+
+.size {
+  color: var(--devtools-text-dim);
+  font-variant-numeric: tabular-nums;
 }
 
 @keyframes retro-highlight-in {
@@ -72,8 +112,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .box,
-  .frame,
-  .box::before {
+  .page,
+  .plate,
+  .padding {
     animation: none;
     transition: none;
   }
