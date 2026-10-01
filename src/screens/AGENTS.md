@@ -2,7 +2,7 @@
 
 Why it exists: one folder per thing a visitor sees. Today: `cv/` (the CV page, the root of the
 site), `chat/` (the floating AI chat widget over it) and `retro/` (the Retro Rebuild show: a
-broken 2000s page fixed live by an agent in a terminal chat and console).
+broken 2000s page fixed live by an agent in a chat and a DevTools console).
 
 Place in the architecture: every screen follows the same shape, so any agent can find its way
 around: a state holder reads data through repositories and produces an immutable UI state; a

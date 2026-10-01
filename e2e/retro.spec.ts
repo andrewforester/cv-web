@@ -121,6 +121,36 @@ test.describe('with reduced motion', () => {
     expect(errors).toEqual([]);
   });
 
+  test('the agent chat is the site chat card and the highlight is the Elements selection', async ({
+    page,
+  }) => {
+    const errors = collectErrors(page);
+    await page.clock.install();
+    await page.goto(SHOW_SITE);
+    await page.clock.runFor(4_000);
+    const chat = page.getByTestId('retro-chat');
+    await expect(chat.getByRole('heading', { name: 'Agent' })).toBeVisible();
+    await expect(chat.getByText('Fixing this site live')).toBeVisible();
+    await expect(chat.getByRole('log', { name: 'Conversation with the agent' })).toContainText(
+      "Hello. This is Andrew's CV",
+    );
+    await expect(chat).not.toContainText('***');
+    // The site's chat tokens, shielded from the damage layers that restyle `:root`.
+    await expect(chat).toHaveCSS('font-family', /Inter/);
+    await expect(page.locator('body')).toHaveCSS('padding-right', '400px');
+
+    const plate = page.getByTestId('retro-highlight-plate');
+    const plates = new Set<string>();
+    for (let elapsed = 0; elapsed < 20_000 && plates.size < 2; elapsed += 250) {
+      await page.clock.runFor(250);
+      if (await plate.count()) plates.add((await plate.textContent()) ?? '');
+    }
+    // Chunk 1 marks every heading, chunk 2 the whole page area.
+    expect([...plates]).toEqual([expect.stringMatching(/^h1\.name × \d+$/), 'body880 × 800']);
+    await expect(page.getByTestId('retro-console')).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
   test('guard 3: the show ends on the normal page, AI chat included', async ({ page }) => {
     await expectEndsAsNormalSite(page, 'retro-end.png');
   });

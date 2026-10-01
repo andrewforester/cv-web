@@ -21,7 +21,10 @@ What it guarantees today:
   fake clock drives the runner but not CSS or view transitions. One extra run with motion on
   (real view transitions) reaches the same end state with no console errors, and is the timing
   smoke: the show ends within 110 s of show time (≈ 93 s today) and not under 60 s. Only English
-  desktop visitors get the show, once per browser session.
+  desktop visitors get the show, once per browser session. While it runs, the agent chat is the
+  site's chat card (title, greeting, no IRC lines, Inter despite the damage token layers), the page
+  reserves the 400 px dock, and the highlight's plate names the targets (`h1.name × N`, then
+  `body 880 × 800` for the page-wide chunk).
 - The show is a lazy chunk (`retroLazy.spec.ts`): `?retro=0` never requests it; in show mode no
   frame of today's design is painted before the broken page; a failed chunk leaves the normal site.
 
