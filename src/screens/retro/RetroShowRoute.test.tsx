@@ -58,6 +58,14 @@ function stubReducedMotion() {
   }));
 }
 
+/** The site's own stylesheet for one test (removed after it, even when the test fails). */
+function siteStyle(css: string) {
+  const style = document.createElement('style');
+  style.dataset.testSite = '';
+  style.textContent = css;
+  document.head.append(style);
+}
+
 const motionClasses = () => [
   document.body.classList.contains('fade'),
   document.documentElement.classList.contains('morph'),
@@ -72,13 +80,12 @@ describe('retro show screen', { timeout: 20_000 }, () => {
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+    document.head.querySelectorAll('style[data-test-site]').forEach((style) => style.remove());
   });
 
   it('opens broken, fixes the page step by step and ends on the real site', async () => {
     // The site's own token value: the colours step prints it and sets it inline.
-    const site = document.createElement('style');
-    site.textContent = ':root { --color-bg: #ffffff; }';
-    document.head.append(site);
+    siteStyle(':root { --color-bg: #ffffff; }');
     const inlineBg = () => document.documentElement.style.getPropertyValue('--color-bg');
     const { loaders, onDone } = renderShow();
     await advance(0);
@@ -123,7 +130,6 @@ describe('retro show screen', { timeout: 20_000 }, () => {
     expect(screen.queryByTestId(retroTestIds.dock)).not.toBeInTheDocument();
     expect(document.body).not.toHaveClass('docked');
     expect(document.documentElement.style.length).toBe(0);
-    site.remove();
   });
 
   it('lets the visitor chat with the agent while it fixes', async () => {
@@ -182,15 +188,12 @@ describe('retro show screen', { timeout: 20_000 }, () => {
   });
 
   it('shields the dock from the damage token layers with the live site values', async () => {
-    const site = document.createElement('style');
-    site.textContent = ':root { --color-bg: #ffffff; --font-family: Inter; }';
-    document.head.append(site);
+    siteStyle(':root { --color-bg: #ffffff; --font-family: Inter; }');
     renderShow();
     await advance(3_000);
     const dock = screen.getByTestId(retroTestIds.dock);
     expect(dock.style.getPropertyValue('--color-bg')).toBe('#ffffff');
     expect(dock.style.getPropertyValue('--font-family')).toBe('Inter');
-    site.remove();
   });
 
   it('highlights the current chunk while it types, flashes it at the apply, then lets go', async () => {

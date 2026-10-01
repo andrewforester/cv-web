@@ -130,7 +130,7 @@
   --agent-highlight-duration: 3s;
   --agent-scroll-margin-top: var(--space-6);
 
-  /* Retro Rebuild show panels: terminal chat + live console windows only (not the damage values) */
+  /* Retro Rebuild show: dock, agent chat, highlight and motion (not the damage values) */
   --retro-dock-width: 400px;
   --retro-dock-inset: 16px;
   --retro-chat-height: 392px;
