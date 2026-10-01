@@ -15,7 +15,8 @@ secondary buttons).
 Place in the architecture: stateless components below the screens: props in, callbacks out. They
 hold no chat state and no strings: each screen passes its own texts (author prefixes, button
 labels, offline text) from its own strings namespace. Tokens `--chat-*` are in the theme.
-Used by `src/screens/chat/` (which binds its strings in thin wrappers).
+Used by `src/screens/chat/` (which binds its strings in thin wrappers) and the retro show's agent
+chat (`src/screens/retro/`).
 
 Limits: the composer and the launcher are not shared; the show builds its own composer from
 `SendButton` and the shared CSS. Test ids of the shared pieces are in `testIds.ts`.

@@ -1,7 +1,9 @@
 import styles from './Highlight.module.css';
+import { HighlightBoxModel } from './HighlightBoxModel';
+import { HighlightPlateView } from './HighlightPlateView';
+import { liveName } from './liveName';
 import motionStyles from './RetroMotion.module.css';
 import type { HighlightUi } from './RetroShowUiState';
-import { liveName } from './liveName';
 import { retroTestIds } from './testIds';
 
 interface HighlightProps {
@@ -10,8 +12,9 @@ interface HighlightProps {
 }
 
 /**
- * Marks where the current chunk lands: a rectangle on each target, or a frame around the page
- * area for a page-wide chunk. Fades in while the code types, flashes its fill at the apply, then
+ * Marks where the current chunk lands, as DevTools' Elements tab does (SPEC → Highlight): the box
+ * model on each target, or a tint over the page area for a page-wide chunk, and the plate in the
+ * page area's corner. Fades in while the command types, flashes the content at the apply, then
  * fades out; key it by the chunk so each chunk's highlight starts afresh.
  */
 export function Highlight({ className, highlight }: HighlightProps) {
@@ -25,16 +28,27 @@ export function Highlight({ className, highlight }: HighlightProps) {
       data-phase={highlight.phase}
     >
       {highlight.page ? (
-        <div className={`${styles.frame} ${live}`} style={liveName('retro-highlight-frame')} />
+        <div
+          className={`${styles.page} ${live}`}
+          style={liveName('retro-highlight-page')}
+          data-testid={retroTestIds.highlightPage}
+        />
       ) : (
         highlight.boxes.map((box, index) => (
-          <div
+          <HighlightBoxModel
             key={index}
-            className={`${styles.box} ${live}`}
-            style={{ ...box, ...liveName(`retro-highlight-${index}`) }}
-            data-testid={retroTestIds.highlightBox}
+            className={live}
+            box={box}
+            style={liveName(`retro-highlight-${index}`)}
           />
         ))
+      )}
+      {highlight.plate && (
+        <HighlightPlateView
+          className={live}
+          plate={highlight.plate}
+          style={liveName('retro-highlight-plate')}
+        />
       )}
     </div>
   );

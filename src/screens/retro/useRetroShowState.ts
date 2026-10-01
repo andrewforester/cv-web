@@ -5,7 +5,6 @@ import { highlightOf } from './engine/chunkSelectors';
 import type { ShowClock } from './engine/clock';
 import { planShow } from './engine/consolePlan';
 import { readLiveToken } from './engine/layerHost';
-import { canSend, MAX_VISITOR_CHARS } from './engine/showReducer';
 import type { ShowConfig } from './engine/showTypes';
 import type { RetroShowUiState } from './RetroShowUiState';
 import { toRetroShowUiState } from './retroShowUi';
@@ -17,6 +16,7 @@ import { useHighlightBoxes } from './useHighlightBoxes';
 import { useShowLlm } from './useShowLlm';
 import { useShowRunner } from './useShowRunner';
 import { useShowStage } from './useShowStage';
+import { useTokenShield } from './useTokenShield';
 
 export interface RetroShowOptions {
   loaders: ShowModuleLoaders;
@@ -30,7 +30,7 @@ export interface RetroShowState {
   onDraftChange: (draft: string) => void;
   onComposerFocusChange: (focused: boolean) => void;
   onSend: () => void;
-  onToggleMinimise: (window: 'chat' | 'console') => void;
+  onToggleMinimise: () => void;
 }
 
 const matches = (query: string) =>
@@ -38,7 +38,7 @@ const matches = (query: string) =>
 
 /**
  * State holder of the retro show: runs the scenario over the real page (layers, decorations,
- * modules), talks to the LLM through `ShowRepository`, and keeps the terminal chat's composer.
+ * modules), talks to the LLM through `ShowRepository`, and keeps the agent chat's composer.
  */
 export function useRetroShowState({ loaders, onDone, clock }: RetroShowOptions): RetroShowState {
   const strings = useStrings(retroStrings);
@@ -67,31 +67,26 @@ export function useRetroShowState({ loaders, onDone, clock }: RetroShowOptions):
   const highlight = useHighlightBoxes(highlightOf(state), moving);
   const placement = useDecorationPlacement(layersKey, layers.includes('page-frame'), moving);
 
+  const tokens = useTokenShield();
+
   const [draft, setDraft] = useState('');
   const [focused, setFocused] = useState(false);
-  const [minimised, setMinimised] = useState({ chat: false, console: false });
+  const [minimised, setMinimised] = useState(false);
   const composing = focused && draft.trim() !== '';
   useEffect(() => dispatch({ type: 'composing', on: composing }), [composing, dispatch]);
 
-  const sendable = canSend(state);
+  const ui = toRetroShowUiState(state, { draft, minimised, placement, highlight, tokens }, strings);
+  const sendable = ui.chat.canSend;
   const onSend = useCallback(() => {
-    if (!sendable || !draft.trim()) return;
+    if (!sendable) return;
     dispatch({ type: 'visitorSent', text: draft });
-    if (draft.trim().length <= MAX_VISITOR_CHARS) setDraft('');
+    setDraft('');
   }, [sendable, draft, dispatch]);
 
-  const onToggleMinimise = useCallback(
-    (window: 'chat' | 'console') =>
-      setMinimised((current) => ({ ...current, [window]: !current[window] })),
-    [],
-  );
+  const onToggleMinimise = useCallback(() => setMinimised((current) => !current), []);
 
   return {
-    state: toRetroShowUiState(
-      state,
-      { draft, canSend: sendable, minimised, placement, highlight },
-      strings,
-    ),
+    state: ui,
     onDraftChange: setDraft,
     onComposerFocusChange: setFocused,
     onSend,

@@ -4,6 +4,7 @@ export const retroTestIds = {
   chatLog: 'retro-chat-log',
   chatLine: 'retro-chat-line',
   chatInput: 'retro-chat-input',
+  chatMeta: 'retro-chat-meta',
   console: 'retro-console',
   consoleScreen: 'retro-console-screen',
   consoleErrors: 'retro-console-errors',
@@ -12,4 +13,6 @@ export const retroTestIds = {
   decoration: 'retro-decoration',
   highlight: 'retro-highlight',
   highlightBox: 'retro-highlight-box',
+  highlightPage: 'retro-highlight-page',
+  highlightPlate: 'retro-highlight-plate',
 } as const;

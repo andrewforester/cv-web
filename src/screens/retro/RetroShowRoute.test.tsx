@@ -58,6 +58,14 @@ function stubReducedMotion() {
   }));
 }
 
+/** The site's own stylesheet for one test (removed after it, even when the test fails). */
+function siteStyle(css: string) {
+  const style = document.createElement('style');
+  style.dataset.testSite = '';
+  style.textContent = css;
+  document.head.append(style);
+}
+
 const motionClasses = () => [
   document.body.classList.contains('fade'),
   document.documentElement.classList.contains('morph'),
@@ -72,13 +80,12 @@ describe('retro show screen', { timeout: 20_000 }, () => {
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
+    document.head.querySelectorAll('style[data-test-site]').forEach((style) => style.remove());
   });
 
   it('opens broken, fixes the page step by step and ends on the real site', async () => {
     // The site's own token value: the colours step prints it and sets it inline.
-    const site = document.createElement('style');
-    site.textContent = ':root { --color-bg: #ffffff; }';
-    document.head.append(site);
+    siteStyle(':root { --color-bg: #ffffff; }');
     const inlineBg = () => document.documentElement.style.getPropertyValue('--color-bg');
     const { loaders, onDone } = renderShow();
     await advance(0);
@@ -89,7 +96,10 @@ describe('retro show screen', { timeout: 20_000 }, () => {
     expect(document.title).toBe(strings.pageTitle);
 
     await advance(3_000);
-    expect(chatText()).toContain(strings.systemJoin);
+    const chat = screen.getByTestId(retroTestIds.chat);
+    expect(within(chat).getByRole('heading', { name: strings.chatTitle })).toBeInTheDocument();
+    expect(within(chat).getByText(strings.chatSubtitle)).toBeInTheDocument();
+    expect(chatText()).not.toContain(strings.systemJoin);
     expect(screen.queryByTestId(retroTestIds.console)).not.toBeInTheDocument();
 
     await advance(8_000);
@@ -120,7 +130,6 @@ describe('retro show screen', { timeout: 20_000 }, () => {
     expect(screen.queryByTestId(retroTestIds.dock)).not.toBeInTheDocument();
     expect(document.body).not.toHaveClass('docked');
     expect(document.documentElement.style.length).toBe(0);
-    site.remove();
   });
 
   it('lets the visitor chat with the agent while it fixes', async () => {
@@ -131,22 +140,60 @@ describe('retro show screen', { timeout: 20_000 }, () => {
     fireEvent.submit(input);
     expect(input).toHaveValue('');
     await advance(100);
-    expect(chatText()).toContain(`${strings.visitorNick} wow, a marquee!`);
+    expect(chatText()).toContain(`${strings.visitorPrefix} wow, a marquee!`);
     expect(chatText()).toContain(FAKE_SHOW_REPLY);
     expect(repository.replyInputs[0]?.messages).toEqual([
       { role: 'user', content: 'wow, a marquee!' },
     ]);
   });
 
-  it('minimises a window to its title bar and restores it', async () => {
+  it('sends with Enter, keeps Shift+Enter for a new line, and refuses a message over 500', async () => {
+    renderShow();
+    await advance(3_000);
+    const input = screen.getByRole('textbox', { name: strings.inputLabel });
+    const meta = screen.getByTestId(retroTestIds.chatMeta);
+    const send = screen.getByRole('button', { name: strings.send });
+    expect(send).toBeDisabled();
+    fireEvent.change(input, { target: { value: 'much better already' } });
+    fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
+    expect(input).toHaveValue('much better already');
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(input).toHaveValue('');
+    expect(chatText()).toContain(`${strings.visitorPrefix} much better already`);
+
+    fireEvent.change(input, { target: { value: 'x'.repeat(400) } });
+    expect(meta).toHaveTextContent('400 / 500');
+    expect(meta).toHaveTextContent(strings.disclaimer);
+    fireEvent.change(input, { target: { value: 'x'.repeat(501) } });
+    expect(meta).toHaveTextContent(strings.tooLong);
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    await advance(100);
+    expect(screen.getByRole('button', { name: strings.send })).toBeDisabled();
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(input).toHaveValue('x'.repeat(501));
+  });
+
+  it('minimises the chat to its header and restores it from the header', async () => {
     renderShow();
     await advance(3_000);
     const chat = screen.getByTestId(retroTestIds.chat);
     const minimise = within(chat).getByTestId(retroTestIds.minimise);
+    expect(minimise).toHaveAccessibleName(strings.minimise);
     fireEvent.click(minimise);
     expect(minimise).toHaveAttribute('aria-expanded', 'false');
-    fireEvent.click(minimise);
+    expect(minimise).toHaveAccessibleName(strings.restore);
+    expect(screen.getByTestId(retroTestIds.dock)).toHaveClass('chatMinimised');
+    fireEvent.click(within(chat).getByRole('heading', { name: strings.chatTitle }));
     expect(minimise).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('shields the dock from the damage token layers with the live site values', async () => {
+    siteStyle(':root { --color-bg: #ffffff; --font-family: Inter; }');
+    renderShow();
+    await advance(3_000);
+    const dock = screen.getByTestId(retroTestIds.dock);
+    expect(dock.style.getPropertyValue('--color-bg')).toBe('#ffffff');
+    expect(dock.style.getPropertyValue('--font-family')).toBe('Inter');
   });
 
   it('highlights the current chunk while it types, flashes it at the apply, then lets go', async () => {
@@ -169,8 +216,25 @@ describe('retro show screen', { timeout: 20_000 }, () => {
     await advanceUntil(() => !!screen.queryByTestId(retroTestIds.highlight), 15_000);
     // Chunk 1 targets the name and every section title.
     const boxes = screen.getAllByTestId(retroTestIds.highlightBox);
-    expect(boxes.length).toBe(document.querySelectorAll("[data-testid='cv-name'], h2").length);
+    const titles = document.querySelectorAll(
+      "[data-retro-stage] [data-testid='cv-name'], [data-retro-stage] h2",
+    );
+    expect(boxes.length).toBe(titles.length);
     expect(boxes[0]).toHaveStyle({ left: '10px', top: '100px', width: '200px', height: '40px' });
+    // Several matches: the first one's tag and class, and how many there are.
+    const plate = screen.getByTestId(retroTestIds.highlightPlate);
+    expect(plate).toHaveTextContent(`h1.name × ${boxes.length}`);
+  });
+
+  it('tints the page area for a page-wide chunk, with the body plate', async () => {
+    stubLayout();
+    renderShow();
+    await advanceUntil(() => !!screen.queryByTestId(retroTestIds.highlightPage), 30_000);
+    // Chunk 2 (`type-family`) changes the whole page.
+    // The stubbed stage is 210 px wide: the page area's size.
+    expect(screen.getByTestId(retroTestIds.highlightPlate)).toHaveTextContent(
+      `body210 × ${window.innerHeight}`,
+    );
   });
 
   it('switches transitions on only while a chunk applies, and leaves none behind', async () => {
@@ -194,7 +258,7 @@ describe('retro show screen', { timeout: 20_000 }, () => {
       closing = true;
       expect(document.body).not.toHaveClass('docked');
       expect(screen.getByTestId(retroTestIds.console)).toBeInTheDocument();
-      expect(screen.getByRole('textbox', { name: strings.inputLabel })).toHaveAttribute('readonly');
+      expect(screen.getByRole('textbox', { name: strings.inputLabel })).toBeDisabled();
       expect(onDone).not.toHaveBeenCalled();
     });
     expect(closing).toBe(true);

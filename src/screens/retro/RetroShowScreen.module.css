@@ -1,37 +1,21 @@
 /*
- * The dock of the live-fix show (docs/design/retro/SPEC.md → Screen layout): console above the
- * terminal chat, fixed to the right. Window metrics of the Win98 chrome are screen-local; colours
- * and the window shadow are `--retro-*` tokens in tokens.css.
+ * The dock of the live-fix show (docs/design/retro/SPEC.md → Screen layout): DevTools docked flush
+ * to the top, right and bottom, the agent chat card floating over its lower part. The console
+ * keeps its rows above the card (`--retro-console-reserve`, read by LiveConsole.module.css).
  */
 .dock {
-  --retro-bevel: 1px;
-  --retro-window-padding: 3px;
-  --retro-window-gap: 2px;
-  --retro-title-height: 18px;
-  --retro-title-icon-size: 14px;
-  --retro-button-width: 16px;
-  --retro-button-height: 14px;
-  --retro-term-padding: 6px 8px;
-  --retro-composer-padding: 5px 8px;
-  --retro-cell-padding: 1px 4px;
-  --retro-console-progress-gap: 6px;
-  --retro-console-progress-padding: 3px 4px;
-  --retro-console-progress-label-width: 158px;
-  --retro-console-progress-height: 16px;
-  --retro-console-progress-block: 8px;
-  --retro-console-progress-step: 10px;
-  --retro-console-progress-percent-width: 32px;
-  --retro-window-shadow-offset: 4px;
+  /* At least ≈ 200 px of console stays visible on shorter viewports. */
+  --retro-chat-box-height: min(var(--retro-chat-height), calc(100dvh - 280px));
+  --retro-chat-header-height: calc(
+    2 * var(--space-3) + var(--chat-control-size) + var(--border-card)
+  );
+  --retro-console-reserve: calc(var(--retro-chat-box-height) + 2 * var(--retro-dock-inset));
 
   position: fixed;
-  top: var(--retro-dock-inset);
-  right: var(--retro-dock-inset);
-  bottom: var(--retro-dock-inset);
+  top: 0;
+  right: 0;
+  bottom: 0;
   z-index: var(--retro-z-index);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: var(--retro-dock-gap);
   width: var(--retro-dock-width);
   pointer-events: none;
 }
@@ -40,65 +24,89 @@
   pointer-events: auto;
 }
 
+.chatMinimised {
+  --retro-chat-box-height: var(--retro-chat-header-height);
+}
+
+.devtools {
+  position: absolute;
+  inset: 0;
+}
+
+.chat {
+  position: absolute;
+  right: var(--retro-dock-inset);
+  bottom: var(--retro-dock-inset);
+  width: calc(100% - 2 * var(--retro-dock-inset));
+  height: var(--retro-chat-box-height);
+  transition: height var(--chat-motion-duration) var(--chat-motion-easing);
+}
+
 /*
- * On `body` while the show is mounted: the page makes room for the dock, never sits under it.
- * When the windows close, the room is released once they have collapsed (SPEC → End of the show).
+ * On `body` while the show is mounted: the page makes room for the dock, never sits under it. The
+ * room is taken at once and released with motion as the dock closes (SPEC → End of the show).
  */
 .stage {
-  transition: padding-right var(--retro-reserve-duration) var(--chat-motion-easing)
-    calc(var(--retro-close-stagger) + var(--retro-close-collapse));
+  transition: padding-right var(--retro-reserve-duration) var(--chat-motion-easing);
 }
 
 .stage.docked {
-  padding-right: calc(var(--retro-dock-width) + 2 * var(--retro-dock-inset));
-  transition-delay: 0s;
+  padding-right: var(--retro-dock-width);
+  transition: none;
 }
 
 /*
- * The windows close like a Win98 minimise: each collapses to its title bar, then shrinks away
- * towards the bottom-right corner; the chat follows the console after the stagger.
+ * The close: DevTools slides out to the right; after the stagger the chat's contents fade and its
+ * card moves and shrinks onto the AI chat launcher's box, turning into it, then fades over the
+ * real launcher in its last 100 ms.
  */
-.closing > * {
-  transform-origin: right bottom;
-  animation:
-    retro-collapse var(--retro-close-collapse) var(--retro-close-easing) forwards,
-    retro-fly var(--retro-close-fly) var(--retro-close-easing) var(--retro-close-collapse) forwards;
+.closing .devtools {
+  animation: retro-slide-out var(--retro-close-slide) var(--retro-close-easing) forwards;
 }
 
-.closing > * + * {
-  animation-delay:
-    var(--retro-close-stagger), calc(var(--retro-close-stagger) + var(--retro-close-collapse));
+.closing .chat {
+  animation: retro-shrink var(--retro-close-shrink) var(--chat-motion-easing)
+    var(--retro-close-stagger) forwards;
 }
 
-@keyframes retro-collapse {
-  from {
-    clip-path: inset(
-      0 calc(-1 * var(--retro-window-shadow-offset)) calc(-1 * var(--retro-window-shadow-offset)) 0
-    );
+.closing .chat > * {
+  animation: retro-fade-out var(--retro-close-stagger) linear var(--retro-close-stagger) forwards;
+}
+
+@keyframes retro-slide-out {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes retro-shrink {
+  80% {
+    opacity: 1;
   }
 
   to {
-    clip-path: inset(
-      0 calc(-1 * var(--retro-window-shadow-offset))
-        calc(100% - var(--retro-title-height) - 2 * var(--retro-window-padding)) 0
-    );
+    right: var(--space-6);
+    bottom: var(--space-6);
+    width: var(--chat-fab-size);
+    height: var(--chat-fab-size);
+    border-radius: 50%;
+    background-color: var(--color-text);
+    box-shadow: var(--chat-shadow-fab);
+    opacity: 0;
   }
 }
 
-@keyframes retro-fly {
+@keyframes retro-fade-out {
   to {
     opacity: 0;
-    transform: translate(var(--space-6), var(--space-6)) scale(0.2);
   }
 }
 
+/* With reduced motion the runner skips the close: the dock goes at once. */
 @media (prefers-reduced-motion: reduce) {
-  .stage {
+  .stage,
+  .chat {
     transition: none;
-  }
-
-  .closing > * {
-    animation: none;
   }
 }
 

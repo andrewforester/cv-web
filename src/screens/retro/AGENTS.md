@@ -1,10 +1,12 @@
 # retro
 
-Why it exists: the Retro Rebuild show. The CV opens as a broken 2002 homepage; an agent chat
-appears on the right, then a Chrome DevTools console (light theme) where the "agent" fixes the site
-live: every command it types is what changes the page, until the page is today's CV and the real
-AI chat button loads; its ✖ / ⚠ counters fall from 36 / 8 to 0. Design: `docs/design/retro/SPEC.md` (look, copy, timing); mechanism:
-`docs/retro/ARCHITECTURE.md`, `docs/adr/0003-retro-live-fix-show.md`.
+Why it exists: the Retro Rebuild show. The CV opens as a broken 2002 homepage; an agent chat in the
+site's own AI chat look appears bottom right, then Chrome DevTools (light theme) docks to the right
+and the "agent" fixes the site live in its Console: every command it types is what changes the
+page, until the page is today's CV and the real AI chat button loads; the ✖ / ⚠ counters fall from
+36 / 8 to 0. At the end DevTools slides out and the chat shrinks into the site's chat launcher.
+Design: `docs/design/retro/SPEC.md` (look, copy, timing); mechanism: `docs/retro/ARCHITECTURE.md`,
+`docs/adr/0003-retro-live-fix-show.md`.
 
 Domain terms:
 - **Damage layer** (`layers/*.css`): one CSS file that breaks one thing, injected as
@@ -24,26 +26,33 @@ Domain terms:
 - **Motion / highlight / camera** (SPEC → Transitions, Show what changed; GRA-52): a fade chunk
   switches CSS transitions on for its window (`RetroMotion.module.css`, a `body` class), a morph
   chunk removes its layer inside a view transition (a class on `<html>`; the dock, decorations and
-  highlight stay live); the show's own highlight marks the chunk's target and its camera scrolls
-  to it unless the visitor scrolled lately; at the end the windows fly off (`closing`).
+  highlight stay live); the show's own highlight marks the chunk's target as DevTools' Elements tab
+  does (box model, and a plate naming the element with its live size; a tint for page-wide
+  chunks) and its camera scrolls to it unless the visitor scrolled lately; at the end the dock
+  closes into the chat launcher (`closing`).
+- **Token shield**: the dock re-declares every site token with its live value (read once at the
+  start), so the token layers on `:root` never restyle the agent chat.
 
 Place in the architecture: a screen mounted by the shell next to the unchanged `CvRoute`:
 `RetroShowRoute` (props: module loaders, `onDone`) → `useRetroShowState` (runner, layer host,
 `ShowRepository` from `src/data/retro` for LLM narration and replies) → stateless
-`RetroShowScreen` (dock with the DevTools panel `LiveConsole` and `TerminalChat`, `Decorations`,
-`Highlight`) in a
-portal into `document.body`. `engine/` is the framework-free runner. The end state is always zero
-layers, zero decorations: the real site; the shell then drops the stage and stores
-`sessionStorage['retro.done']`.
+`RetroShowScreen` (dock with the DevTools panel `LiveConsole` and the floating `AgentChat`,
+`Decorations`, `Highlight`) in a portal into `document.body`. The agent chat is built from the
+site chat's stateless pieces in `src/shared/chat/`; only its composer is show-local. `engine/` is
+the framework-free runner. The end state is always zero layers, zero decorations: the real site;
+the shell then drops the stage and stores `sessionStorage['retro.done']`.
 
 Rules and limits:
 - **Tokens-only exception:** `layers/*.css` and `Decorations.module.css` hardcode retro colours,
   fonts and sizes on purpose: they are the displayed "old code" and the 2002 furniture, and they
-  leave with the show. Everything else (the dock, the windows, the DevTools panel, the highlight)
-  uses only tokens plus a few window and panel metrics (`--console-*` in `LiveConsole.module.css`)
-  and the highlight's 100 ms fill flash as screen-local custom properties (`TODO(theme)`).
+  leave with the show. Everything else (the dock, the agent chat, the DevTools panel, the
+  highlight) uses only tokens plus a few panel metrics as screen-local custom properties
+  (`--console-*` in `LiveConsole.module.css`, the chat card's 280 px console minimum, the plate's
+  padding).
 - The DevTools chrome (tabs, filter bar, counters) is decoration: `aria-hidden`, not clickable; the
   log is `role="log"` with one live announcement per finished step.
+- The engine still writes IRC-era `system` chat entries (join lines, offline, too long); the
+  screen's mapping drops them (offline is the banner, a too-long draft can't be sent).
 - The LLM is never on the critical path: missing narration → the manifest's fallback lines,
   failed replies → a scripted line; automation (`navigator.webdriver`) runs fully scripted.
 - Guards: `scenario.test.ts` (every layer/decoration removed exactly once, every chunk has a

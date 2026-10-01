@@ -8,18 +8,20 @@ export const retroStrings = defineStrings({
   en: {
     pageTitle: 'Andrew Panasiuk - Homepage',
     dockLabel: 'Live fix',
-    minimise: 'Minimise',
-    // Terminal chat
-    chatTitle: '#andrew-cv - agent chat',
-    chatLabel: 'Chat with the agent',
-    statusConnected: '● connected',
-    statusUsers: '2 users',
-    statusLocale: 'EN',
+    // Agent chat (the site's AI chat look)
+    chatTitle: 'Agent',
+    chatSubtitle: 'Fixing this site live',
+    minimise: 'Minimise chat',
+    restore: 'Restore chat',
+    listLabel: 'Conversation with the agent',
+    visitorPrefix: 'You:',
+    agentPrefix: 'Agent:',
     inputLabel: 'Message the agent',
-    placeholder: 'type here, press Enter',
-    prompt: 'you>',
-    agentNick: '<agent>',
-    visitorNick: '<you>',
+    placeholder: 'Message the agent…',
+    send: 'Send',
+    disclaimer: 'Answers are AI-generated and may contain mistakes.',
+    charCounter: '{count} / 500',
+    // Engine inputs only: the screen drops the engine's IRC-era system lines (GRA-57).
     systemJoin: '*** Now talking in #andrew-cv',
     systemJoined: '*** agent has joined',
     greeting:
@@ -27,10 +29,9 @@ export const retroStrings = defineStrings({
     handoff: 'Opening the console. Each command takes effect on the page as soon as it runs.',
     scriptedReply: 'Noted, thank you. Continuing with the update.',
     limitReached:
-      "*** That's the message limit for this session. The site's chat button will be available once the update is complete.",
-    tooLong: '*** Message too long (500 characters max).',
-    offline:
-      "*** You're offline. The update continues; the chat resumes when the connection is back.",
+      "That's the message limit for this session. The site's chat button will be available once the update is complete.",
+    tooLong: 'Message too long (500 characters max).',
+    offline: "You're offline. The update continues; the chat resumes when the connection is back.",
     // DevTools console
     devtoolsLabel: 'Developer tools: live fix console',
     devtoolsTabElements: 'Elements',

@@ -1,0 +1,77 @@
+/*
+ * SPEC → Agent chat panel: the site's AI chat card (shared `ChatCard` / `ChatCardHeader`), with
+ * the site's tokens only. The dock places and sizes the card (RetroShowScreen.module.css); its
+ * tokens are the live site values (the dock's token shield), so the damage layers never reach it.
+ */
+.card {
+  font-family: var(--font-family);
+  font-size: var(--font-body-size);
+  line-height: var(--font-body-line-height);
+  letter-spacing: var(--letter-spacing);
+  color: var(--color-text);
+  transform-origin: right bottom;
+  animation: retro-chat-in var(--chat-motion-duration) var(--chat-motion-easing) both;
+}
+
+/* The site chat's focus ring on the minimise and Send buttons; the field has its own ring. */
+.card :focus-visible:not(textarea) {
+  --retro-focus-ring-width: 2px;
+
+  outline: var(--retro-focus-ring-width) solid var(--color-text);
+  outline-offset: var(--retro-focus-ring-width);
+}
+
+/* Minimised: only the header shows; a click anywhere on it restores the card. */
+.minimised {
+  cursor: pointer;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+
+.chevron {
+  display: block;
+  width: var(--chat-icon-size);
+  height: var(--chat-icon-size);
+  background: currentColor;
+  mask: url('./assets/retro_icon_chevron.svg') center / contain no-repeat;
+  transition: transform var(--chat-motion-duration) var(--chat-motion-easing);
+}
+
+.minimised .chevron {
+  transform: rotate(180deg);
+}
+
+@keyframes retro-chat-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2)) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+
+  .chevron {
+    transition: none;
+  }
+}
