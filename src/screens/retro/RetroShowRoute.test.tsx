@@ -24,21 +24,35 @@ function renderShow(repository = new FakeShowRepository()) {
   return { loaders, onDone, repository };
 }
 
+/** A frame the page is looked at after (`onFrame`): under the shortest phase to catch (250 ms). */
+const WATCH_FRAME_MS = 100;
+/** A frame nobody looks at: each one is a full React render, so skipping is cheaper in big ones. */
+const SKIP_FRAME_MS = 250;
+
+/**
+ * Set when a test ends. A test that hits its timeout leaves its frame loop running; without this
+ * the loop would carry on into the next test's page and fail that one too.
+ */
+let testOver = false;
+
 /**
  * Moves the fake clock in frames, letting React render and re-arm the runner's timer each time;
- * `onFrame` looks at the page after every frame.
+ * `onFrame` looks at the page after every (short) frame. A skip without it uses long frames: the
+ * runner stamps events with the clock, so it lands in the same state with a fifth of the renders,
+ * which is what keeps the show tests inside their timeout when the machine is busy.
  */
 async function advance(ms: number, onFrame?: () => void) {
-  for (let done = 0; done <= ms; done += 50) {
-    await act(() => vi.advanceTimersByTimeAsync(Math.min(50, ms - done)));
+  const frame = onFrame ? WATCH_FRAME_MS : SKIP_FRAME_MS;
+  for (let done = 0; done <= ms && !testOver; done += frame) {
+    await act(() => vi.advanceTimersByTimeAsync(Math.min(frame, ms - done)));
     onFrame?.();
   }
 }
 
 /** Moves the clock frame by frame until `found` holds (or `ms` have passed). */
 async function advanceUntil(found: () => boolean, ms: number) {
-  for (let done = 0; done <= ms && !found(); done += 50) {
-    await act(() => vi.advanceTimersByTimeAsync(50));
+  for (let done = 0; done <= ms && !found() && !testOver; done += WATCH_FRAME_MS) {
+    await act(() => vi.advanceTimersByTimeAsync(WATCH_FRAME_MS));
   }
 }
 
@@ -73,10 +87,15 @@ const motionClasses = () => [
 const layers = () => document.head.querySelectorAll('style[data-retro-layer]');
 const chatText = () => screen.getByTestId(retroTestIds.chatLog).textContent ?? '';
 
-// Each test plays up to the whole ~95 s show in 50 ms frames: CPU-bound, so above the 5 s default.
-describe('retro show screen', { timeout: 20_000 }, () => {
-  beforeEach(() => vi.useFakeTimers());
+// Each test plays up to the whole ~95 s show frame by frame: ~2 s of CPU alone, 10x that when
+// other test runs share the machine, so far above the 5 s default.
+describe('retro show screen', { timeout: 60_000 }, () => {
+  beforeEach(() => {
+    testOver = false;
+    vi.useFakeTimers();
+  });
   afterEach(() => {
+    testOver = true;
     vi.useRealTimers();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();

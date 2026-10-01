@@ -18,6 +18,9 @@ const stage = () => document.querySelector('[data-retro-stage]');
 const layers = () => document.head.querySelectorAll('style[data-retro-layer]');
 
 describe('App modes', () => {
+  // Both modes load the chat as a lazy chunk: imported once up front, a cold import (Vite
+  // transforming the chat on demand) can't outlast `findBy`'s 1 s when the machine is busy.
+  beforeAll(() => import('../screens/chat/ChatRoute'));
   afterEach(() => sessionStorage.clear());
 
   it('normal mode: no stage, and the AI chat loads at start', async () => {
@@ -28,15 +31,15 @@ describe('App modes', () => {
     expect(screen.getByTestId('app-header')).toBeVisible();
   });
 
-  // Plays the whole ~95 s show in 50 ms frames: CPU-bound, so above the 5 s default.
-  describe('show mode', { timeout: 20_000 }, () => {
+  // Plays the whole ~95 s show frame by frame: CPU-bound (10x slower when other test runs share the machine), so far above the 5 s default.
+  describe('show mode', { timeout: 60_000 }, () => {
     beforeEach(() => vi.useFakeTimers());
     afterEach(() => vi.useRealTimers());
 
     /** Moves the fake clock in frames so the runner re-arms its timer after every render. */
-    async function advance(ms: number) {
-      for (let done = 0; done < ms; done += 50) {
-        await act(() => vi.advanceTimersByTimeAsync(50));
+    async function advance(ms: number, frame = 50) {
+      for (let done = 0; done < ms; done += frame) {
+        await act(() => vi.advanceTimersByTimeAsync(frame));
       }
     }
 
@@ -50,7 +53,8 @@ describe('App modes', () => {
       expect(layers().length).toBeGreaterThan(0);
       expect(screen.queryByTestId(chatTestIds.fab)).toBeNull();
 
-      await advance(100_000);
+      // Nobody looks at the frames in between, so they are long: fewer renders on a busy machine.
+      await advance(100_000, 250);
 
       expect(stage()).toBeNull();
       expect(layers()).toHaveLength(0);
