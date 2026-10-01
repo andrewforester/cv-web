@@ -741,16 +741,16 @@ Response 1:
 
 ```text
 event: line
-data: {"key":"tokens","text":"Fonts first. Comic Sans had a good run."}
+data: {"key":"tokens","text":"Starting with typography: replacing the system fonts of the time with the current typeface and type scale."}
 
 event: line
-data: {"key":"layout","text":"Now the layout. It's been leaning left since 2002."}
+data: {"key":"layout","text":"Layout: replacing the fixed-width table layout, standard practice at the time, with a centred column and grids."}
 
 event: line
-data: {"key":"rest","text":"Everything else, on fast-forward. Bye, marquee."}
+data: {"key":"rest","text":"Removing the navigation bar, marquee and footer badges of the original build, and restoring the language switcher."}
 
 event: line
-data: {"key":"finale","text":"Done. Andrew's CV, as it looks today. The chat button is bottom right."}
+data: {"key":"finale","text":"All changes are applied. The site is up to date; the chat button in the bottom right corner answers questions about Andrew."}
 
 event: done
 data: {"stopReason":"end_turn","usage":{"inputTokens":1480,"outputTokens":92,"cacheReadInputTokens":0,"cacheCreationInputTokens":0}}
@@ -765,4 +765,4 @@ Request 2, the visitor writes during step 2:
   "messages": [ { "role": "user", "content": "wow, a marquee! haven't seen one in 20 years" } ] }
 ```
 
-Response 2: `delta` "Enjoy it while it lasts. It's on my list." then `done` with `end_turn`.
+Response 2: `delta` "It belongs to the 2002 layout. It goes in the cleanup step, with the hit counter." then `done` with `end_turn`.

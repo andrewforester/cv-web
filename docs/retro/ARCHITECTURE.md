@@ -215,7 +215,7 @@ holds (orthogonal): hidden (tab not visible, freezes the clock anywhere) · comp
 | A step reaches *narrate* | Use the LLM line if present, else `fallback`. Never wait. |
 | `narrate` fails, `503`/`429`, offline, kill switch, automation (`navigator.webdriver`) | All lines scripted; the show is identical in timing. |
 | Visitor sends a message | Shown at once; `reply` request with the conversation and the current step; the reply streams into the chat; the next step holds (≤ 12 s). |
-| `reply` fails | A scripted reply from `strings.ts` ("Noted! Back to fixing."). After `unavailable`/`rate_limited` or two failures in a row, replies stay scripted for the rest of the show. |
+| `reply` fails | A scripted reply from `strings.ts` ("Noted, thank you. Continuing with the update."). After `unavailable`/`rate_limited` or two failures in a row, replies stay scripted for the rest of the show. |
 | Visitor message limit (10) | Composer disabled with a scripted line. |
 | `done` | Finale line (LLM or scripted); the terminal and console close after a few seconds; `sessionStorage['retro.done']` is set. |
 
@@ -268,8 +268,9 @@ the steps) is `400 unsupported_version`; the client goes scripted.
 
 ### Prompts (server, `server/chat/show/`)
 
-- **narrate:** system = show instructions (persona: a cheerful engineer fixing an old site live;
-  one line per step, ≤ 20 words, English, plain text, self-deprecating about the old site, never
+- **narrate:** system = show instructions (persona: a calm, professional engineer updating the
+  2002 build live, respectful of its techniques, no humour or irony (GRA-58); one line per step,
+  ≤ 20 words, English, plain text, never
   about Andrew's skills beyond the CV, no URLs, no code) + the outline rendered from `RETRO_STEPS`
   (`id: intent`). The model writes lines `<key>: <text>`; the server parses complete lines as
   they stream, keeps only known keys (first occurrence), trims to 200 chars, strips markup, and
