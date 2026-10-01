@@ -9,17 +9,17 @@ import { NARRATE_INSTRUCTIONS, REPLY_INSTRUCTIONS } from './showPrompt.js';
  * mode exercises the parser the way a real stream does.
  */
 const FAKE_NARRATION = [
-  'Sure! Here are the lines:',
-  'fonts: Fonts first. Verdana had a good run.',
-  'colours: Now the colours. Goodbye, star field.',
-  "layout: Now the layout. It's been leaning left since 2002.",
+  'Here are the lines:',
+  'fonts: Typography first: the system fonts of the time give way to the current typeface.',
+  'colours: Colours next: the current palette, for clearer contrast.',
+  'layout: Layout: the fixed-width table becomes a centred column with grids.',
   'marquee: This key is not in the scenario, so nobody sees it.',
-  'images: The pictures were in the wrong folder. Fixing the paths.',
-  'cards: Tables are for data. Turning these into cards.',
-  'spacing: Room to breathe. Goodbye, horizontal rules.',
-  'chrome: Bye, marquee. Bye, hit counter.',
-  'links: Last: links, contacts, and a real chat button.',
-  "finale: Done. Andrew's CV, as it looks today. The chat button is bottom right.",
+  'images: Images: correcting the asset paths so every picture loads.',
+  'cards: Cards: grouping related content into bordered cards.',
+  'spacing: Spacing: consistent section rhythm in place of horizontal rules.',
+  'chrome: Removing the original navigation elements and restoring the language switcher.',
+  'links: Finally, the contact links and the AI chat assistant.',
+  'finale: The update is complete. The chat button in the bottom right corner answers questions about Andrew.',
 ].join('\n');
 
 const PIECE_CHARS = 12;

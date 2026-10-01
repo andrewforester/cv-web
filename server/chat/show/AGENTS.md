@@ -22,6 +22,9 @@ adds validation, prompts, the line parser and the dev-mode fake scripts. Reply k
 
 Rules and limits:
 - EN only. No tools. Narration never sees the CV; replies use only `<knowledge>`.
+- Voice: the show is a showcase of a developer's work, not a joke. The prompts ask for a calm,
+  professional engineer who respects the 2002 build (`docs/design/retro/SPEC.md` → Texts → Tone);
+  the fake scripts speak the same way.
 - Every prompt change bumps `SHOW_PROMPT_VERSION` (logged as `promptVersion` for v3) and needs a
   check with the real model (Haiku vs Sonnet golden check is a later round).
 - The log line carries the kind, step id and counts, never visitor or model text.

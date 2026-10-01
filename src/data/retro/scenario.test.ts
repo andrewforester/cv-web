@@ -48,17 +48,17 @@ describe('retro scenario manifest', () => {
       'links & contacts',
     ]);
     expect(RETRO_STEPS.map((step) => step.fallback)).toEqual([
-      'First, the fonts: let me bring them into this decade.',
-      'Now the colours. Goodbye, star field.',
-      "Now the layout. It's been leaning left since 2002.",
-      'The pictures were in the wrong folder. Fixing the paths.',
-      'Tables are for data. Turning these into cards.',
-      'Giving everything room to breathe. Goodbye, <hr>.',
-      'Time to say goodbye to the marquee and the hit counter.',
-      'Last: links, contacts, and a real chat button.',
+      'Starting with typography: replacing the system fonts of the time with the current typeface and type scale.',
+      'Colours: replacing the tiled background and the period palette with the current colour scheme, for readable contrast.',
+      'Layout: replacing the fixed-width table layout, standard practice at the time, with a centred column and grids.',
+      'Images: correcting the asset paths and aspect ratios, so the photo, logos and covers display properly.',
+      'Cards: converting the bevelled table cells into cards, which group related content more clearly.',
+      'Spacing: replacing the horizontal rules and bullet lists with consistent section spacing, so the page is easier to scan.',
+      'Removing the navigation bar, marquee and footer badges of the original build, and restoring the language switcher.',
+      'Finally, contacts: restoring the contact links and icons, and loading the AI chat assistant.',
     ]);
     expect(RETRO_FINALE_FALLBACK).toBe(
-      "Done. This is Andrew's CV as it looks today. Questions? The chat button is bottom right.",
+      'All changes are applied. The site is up to date; the chat button in the bottom right corner answers questions about Andrew.',
     );
   });
 });

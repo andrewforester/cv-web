@@ -41,55 +41,63 @@ export const RETRO_STEPS: readonly RetroStepMeta[] = [
     id: 'fonts',
     title: 'fonts',
     intent:
-      "Swap the 2002 typefaces (Verdana, Times New Roman, Arial) and tiny text sizes for today's font and type scale.",
-    fallback: 'First, the fonts: let me bring them into this decade.',
+      "Replace the 2002 system fonts (Verdana, Times New Roman, Arial) and small text sizes with today's typeface and type scale.",
+    fallback:
+      'Starting with typography: replacing the system fonts of the time with the current typeface and type scale.',
   },
   {
     id: 'colours',
     title: 'colours',
     intent:
       "Replace the star-field background and the cream, black, red, purple and cyan colours with today's palette.",
-    fallback: 'Now the colours. Goodbye, star field.',
+    fallback:
+      'Colours: replacing the tiled background and the period palette with the current colour scheme, for readable contrast.',
   },
   {
     id: 'layout',
     title: 'layout',
     intent:
-      'Move the page from a narrow table pushed to the left into the centred column and grids.',
-    fallback: "Now the layout. It's been leaning left since 2002.",
+      'Move the page from the fixed-width, left-aligned table layout into the centred column and grids.',
+    fallback:
+      'Layout: replacing the fixed-width table layout, standard practice at the time, with a centred column and grids.',
   },
   {
     id: 'images',
     title: 'images',
-    intent: 'Fix the broken image paths and the squashed logos, and remove the "Oh, snap!" note.',
-    fallback: 'The pictures were in the wrong folder. Fixing the paths.',
+    intent: 'Correct the image paths and the logo aspect ratios, and remove the "Oh, snap!" note.',
+    fallback:
+      'Images: correcting the asset paths and aspect ratios, so the photo, logos and covers display properly.',
   },
   {
     id: 'cards',
     title: 'cards',
     intent: "Turn the bevelled table cells into today's cards with borders, radius and shadows.",
-    fallback: 'Tables are for data. Turning these into cards.',
+    fallback:
+      'Cards: converting the bevelled table cells into cards, which group related content more clearly.',
   },
   {
     id: 'spacing',
     title: 'spacing & lists',
     intent: "Remove the horizontal rules and bullet lists and restore today's section spacing.",
-    fallback: 'Giving everything room to breathe. Goodbye, <hr>.',
+    fallback:
+      'Spacing: replacing the horizontal rules and bullet lists with consistent section spacing, so the page is easier to scan.',
   },
   {
     id: 'chrome',
     title: '2002 chrome',
     intent:
       'Remove the nav bar, marquee, "NEW!" bursts, hit counter, badges and webring, and bring back the language switcher.',
-    fallback: 'Time to say goodbye to the marquee and the hit counter.',
+    fallback:
+      'Removing the navigation bar, marquee and footer badges of the original build, and restoring the language switcher.',
   },
   {
     id: 'links',
     title: 'links & contacts',
     intent: 'Restore the contact links and icons, and load the real AI chat button.',
-    fallback: 'Last: links, contacts, and a real chat button.',
+    fallback:
+      'Finally, contacts: restoring the contact links and icons, and loading the AI chat assistant.',
   },
 ];
 
 export const RETRO_FINALE_FALLBACK =
-  "Done. This is Andrew's CV as it looks today. Questions? The chat button is bottom right.";
+  'All changes are applied. The site is up to date; the chat button in the bottom right corner answers questions about Andrew.';

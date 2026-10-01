@@ -6,6 +6,8 @@ The look of the show. The mechanism (damage layers, decorations, runner, LLM, sh
 
 **Revision GRA-54 (1 Oct 2026, round 4)**, the human's final decisions on the show's **own UI** (the broken page, the damage layers, the scenario and the timing model stay): the agent chat takes **the site's AI chat look**; the live console becomes **Chrome DevTools (light theme), Console tab**, printing **console commands** with live ✖/⚠ counters instead of the Win98 progress bar; the highlight becomes **the Elements-tab selection** (box model + a size plate); the layout is **DevTools docked** to the right with the chat floating at the bottom right; the show **ends** with DevTools sliding out and the chat shrinking into the site's chat launcher. **New copy is professional and composed** (human, scope note on GRA-54): no irony, no exclamation marks; the existing narration lines are reworded later in GRA-58. Sections changed: Source, References, Screen layout, Timeline, Agent chat panel (was Terminal chat), DevTools console (was Live-fix console), the fix list's `Chars`/`s` columns, Chunk rhythm, Highlight, End of the show, Tokens, Texts, Assets, States, Shared components, Screenshot vs reference, Mock vs the real site, Decisions 23–40. **Superseded by GRA-54:** everything Win98, IRC, VGA and Paint below that isn't rewritten is history, not spec.
 
+**Revision GRA-58 (1 Oct 2026)**: the show reads as a showcase of a developer's work, not a joke. Every agent line (greeting, hand-off, step narration, finale, scripted reply, notices, the LLM's voice) is reworded in a calm, professional tone that respects the 2002 build (Texts → Tone). Wording only: keys, structure and timing model unchanged; the old page's in-world texts stay.
+
 ## Source
 
 - Designed from the brief of Linear **GRA-38** and the project *Retro Rebuild* (30 Sep 2026); revised by **GRA-49**. **No screenshot or Figma frame exists.** The end state is today's design unchanged (`docs/design/cv/SPEC.md`, `src/theme/tokens.css`); the retro look comes from 1998–2006 references (below).
@@ -92,7 +94,7 @@ Timings are the runner's (`timing.ts`); the design values:
 |---|---|
 | 0 s | Page alone, fully broken. Marquee scrolls (18 s loop), "NEW!" bursts blink (1 s steps). |
 | 3 s | The agent chat card appears with the site panel's open motion (fade + `translateY(8px) scale(.98)` → none, 200 ms `--chat-motion-duration`, `--chat-motion-easing`, origin bottom right). The greeting types at 40 chars/s (≈ 3 s) with the streaming caret. The composer works from now on; focus is **not** moved into it. |
-| greeting + 2 s | Agent (scripted): "Opening my console…". **DevTools appears docked** (instant, as when DevTools opens), Console tab, with the opening log line, counters ✖ 36 ⚠ 8 and an empty prompt row. |
+| greeting + 2 s | Agent (scripted): "Opening the console…". **DevTools appears docked** (instant, as when DevTools opens), Console tab, with the opening log line, counters ✖ 36 ⚠ 8 and an empty prompt row. |
 | then | **8 steps of atomic chunks** (The fix list). Each step: **narrate** (its chat line starts streaming; 0.6 s later its console group opens and the first chunk starts) → **chunk** → **chunk** → … → 0.3 s → the group collapses to `✓ n/8 <title>`, ⚠ − 1. Each chunk: **target** (highlight + plate appear, scroll if needed) → **type** the command into the prompt row (≤ 1.3 s) → **apply** at its last character (the row becomes the echo, `<· undefined` and `✓ …` print under it, ✖ − 1, the change transitions in) → **beat** 1 s. |
 | end | Finale line in the chat; the console shows every group ✓, `✓ All fixes applied.`, ✖ 0 ⚠ 0. **3 s later DevTools slides out to the right and the chat shrinks into the site's chat launcher** (0.65 s) while the page re-centres; the page is the real site, AI chat button included. |
 
@@ -258,7 +260,7 @@ Round 1's 3 steps (`tokens`, `layout`, `rest`) and GRA-46's 7 steps are supersed
 
 Columns: **Chars** = characters the console types for the chunk, its `// → <label>` line included (GRA-54 commands; was **Lines**, the layer file's code lines); **Target** = the `// → <label>` line and what the highlight marks (selectors under `[data-retro-stage]`; `page` = page-wide); **Motion** = how the change lands (Transitions); **s** = the chunk's time at normal motion (typing + 1 s beat).
 
-**Step 1 · `fonts` · title `fonts`** · narration: *First, the fonts: let me bring them into this decade.*
+**Step 1 · `fonts` · title `fonts`** · narration: *Starting with typography: replacing the system fonts of the time with the current typeface and type scale.*
 
 | # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
 |---|---|---|---|---|---|---|
@@ -269,7 +271,7 @@ Columns: **Chars** = characters the console types for the chunk, its `// → <la
 | 5 | `type-scale-cards` | 263 | card title 12, card body 11/14, meta 11 → 15, 14/20, 14 | cards & dates: `[data-agent-id='section:technologies']` | fade | 2.3 |
 | 6 | `type-scale-details` | 274 | education 13/16, book title 11, author 10 → 17/21, 15, 13 | education & books: `[data-agent-id='section:education']`, `[data-agent-id='section:about']` | fade | 2.3 |
 
-**Step 2 · `colours` · title `colours`** · narration: *Now the colours. Goodbye, star field.*
+**Step 2 · `colours` · title `colours`** · narration: *Colours: replacing the tiled background and the period palette with the current colour scheme, for readable contrast.*
 
 | # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
 |---|---|---|---|---|---|---|
@@ -278,7 +280,7 @@ Columns: **Chars** = characters the console types for the chunk, its `// → <la
 | 9 | `heading-colors` | 93 | name `#800080`, section titles `#CC0000` → navy | name & titles: `[data-testid='cv-name']`, `h2` | fade | 1.9 |
 | 10 | `tech-fills` | 88 | technology cells `#CCFFFF`, *Product mindset* `#FFFF00`, *AI Tools* `#FFCCFF` → white | technologies: `[data-testid='cv-technology-card']` | fade | 1.9 |
 
-**Step 3 · `layout` · title `layout`** · narration: *Now the layout. It's been leaning left since 2002.*
+**Step 3 · `layout` · title `layout`** · narration: *Layout: replacing the fixed-width table layout, standard practice at the time, with a centred column and grids.*
 
 | # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
 |---|---|---|---|---|---|---|
@@ -288,7 +290,7 @@ Columns: **Chars** = characters the console types for the chunk, its `// → <la
 | 14 | `experience-heads` | 92 | heads as blocks, logo floated left → grid rows, dates right | experience: `[data-agent-id='section:latest-experience'] [data-testid='cv-experience-entry']` | morph | 1.9 |
 | 15 | `app-stack` | 79 | apps stacked and indented 40 px, 4 px apart → the apps row | apps: `[data-agent-id='section:apps']` | morph | 1.8 |
 
-**Step 4 · `images` · title `images`** · narration: *The pictures were in the wrong folder. Fixing the paths.*
+**Step 4 · `images` · title `images`** · narration: *Images: correcting the asset paths and aspect ratios, so the photo, logos and covers display properly.*
 
 | # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
 |---|---|---|---|---|---|---|
@@ -298,7 +300,7 @@ Columns: **Chars** = characters the console types for the chunk, its `// → <la
 | 19 | `broken-icon` | 88 | Savant icon broken → loads | Savant icon: `[data-agent-id='app:savant'] img` | morph | 1.9 |
 | 20 | `broken-cover` | 88 | Siddhartha cover broken → loads | book cover: `[data-agent-id='book:siddhartha'] img` | morph | 1.9 |
 
-**Step 5 · `cards` · title `cards`** · narration: *Tables are for data. Turning these into cards.*
+**Step 5 · `cards` · title `cards`** · narration: *Cards: converting the bevelled table cells into cards, which group related content more clearly.*
 
 | # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
 |---|---|---|---|---|---|---|
@@ -307,7 +309,7 @@ Columns: **Chars** = characters the console types for the chunk, its `// → <la
 | 23 | `card-colors` | 287 | `--color-card-border` `#808080`, `--color-highlight` `#FFFF00`, `--color-app-accent` `#0000FF`, `--color-app-border` `#000000` → green borders, gold highlight, green accent | card borders: `[data-testid='cv-technology-card']`, `[data-testid='cv-app-card']` | fade | 2.3 |
 | 24 | `book-frames` | 82 | covers with `2px solid #000`, no shadow → shadows | books: `[data-testid='cv-book'] img` | fade | 1.8 |
 
-**Step 6 · `spacing` · title `spacing & lists`** · narration: *Giving everything room to breathe. Goodbye, `<hr>`.*
+**Step 6 · `spacing` · title `spacing & lists`** · narration: *Spacing: replacing the horizontal rules and bullet lists with consistent section spacing, so the page is easier to scan.*
 
 | # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
 |---|---|---|---|---|---|---|
@@ -316,7 +318,7 @@ Columns: **Chars** = characters the console types for the chunk, its `// → <la
 | 27 | `experience-rhythm` | 93 | entries 12 px apart, bullets 2 px under the head → 30 and 9 | experience: `[data-agent-id='section:latest-experience']` | fade | 1.9 |
 | 28 | `about-spacing` | 87 | About subtitles 12/4, books 12 px apart → today's | about me: `[data-agent-id='section:about']` | fade | 1.9 |
 
-**Step 7 · `chrome` · title `2002 chrome`** · narration: *Time to say goodbye to the marquee and the hit counter.*
+**Step 7 · `chrome` · title `2002 chrome`** · narration: *Removing the navigation bar, marquee and footer badges of the original build, and restoring the language switcher.*
 
 | # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
 |---|---|---|---|---|---|---|
@@ -326,7 +328,7 @@ Columns: **Chars** = characters the console types for the chunk, its `// → <la
 | 32 | `decor-room` | 80 | `[data-testid='cv']` 72 px top and 216 px bottom padding → none | page | fade | 1.8 |
 | 33 | `hide-header` | 94 | app header (language switcher) hidden → back | language switcher: `[data-testid='app-header']` | morph | 1.9 |
 
-**Step 8 · `links` · title `links & contacts`** · narration: *Last: links, contacts, and a real chat button.*
+**Step 8 · `links` · title `links & contacts`** · narration: *Finally, contacts: restoring the contact links and icons, and loading the AI chat assistant.*
 
 | # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
 |---|---|---|---|---|---|---|
@@ -334,7 +336,7 @@ Columns: **Chars** = characters the console types for the chunk, its `// → <la
 | 35 | `contact-labels` | 88 | bold `E-mail me:` and `Phone:` labels → gone | contacts: `[data-agent-id='section:header'] address` | morph | 1.9 |
 | 36 | `ai-chat` (module) | 44 | the AI chat button loads (it sits under the chat card until the end of the show) | none | none | 1.6 |
 
-Finale (fallback): `Done. This is Andrew's CV as it looks today. Questions? The chat button is bottom right.`
+Finale (fallback): `All changes are applied. The site is up to date; the chat button in the bottom right corner answers questions about Andrew.`
 
 Order within a step runs down the page where it can, so the camera mostly moves one way; page-wide chunks change whatever is in view.
 
@@ -537,23 +539,25 @@ Retro values of the **page** are not tokens: they live in the layer files and di
 - Footer: `UNDER CONSTRUCTION` (in the SVG) · `You are visitor number 004271` · `[ << Prev | Android Devs Webring | Next >> ]` · `Last updated: 14.03.2002 · © 2002 Andrew Panasiuk. All rights reserved.`
 - Browser tab title during the show: `Andrew Panasiuk - Homepage` (today's title comes back at the end).
 
-**Agent chat** (the screen's `strings.ts`, except step lines, which are scenario data). New GRA-54 copy is professional and composed (scope note on GRA-54); the existing lines keep their wording here and are reworded in GRA-58:
+**Tone** (GRA-58; every agent line, scripted or LLM): calm and professional, like a senior engineer narrating a migration to a client. Brief: one sentence, two at most. Respect the legacy: name the old technique neutrally ("fixed-width table layout", "system fonts of the time"), optionally why it was used; no irony, jokes, mockery, farewells to old elements, exclamation marks or emoji. Say what the step does and what the visitor gains (readability, layout, accessibility, consistency). Friendly to the visitor, never familiar. The old page's own in-world texts (Decorations and layers above) are the 2002 site itself, not the agent, and stay as they are.
+
+**Agent chat** (the screen's `strings.ts`, except step lines, which are scenario data):
 - Title `Agent` · subtitle `Fixing this site live` · minimise button label `Minimise chat` (restore: `Restore chat`) · list label (visually hidden) `Conversation with the agent` · line prefixes (visually hidden) `You:` · `Agent:` · input label (visually hidden) `Message the agent` · placeholder `Message the agent…` · send button label `Send` · meta `Answers are AI-generated and may contain mistakes.` · counter `{count} / 500`
-- Greeting: `Oops... looks like this site got stuck in 2002 and is a bit broken. Tell me what you think while I fix it.` (existing; GRA-58)
-- Console hand-off: `Opening my console. Every line I type lands on the page right away.` (existing; GRA-58)
-- Step narration and finale: the fix list above (the LLM may rephrase; these are the fallbacks; tone per GRA-58).
-- Scripted reply when the LLM fails (ARCHITECTURE): `Noted! Back to fixing.` (existing; GRA-58)
-- Limit reached (10 messages, a notice in the list): `That's all I can take while I'm fixing. The chat button will be there when I'm done.` (existing wording, without the IRC `***`; GRA-58)
+- Greeting: `Hello. This is Andrew's CV in its original 2002 build. I'll update it step by step, live. Feel free to ask questions as I go.`
+- Console hand-off: `Opening the console. Each command takes effect on the page as soon as it runs.`
+- Step narration and finale: the fix list above (the LLM may rephrase in the same tone; these are the fallbacks).
+- Scripted reply when the LLM fails (ARCHITECTURE): `Noted, thank you. Continuing with the update.`
+- Limit reached (10 messages, a notice in the list): `That's the message limit for this session. The site's chat button will be available once the update is complete.` (without the IRC `***`)
 - Over 500 characters (meta row, error colour): `Message too long (500 characters max).`
-- Offline (banner): `You're offline. The fixes keep going; the chat comes back when you do.` (existing wording, without `***`)
+- Offline (banner): `You're offline. The update continues; the chat resumes when the connection is back.` (without `***`)
 - Dropped with the IRC look: window title `#andrew-cv - agent chat`, status `● connected` · `2 users` · `EN`, system lines `*** Now talking in #andrew-cv` · `*** agent has joined`, placeholder `type here, press Enter`, prompt `you>`, nicks `<agent>` · `<you>`.
 - Example exchange in the renders (not scripted, written in the new tone): `wow, a marquee! haven't seen one in 20 years` → `It belongs to the 2002 layout. It goes in the cleanup step, with the hit counter.` · `much better already` → `Thank you. The layout is next: a centred column and grids.`
 
 **Steps** (manifest, scenario data): titles `fonts` · `colours` · `layout` · `images` · `cards` · `spacing & lists` · `2002 chrome` · `links & contacts`; narration fallbacks in the fix list. LLM intents (one English line each, for the narrate prompt):
-- `fonts`: Swap the 2002 typefaces (Verdana, Times New Roman, Arial) and tiny text sizes for today's font and type scale.
+- `fonts`: Replace the 2002 system fonts (Verdana, Times New Roman, Arial) and small text sizes with today's typeface and type scale.
 - `colours`: Replace the star-field background and the cream, black, red, purple and cyan colours with today's palette.
-- `layout`: Move the page from a narrow table pushed to the left into the centred column and grids.
-- `images`: Fix the broken image paths and the squashed logos, and remove the "Oh, snap!" note.
+- `layout`: Move the page from the fixed-width, left-aligned table layout into the centred column and grids.
+- `images`: Correct the image paths and the logo aspect ratios, and remove the "Oh, snap!" note.
 - `cards`: Turn the bevelled table cells into today's cards with borders, radius and shadows.
 - `spacing`: Remove the horizontal rules and bullet lists and restore today's section spacing.
 - `chrome`: Remove the nav bar, marquee, "NEW!" bursts, hit counter, badges and webring, and bring back the language switcher.

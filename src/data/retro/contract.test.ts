@@ -40,12 +40,12 @@ describe('show contract v3', () => {
     const requests: ShowRequest[] = [narrate, reply];
     const line: ShowSsePayloads['line'] = {
       key: 'fonts',
-      text: 'First, the fonts: let me bring them into this decade.',
+      text: 'Starting with typography: replacing the system fonts of the time with the current typeface and type scale.',
     };
 
     expect(requests.map((request) => request.kind)).toEqual(['narrate', 'reply']);
     expect(JSON.stringify(line)).toBe(
-      '{"key":"fonts","text":"First, the fonts: let me bring them into this decade."}',
+      '{"key":"fonts","text":"Starting with typography: replacing the system fonts of the time with the current typeface and type scale."}',
     );
   });
 });

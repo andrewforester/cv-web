@@ -65,7 +65,8 @@ const motionClasses = () => [
 const layers = () => document.head.querySelectorAll('style[data-retro-layer]');
 const chatText = () => screen.getByTestId(retroTestIds.chatLog).textContent ?? '';
 
-describe('retro show screen', () => {
+// Each test plays up to the whole ~95 s show in 50 ms frames: CPU-bound, so above the 5 s default.
+describe('retro show screen', { timeout: 20_000 }, () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => {
     vi.useRealTimers();
