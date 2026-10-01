@@ -1,15 +1,17 @@
 # retro
 
-Why it exists: the Retro Rebuild show. The CV opens as a broken 2002 homepage; a terminal-style
-chat appears on the right, then a console where an "agent" fixes the site live: every line it
-types is the code that changes the page, until the page is today's CV and the real AI chat button
-loads. Design: `docs/design/retro/SPEC.md` (look, copy, timing); mechanism:
+Why it exists: the Retro Rebuild show. The CV opens as a broken 2002 homepage; an agent chat
+appears on the right, then a Chrome DevTools console (light theme) where the "agent" fixes the site
+live: every command it types is what changes the page, until the page is today's CV and the real
+AI chat button loads; its ✖ / ⚠ counters fall from 36 / 8 to 0. Design: `docs/design/retro/SPEC.md` (look, copy, timing); mechanism:
 `docs/retro/ARCHITECTURE.md`, `docs/adr/0003-retro-live-fix-show.md`.
 
 Domain terms:
 - **Damage layer** (`layers/*.css`): one CSS file that breaks one thing, injected as
   `<style data-retro-layer>`. Token layers redefine design tokens on `:root`; rule layers select
-  only stable hooks under `[data-retro-stage]`. The same string is typed in the console.
+  only stable hooks under `[data-retro-stage]`. The console removes a rule layer with
+  `querySelector('style[data-retro-layer=…]').remove()` and replaces a token layer with
+  `style.setProperty` calls carrying the site's live values (set inline on `<html>` until the end).
 - **Decoration**: show-owned DOM over the page (nav bar + marquee, footer, "Oh, snap!" note),
   rendered through a portal, `aria-hidden`, its DOM id = its id.
 - **Step / chunk** (`scenario.ts` registers layers, decorations and modules; `scenarioSteps.ts`
@@ -28,7 +30,8 @@ Domain terms:
 Place in the architecture: a screen mounted by the shell next to the unchanged `CvRoute`:
 `RetroShowRoute` (props: module loaders, `onDone`) → `useRetroShowState` (runner, layer host,
 `ShowRepository` from `src/data/retro` for LLM narration and replies) → stateless
-`RetroShowScreen` (dock with `LiveConsole` + `TerminalChat`, `Decorations`, `Highlight`) in a
+`RetroShowScreen` (dock with the DevTools panel `LiveConsole` and `TerminalChat`, `Decorations`,
+`Highlight`) in a
 portal into `document.body`. `engine/` is the framework-free runner. The end state is always zero
 layers, zero decorations: the real site; the shell then drops the stage and stores
 `sessionStorage['retro.done']`.
@@ -36,9 +39,11 @@ layers, zero decorations: the real site; the shell then drops the stage and stor
 Rules and limits:
 - **Tokens-only exception:** `layers/*.css` and `Decorations.module.css` hardcode retro colours,
   fonts and sizes on purpose: they are the displayed "old code" and the 2002 furniture, and they
-  leave with the show. Everything else (the dock, the windows, the highlight) uses only tokens plus
-  a few window metrics and the highlight's 100 ms fill flash as screen-local custom properties
-  (`TODO(theme)`).
+  leave with the show. Everything else (the dock, the windows, the DevTools panel, the highlight)
+  uses only tokens plus a few window and panel metrics (`--console-*` in `LiveConsole.module.css`)
+  and the highlight's 100 ms fill flash as screen-local custom properties (`TODO(theme)`).
+- The DevTools chrome (tabs, filter bar, counters) is decoration: `aria-hidden`, not clickable; the
+  log is `role="log"` with one live announcement per finished step.
 - The LLM is never on the critical path: missing narration → the manifest's fallback lines,
   failed replies → a scripted line; automation (`navigator.webdriver`) runs fully scripted.
 - Guards: `scenario.test.ts` (every layer/decoration removed exactly once, every chunk has a

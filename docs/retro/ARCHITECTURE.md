@@ -525,24 +525,28 @@ That is the "code piles up, then it all changes" the human saw.
   selectors resolved under `[data-retro-stage]` (`targetQuery`), or `#<decoration id>`. The target
   label is typed as the chunk's first console line (`// → header`, a comment, so "code shown = code
   applied" holds). The round-2 `focus` effect is gone.
-- **Plan.** `planShow` gives each planned chunk its own `lines`, `chars` and typing time
-  (`chars ÷ 240/s`, clamped to 0.4–1.3 s; reduced motion: code at once, apply at 0.6 s).
+- **Plan.** `planShow` gives each planned chunk its own console `input` (§2: the target comment and
+  the command), `chars` and typing time (`chars ÷ 100/s`, clamped to 0.6–1.3 s since GRA-56, was
+  240/s and 0.4 s; reduced motion: code at once, apply at 0.6 s), and for a token layer the
+  `[token, value]` pairs its `style.setProperty` calls print and the layer host sets.
 - **State.** `step`, `chunk` (index in the step) and `stage`: `narrate` (0.6 s) → per chunk `type`
   → apply → `beat` (1 s) → … → `stepDone` (0.3 s) → next step's `narrate`. A chunk applies when its
   typing ends **and** the camera has settled (event `focusSettled(key)` from the state holder, or
   0.8 s after the chunk started, whichever comes first); `page` and module chunks skip that wait,
   the camera never scrolls for them. A `focusSettled` for another chunk's key is ignored. A module
   chunk is `running` until `moduleLoaded`/timeout (5 s); its beat starts when it resolves.
-  `effectFailed` prints `// skipped: …` and the beat still runs.
+  `effectFailed` prints a `console.warn` row (`<id> skipped: <reason>`) and the beat still runs.
 - **Holds** are at **chunk boundaries**: `composing` (≤ 15 s) and `answering` (≤ 12 s) hold before
   a chunk starts typing (and before the next step). A chunk that started always finishes as shown.
   `hidden` still freezes the clock anywhere.
-- **`timing.ts`**: `codeCharsPerSecond` 240, `chunkMinMs` 400, `chunkMaxMs` 1 300, `beatMs` 1 000,
+- **`timing.ts`**: `codeCharsPerSecond` 100, `chunkMinMs` 600 (GRA-56; were 240 and 400),
+  `chunkMaxMs` 1 300, `beatMs` 1 000,
   `narrateMs` 600, `stepDoneMs` 300, `focusSettleCapMs` 800, `reducedMotionApplyMs` 600,
   `highlightHoldMs` 200, `leaveMs` 250, `closeDelayMs` 3 000, `closingMs` 650,
   `visitorScrollQuietMs` 4 000. Show time on the fake clock: ≈ 89 s with an instantly settling
-  camera, ≈ 92 s when every targeted chunk waits the cap, ≈ 73 s with reduced motion; the e2e
-  motion-on run measures ≈ 93 s and fails past 110 s (SPEC → Chunk rhythm budgets ≈ 92 s).
+  camera, ≈ 92 s when every targeted chunk waits the cap, ≈ 79 s with reduced motion (GRA-56
+  commands; round 3: ≈ 73 s); the e2e motion-on run fails past 110 s (SPEC → Chunk rhythm budgets
+  ≈ 91 s).
 - **Selectors** (`showSelectors.ts`, `chunkSelectors.ts`). `consoleView` prints, for the current
   step, every started chunk's lines and its `✓` under it; finished steps collapse to
   `✓ n/8 title`. `currentChunk(state)` (key, target, motion, `typing`/`applied`/`skipped`,
@@ -638,17 +642,21 @@ That is the "code piles up, then it all changes" the human saw.
    decoration targets are in `DECORATION_IDS`.
 3. **End state** (Playwright, `e2e/retro.spec.ts`): computed styles of every element, plus the
    `html` and `body` classes, equal the `?retro=0` page; no stage, `<style data-retro-layer>`,
-   host or `<style data-retro-motion>`, decoration or dock left; AI chat button present; no console
+   host or `<style data-retro-motion>`, decoration, dock or inline custom property on `<html>`
+   left; AI chat button present; no console
    errors. It runs with `reducedMotion: 'reduce'` because Playwright's fake clock drives the runner
    but not CSS or view transitions. **One motion-on run** goes to `done` with real view transitions,
    checks the same end state (retrying until transitions have settled, so a leftover class or
    style fails) and no console errors (a broken view transition logs one), and is the **timing
    smoke**: the show ends within 110 s of show time and not under 60 s.
-4. **Shown = applied** (Playwright, reduced motion): unchanged, per step. The `// → label` lines are
-   comments, so its parser ignores them (it reads only `+`/`-` lines under `--- layers/…`).
-   Round 4 (GRA-54, §2): the console prints commands; the parser reads the
-   `style.setProperty('<token>', '<value>')` arguments instead, and asserts each rule layer's
-   `<style>` is gone after its `.remove()` line.
+4. **Shown = applied** (Playwright, reduced motion), **per chunk** since GRA-56: a finished step's
+   console group collapses, so the guard checks every chunk as its `✓` row appears, from the
+   command it echoed: a rule layer's `<style>` is gone after its `querySelector(…).remove()`; each
+   `style.setProperty('<token>', <value>)` value is the computed token, and the token layer named
+   in the `✓` line is gone; `getElementById('<id>').remove()` → the element is gone;
+   `await import(…)` → the chat button is on. It also asserts all 36 chunks ran, the 8 groups
+   opened in order and the ✖ / ⚠ counters read 0 at the end. The `// → label` lines are comments
+   and change nothing.
 
 #### Scenario and contract impact
 

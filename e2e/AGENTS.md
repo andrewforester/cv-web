@@ -14,9 +14,10 @@ What it guarantees today:
 - The Retro Rebuild show (`retro.spec.ts`, docs/retro/ARCHITECTURE.md §1 guards 3 and 4; §9 →
   Guards after the split): on the fake clock it runs all 36 chunks to the end and leaves exactly the
   normal page (computed styles of every element, `html` and `body` classes compared with `?retro=0`;
-  no stage, layer, motion style, decoration or window left; AI chat button present); after every
-  step, what the console printed for it is what the page has (token values live, layer styles and
-  decorations gone, chat button rendered). Guards 3 and 4 run with `reducedMotion: 'reduce'`: the
+  no stage, layer, motion style, decoration, window or inline token left; AI chat button present);
+  after every chunk, the command the DevTools console printed is what the page has (each
+  `style.setProperty` value is the computed token, removed layer styles and decorations gone, chat
+  button rendered), the 8 step groups open in order and the counters end at 0. Guards 3 and 4 run with `reducedMotion: 'reduce'`: the
   fake clock drives the runner but not CSS or view transitions. One extra run with motion on
   (real view transitions) reaches the same end state with no console errors, and is the timing
   smoke: the show ends within 110 s of show time (≈ 93 s today) and not under 60 s. Only English
