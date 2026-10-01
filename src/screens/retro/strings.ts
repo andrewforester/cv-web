@@ -23,18 +23,19 @@ export const retroStrings = defineStrings({
     systemJoin: '*** Now talking in #andrew-cv',
     systemJoined: '*** agent has joined',
     greeting:
-      'Oops... looks like this site got stuck in 2002 and is a bit broken. Tell me what you think while I fix it.',
-    handoff: 'Opening my console. Every line I type lands on the page right away.',
-    scriptedReply: 'Noted! Back to fixing.',
+      "Hello. This is Andrew's CV in its original 2002 build. I'll update it step by step, live. Feel free to ask questions as I go.",
+    handoff: 'Opening the console. Each command takes effect on the page as soon as it runs.',
+    scriptedReply: 'Noted, thank you. Continuing with the update.',
     limitReached:
-      "*** That's all I can take while I'm fixing. The chat button will be there when I'm done.",
+      "*** That's the message limit for this session. The site's chat button will be available once the update is complete.",
     tooLong: '*** Message too long (500 characters max).',
-    offline: "*** You're offline. The fixes keep going; the chat comes back when you do.",
+    offline:
+      "*** You're offline. The update continues; the chat resumes when the connection is back.",
     // Live console
     consoleTitle: 'fix.exe - live console',
     consoleLabel: 'Live fix console',
     consolePrompt: '$ agent fix --live andrew-cv',
-    consoleEnd: 'all fixes applied. Welcome to 2026.',
+    consoleEnd: '✓ All fixes applied.',
     progressStep: 'Step {n} of {total}: {title}',
     progressDone: 'All fixes applied',
     stepDoneAnnouncement: 'Step {n} of {total} done: {title}',
