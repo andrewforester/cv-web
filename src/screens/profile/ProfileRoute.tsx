@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { ProfileScreen } from './ProfileScreen';
+import { useProfileAgentTools } from './useProfileAgentTools';
 import { useProfileState } from './useProfileState';
 
 interface ProfileRouteProps {
@@ -7,7 +8,9 @@ interface ProfileRouteProps {
   metaBarEnd?: ReactNode;
 }
 
-/** Connects the profile state holder to the stateless screen. */
+/** Connects the profile state holder to the stateless screen and offers the page tools to the chat. */
 export function ProfileRoute({ metaBarEnd }: ProfileRouteProps) {
-  return <ProfileScreen state={useProfileState()} metaBarEnd={metaBarEnd} />;
+  const { state, highlight } = useProfileState();
+  useProfileAgentTools(state.status === 'ready' ? state.profile : null, highlight);
+  return <ProfileScreen state={state} metaBarEnd={metaBarEnd} />;
 }

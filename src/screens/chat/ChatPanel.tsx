@@ -67,7 +67,8 @@ export function ChatPanel({ className, state, actions, closing, onKeyboardClose 
       <MessageList
         turns={state.turns}
         conversationFull={state.conversationFull}
-        commandsAvailable={state.commandsAvailable}
+        suggestions={state.suggestions}
+        commands={state.commands}
         maxInputLength={state.maxInputLength}
         onAsk={(question) => thenFocusInput(() => actions.ask(question))()}
         onRetry={thenFocusInput(actions.retry)}

@@ -2,15 +2,17 @@ import { useCallback, useEffect, useReducer, useRef } from 'react';
 import {
   CHAT_API_VERSION_V2,
   CHAT_LIMITS_V2,
+  CHAT_PAGE_ROUTES,
   useChatRepository,
   type AgentPageState,
   type AgentToolCall,
   type ChatError,
   type ChatLocale,
   type ChatMessageV2,
+  type ChatPage,
   type ChatRequestV2,
 } from '../../data/chat';
-import { useCvRepository } from '../../data/CvRepositoryContext';
+import { useCvRepository, useProfileRepository } from '../../data';
 import { useLocale, useStrings } from '../../i18n';
 import { useAgentExecutor } from './agentExecutor';
 import type { ChatAnnouncementInput, ChatTurn } from './ChatUiState';
@@ -21,6 +23,7 @@ import {
   isBusy,
   turnMessages,
 } from './conversation';
+import { loadPageContent } from './pageContent';
 import { useConfirmationDecisions } from './useConfirmationDecisions';
 import { runToolCalls, VISUAL_TOOLS } from './runToolCalls';
 import { chatStrings } from './strings';
@@ -39,6 +42,8 @@ export interface Conversation {
 }
 
 interface ConversationOptions {
+  /** The page the chat is on: sent with every request; its data backs chips and confirmations. */
+  page: ChatPage;
   announce: (announcement: ChatAnnouncementInput) => void;
   /** The chat is the full-screen sheet: visual page actions close it (the conversation stays). */
   sheet: boolean;
@@ -65,12 +70,14 @@ const tooManyRounds: ChatError = {
  * unmount aborts it.
  */
 export function useChatConversation({
+  page,
   announce,
   sheet,
   closeSheet,
 }: ConversationOptions): Conversation {
   const repository = useChatRepository();
   const cvRepository = useCvRepository();
+  const profileRepository = useProfileRepository();
   const executor = useAgentExecutor();
   const { locale } = useLocale();
   const strings = useStrings(chatStrings);
@@ -88,7 +95,7 @@ export function useChatConversation({
 
   const pageState = useCallback(
     (): AgentPageState => ({
-      route: '/',
+      route: CHAT_PAGE_ROUTES[page],
       locale,
       viewport: sheet ? 'mobile' : 'desktop',
       chat: sheet ? 'sheet' : 'card',
@@ -97,7 +104,7 @@ export function useChatConversation({
       highlighted: null,
       tools: executor.available(),
     }),
-    [locale, sheet, executor],
+    [page, locale, sheet, executor],
   );
 
   const { waitForDecision, confirmAction, declineAction } = useConfirmationDecisions();
@@ -121,6 +128,7 @@ export function useChatConversation({
           const request: ChatRequestV2 = {
             v: CHAT_API_VERSION_V2,
             locale: requestLocale,
+            page,
             messages: [...messages],
           };
           let terminal;
@@ -149,11 +157,14 @@ export function useChatConversation({
           }
           if (rounds >= CHAT_LIMITS_V2.maxToolRoundsPerTurn) return fail(tooManyRounds);
 
-          const cv = await cvRepository.getCv(locale).catch(() => null);
+          const content = await loadPageContent(page, locale, {
+            cv: cvRepository,
+            profile: profileRepository,
+          });
           const results = await runToolCalls(calls, terminal.providerState, {
             turnId: id,
             executor,
-            cv,
+            content,
             strings,
             signal,
             dispatch,
@@ -193,7 +204,17 @@ export function useChatConversation({
         if (controller.current === current) controller.current = null;
       }
     },
-    [repository, cvRepository, executor, locale, strings, announce, waitForDecision],
+    [
+      repository,
+      page,
+      cvRepository,
+      profileRepository,
+      executor,
+      locale,
+      strings,
+      announce,
+      waitForDecision,
+    ],
   );
 
   const busy = isBusy(turns);
@@ -202,10 +223,10 @@ export function useChatConversation({
     (question: string) => {
       if (busy) return;
       const id = `turn-${++nextId.current}`;
-      const page = pageState();
-      dispatch({ type: 'ask', id, question, page });
+      const snapshot = pageState();
+      dispatch({ type: 'ask', id, question, page: snapshot });
       announce({ kind: 'typing' });
-      void run(id, buildMessages(turns, question, page), 0);
+      void run(id, buildMessages(turns, question, snapshot), 0);
     },
     [busy, turns, pageState, run, announce],
   );

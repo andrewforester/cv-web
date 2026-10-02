@@ -19,8 +19,8 @@ Domain terms:
 Place in the architecture: the top of the tree. `AppProviders` wires i18n, the data bindings
 (the CV and profile repositories, today one instance over the bundled JSON; the chat repository,
 the real `/api/chat`; the show repository, `/api/chat` `v: 3`) and the page-agent tool registry
-(`src/agent/`). Swapping the CV mock for a backend is one line there. Tests pass fakes and a fixed
-`retroMode` through its props. The shell also offers the `switchLanguage` tool to the page agent,
+(`src/agent/`, given the page so it offers that page's tools). Swapping the CV mock for a backend
+is one line there. Tests pass fakes, a fixed `retroMode` and a fixed `page` through its props. The shell also offers the `switchLanguage` tool to the page agent,
 since language is an app-level concern.
 
 Both modes render one tree shape, so `CvRoute` never remounts: the show (`RetroShowRoute`, from
@@ -39,7 +39,8 @@ Rules and limits:
 - Owner: Scaffold. Screens may only register their own route in `App.tsx`.
 - Two pages, no router library: `routes.ts` maps `/new` to the profile screen and every other path
   to the CV; both are Forest pages that lay themselves out; the language switcher and chat are
-  shared. Production serves `/new` through the rewrite in `vercel.json`; Vite dev/preview fall
+  shared. The page id (`cv` / `profile`) is the chat contract's: the shell passes it to the chat,
+  which answers about that page and offers its own first questions. Production serves `/new` through the rewrite in `vercel.json`; Vite dev/preview fall
   back to `index.html` by themselves.
 - Entry point is `src/main.tsx` (global styles, providers, `App`).
 - Reduced motion is read by the show itself. The Show case button (start and replay) shows only for English on ≥ 1024 px (`CvRoute`

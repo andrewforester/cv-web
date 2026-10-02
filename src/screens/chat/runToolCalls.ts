@@ -5,10 +5,10 @@ import {
   type AgentToolResult,
   type AgentToolResultItem,
 } from '../../data/chat';
-import type { Cv } from '../../data/models';
-import { buildConfirmation, cvItemLabel } from './actionLabels';
+import { buildConfirmation, itemLabel } from './actionLabels';
 import type { ChatActionCall, ChatAnnouncementInput } from './ChatUiState';
 import type { ConversationAction } from './conversation';
+import type { ChatPageContent } from './pageContent';
 import type { ChatStrings } from './strings';
 
 /** Tools that change what the visitor sees on the page; on the mobile sheet they close the chat. */
@@ -17,7 +17,8 @@ export const VISUAL_TOOLS: readonly string[] = ['scrollToSection', 'highlightEle
 export interface ToolRunEnv {
   turnId: string;
   executor: AgentToolExecutor;
-  cv: Cv | null;
+  /** The page's data in the current locale, for chip labels and confirmations. */
+  content: ChatPageContent | null;
   strings: ChatStrings;
   signal: AbortSignal;
   dispatch: (action: ConversationAction) => void;
@@ -38,10 +39,10 @@ export async function runToolCalls(
   providerState: string | undefined,
   env: ToolRunEnv,
 ): Promise<AgentToolResultItem[] | undefined> {
-  const { turnId, cv, dispatch, signal } = env;
+  const { turnId, content, dispatch, signal } = env;
   const actions: ChatActionCall[] = calls.map((call) => ({
     call,
-    label: cvItemLabel(call, cv),
+    label: itemLabel(call, content),
     status: 'running',
   }));
   dispatch({ type: 'round', id: turnId, providerState, actions });
@@ -68,7 +69,7 @@ async function runOne(
   const { call } = action;
   const spec = env.executor.specs().find((candidate) => candidate.name === call.name);
   if (spec?.confirm) {
-    const confirmation = buildConfirmation(call, env.cv, env.strings);
+    const confirmation = buildConfirmation(call, env.content, env.strings);
     if (!confirmation) return { ok: false, error: 'failed' };
     const awaiting: ChatActionCall = { ...action, status: 'awaiting', confirmation };
     env.dispatch({ type: 'action', id: env.turnId, callId: call.id, patch: awaiting });

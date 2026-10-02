@@ -11,8 +11,11 @@ What it guarantees today:
   scrolling (desktop and 390 px screenshots); the language switch works and survives a reload.
 - The chat answers a question with a streamed reply, and rate limiting shows its notice. A `#ask`
   link opens it; its Forest look is screenshotted empty and answered, desktop and phone, EN + UK.
+  On `/new` the chat offers `/new`'s own four questions in both languages (`chat-new-{en,uk}.png`)
+  and sends `page: "profile"` with the `/new` route; `/` keeps today's questions.
 - The page agent: asking the chat to show a section scrolls and highlights it; opening a contact
   asks for confirmation and does nothing on Cancel.
+  On `/new` the same tools work over `/new`'s sections (a scripted scroll to "Selected impact").
 - The Retro Rebuild show (`retro.spec.ts`, docs/retro/ARCHITECTURE.md §1 guards 3 and 4; §9 →
   Guards after the split): on the fake clock it runs all 36 chunks to the end and leaves exactly the
   normal page (computed styles of every element, `html` and `body` classes compared with `?retro=0`;

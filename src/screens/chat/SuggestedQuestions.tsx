@@ -5,26 +5,27 @@ import styles from './SuggestedQuestions.module.css';
 import { chatTestIds } from './testIds';
 
 interface SuggestedQuestionsProps {
-  /** Page tools are mounted: also offer example commands. */
-  commands: boolean;
+  suggestions: readonly string[];
+  /** Example commands; none while the page tools aren't mounted. */
+  commands: readonly string[];
   onAsk: (question: string) => void;
 }
 
 /** The empty state: "Try asking" question chips and, with page tools, example command chips. */
-export function SuggestedQuestions({ commands, onAsk }: SuggestedQuestionsProps) {
+export function SuggestedQuestions({ suggestions, commands, onAsk }: SuggestedQuestionsProps) {
   const strings = useStrings(chatStrings);
   return (
     <div className={styles.groups}>
       <ChipGroup
         label={strings.tryAsking}
-        items={[strings.suggestion1, strings.suggestion2, strings.suggestion3, strings.suggestion4]}
+        items={suggestions}
         testId={chatTestIds.suggestion}
         onPick={onAsk}
       />
-      {commands && (
+      {commands.length > 0 && (
         <ChipGroup
           label={strings.commandsLabel}
-          items={[strings.command1, strings.command2, strings.command3]}
+          items={commands}
           testId={chatTestIds.command}
           onPick={onAsk}
         />

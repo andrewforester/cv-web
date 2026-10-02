@@ -4,7 +4,7 @@ import { useStrings } from '../../i18n';
 import { AppPills } from '../../shared/forest/AppPills';
 import { JobRow } from '../../shared/forest/JobRow';
 import { Section } from '../../shared/forest/Section';
-import { agentTargetProps } from './agentTarget';
+import { agentTargetProps } from '../../shared/agentTarget';
 import styles from './CvExperience.module.css';
 import { cvImageUrl } from './images';
 import { RichTextSpans } from './RichTextSpans';

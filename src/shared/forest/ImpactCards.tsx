@@ -1,4 +1,5 @@
 import { classNames } from './classNames';
+import type { DataAttributes } from './dataAttributes';
 import styles from './ImpactCards.module.css';
 import { forestTestIds } from './testIds';
 
@@ -7,6 +8,7 @@ export interface ImpactCardItem {
   /** The big figure, e.g. `1 day`. */
   value: string;
   text: string;
+  attributes?: DataAttributes;
 }
 
 interface ImpactCardsProps {
@@ -23,6 +25,7 @@ export function ImpactCards({ className, items }: ImpactCardsProps) {
           key={item.id}
           className={classNames(styles.card, index === 0 && styles.featured)}
           data-testid={forestTestIds.impactCard}
+          {...item.attributes}
         >
           <span className={styles.value}>{item.value}</span>
           <span className={styles.text}>{item.text}</span>

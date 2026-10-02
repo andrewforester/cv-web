@@ -14,7 +14,7 @@ for education and about me), `BookCovers`, `FooterCta`, `GradientText`.
 Place in the architecture: stateless components below the screens. They know no data model:
 plain props in (strings, `ReactNode` where a page needs rich text, image URLs already resolved),
 no callbacks needed today. Blocks and list items take optional `data-*` `attributes`, which the
-CV page uses for its page-agent targets (`data-agent-id`); the components don't interpret them. Screens map their data (`Profile`, `Cv`) onto them, own the section
+both pages use for their page-agent targets (`data-agent-id`); the components don't interpret them. Screens map their data (`Profile`, `Cv`) onto them, own the section
 order and numbering, the strings and the images. Styles use only `--forest-*` tokens and the
 spacing scale from `src/theme/tokens.css`. Item test ids are in `testIds.ts`; screens give the
 sections theirs.

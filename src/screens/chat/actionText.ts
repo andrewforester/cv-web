@@ -1,10 +1,16 @@
-import type { AgentContactChannel, AgentSectionId, AgentToolCall } from '../../data/chat';
+import type {
+  AgentContactChannel,
+  AgentSectionId,
+  AgentToolCall,
+  ProfileSectionId,
+} from '../../data/chat';
 import type { ChatActionCall } from './ChatUiState';
 import type { ChatStrings } from './strings';
 
 type Key = keyof ChatStrings;
 
-const SECTION_KEYS: Record<AgentSectionId, Key> = {
+/** Section names of both pages; `header`, `apps`, `education` and `about` are on both. */
+const SECTION_KEYS: Record<AgentSectionId | ProfileSectionId, Key> = {
   header: 'sectionHeader',
   summary: 'sectionSummary',
   technologies: 'sectionTechnologies',
@@ -13,6 +19,11 @@ const SECTION_KEYS: Record<AgentSectionId, Key> = {
   education: 'sectionEducation',
   about: 'sectionAbout',
   'previous-experience': 'sectionPreviousExperience',
+  impact: 'sectionImpact',
+  loop: 'sectionLoop',
+  experience: 'sectionExperience',
+  skills: 'sectionSkills',
+  footer: 'sectionFooter',
 };
 
 const CHANNEL_KEYS: Record<AgentContactChannel, Key> = {
@@ -35,7 +46,7 @@ export function splitTargetId(target: string): [kind: string, id: string] {
   return colon === -1 ? ['', target] : [target.slice(0, colon), target.slice(colon + 1)];
 }
 
-/** The visitor-facing name of what a call acts on; CV item titles come from `action.label`. */
+/** The visitor-facing name of what a call acts on; the page's item names come from `action.label`. */
 export function actionTarget(action: ChatActionCall, strings: ChatStrings): string {
   const { name, input } = action.call;
   const value = (param: string) => (typeof input[param] === 'string' ? input[param] : '');

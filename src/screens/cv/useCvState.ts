@@ -1,17 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCvRepository, type Cv } from '../../data';
 import type { AgentTargetId } from '../../data/chat';
 import { useLocale } from '../../i18n';
+import { useAgentHighlight } from '../../shared/agentTarget';
 import type { CvUiState } from './CvUiState';
-
-/** How long a highlight stays; matches `--agent-highlight-duration` in the theme. */
-const HIGHLIGHT_MS = 3000;
 
 type Loaded = { status: 'loading' } | { status: 'error' } | { status: 'ready'; cv: Cv };
 
 interface CvState {
   state: CvUiState;
-  /** Points the page agent's highlight at a target; it clears itself after `HIGHLIGHT_MS`. */
+  /** Points the page agent's highlight at a target; it clears itself after a few seconds. */
   highlight: (id: AgentTargetId) => void;
 }
 
@@ -20,8 +18,7 @@ export function useCvState(): CvState {
   const repository = useCvRepository();
   const { locale } = useLocale();
   const [loaded, setLoaded] = useState<Loaded>({ status: 'loading' });
-  const [highlightedId, setHighlightedId] = useState<AgentTargetId | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const { highlightedId, highlight } = useAgentHighlight();
 
   useEffect(() => {
     let active = true;
@@ -33,14 +30,6 @@ export function useCvState(): CvState {
       active = false;
     };
   }, [repository, locale]);
-
-  useEffect(() => () => clearTimeout(timer.current), []);
-
-  const highlight = useCallback((id: AgentTargetId) => {
-    clearTimeout(timer.current);
-    setHighlightedId(id);
-    timer.current = setTimeout(() => setHighlightedId(null), HIGHLIGHT_MS);
-  }, []);
 
   const state: CvUiState = loaded.status === 'ready' ? { ...loaded, highlightedId } : loaded;
   return { state, highlight };

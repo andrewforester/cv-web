@@ -16,7 +16,8 @@ import { useShowCase } from './useShowCase';
  * (`?retro=1`, or `useShowCase`'s `start` for the Show case button) it runs over the same tree
  * (`data-retro-stage`), so `CvRoute` never remounts; the AI chat is off the page until the show's
  * last step loads it. The show is a lazy chunk: at a `?retro=1` load the shell stays hidden until
- * it has loaded, so the first visible frame is already the broken page. `/new` has no show.
+ * it has loaded, so the first visible frame is already the broken page. `/new` has no show. The
+ * chat is told which page it is on: it answers about that page and drives its tools.
  */
 export function App() {
   const { locale, setLocale } = useLocale();
@@ -27,7 +28,8 @@ export function App() {
     },
   });
 
-  const isProfile = pageFor(window.location.pathname) === 'profile';
+  const page = pageFor(window.location.pathname);
+  const isProfile = page === 'profile';
   const retroMode = useRetroMode();
   const { showing, pending, Show, start, end } = useShowCase(!isProfile && retroMode === 'show');
   // Today's site loads the chat at start; after a show it is already there (or loads if it failed).
@@ -49,7 +51,7 @@ export function App() {
             <CvRoute metaBarEnd={switcher} onShowCase={start} />
           )}
         </main>
-        {Chat && <Chat />}
+        {Chat && <Chat page={page} />}
       </div>
       {showing && Show && <Show loaders={loaders} onDone={end} />}
     </>
