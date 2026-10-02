@@ -1,0 +1,8 @@
+[data-retro-stage] :is([data-testid='profile-impact'], [data-testid='profile-loop']) > h2::after {
+  content: '';
+  display: inline-block;
+  padding: 10px 20px;
+  margin-left: 6px;
+  background: var(--retro-badge-new) no-repeat;
+  animation: retro-blink 1s steps(1) infinite;
+}

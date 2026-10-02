@@ -1,0 +1,16 @@
+[data-retro-stage] ol:has(> [data-testid='forest-loop-step']) {
+  display: block;
+}
+[data-retro-stage] :is([data-testid='forest-loop-step'], [data-testid='forest-job'] li) {
+  display: list-item;
+  margin-left: 28px;
+  list-style: decimal outside;
+}
+[data-retro-stage] [data-testid='forest-job'] li {
+  list-style-type: square;
+}
+[data-retro-stage]
+  :is([data-testid='forest-loop-step'], [data-testid='forest-job'] li)
+  > [aria-hidden='true'] {
+  display: none;
+}
