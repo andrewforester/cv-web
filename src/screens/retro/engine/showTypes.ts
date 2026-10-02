@@ -87,7 +87,6 @@ export interface PlannedStep {
 
 export interface ShowPlan {
   steps: readonly PlannedStep[];
-  finaleFallback: string;
   /** Every damage layer and decoration active at the start (all the steps remove). */
   layers: readonly string[];
   decorations: readonly string[];
@@ -95,10 +94,11 @@ export interface ShowPlan {
 
 /** The copy the runner writes into the chat itself (the screen's strings). */
 export interface ShowCopy {
-  systemJoin: string;
-  systemJoined: string;
-  greeting: string;
-  handoff: string;
+  /** The two intro lines before DevTools opens (SPEC → Timeline). */
+  introLine: string;
+  fixLine: string;
+  /** The line after DevTools has collapsed, before the chat does (SPEC → End of the show). */
+  closingLine: string;
   scriptedReply: string;
   tooLong: string;
   offline: string;
@@ -112,8 +112,25 @@ export interface ShowConfig {
   llm: boolean;
 }
 
-export type ShowPhase = 'idle' | 'chat' | 'console' | 'steps' | 'finale' | 'closing' | 'done';
-/** Inside a step: its narration, then per chunk `type` (applies at its end) and `beat`, then `stepDone`. */
+/**
+ * Round 5 (ARCHITECTURE §9): the page alone, the chat's two intro lines, DevTools, the steps,
+ * `✓ All fixes applied.`, DevTools collapsing, the chat's closing line, the chat collapsing.
+ */
+export type ShowPhase =
+  | 'idle'
+  | 'intro'
+  | 'handoff'
+  | 'console'
+  | 'steps'
+  | 'finale'
+  | 'undock'
+  | 'outro'
+  | 'closing'
+  | 'done';
+/**
+ * Inside a step: `narrate` (its narration comment types into the console, then a read pause), per
+ * chunk `type` (applies at its end) and `beat`, then `stepDone`.
+ */
 export type StepStage = 'narrate' | 'type' | 'beat' | 'stepDone';
 export type EffectStatus = 'pending' | 'running' | 'applied' | 'skipped';
 
@@ -162,6 +179,8 @@ export interface ShowState {
   chunk: number;
   stage: StepStage;
   stageAt: number;
+  /** The current step's narration as console comment lines (`// …`), fixed when the step starts. */
+  comment: readonly string[];
   /** Show time the screen's camera settled on the current chunk's target (`focusSettled`). */
   focusAt: number | null;
   heldSince: number | null;

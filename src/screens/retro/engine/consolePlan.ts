@@ -28,7 +28,6 @@ export interface ShowSource {
   meta: readonly RetroStepMeta[];
   layers: Readonly<Record<string, DamageLayer>>;
   modules: Readonly<Record<string, ModuleDisplay>>;
-  finaleFallback: string;
 }
 
 const DECLARATION = /(--[\w-]+)\s*:\s*([^;]+);/g;
@@ -66,6 +65,31 @@ export function tokenDeclarations(css: string): [name: string, value: string][] 
 /** A JS string literal: single quotes, or double quotes when the value has a `'` (SPEC). */
 export function literal(value: string): string {
   return /['\\\n]/.test(value) ? JSON.stringify(value) : `'${value}'`;
+}
+
+/**
+ * Characters of narration per console line: the ≈ 55-character DevTools row at 400 px (SPEC →
+ * DevTools console → Messages) less the `// ` that makes each line a comment.
+ */
+export const COMMENT_COLUMNS = 52;
+
+/**
+ * A step's narration as console comments (Round 5): wrapped at word boundaries to
+ * `COMMENT_COLUMNS`, each line `// …`. A word longer than a line stays whole (the row wraps it).
+ */
+export function narrationComment(text: string): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    if (line && line.length + 1 + word.length > COMMENT_COLUMNS) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = line ? `${line} ${word}` : word;
+    }
+  }
+  if (line) lines.push(line);
+  return lines.map((part) => `// ${part}`);
 }
 
 type EffectText = Pick<PlannedChunk, 'doneText' | 'tokens'> & { command: string[] };
@@ -168,7 +192,6 @@ export function planShow(source: ShowSource, readToken: TokenReader): ShowPlan {
   const all = steps.flatMap((step) => step.chunks.map(({ effect }) => effect));
   return {
     steps,
-    finaleFallback: source.finaleFallback,
     layers: all.flatMap((effect) => (effect.kind === 'removeLayer' ? [effect.layer] : [])),
     decorations: all.flatMap((effect) =>
       effect.kind === 'removeDecoration' ? [effect.decoration] : [],

@@ -1,4 +1,4 @@
-import { chunkTyping } from './showProgress';
+import { chunkTyping, commentTyping } from './showProgress';
 import { effectId } from './consolePlan';
 import { chunkResolved, currentStep, showEnded, stepsDone } from './showState';
 import { TIMING } from './timing';
@@ -55,11 +55,16 @@ function typedLines(input: readonly string[], shown: number): string[] {
 /**
  * A started chunk's rows: the prompt typing its input; once run, the echo, then `<· undefined` and
  * its `✓` line (or the warning it was skipped with). A module waiting for its `import()` shows only
- * the echo, as an awaited input does.
+ * the echo, as an awaited input does. The step's first chunk types on under the narration comment,
+ * in the same input (`comment`; empty for the others).
  */
-function chunkRows(state: ShowState, chunk: PlannedChunk): ConsoleRow[] {
+function chunkRows(
+  state: ShowState,
+  chunk: PlannedChunk,
+  comment: readonly string[],
+): ConsoleRow[] {
   const run = state.effects[chunk.key];
-  const echo: ConsoleRow = { kind: 'echo', lines: chunk.input };
+  const echo: ConsoleRow = { kind: 'echo', lines: [...comment, ...chunk.input] };
   switch (run?.status) {
     case 'applied':
       return [echo, { kind: 'result', text: 'undefined' }, { kind: 'done', text: chunk.doneText }];
@@ -69,7 +74,7 @@ function chunkRows(state: ShowState, chunk: PlannedChunk): ConsoleRow[] {
       return [echo];
     default: {
       const shown = state.stage === 'type' ? chunkTyping(state, chunk).shown : chunk.chars;
-      return [{ kind: 'prompt', lines: typedLines(chunk.input, shown) }];
+      return [{ kind: 'prompt', lines: [...comment, ...typedLines(chunk.input, shown)] }];
     }
   }
 }
@@ -87,8 +92,8 @@ const stepTitle = (state: ShowState, index: number) => {
 
 /**
  * The DevTools console as it reads now (SPEC → DevTools console → Messages): the opening line, one
- * collapsed group per finished step, the current step's open group with its chunks so far (from
- * its first chunk on), and at the end `✓ All fixes applied.`; an empty prompt after every run.
+ * collapsed group per finished step, the current step's open group (its narration comment typing,
+ * then its chunks so far), and at the end `✓ All fixes applied.`; an empty prompt after every run.
  */
 export function consoleRows(
   state: ShowState,
@@ -99,14 +104,22 @@ export function consoleRows(
     rows.push({ kind: 'group', title: stepTitle(state, index), collapsed: true });
   }
   const step = currentStep(state);
-  if (!step || state.stage === 'narrate') {
+  if (!step) {
     if (showEnded(state)) rows.push({ kind: 'end', text: texts.end });
     return [...rows, EMPTY_PROMPT];
   }
   rows.push({ kind: 'group', title: stepTitle(state, state.step), collapsed: false });
+  if (state.stage === 'narrate') {
+    return [
+      ...rows,
+      { kind: 'prompt', lines: typedLines(state.comment, commentTyping(state).shown) },
+    ];
+  }
   const started = state.stage === 'stepDone' ? step.chunks.length : state.chunk + 1;
   const chunks = step.chunks.slice(0, started);
-  chunks.forEach((chunk) => rows.push(...chunkRows(state, chunk)));
+  chunks.forEach((chunk, index) =>
+    rows.push(...chunkRows(state, chunk, index ? [] : state.comment)),
+  );
   const last = chunks.at(-1);
   return last && chunkResolved(state, last.key) ? [...rows, EMPTY_PROMPT] : rows;
 }

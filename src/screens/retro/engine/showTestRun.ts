@@ -10,10 +10,9 @@ type WithoutNow<E> = E extends unknown ? Omit<E, 'now'> : never;
 type EventInput = WithoutNow<ShowEvent>;
 
 export const TEST_COPY: ShowCopy = {
-  systemJoin: '*** join',
-  systemJoined: '*** joined',
-  greeting: 'Greeting line.',
-  handoff: 'Handoff line.',
+  introLine: 'Intro line.',
+  fixLine: 'Fix line.',
+  closingLine: 'Closing line.',
   scriptedReply: 'Scripted reply.',
   tooLong: '*** too long',
   offline: '*** offline',

@@ -25,8 +25,8 @@ interface RetroShowScreenProps {
 /**
  * The show over the page, rendered into `document.body` (outside the stage, so damage layers
  * never touch it): the decorations, the highlight and the dock: DevTools docked to the right with
- * the agent chat floating over its lower part. At the end DevTools slides out and the chat shrinks
- * into the site's chat launcher while the page takes the dock's room back.
+ * the agent chat floating over its lower part. At the end DevTools slides out while the page takes
+ * the dock's room back, and later the chat shrinks into the site's chat launcher.
  */
 export function RetroShowScreen({
   className,
@@ -39,14 +39,17 @@ export function RetroShowScreen({
   const strings = useStrings(retroStrings);
   const { windows, highlight, chat } = state;
   const closing = windows === 'closing';
-  // The page lays out beside the dock while it is open, and re-centres as it closes.
+  const undocked = windows === 'undocked' || closing;
+  // The page lays out beside the dock while it is docked, and re-centres as DevTools leaves.
   useBodyClass(styles.stage, true);
-  useBodyClass(styles.docked, windows !== 'none' && !closing);
-  const consoleOpen = windows === 'chatAndConsole' || closing;
+  useBodyClass(styles.docked, windows === 'chat' || windows === 'chatAndConsole');
+  // Once undocked, DevTools stays mounted with its slide-out finished (hidden) until the end.
+  const consoleOpen = windows === 'chatAndConsole' || undocked;
   const dockClasses = [
     styles.dock,
     motionStyles.live,
     chat.minimised && styles.chatMinimised,
+    undocked && styles.undocked,
     closing && styles.closing,
     className,
   ];

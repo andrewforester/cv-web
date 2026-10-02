@@ -68,10 +68,11 @@ export interface HighlightUi {
 /** Everything the show's stateless screen renders (docs/design/retro/SPEC.md). */
 export interface RetroShowUiState {
   /**
-   * Which panels the dock shows; the page reserves the dock's width while any is open.
-   * `closing`: DevTools slides out, the chat shrinks into the launcher, the reserve is released.
+   * Which panels the dock shows (SPEC → Timeline, End of the show). The page reserves the dock's
+   * width for `chat` and `chatAndConsole`. `undocked`: DevTools has slid out (it stays mounted,
+   * hidden) and the reserve is released; `closing`: then the chat shrinks into the launcher.
    */
-  windows: 'none' | 'chat' | 'chatAndConsole' | 'closing';
+  windows: 'none' | 'chat' | 'chatAndConsole' | 'undocked' | 'closing';
   /**
    * Token shield (SPEC → Agent chat panel): the site's design tokens with their live values,
    * re-declared on the dock so the damage token layers on `:root` never restyle it.

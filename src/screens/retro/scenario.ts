@@ -1,4 +1,4 @@
-import { RETRO_FINALE_FALLBACK, RETRO_STEPS } from '../../data/retro';
+import { RETRO_STEPS } from '../../data/retro';
 import brokenImage from './assets/retro_icon_broken_image.svg';
 import badgeNew from './assets/retro_badge_new.svg';
 import tileStars from './assets/retro_tile_stars.svg';
@@ -108,5 +108,4 @@ export const RETRO_SHOW: ShowSource = {
   meta: RETRO_STEPS,
   layers: DAMAGE_LAYERS,
   modules: SHOW_MODULES,
-  finaleFallback: RETRO_FINALE_FALLBACK,
 };

@@ -1,16 +1,22 @@
 /**
- * Show timing (docs/retro/ARCHITECTURE.md §9 → Round 3, docs/design/retro/SPEC.md → Timeline and
- * Chunk rhythm; typing rate from GRA-54), in ms.
+ * Show timing (docs/retro/ARCHITECTURE.md §9 → Round 3 and Round 5, docs/design/retro/SPEC.md →
+ * Timeline, Chunk rhythm and End of the show; typing rate from GRA-54), in ms.
  */
 export const TIMING = {
-  /** The broken page alone before the chat window appears. */
-  chatDelayMs: 3_000,
+  /** The broken page alone before the chat opens. */
+  introDelayMs: 1_000,
   /** Scripted agent lines reveal at this rate (SPEC: 40 chars/s). */
   chatCharsPerSecond: 40,
-  /** After the greeting is typed, before the console hand-off line. */
-  consoleDelayMs: 2_000,
-  /** A step's narration line starts this long before its first chunk types. */
+  /** After the first intro line is typed, before the second. */
+  introPauseMs: 1_000,
+  /** After the second intro line is typed, before DevTools opens. */
+  consoleDelayMs: 800,
+  /** DevTools is open before the first step starts. */
+  consoleLeadMs: 800,
+  /** After a step's narration comment is typed, before its first chunk types: time to read it. */
   narrateMs: 600,
+  /** A narration comment types at `codeCharsPerSecond`, clamped to `chunkMinMs` and this. */
+  commentMaxMs: 2_000,
   /** Console typing rate per chunk, then the chunk's typing time is clamped to the bounds below. */
   codeCharsPerSecond: 100,
   chunkMinMs: 600,
@@ -32,10 +38,16 @@ export const TIMING = {
   answeringCapMs: 12_000,
   /** A module that hasn't loaded by then is skipped. */
   moduleTimeoutMs: 5_000,
-  /** After the finale line is typed, the windows start closing. */
-  closeDelayMs: 3_000,
-  /** The windows' close animation (SPEC → End of the show); 0 with reduced motion. */
-  closingMs: 650,
+  /** `✓ All fixes applied.` stays on screen before DevTools collapses. */
+  finaleHoldMs: 1_000,
+  /** DevTools collapses and the page re-centres (`--retro-reserve-duration`); 0 with reduced motion. */
+  undockMs: 400,
+  /** After DevTools has gone, before the chat's closing line. */
+  outroDelayMs: 1_000,
+  /** After the closing line is typed, before the chat collapses. */
+  outroHoldMs: 2_000,
+  /** The chat collapses into the launcher (`--retro-close-shrink`); 0 with reduced motion. */
+  closingMs: 500,
   /** The camera doesn't scroll within this long of the visitor's own scrolling. */
   visitorScrollQuietMs: 4_000,
   /** Re-render rate while something is typing. */
@@ -51,9 +63,16 @@ export function revealMs(text: string, reducedMotion: boolean): number {
   return reducedMotion ? 0 : Math.round((text.length / TIMING.chatCharsPerSecond) * 1000);
 }
 
+const codeMs = (chars: number) => (chars / TIMING.codeCharsPerSecond) * 1000;
+
 /** Typing time of a chunk's code (SPEC: 100 chars/s, clamped to 0.6–1.3 s). */
 export function typingMs(chars: number, reducedMotion: boolean): number {
   if (reducedMotion) return TIMING.reducedMotionApplyMs;
-  const ms = (chars / TIMING.codeCharsPerSecond) * 1000;
-  return Math.round(clamp(ms, TIMING.chunkMinMs, TIMING.chunkMaxMs));
+  return Math.round(clamp(codeMs(chars), TIMING.chunkMinMs, TIMING.chunkMaxMs));
+}
+
+/** Typing time of a step's narration comment (100 chars/s, clamped to 0.6–2 s); instant with reduced motion. */
+export function commentMs(chars: number, reducedMotion: boolean): number {
+  if (reducedMotion) return 0;
+  return Math.round(clamp(codeMs(chars), TIMING.chunkMinMs, TIMING.commentMaxMs));
 }

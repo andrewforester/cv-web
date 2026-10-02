@@ -2,7 +2,7 @@ import { RETRO_SHOW } from '../scenario';
 import { retroStrings } from '../strings';
 import { currentPlannedChunk } from './showState';
 import { ShowTestRun } from './showTestRun';
-import { TIMING, typingMs } from './timing';
+import { commentMs, TIMING, typingMs } from './timing';
 import type { PlannedChunk, ShowState } from './showTypes';
 
 // The chunk rhythm on the fake clock (docs/design/retro/SPEC.md → Chunk rhythm and timing budget).
@@ -48,11 +48,17 @@ describe('show timing: one chunk', () => {
     expect(typingMs(1_000, true)).toBe(TIMING.reducedMotionApplyMs);
   });
 
-  it('starts the first chunk 0.6 s after the narration line', () => {
+  it('types the narration comment at 100 chars/s (0.6–2 s), then waits 0.6 s for the first chunk', () => {
+    expect(commentMs(30, false)).toBe(TIMING.chunkMinMs);
+    expect(commentMs(110, false)).toBe(1_100);
+    expect(commentMs(400, false)).toBe(TIMING.commentMaxMs);
+    expect(commentMs(400, true)).toBe(0);
+
     const run = new ShowTestRun(RETRO_SHOW);
     run.advanceUntil((state) => state.phase === 'steps');
     const narrated = run.state.stageAt;
-    expect(startOf(run, 'layer:type-faces')).toBe(narrated + TIMING.narrateMs);
+    const typed = commentMs(run.state.comment.join('').length, false);
+    expect(startOf(run, 'layer:type-faces')).toBe(narrated + typed + TIMING.narrateMs);
   });
 
   it('applies a page-wide chunk at its last character: nothing to scroll to', () => {

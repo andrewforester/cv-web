@@ -1,4 +1,4 @@
-import { applyDueAt, chunkTyping, holdEndsAt } from './showProgress';
+import { applyDueAt, chunkTyping, commentTyping, holdEndsAt, narrateEndsAt } from './showProgress';
 import { currentPlannedChunk, currentStep } from './showState';
 import { revealMs, TIMING } from './timing';
 import type { ShowState } from './showTypes';
@@ -12,6 +12,9 @@ export function isAnimating(state: ShowState): boolean {
       entry.revealFrom !== null && state.t < entry.revealFrom + revealMs(entry.text, false),
   );
   if (revealing) return true;
+  if (state.phase === 'steps' && state.stage === 'narrate') {
+    return commentTyping(state).shown < state.comment.join('').length;
+  }
   const chunk = currentPlannedChunk(state);
   return !!chunk && state.stage === 'type' && chunkTyping(state, chunk).shown < chunk.chars;
 }
@@ -37,7 +40,7 @@ function nextDeadline(state: ShowState): number | null {
   if (state.heldSince !== null) return holdEndsAt(state, state.heldSince);
   switch (state.stage) {
     case 'narrate':
-      return state.stageAt + TIMING.narrateMs;
+      return narrateEndsAt(state);
     case 'type': {
       const chunk = step.chunks[state.chunk];
       if (!chunk) return state.t;

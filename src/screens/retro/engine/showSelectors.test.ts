@@ -39,19 +39,36 @@ describe('consoleRows (DevTools console)', () => {
     expect(brief(run.state)).toEqual(['log Agent connected.', 'prompt']);
   });
 
+  it('opens a step by typing its narration as comments into the prompt', () => {
+    const run = new ShowTestRun(RETRO_SHOW);
+    run.advanceUntil((state) => state.phase === 'steps');
+    expect(brief(run.state)).toEqual(['log Agent connected.', 'group 1/8 fonts', 'prompt']);
+    run.advance(300);
+    const typing = rows(run.state).at(-1);
+    expect(typing?.kind === 'prompt' && typing.lines.join('')).toMatch(/^\/\/ Starting with/);
+    run.advanceUntil(inChunk('layer:type-faces', 'type'));
+    expect(rows(run.state).at(-1)).toEqual({ kind: 'prompt', lines: run.state.comment });
+    expect(run.state.comment.every((line) => line.startsWith('// '))).toBe(true);
+  });
+
   it('runs each chunk: the prompt types it, then echo, `<· undefined`, its ✓ and an empty prompt', () => {
     const run = new ShowTestRun(RETRO_SHOW);
     run.advanceUntil(inChunk('layer:type-faces', 'type'));
+    const comment = run.state.comment;
     run.advance(100);
     const typing = rows(run.state).at(-1);
     expect(typing?.kind).toBe('prompt');
-    expect(typing?.kind === 'prompt' && typing.lines.join('')).toMatch(/^\/\/ → he/);
+    // The step's first chunk types on under the narration comment, in the same input.
+    expect(typing?.kind === 'prompt' && typing.lines.slice(0, comment.length)).toEqual(comment);
+    expect(typing?.kind === 'prompt' && typing.lines.slice(comment.length).join('')).toMatch(
+      /^\/\/ → he/,
+    );
 
     run.advanceUntil(applied('layer:type-faces'));
     expect(brief(run.state)).toEqual([
       'log Agent connected.',
       'group 1/8 fonts',
-      `echo // → headings ⏎ document.querySelector('style[data-retro-layer="type-faces"]').remove()`,
+      `echo ${[...comment, '// → headings'].join(' ⏎ ')} ⏎ document.querySelector('style[data-retro-layer="type-faces"]').remove()`,
       'result undefined',
       'done type-faces removed',
       'prompt',
@@ -64,7 +81,12 @@ describe('consoleRows (DevTools console)', () => {
     expect(brief(run.state).filter((row) => row.startsWith('done'))).toHaveLength(6);
     expect(brief(run.state).at(-1)).toBe('prompt');
     run.advanceUntil((state) => state.step === 1);
-    expect(brief(run.state)).toEqual(['log Agent connected.', 'group ✓ 1/8 fonts', 'prompt']);
+    expect(brief(run.state)).toEqual([
+      'log Agent connected.',
+      'group ✓ 1/8 fonts',
+      'group 2/8 colours',
+      'prompt',
+    ]);
     run.advanceUntil((state) => state.stage === 'type');
     expect(brief(run.state).slice(0, 3)).toEqual([
       'log Agent connected.',
@@ -78,7 +100,7 @@ describe('consoleRows (DevTools console)', () => {
     run.advanceUntil(inChunk('layer:type-faces', 'type'));
     expect(rows(run.state).at(-1)).toEqual({
       kind: 'prompt',
-      lines: currentPlannedChunk(run.state)?.input,
+      lines: [...run.state.comment, ...(currentPlannedChunk(run.state)?.input ?? [])],
     });
   });
 

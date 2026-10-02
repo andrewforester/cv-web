@@ -1,6 +1,7 @@
+import { narrationComment } from './consolePlan';
 import { addChat, chunkResolved, currentStep } from './showState';
-import { revealMs, TIMING, typingMs } from './timing';
-import type { EffectRun, PlannedChunk, PlannedStep, ShowState } from './showTypes';
+import { commentMs, revealMs, TIMING, typingMs } from './timing';
+import type { EffectRun, PlannedChunk, PlannedStep, ShowPhase, ShowState } from './showTypes';
 
 /** Typing time of the current chunk and how many of its characters show at `t`. */
 export function chunkTyping(state: ShowState, chunk: PlannedChunk): { ms: number; shown: number } {
@@ -9,6 +10,20 @@ export function chunkTyping(state: ShowState, chunk: PlannedChunk): { ms: number
   if (state.stage !== 'type' || reducedMotion) return { ms, shown: chunk.chars };
   const elapsed = state.t - state.stageAt;
   return { ms, shown: Math.min(chunk.chars, Math.floor((elapsed / ms) * chunk.chars)) };
+}
+
+/** Typing time of the step's narration comment and how many of its characters show at `t`. */
+export function commentTyping(state: ShowState): { ms: number; shown: number } {
+  const chars = state.comment.reduce((sum, line) => sum + line.length, 0);
+  const ms = commentMs(chars, state.config.reducedMotion);
+  if (state.stage !== 'narrate' || ms === 0) return { ms, shown: chars };
+  const elapsed = state.t - state.stageAt;
+  return { ms, shown: Math.min(chars, Math.floor((elapsed / ms) * chars)) };
+}
+
+/** Show time the step's first chunk may start: its comment is typed and has been read. */
+export function narrateEndsAt(state: ShowState): number {
+  return state.stageAt + commentTyping(state).ms + TIMING.narrateMs;
 }
 
 /** Whether the chunk's apply waits for the camera: page-wide and module chunks never scroll. */
@@ -52,28 +67,27 @@ function startChunk(state: ShowState, index: number, at: number): ShowState {
   return { ...state, stage: 'type', chunk: index, stageAt: at, focusAt: null, heldSince: null };
 }
 
+/** A step starts with its narration typed into the console as comments; the chat stays silent. */
 function enterStep(state: ShowState, index: number, at: number): ShowState {
   const step = state.config.plan.steps[index];
   if (!step) return enterFinale(state, at);
-  const moved: ShowState = {
+  return {
     ...state,
     phase: 'steps',
     step: index,
     chunk: 0,
     stage: 'narrate',
     stageAt: at,
+    comment: narrationComment(state.narration[step.id] ?? step.fallback),
     focusAt: null,
     heldSince: null,
   };
-  const text = state.narration[step.id] ?? step.fallback;
-  return addChat(moved, { kind: 'agent', text, revealFrom: at, at });
 }
 
+/** Every step has run: `✓ All fixes applied.` stays a moment before the windows close. */
 function enterFinale(state: ShowState, at: number): ShowState {
-  const text = state.narration.finale ?? state.config.plan.finaleFallback;
-  const phaseEndsAt = at + revealMs(text, state.config.reducedMotion) + TIMING.closeDelayMs;
-  const moved = { ...state, phase: 'finale' as const, phaseEndsAt, heldSince: null };
-  return addChat(moved, { kind: 'agent', text, revealFrom: at, at });
+  const phaseEndsAt = at + TIMING.finaleHoldMs;
+  return { ...state, phase: 'finale', phaseEndsAt, heldSince: null };
 }
 
 function withRun(state: ShowState, key: string, run: EffectRun): ShowState {
@@ -109,7 +123,7 @@ function typeStage(state: ShowState, chunk: PlannedChunk): ShowState {
 function stepsPhase(state: ShowState, step: PlannedStep): ShowState {
   switch (state.stage) {
     case 'narrate': {
-      const ready = state.stageAt + TIMING.narrateMs;
+      const ready = narrateEndsAt(state);
       if (state.t < ready) return state;
       return passBoundary(state, ready, (at) => startChunk(state, 0, at));
     }
@@ -132,39 +146,38 @@ function stepsPhase(state: ShowState, step: PlannedStep): ShowState {
   }
 }
 
+/** Enters `phase` with a scripted chat line; the phase ends `pauseMs` after it has typed. */
+function say(state: ShowState, phase: ShowPhase, text: string, at: number, pauseMs: number) {
+  const phaseEndsAt = at + revealMs(text, state.config.reducedMotion) + pauseMs;
+  return addChat({ ...state, phase, phaseEndsAt }, { kind: 'agent', text, revealFrom: at, at });
+}
+
 function once(state: ShowState): ShowState {
   const { copy, reducedMotion } = state.config;
   const at = state.phaseEndsAt;
   if (state.phase !== 'steps' && state.phase !== 'done' && state.t < at) return state;
+  const motionMs = (ms: number) => (reducedMotion ? 0 : ms);
   switch (state.phase) {
-    case 'idle': {
-      const phaseEndsAt = at + revealMs(copy.greeting, reducedMotion) + TIMING.consoleDelayMs;
-      return addChat(
-        { ...state, phase: 'chat', phaseEndsAt },
-        { kind: 'system', text: copy.systemJoin, revealFrom: null, at },
-        { kind: 'system', text: copy.systemJoined, revealFrom: null, at },
-        { kind: 'agent', text: copy.greeting, revealFrom: at, at },
-      );
-    }
-    case 'chat': {
-      const phaseEndsAt = at + revealMs(copy.handoff, reducedMotion);
-      return addChat(
-        { ...state, phase: 'console', phaseEndsAt },
-        { kind: 'agent', text: copy.handoff, revealFrom: at, at },
-      );
-    }
+    case 'idle':
+      return say(state, 'intro', copy.introLine, at, TIMING.introPauseMs);
+    case 'intro':
+      return say(state, 'handoff', copy.fixLine, at, TIMING.consoleDelayMs);
+    case 'handoff':
+      return { ...state, phase: 'console', phaseEndsAt: at + TIMING.consoleLeadMs };
     case 'console':
       return enterStep(state, 0, at);
     case 'steps': {
       const step = currentStep(state);
       return step ? stepsPhase(state, step) : enterFinale(state, state.t);
     }
-    case 'finale':
-      return {
-        ...state,
-        phase: 'closing',
-        phaseEndsAt: at + (reducedMotion ? 0 : TIMING.closingMs),
-      };
+    case 'finale': {
+      const phaseEndsAt = at + motionMs(TIMING.undockMs) + TIMING.outroDelayMs;
+      return { ...state, phase: 'undock', phaseEndsAt };
+    }
+    case 'undock':
+      return say(state, 'outro', copy.closingLine, at, TIMING.outroHoldMs);
+    case 'outro':
+      return { ...state, phase: 'closing', phaseEndsAt: at + motionMs(TIMING.closingMs) };
     case 'closing':
       return { ...state, phase: 'done' };
     case 'done':
