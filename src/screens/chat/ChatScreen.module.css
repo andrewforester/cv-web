@@ -25,6 +25,9 @@
   line-height: var(--forest-chat-ui-line-height);
   letter-spacing: normal;
   color: var(--forest-dark-ink);
+  /* Light text on the dark panel: grayscale antialiasing keeps the weights as designed (macOS). */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /*
