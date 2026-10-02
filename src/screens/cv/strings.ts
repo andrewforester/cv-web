@@ -16,7 +16,6 @@ export const cvStrings = defineStrings({
     aboutTitle: 'About me',
     footerCta: "Let's build something",
     copyright: '© 2026',
-    showCase: 'Show case',
   },
   uk: {
     handle: 'andrew.panasiuk / cv',
@@ -32,6 +31,5 @@ export const cvStrings = defineStrings({
     aboutTitle: 'Про мене',
     footerCta: 'Створімо щось разом',
     copyright: '© 2026',
-    showCase: 'Show case',
   },
 });

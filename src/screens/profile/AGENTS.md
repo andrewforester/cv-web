@@ -12,7 +12,8 @@ for the current language, the stateless screen composes the Forest components
 from data, already translated (EN + UK); only section labels and fixed UI words (meta-bar handle,
 "Earlier", the footer ©) are strings. Data images (photo, app icons, book covers) are bundled in
 `assets/` under the `profile_` prefix. The app shell shows this screen for `/new`
-(`src/app/routes.ts`) and passes the language switcher into the meta bar.
+(`src/app/routes.ts`) and passes the meta bar's end controls (the language switcher; the Show case
+button once `/new` has a show).
 
 Page agent (ADR-0004): like `/`, every section and item is a target the AI chat can point at
 (`data-agent-id`, ids from the profile data, the same in both languages, matching `/new`'s tool

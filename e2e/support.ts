@@ -7,6 +7,15 @@ export const SCREENSHOT_DIR = 'web-check';
 export const NORMAL_SITE = './?retro=0';
 export const SHOW_SITE = './?retro=1';
 
+/** A page's show and the same page as today's site: the show is compared with the latter. */
+export interface ShowUrls {
+  show: string;
+  normal: string;
+}
+
+/** `/`'s show (docs/retro/ARCHITECTURE.md §10: each page with a show gets its pair). */
+export const CV_SHOW_URLS: ShowUrls = { show: SHOW_SITE, normal: NORMAL_SITE };
+
 /** Page errors and console errors; a web check fails on any. */
 export function collectErrors(page: Page): string[] {
   const errors: string[] = [];

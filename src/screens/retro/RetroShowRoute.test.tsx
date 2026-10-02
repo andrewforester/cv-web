@@ -1,6 +1,11 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { AppProviders } from '../../app/AppProviders';
-import { FAKE_SHOW_REPLY, FakeShowRepository, ShowRepositoryContext } from '../../data/retro';
+import {
+  FAKE_SHOW_REPLY,
+  FakeShowRepository,
+  ShowRepositoryContext,
+  type ShowScenarioId,
+} from '../../data/retro';
 import { forestTestIds } from '../../shared/forest/testIds';
 import { RetroShowRoute } from './RetroShowRoute';
 import { RetroStageTestHarness } from './RetroStageTestHarness';
@@ -16,7 +21,7 @@ function renderShow(repository = new FakeShowRepository()) {
     <AppProviders locale="en">
       <ShowRepositoryContext value={repository}>
         <RetroStageTestHarness>
-          <RetroShowRoute loaders={loaders} onDone={onDone} />
+          <RetroShowRoute scenario="retro-3" loaders={loaders} onDone={onDone} />
         </RetroStageTestHarness>
       </ShowRepositoryContext>
     </AppProviders>,
@@ -169,6 +174,9 @@ describe('retro show screen', { timeout: 60_000 }, () => {
     expect(repository.replyInputs[0]?.messages).toEqual([
       { role: 'user', content: 'wow, a marquee!' },
     ]);
+    // Narration and replies are for the running scenario.
+    expect(repository.narrateScenarios).toEqual(['retro-3']);
+    expect(repository.replyInputs[0]?.scenario).toBe('retro-3');
   });
 
   it('sends with Enter, keeps Shift+Enter for a new line, and refuses a message over 500', async () => {
@@ -308,5 +316,26 @@ describe('retro show screen', { timeout: 60_000 }, () => {
     });
     expect(onDone).toHaveBeenCalledTimes(1);
     expect(seen).toEqual({ motion: false, leaving: false, closing: false });
+  });
+});
+
+describe('a scenario without a source', () => {
+  it('ends at once: no layer, no decoration, no dock', () => {
+    const onDone = vi.fn();
+    render(
+      <AppProviders locale="en">
+        <ShowRepositoryContext value={new FakeShowRepository()}>
+          <RetroShowRoute
+            scenario={'retro-new-0' as ShowScenarioId}
+            loaders={{ 'ai-chat': vi.fn() }}
+            onDone={onDone}
+          />
+        </ShowRepositoryContext>
+      </AppProviders>,
+    );
+    expect(onDone).toHaveBeenCalledOnce();
+    expect(layers()).toHaveLength(0);
+    expect(screen.queryByTestId(retroTestIds.decoration)).not.toBeInTheDocument();
+    expect(screen.queryByTestId(retroTestIds.dock)).not.toBeInTheDocument();
   });
 });

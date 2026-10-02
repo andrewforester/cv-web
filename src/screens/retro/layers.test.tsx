@@ -5,13 +5,13 @@ import { forestTestIds } from '../../shared/forest/testIds';
 import { targetQuery } from './engine/chunkSelectors';
 import { effectKey, tokenDeclarations } from './engine/consolePlan';
 import type { DamageLayer } from './engine/showTypes';
-import { DAMAGE_LAYERS, DECORATION_IDS, type DamageLayerId } from './scenario';
-import { RETRO_CHUNKS } from './scenarioSteps';
+import { DECORATION_IDS } from './scenario';
+import { registeredSources } from './scenarios';
 import { RetroStageTestHarness } from './RetroStageTestHarness';
 
-// Guard 2 (docs/retro/ARCHITECTURE.md §1, §9 → Guards after the split): the layers and the chunk
-// targets still hit the real site. A renamed hook or token makes a layer a silent no-op on the
-// page, or points the highlight and camera at nothing; here it fails instead.
+// Guard 2 (docs/retro/ARCHITECTURE.md §1, §9 → Guards after the split, §10): per page, the layers
+// and the chunk targets still hit the real page. A renamed hook or token makes a layer a silent
+// no-op on the page, or points the highlight and camera at nothing; here it fails instead.
 
 type RuleLike = CSSRule & { selectorText?: string; cssRules?: CSSRuleList; name?: string };
 
@@ -70,44 +70,47 @@ const queryable = (selectorText: string): string[] =>
     .flatMap(expandIs)
     .map((selector) => selector.replace(/::(before|after)\b/g, ''));
 
-const ids = (display: DamageLayer['display']) =>
-  (Object.keys(DAMAGE_LAYERS) as DamageLayerId[]).filter(
-    (id) => DAMAGE_LAYERS[id].display === display,
-  );
 const siteTokens = new Set(tokenDeclarations(tokensCss).map(([name]) => name));
-const targeted = RETRO_CHUNKS.flatMap((step) => step.chunks).flatMap(({ effect, target }) =>
-  target && target.selectors !== 'page' ? [[effectKey(effect), target.selectors] as const] : [],
-);
 const onPage = (selectors: readonly string[]) => selectors.filter((s) => !s.startsWith('#'));
-const decorationTargets = targeted.flatMap(([, selectors]) =>
-  selectors.filter((s) => s.startsWith('#')),
-);
 
-describe('damage layers (guard 2: hook coverage)', () => {
+describe.each(registeredSources())('%s damage layers (guard 2: hook coverage)', (_, source) => {
+  const { layers, steps } = source.show;
+  const ids = (display: DamageLayer['display']) =>
+    Object.keys(layers).filter((id) => layers[id]?.display === display);
+  const cssOf = (id: string) => layers[id]?.css ?? '';
+  const targeted = steps
+    .flatMap((step) => step.chunks)
+    .flatMap(({ effect, target }) =>
+      target && target.selectors !== 'page' ? [[effectKey(effect), target.selectors] as const] : [],
+    );
+  const decorationTargets = targeted.flatMap(([, selectors]) =>
+    selectors.filter((s) => s.startsWith('#')),
+  );
+
   beforeEach(async () => {
     render(
       <AppProviders locale="en">
-        <RetroStageTestHarness />
+        <RetroStageTestHarness page={source.page} />
       </AppProviders>,
     );
     await screen.findByTestId(forestTestIds.name);
   });
 
-  it.each(ids('rules'))('%s: every selector matches the real CV', (id) => {
-    const selectors = selectorsOf(DAMAGE_LAYERS[id].css).flatMap(queryable);
+  it.each(ids('rules'))('%s: every selector matches the real page', (id) => {
+    const selectors = selectorsOf(cssOf(id)).flatMap(queryable);
     expect(selectors.length).toBeGreaterThan(0);
     const missing = selectors.filter((selector) => document.querySelector(selector) === null);
     expect(missing).toEqual([]);
   });
 
   it.each(ids('tokens'))('%s: every token it sets exists in tokens.css', (id) => {
-    const names = tokenDeclarations(DAMAGE_LAYERS[id].css).map(([name]) => name);
+    const names = tokenDeclarations(cssOf(id)).map(([name]) => name);
     expect(names.length).toBeGreaterThan(0);
     expect(names.filter((name) => !siteTokens.has(name))).toEqual([]);
   });
 
   it.each(targeted.filter(([, selectors]) => onPage(selectors).length))(
-    '%s: every target selector matches the real CV under the stage',
+    '%s: every target selector matches the real page under the stage',
     (_, selectors) => {
       const missing = onPage(selectors).filter(
         (s) => document.querySelector(targetQuery(s)) === null,

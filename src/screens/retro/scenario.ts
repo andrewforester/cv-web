@@ -36,6 +36,7 @@ import typeScaleCardsCss from './layers/type-scale-cards.css?raw';
 import typeScaleDetailsCss from './layers/type-scale-details.css?raw';
 import typeScaleHeadingsCss from './layers/type-scale-headings.css?raw';
 import typeScaleTextCss from './layers/type-scale-text.css?raw';
+import type { DecorationAnchors, DecorationCopy } from './scenarios';
 import { RETRO_CHUNKS } from './scenarioSteps';
 
 const layer = (id: string, css: string, display: DamageLayer['display']): DamageLayer => ({
@@ -100,6 +101,19 @@ export const HOST_VARIABLES = {
   '--retro-broken-image': `url("${brokenImage}")`,
   '--retro-tile-stars': `url("${tileStars}")`,
   '--retro-badge-new': `url("${badgeNew}")`,
+};
+
+/** The CV's hooks the decorations sit on. */
+export const CV_ANCHORS: DecorationAnchors = {
+  root: "[data-testid='cv']",
+  header: "[data-agent-id='section:header']",
+};
+
+/** The decorations' copy over the CV (SPEC → Texts). */
+export const CV_COPY: DecorationCopy = {
+  nav: ['navHome', 'navResume', 'navApps', 'navBooks', 'navGuestbook', 'navLinks'],
+  marquee: 'marquee',
+  webringName: 'webringName',
 };
 
 /** Everything the runner needs from the scenario, in one place. */

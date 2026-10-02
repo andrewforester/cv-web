@@ -8,6 +8,7 @@ export const commonStrings = defineStrings({
     languageUk: 'UA',
     loading: 'Loading…',
     loadError: 'Could not load the CV.',
+    showCase: 'Show case',
   },
   uk: {
     languageSwitcherLabel: 'Мова',
@@ -15,5 +16,6 @@ export const commonStrings = defineStrings({
     languageUk: 'UA',
     loading: 'Завантаження…',
     loadError: 'Не вдалося завантажити резюме.',
+    showCase: 'Show case',
   },
 });

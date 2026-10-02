@@ -18,8 +18,11 @@ Domain terms:
   `style.setProperty` calls carrying the site's live values (set inline on `<html>` until the end).
 - **Decoration**: show-owned DOM over the page (nav bar + marquee, footer, "Oh, snap!" note),
   rendered through a portal, `aria-hidden`, its DOM id = its id.
-- **Step / chunk** (`scenario.ts` registers layers, decorations and modules; `scenarioSteps.ts`
-  holds the fix list): 8 manifest steps of 36 chunks. A step opens with its **narration comment**
+- **Source** (`scenarios.ts`, ARCHITECTURE §10): what a page's scenario does to that page: its
+  chunks, damage layers, the decorations' anchors and copy. `SHOW_SOURCES` maps each scenario id
+  to its source (today only `/`'s `retro-3`); a scenario without a source ends at once.
+- **Step / chunk** (`/`'s source: `scenario.ts` registers layers, decorations and modules;
+  `scenarioSteps.ts` holds the fix list): 8 manifest steps of 36 chunks. A step opens with its **narration comment**
   (the LLM line or the manifest fallback, wrapped into `// …` lines) typed into the console. A chunk is one visible change: one effect
   (remove a layer or decoration, load a module: the AI chat is the last chunk), its **target**
   (the `// → <label>` console line and what the highlight marks) and its **motion** (`fade`,
@@ -36,8 +39,9 @@ Domain terms:
 - **Token shield**: the dock re-declares every site token with its live value (read once at the
   start), so the token layers on `:root` never restyle the agent chat.
 
-Place in the architecture: a screen mounted by the shell next to the unchanged `CvRoute`:
-`RetroShowRoute` (props: module loaders, `onDone`) → `useRetroShowState` (runner, layer host,
+Place in the architecture: a screen mounted by the shell next to the unchanged page:
+`RetroShowRoute` (props: the page's scenario, module loaders, `onDone`) picks the scenario's
+source → `RetroShowRun` → `useRetroShowState` (runner, layer host,
 `ShowRepository` from `src/data/retro` for LLM narration and replies) → stateless
 `RetroShowScreen` (dock with the DevTools panel `LiveConsole` and the floating `AgentChat`,
 `Decorations`, `Highlight`) in a portal into `document.body`. The agent chat is built from the
@@ -60,15 +64,18 @@ Rules and limits:
   fixed `All good now.`).
 - The LLM is never on the critical path: missing narration → the manifest's fallback lines,
   failed replies → a scripted line; automation (`navigator.webdriver`) runs fully scripted.
-- Guards: `scenario.test.ts` (every layer/decoration removed exactly once, every chunk has a
-  target, motion fits the layer's CSS), `layers.test.tsx` (every rule-layer and target selector
-  matches the real CV, every token exists), and in `e2e/retro.spec.ts` guards 3 and 4. Renaming
-  a CV hook or token fails them; fix the layer, never the guard.
+- Guards run per registered source: `scenario.test.ts` (every layer/decoration removed exactly
+  once, every chunk has a target, motion fits the layer's CSS, every file under `layers/` is
+  registered), `layers.test.tsx` (every rule-layer and target selector matches the real page in
+  `RetroStageTestHarness page=…`, every token exists), `engine/showTiming.test.ts` (≈ 91 s), and
+  in `e2e/retro.spec.ts` guards 3 and 4 for `/`. Renaming a page's hook or token fails them; fix
+  the layer, never the guard.
 - EN only by decision: `strings.ts` has no `uk` (it falls back to English).
 - Tests import layer files with `?raw` like the app (`vite.config.ts` → `test.css.include`).
 - Dev harness: `harness/` (not a build entry): `npm run dev`, then
-  `/src/screens/retro/harness/index.html`.
+  `/src/screens/retro/harness/index.html` (`?scenario=<id>` for another page's show).
 - Motion never touches the CV screen: the classes live only for a chunk's window and go with the
   show. Reduced motion: no classes, no view transitions, no leave, instant close. Browsers without
   view transitions get morphs instantly (the highlight still shows where).
-- Desktop only, over `/` only (not `/new`). Started by the shell (`?retro=1` or its start seam); replay = start again (R24).
+- Desktop only. Runs on the pages the shell maps to a scenario (today `/` only; `/new`'s source
+  is the next task). Started by the shell (`?retro=1` or its start seam); replay = start again (R24).

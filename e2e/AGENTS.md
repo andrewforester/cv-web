@@ -16,8 +16,9 @@ What it guarantees today:
 - The page agent: asking the chat to show a section scrolls and highlights it; opening a contact
   asks for confirmation and does nothing on Cancel.
   On `/new` the same tools work over `/new`'s sections (a scripted scroll to "Selected impact").
-- The Retro Rebuild show (`retro.spec.ts`, docs/retro/ARCHITECTURE.md §1 guards 3 and 4; §9 →
-  Guards after the split): on the fake clock it runs all 36 chunks to the end and leaves exactly the
+- The Retro Rebuild show on `/` (`retro.spec.ts`, docs/retro/ARCHITECTURE.md §1 guards 3 and 4;
+  §9 → Guards after the split; helpers in `retroShow.ts` take a page's `ShowUrls`, §10): on the
+  fake clock it runs all 36 chunks to the end and leaves exactly the
   normal page (computed styles of every element, `html` and `body` classes compared with `?retro=0`;
   no stage, layer, motion style, decoration, window or inline token left; AI chat button present);
   after every chunk, the command the DevTools console printed is what the page has (each
@@ -26,8 +27,8 @@ What it guarantees today:
   fake clock drives the runner but not CSS or view transitions. One extra run with motion on
   (real view transitions) reaches the same end state with no console errors, and is the timing
   smoke: the show ends within 110 s of show time (≈ 91 s today) and not under 60 s. The show
-  never starts on its own (only `?retro=1`, or the shell's start function, which has no button
-  yet). The intro: the broken page alone, then the agent chat with its two lines, then DevTools;
+  never starts on its own (only `?retro=1`, or the Show case button `forest-show-case` in the meta
+  bar). The intro: the broken page alone, then the agent chat with its two lines, then DevTools;
   each step's narration is a `//` comment above its first command and the chat stays silent.
   While it runs, the agent chat is the site's chat card (title, no IRC lines, the Forest chat's
   Onest despite the damage token layers), the page reserves the 400 px dock, and the highlight's plate names the

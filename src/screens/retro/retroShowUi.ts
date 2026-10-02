@@ -10,6 +10,7 @@ import { canSend, MAX_VISITOR_CHARS, MAX_VISITOR_MESSAGES } from './engine/showR
 import type { ChatEntry, ShowState } from './engine/showTypes';
 import type { ChatLineUi, DecorationBox, HighlightUi, RetroShowUiState } from './RetroShowUiState';
 import type { DecorationId } from './scenario';
+import type { DecorationCopy } from './scenarios';
 import { fill, type RetroStrings } from './strings';
 
 /** The composer shows `{count} / 500` from this many characters (SPEC → Agent chat panel). */
@@ -111,11 +112,24 @@ function decorationsUi(state: ShowState, placement: ScreenLocalState['placement'
     }));
 }
 
-/** Maps the runner's state (plus the screen's local bits) to what the stateless screen renders. */
+/** The decorations' texts on this page. */
+function decorationCopyUi(copy: DecorationCopy, strings: RetroStrings) {
+  return {
+    nav: copy.nav.map((key) => strings[key]),
+    marquee: strings[copy.marquee],
+    webringName: strings[copy.webringName],
+  };
+}
+
+/**
+ * Maps the runner's state (plus the screen's local bits and the page's decoration copy) to what
+ * the stateless screen renders.
+ */
 export function toRetroShowUiState(
   state: ShowState,
   local: ScreenLocalState,
   strings: RetroStrings,
+  copy: DecorationCopy,
 ): RetroShowUiState {
   return {
     windows: windowsOf(state),
@@ -123,6 +137,7 @@ export function toRetroShowUiState(
     chat: chatUi(state, local),
     console: consoleUi(state, strings),
     decorations: decorationsUi(state, local.placement),
+    decorationCopy: decorationCopyUi(copy, strings),
     highlight: local.highlight,
   };
 }

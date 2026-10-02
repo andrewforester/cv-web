@@ -14,6 +14,7 @@ const line = (key: string, text: string) =>
   `event: line\ndata: ${JSON.stringify({ key, text })}\n\n`;
 
 const input: ShowReplyInput = {
+  scenario: RETRO_SCENARIO_ID,
   step: 'layout',
   stepsDone: 1,
   messages: [{ role: 'user', content: 'wow, a marquee!' }],
@@ -42,7 +43,10 @@ async function collect<E>(stream: AsyncIterable<E>): Promise<E[]> {
 
 const narrate = (response: Response | Error, signal?: AbortSignal) => {
   const { repo, fetchFn } = repository(response);
-  return { events: collect<ShowNarrateStreamEvent>(repo.narrate(signal)), fetchFn };
+  return {
+    events: collect<ShowNarrateStreamEvent>(repo.narrate(RETRO_SCENARIO_ID, signal)),
+    fetchFn,
+  };
 };
 const reply = (response: Response | Error) => {
   const { repo, fetchFn } = repository(response);
@@ -137,7 +141,6 @@ describe('HttpShowRepository.reply', () => {
       v: 3,
       locale: 'en',
       kind: 'reply',
-      scenario: RETRO_SCENARIO_ID,
       ...input,
     });
   });

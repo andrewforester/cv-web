@@ -58,6 +58,7 @@ describe('validateShowRequest', () => {
   it('answers an unknown scenario id with unsupported_version (an old tab goes scripted)', () => {
     expect(codeOf({ ...NARRATE_BODY, scenario: 'retro-0' })).toBe('unsupported_version');
     expect(codeOf(replyBody({ scenario: 'retro-1' as never }))).toBe('unsupported_version');
+    expect(codeOf({ ...NARRATE_BODY, scenario: 'toString' })).toBe('unsupported_version');
   });
 
   it('accepts 19 messages (the most that end with the visitor), answers 21 with conversation_limit', () => {

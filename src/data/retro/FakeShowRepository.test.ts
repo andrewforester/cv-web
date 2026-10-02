@@ -1,7 +1,7 @@
 import type { ChatUsage } from '../chat/contract';
 import type { ShowReplyStreamEvent } from './contract';
 import { FAKE_SHOW_REPLY, FakeShowRepository } from './FakeShowRepository';
-import { RETRO_FINALE_FALLBACK, RETRO_STEPS } from './scenario';
+import { RETRO_FINALE_FALLBACK, RETRO_SCENARIO_ID, RETRO_STEPS } from './scenario';
 import type { ShowReplyInput } from './ShowRepository';
 
 const usage: ChatUsage = {
@@ -11,6 +11,7 @@ const usage: ChatUsage = {
   cacheCreationInputTokens: 0,
 };
 const input: ShowReplyInput = {
+  scenario: RETRO_SCENARIO_ID,
   step: 'fonts',
   stepsDone: 0,
   messages: [{ role: 'user', content: 'much better already' }],
@@ -23,17 +24,17 @@ async function collect<E>(stream: AsyncIterable<E>): Promise<E[]> {
 }
 
 describe('FakeShowRepository', () => {
-  it('narrates the manifest fallbacks by default', async () => {
+  it("narrates that scenario's fallbacks by default and records the scenario", async () => {
     const repository = new FakeShowRepository();
 
-    const events = await collect(repository.narrate());
+    const events = await collect(repository.narrate(RETRO_SCENARIO_ID));
 
     expect(events).toEqual([
       ...RETRO_STEPS.map((step) => ({ type: 'line', key: step.id, text: step.fallback })),
       { type: 'line', key: 'finale', text: RETRO_FINALE_FALLBACK },
       expect.objectContaining({ type: 'done', stopReason: 'end_turn' }),
     ]);
-    expect(repository.narrateCalls).toBe(1);
+    expect(repository.narrateScenarios).toEqual([RETRO_SCENARIO_ID]);
   });
 
   it('replies with a scripted line by default and records the input', async () => {
@@ -72,8 +73,12 @@ describe('FakeShowRepository', () => {
     const error = { code: 'rate_limited' as const, message: 'slow down', retryable: true };
     const repository = new FakeShowRepository().narrateWith([{ type: 'error', error }]);
 
-    expect(await collect(repository.narrate())).toEqual([{ type: 'error', error }]);
-    expect(await collect(repository.narrate())).toEqual([{ type: 'error', error }]);
+    expect(await collect(repository.narrate(RETRO_SCENARIO_ID))).toEqual([
+      { type: 'error', error },
+    ]);
+    expect(await collect(repository.narrate(RETRO_SCENARIO_ID))).toEqual([
+      { type: 'error', error },
+    ]);
   });
 
   it('ends a held-open stream without a terminal event when the signal aborts', async () => {

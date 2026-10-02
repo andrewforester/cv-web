@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
+import type { ShowScenarioId } from '../data/retro';
 
 // The show's chunk, replaced per test (vi.doMock + a fresh module registry) so each test controls
 // whether and when the hook's `import()` of it resolves.
@@ -15,7 +16,11 @@ function deferred() {
   return { promise, resolve };
 }
 
-async function renderShowCase(atLoad: boolean, chunk: Promise<void> = Promise.resolve()) {
+async function renderShowCase(
+  atLoad: boolean,
+  chunk: Promise<void> = Promise.resolve(),
+  page: { scenario?: ShowScenarioId } = { scenario: 'retro-3' },
+) {
   vi.resetModules();
   const importShow = vi.fn(async () => {
     await chunk;
@@ -23,7 +28,7 @@ async function renderShowCase(atLoad: boolean, chunk: Promise<void> = Promise.re
   });
   vi.doMock(SHOW_MODULE, importShow);
   const { useShowCase } = await import('./useShowCase');
-  return { importShow, ...renderHook(() => useShowCase(atLoad)) };
+  return { importShow, ...renderHook(() => useShowCase(page.scenario, atLoad)) };
 }
 
 describe('useShowCase: the seam that starts the show', () => {
@@ -76,5 +81,15 @@ describe('useShowCase: the seam that starts the show', () => {
     chunk.resolve();
     await waitFor(() => expect(result.current.showing).toBe(true));
     expect(result.current.pending).toBe(false);
+  });
+
+  it('a page without a scenario has no show: neither ?retro=1 nor start() requests it', async () => {
+    const { result, importShow } = await renderShowCase(true, Promise.resolve(), {});
+    expect(result.current).toMatchObject({ showing: false, pending: false, Show: null });
+
+    act(() => result.current.start());
+    await act(() => Promise.resolve());
+    expect(result.current).toMatchObject({ showing: false, pending: false, Show: null });
+    expect(importShow).not.toHaveBeenCalled();
   });
 });

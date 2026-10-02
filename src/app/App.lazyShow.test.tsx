@@ -57,6 +57,19 @@ describe('App: the show as a lazy chunk', () => {
     expect(shell()).not.toHaveClass('pending');
   });
 
+  it('show mode on a page without a scenario (/new) never requests the show', async () => {
+    window.history.replaceState(null, '', '/new');
+    try {
+      const importShow = await renderApp('show', async () => ({ RetroShowRoute: StubShow }));
+      expect(await screen.findByTestId(chatTestIds.fab)).toBeInTheDocument();
+      expect(importShow).not.toHaveBeenCalled();
+      expect(shell()).not.toHaveClass('pending');
+      expect(stage()).toBeNull();
+    } finally {
+      window.history.replaceState(null, '', '/');
+    }
+  });
+
   it('show mode keeps the stage hidden until the show has loaded, then runs it', async () => {
     const chunk = deferred();
     const importShow = await renderApp('show', async () => {

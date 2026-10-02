@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { RETRO_STEPS } from '../../../src/data/retro/scenario.js';
+import { RETRO_SCENARIO_ID, RETRO_STEPS } from '../../../src/data/retro/scenario.js';
+import { SHOW_SCENARIOS } from '../../../src/data/retro/scenarios.js';
 import { replyBody, VISITOR_TEXT } from '../../test/helpers.js';
 import { HAIKU_4_5, SONNET_5_5 } from '../llm/modelOptions.js';
 import {
@@ -12,25 +13,39 @@ import {
   NARRATE_INSTRUCTIONS,
   NARRATE_REQUEST_TEXT,
   REPLY_INSTRUCTIONS,
-  SHOW_OUTLINE,
+  showOutline,
 } from './showPrompt.js';
+
+const CV_SHOW = SHOW_SCENARIOS[RETRO_SCENARIO_ID];
+const CV_OUTLINE = showOutline(CV_SHOW);
+
+describe('showOutline', () => {
+  it("renders `/`'s outline byte for byte as before the per-page split (same cache prefix)", () => {
+    const lines = RETRO_STEPS.map(({ id, intent }) => `${id}: ${intent}`);
+    expect(CV_OUTLINE).toBe(`<outline>\n${lines.join('\n')}\n</outline>`);
+    expect(CV_OUTLINE.split('\n')).toHaveLength(10);
+    expect(CV_OUTLINE).toMatch(/^<outline>\nfonts: .+\nlinks: .+\n<\/outline>$/s);
+  });
+});
 
 describe('buildNarrateRequest', () => {
   it('sends the instructions and the outline of every step, no CV knowledge', () => {
-    const request = buildNarrateRequest(HAIKU_4_5);
+    const request = buildNarrateRequest(CV_SHOW, HAIKU_4_5);
     expect(request.system).toEqual([
       { type: 'text', text: NARRATE_INSTRUCTIONS },
-      { type: 'text', text: SHOW_OUTLINE, cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: CV_OUTLINE, cache_control: { type: 'ephemeral' } },
     ]);
-    for (const { id, intent } of RETRO_STEPS) expect(SHOW_OUTLINE).toContain(`${id}: ${intent}`);
+    for (const { id, intent } of RETRO_STEPS) expect(CV_OUTLINE).toContain(`${id}: ${intent}`);
     expect(request.messages).toEqual([{ role: 'user', content: NARRATE_REQUEST_TEXT }]);
     expect(request.max_tokens).toBe(NARRATE_MAX_TOKENS);
     expect(request).not.toHaveProperty('tools');
   });
 
   it('is identical for every visitor, with the model knobs', () => {
-    expect(buildNarrateRequest(SONNET_5_5)).toEqual(buildNarrateRequest(SONNET_5_5));
-    expect(buildNarrateRequest(SONNET_5_5)).toMatchObject({
+    expect(buildNarrateRequest(CV_SHOW, SONNET_5_5)).toEqual(
+      buildNarrateRequest(CV_SHOW, SONNET_5_5),
+    );
+    expect(buildNarrateRequest(CV_SHOW, SONNET_5_5)).toMatchObject({
       model: 'claude-sonnet-5-5',
       ...SONNET_5_5.knobs,
     });
@@ -47,10 +62,15 @@ describe('buildReplyRequest', () => {
   });
 
   it('orders the system blocks: instructions, outline, knowledge (cache marker)', () => {
-    const request = buildReplyRequest(conversation, '<knowledge>CV</knowledge>', HAIKU_4_5);
+    const request = buildReplyRequest(
+      conversation,
+      CV_SHOW,
+      '<knowledge>CV</knowledge>',
+      HAIKU_4_5,
+    );
     expect(request.system).toEqual([
       { type: 'text', text: REPLY_INSTRUCTIONS },
-      { type: 'text', text: SHOW_OUTLINE },
+      { type: 'text', text: CV_OUTLINE },
       { type: 'text', text: '<knowledge>CV</knowledge>', cache_control: { type: 'ephemeral' } },
     ]);
     expect(request.max_tokens).toBe(REPLY_MAX_TOKENS);
@@ -59,7 +79,7 @@ describe('buildReplyRequest', () => {
   });
 
   it('puts the show state as data on the latest message only, visitor text as sent', () => {
-    const request = buildReplyRequest(conversation, 'K', HAIKU_4_5);
+    const request = buildReplyRequest(conversation, CV_SHOW, 'K', HAIKU_4_5);
     expect(request.messages).toEqual([
       { role: 'user', content: 'Hi' },
       { role: 'assistant', content: 'Hello! Fixing the fonts.' },
@@ -75,7 +95,12 @@ describe('buildReplyRequest', () => {
   });
 
   it('sends a null step before the first step', () => {
-    const request = buildReplyRequest(replyBody({ step: null, stepsDone: 0 }), 'K', HAIKU_4_5);
+    const request = buildReplyRequest(
+      replyBody({ step: null, stepsDone: 0 }),
+      CV_SHOW,
+      'K',
+      HAIKU_4_5,
+    );
     const content = request.messages.at(-1)?.content;
     expect(Array.isArray(content) && content[0]).toEqual({
       type: 'text',

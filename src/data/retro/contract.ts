@@ -4,7 +4,8 @@
  * because `server/**` runs this file on Node. Errors, stop reasons and usage are v1's.
  */
 import type { ChatError, ChatMessage, ChatStopReason, ChatUsage } from '../chat/contract.js';
-import type { RetroNarrationKey, RetroScenarioId, RetroStepId } from './scenario.js';
+import type { RetroNarrationKey, RetroStepId } from './scenario.js';
+import type { ShowScenarioId } from './scenarios.js';
 
 export const CHAT_API_VERSION_V3 = 3;
 
@@ -23,7 +24,7 @@ export interface ShowNarrateRequest {
   v: typeof CHAT_API_VERSION_V3;
   locale: 'en';
   kind: 'narrate';
-  scenario: RetroScenarioId;
+  scenario: ShowScenarioId;
 }
 
 /** `reply`: answer the visitor; `messages` alternate, start and end with `user` (v1 rules). */
@@ -31,7 +32,7 @@ export interface ShowReplyRequest {
   v: typeof CHAT_API_VERSION_V3;
   locale: 'en';
   kind: 'reply';
-  scenario: RetroScenarioId;
+  scenario: ShowScenarioId;
   /** The step on screen when the message was sent; `null` before the first step. */
   step: RetroStepId | null;
   stepsDone: number;

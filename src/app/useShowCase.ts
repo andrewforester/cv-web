@@ -1,4 +1,5 @@
 import { useCallback, useLayoutEffect, useState } from 'react';
+import type { ShowScenarioId } from '../data/retro';
 import { useLazyShow, type LazyShow } from './useLazyShow';
 
 export interface ShowCase {
@@ -14,15 +15,17 @@ export interface ShowCase {
 }
 
 /**
- * The seam that starts the Retro Rebuild show (docs/retro/ARCHITECTURE.md §9 → Round 5): at page
- * load when `atLoad` (`?retro=1`), otherwise when `start` is called. Today's site stays on screen
- * while the show's lazy chunk loads; then one commit puts the stage on, mounts the show (its damage
- * layers go in before paint) and scrolls to the top, so the broken page starts at its head.
+ * The seam that starts the Retro Rebuild show of the page's `scenario` (docs/retro/ARCHITECTURE.md
+ * §9 → Round 5, §10): at page load when `atLoad` (`?retro=1`), otherwise when `start` is called.
+ * Today's site stays on screen while the show's lazy chunk loads; then one commit puts the stage
+ * on, mounts the show (its damage layers go in before paint) and scrolls to the top, so the broken
+ * page starts at its head. A page without a scenario has no show: the seam stays off.
  */
-export function useShowCase(atLoad: boolean): ShowCase {
-  const [wanted, setWanted] = useState(atLoad);
-  const [cold] = useState(atLoad);
-  const start = useCallback(() => setWanted(true), []);
+export function useShowCase(scenario: ShowScenarioId | undefined, atLoad: boolean): ShowCase {
+  const hasShow = scenario !== undefined;
+  const [wanted, setWanted] = useState(hasShow && atLoad);
+  const [cold] = useState(hasShow && atLoad);
+  const start = useCallback(() => setWanted(hasShow), [hasShow]);
   const end = useCallback(() => setWanted(false), []);
   const { Show } = useLazyShow(wanted, end);
   const showing = wanted && Show !== null;

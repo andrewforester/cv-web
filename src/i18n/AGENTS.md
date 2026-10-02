@@ -10,4 +10,4 @@ English.
 
 Place in the architecture: provided by `src/app/AppProviders.tsx`. Each screen owns its strings
 namespace in `src/screens/<screen>/strings.ts`; the shared `common` namespace (switcher labels,
-loading/error) belongs to Theme. CV content is not strings: it comes localized from `src/data`.
+loading/error, the shared Show case button) belongs to Theme. CV content is not strings: it comes localized from `src/data`.

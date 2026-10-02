@@ -5,8 +5,11 @@ import underConstruction from './assets/retro_sign_under_construction.svg';
 import styles from './Decorations.module.css';
 import { retroStrings } from './strings';
 
-/** The 2002 footer: construction sign, hit counter, 88×31 badges, webring and last-updated line. */
-export function PageFooter() {
+/**
+ * The 2002 footer: construction sign, hit counter, 88×31 badges, the page's webring and the
+ * last-updated line.
+ */
+export function PageFooter({ webringName }: { webringName: string }) {
   const strings = useStrings(retroStrings);
   return (
     <div className={styles.footer}>
@@ -27,7 +30,7 @@ export function PageFooter() {
       </p>
       <p>
         [ <span className={styles.fakeLink}>{strings.webringPrev}</span> |{' '}
-        <span className={styles.fakeLink}>{strings.webringName}</span> |{' '}
+        <span className={styles.fakeLink}>{webringName}</span> |{' '}
         <span className={styles.fakeLink}>{strings.webringNext}</span> ]
       </p>
       <p>{strings.lastUpdated}</p>

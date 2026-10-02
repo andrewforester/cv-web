@@ -2,14 +2,9 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { currentChunk, targetQuery, type CurrentChunk } from './engine/chunkSelectors';
 import { createLayerHost, type StageStyles } from './engine/layerHost';
 import { activeLayers, appliedTokens, runningModules } from './engine/showSelectors';
-import type { ShowState, TokenValue } from './engine/showTypes';
+import type { DamageLayer, ShowState, TokenValue } from './engine/showTypes';
 import motionStyles from './RetroMotion.module.css';
-import {
-  DAMAGE_LAYERS,
-  HOST_VARIABLES,
-  type ShowModuleId,
-  type ShowModuleLoaders,
-} from './scenario';
+import { HOST_VARIABLES, type ShowModuleId, type ShowModuleLoaders } from './scenario';
 import { useBodyClass } from './useBodyClass';
 import type { ShowDispatch } from './useShowRunner';
 
@@ -33,9 +28,15 @@ function morphTargets(chunk: CurrentChunk | null, reducedMotion: boolean): strin
 export function useShowStage(
   state: ShowState,
   dispatch: ShowDispatch,
-  options: { loaders: ShowModuleLoaders; onDone?: () => void; pageTitle: string },
+  options: {
+    /** The scenario's damage layers. */
+    layers: Readonly<Record<string, DamageLayer>>;
+    loaders: ShowModuleLoaders;
+    onDone?: () => void;
+    pageTitle: string;
+  },
 ) {
-  const [host] = useState(() => createLayerHost(document, DAMAGE_LAYERS, HOST_VARIABLES));
+  const [host] = useState(() => createLayerHost(document, options.layers, HOST_VARIABLES));
   const layers = activeLayers(state);
   const layersKey = layers.join(' ');
   const tokensKey = JSON.stringify(appliedTokens(state));
