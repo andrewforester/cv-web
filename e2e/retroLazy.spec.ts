@@ -90,6 +90,5 @@ test('a show chunk that fails to load leaves the normal site, without an uncaugh
   await expect(page.getByTestId('chat-fab')).toBeVisible();
   await expect(page.getByTestId('cv-name')).toBeVisible();
   await expect(page.locator('[data-retro-stage], style[data-retro-layer]')).toHaveCount(0);
-  expect(await page.evaluate(() => sessionStorage.getItem('retro.done'))).toBe('1');
   expect(uncaught).toEqual([]);
 });

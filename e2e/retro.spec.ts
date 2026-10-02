@@ -22,9 +22,11 @@ import { collectErrors, NORMAL_SITE, SCREENSHOT_DIR, SHOW_SITE } from './support
 // a model.
 test.use({ locale: 'en-US' });
 
-/** The mid-show screenshot is taken once this step's group has run this many chunks. */
+/**
+ * The mid-show screenshot is taken once this step's first chunk has run: its echo carries the
+ * step's narration comment (Round 5) above the command.
+ */
 const MID_SHOW_STEP = 4;
-const MID_SHOW_CHUNKS = 2;
 /** Time for the AI chat's first-visit hint and similar timers, the same on both pages. */
 const AFTER_MS = 3_000;
 /** Below this the show has skipped chunks: 36 chunks with a 1 s beat each take ≈ 90 s. */
@@ -104,8 +106,11 @@ test.describe('with reduced motion', () => {
         checked.add(chunk.input);
         await expectChunkApplied(page, chunk);
       }
-      if (!screenshot && group?.startsWith(`${MID_SHOW_STEP}/`) && ran.length >= MID_SHOW_CHUNKS) {
+      if (!screenshot && group?.startsWith(`${MID_SHOW_STEP}/`) && ran.length > 0) {
         screenshot = true;
+        // The step's narration is a comment above its first command; the chat stays silent.
+        expect(ran[0]?.input).toMatch(/^\/\/ (?!→)/);
+        await expect(page.getByTestId('retro-chat-log')).not.toContainText('Images:');
         await page.screenshot({ path: `${SCREENSHOT_DIR}/retro-mid.png` });
       }
     });
@@ -121,6 +126,27 @@ test.describe('with reduced motion', () => {
     expect(errors).toEqual([]);
   });
 
+  test('the intro: the page alone, our chat with two lines, then DevTools', async ({ page }) => {
+    const errors = collectErrors(page);
+    await page.clock.install();
+    await page.goto(SHOW_SITE);
+    await expect(page.getByTestId('cv-name')).toBeVisible();
+    await expect(page.getByTestId('retro-dock')).toHaveCount(0);
+
+    await page.clock.runFor(1_000);
+    const log = page.getByRole('log', { name: 'Conversation with the agent' });
+    await expect(log).toContainText("That's how this CV would look like in 2001.");
+    await expect(log).not.toContainText("Now let's fix it.");
+    await page.clock.runFor(1_000);
+    await expect(log).toContainText("Now let's fix it.");
+    await expect(page.getByTestId('retro-console')).toHaveCount(0);
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/retro-intro.png` });
+
+    await page.clock.runFor(1_000);
+    await expect(page.getByTestId('retro-console')).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
   test('the agent chat is the site chat card and the highlight is the Elements selection', async ({
     page,
   }) => {
@@ -131,9 +157,6 @@ test.describe('with reduced motion', () => {
     const chat = page.getByTestId('retro-chat');
     await expect(chat.getByRole('heading', { name: 'Agent' })).toBeVisible();
     await expect(chat.getByText('Fixing this site live')).toBeVisible();
-    await expect(chat.getByRole('log', { name: 'Conversation with the agent' })).toContainText(
-      "Hello. This is Andrew's CV",
-    );
     await expect(chat).not.toContainText('***');
     // The site's chat tokens, shielded from the damage layers that restyle `:root`.
     await expect(chat).toHaveCSS('font-family', /Inter/);
@@ -176,25 +199,11 @@ test('with motion on the show ends on the normal page within its time budget', a
   expect(showMs).toBeGreaterThan(MIN_SHOW_MS);
 });
 
-test.describe('who gets the show', () => {
-  test('an English desktop visitor, once per browser session', async ({ page }) => {
-    await page.goto('./');
-    await expect(page.locator(stageSelector)).toHaveCount(1);
-
-    await page.evaluate(() => sessionStorage.setItem('retro.done', '1'));
-    await page.reload();
-    await expect(page.getByTestId('cv-name')).toBeVisible();
-    await expect(page.locator(stageSelector)).toHaveCount(0);
-    await expect(page.getByTestId('chat-fab')).toBeVisible();
-  });
-
-  test.describe('Ukrainian browser', () => {
-    test.use({ locale: 'uk-UA' });
-
-    test('gets the normal site', async ({ page }) => {
-      await page.goto('./');
-      await expect(page.getByTestId('chat-fab')).toBeVisible();
-      await expect(page.locator(stageSelector)).toHaveCount(0);
-    });
-  });
+test('the show never starts on its own: without ?retro=1 the visitor gets today’s site', async ({
+  page,
+}) => {
+  await page.goto('./');
+  await expect(page.getByTestId('cv-name')).toBeVisible();
+  await expect(page.getByTestId('chat-fab')).toBeVisible();
+  await expect(page.locator(stageSelector)).toHaveCount(0);
 });

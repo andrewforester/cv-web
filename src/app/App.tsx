@@ -10,7 +10,7 @@ import { useShowCase } from './useShowCase';
 
 /**
  * App shell: header with the language switcher, the CV page, and the floating AI chat. When the
- * Retro Rebuild show is started (`?retro=1`, or `showCase.start` for the Show case button) it runs
+ * Retro Rebuild show is started (`?retro=1`, or `useShowCase`'s `start` for the Show case button) it runs
  * over the same tree (`data-retro-stage`), so `CvRoute` never remounts; the AI chat is off the page
  * until the show's last step loads it. The show is a lazy chunk: at a `?retro=1` load the shell
  * stays hidden until it has loaded, so the first visible frame is already the broken page.
@@ -24,9 +24,8 @@ export function App() {
     },
   });
 
-  // `showCase.start` is the seam for the Show case button (R24).
-  const showCase = useShowCase(useRetroMode() === 'show');
-  const { showing, pending, Show, end } = showCase;
+  // Its `start` is the seam for the Show case button (R24).
+  const { showing, pending, Show, end } = useShowCase(useRetroMode() === 'show');
   // Today's site loads the chat at start; after a show it is already there (or loads if it failed).
   const { Chat, load } = useLazyChat(!showing && !pending);
   const loaders = useMemo(() => ({ 'ai-chat': load }), [load]);

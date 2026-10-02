@@ -3,7 +3,7 @@ import type { Page } from '@playwright/test';
 /** Screenshots land here; CI uploads the folder as the `web-smoke-screenshots` artifact. */
 export const SCREENSHOT_DIR = 'web-check';
 
-/** Today's site: English desktop browsers would otherwise get the retro show (src/app/retroMode). */
+/** Today's site (the default since Round 5; `?retro=0` kept explicit) and the show (src/app/retroMode). */
 export const NORMAL_SITE = './?retro=0';
 export const SHOW_SITE = './?retro=1';
 

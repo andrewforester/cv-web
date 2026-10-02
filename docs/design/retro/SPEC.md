@@ -246,8 +246,8 @@ Each step's narration is typed as `// …` comment lines at the start of the ste
 ```
 ▾ 3/8 layout
 › // Layout: replacing the fixed-width table layout,
-  // standard practice at the time, with a centred
-  // column and grids.
+  // standard practice at the time, with a centred column
+  // and grids.
   // → page
   document.querySelector('style[data-retro-layer="page-frame"]').remove()
 <· undefined
