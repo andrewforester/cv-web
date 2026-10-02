@@ -4,6 +4,7 @@ import { AgentToolRegistry } from '../agent';
 import { StaticCvRepository } from '../data';
 import { buildAgentToolSpecs } from '../data/chat';
 import { cvTestIds } from '../screens/cv/testIds';
+import { profileTestIds } from '../screens/profile/testIds';
 import { languageSwitcherTestIds } from '../shared/LanguageSwitcher/testIds';
 import { App } from './App';
 import { AppProviders } from './AppProviders';
@@ -49,5 +50,33 @@ describe('App', () => {
     expect(await call('uk')).toEqual({ ok: true });
     expect(await call('de')).toEqual({ ok: false, error: 'invalid_params' });
     expect(document.documentElement.lang).toBe('uk');
+  });
+
+  describe('routes', () => {
+    afterEach(() => window.history.replaceState(null, '', '/'));
+
+    function renderAt(path: string) {
+      window.history.replaceState(null, '', path);
+      render(
+        <AppProviders locale="en">
+          <App />
+        </AppProviders>,
+      );
+    }
+
+    it('renders the profile on /new, with the shared language switcher', async () => {
+      renderAt('/new');
+
+      expect(await screen.findByTestId(profileTestIds.name)).toHaveTextContent('Andrew Panasiuk');
+      expect(screen.queryByTestId(cvTestIds.root)).not.toBeInTheDocument();
+      expect(screen.getByTestId(languageSwitcherTestIds.option('uk'))).toBeInTheDocument();
+    });
+
+    it('still renders the CV on /', async () => {
+      renderAt('/');
+
+      expect(await screen.findByTestId(cvTestIds.name)).toHaveTextContent('Andrew Panasiuk');
+      expect(screen.queryByTestId(profileTestIds.root)).not.toBeInTheDocument();
+    });
   });
 });

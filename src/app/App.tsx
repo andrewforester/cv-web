@@ -2,10 +2,12 @@ import { useAgentTools } from '../agent';
 import { useLocale, type Locale } from '../i18n';
 import { ChatRoute } from '../screens/chat/ChatRoute';
 import { CvRoute } from '../screens/cv/CvRoute';
+import { ProfileRoute } from '../screens/profile/ProfileRoute';
 import { LanguageSwitcher } from '../shared/LanguageSwitcher/LanguageSwitcher';
 import styles from './App.module.css';
+import { pageFor } from './routes';
 
-/** App shell: header with the language switcher, the CV page, and the floating AI chat. */
+/** App shell: header with the language switcher, the page for the URL, and the floating AI chat. */
 export function App() {
   const { locale, setLocale } = useLocale();
   useAgentTools({
@@ -21,7 +23,7 @@ export function App() {
         <LanguageSwitcher locale={locale} onChange={setLocale} />
       </header>
       <main className={styles.main}>
-        <CvRoute />
+        {pageFor(window.location.pathname) === 'profile' ? <ProfileRoute /> : <CvRoute />}
       </main>
       <ChatRoute />
     </div>
