@@ -50,6 +50,7 @@ Guessing starts when the context is full of the wrong things.
 3. Upload the web screenshot(s) to the ticket as `COORDINATION.md` → Tracker → Screenshots says (never into git) and write the **report** as a ticket comment:
    - deviations from the design and why;
    - stubs, `TODO`s, questions and the options you took;
+   - **follow-ups**: anything the feature needs that you didn't do (out of zone, "not cheap", left for later), one line each with what the user would miss without it; the orchestrator turns each into a ticket or raises it with the human;
    - how you verified it, and what you installed.
 4. Update the PR body (template `.github/pull_request_template.md`): keep the ticket reference, add a short summary of what changed. Nothing else about the task goes into the PR.
 5. Mark the PR **Ready for review** as the last step of the work: it starts CI and is the orchestrator's signal. Then **stay on the PR until it is merged**: fix red CI, and handle the review (below). Don't schedule check-ins: follow the PR by events (Tooling → Code host); the orchestrator closes your session after the merge.

@@ -21,6 +21,8 @@ While `AGENTS.md` or `docs/COORDINATION.md` still contain `TODO(scaffold)`, the 
 ## Before filing: settle the scope
 Ask the human, in one message, what is **out of scope** when the request doesn't say so (e.g. "the header and the nav bar visible in the screenshot: include or not?"). A running session doesn't reliably see later edits, so scope must be final before launch. If it does change later, comment on the ticket and the PR **and** check the result for it before merging.
 
+When you work on your own (no answer, or "take defaults"), every exclusion you decide yourself (a brief's **Out of scope**, an architecture choice like "the chat stays shared and keeps its old knowledge") is a scope decision for the human: list it on the project when you file the tasks, and again in the report under **Excluded by me**. Look especially for parts of the request that touch more than one area (a new page's content *and* the chat that talks about pages): split them into explicit requirements, or explicitly exclude them.
+
 ## Turn a request into tasks
 Small bugs and polish items: follow `.claude/skills/quick-fix` instead of the steps below.
 
@@ -100,12 +102,15 @@ After the merge (by the reviewer or by you):
 - The backend deploy check (Tooling → Notifications and deploy checks) right away.
 - **Close out the developer session right away:** read its token usage, then archive or remove it (Tooling → Sessions). The review session archives itself and posts its own token numbers on the ticket; take them from there.
 - Closing comment on the ticket: merged PR, verification summary, review rounds.
-- **Usage tables** (`COORDINATION.md` → Tracker → Usage): put the ticket's table (a row per session, in / cache / out / total tokens, ≈ $) at the top of the ticket description, and add the ticket's row to the table at the top of the project description, with the total updated. Tokens are the measure; dollars only by the rough formula there.
+- **Follow-ups never pile up silently.** Every follow-up, "not done", "out of zone" or "should later" item in a session's or reviewer's report becomes either a ticket (Backlog, with the report linked) or a line under **Open gaps** in the report to the human, with your judgement: product gap (what the user gets is wrong or missing) or tech debt. A product gap goes to the top of the report. Don't file them only as "debt" in a closing comment.
+- **Usage tables** (`COORDINATION.md` → Tracker → Usage): put the ticket's table (a row per session: ≈ $, then in / cache / out / total tokens) at the top of the ticket description, and add the ticket's row to the table at the top of the project description, with the total updated. Tokens are the measure; dollars only by the rough formula there.
 - Then run **Dispatch**.
 - Don't watch CI on `main`: the `qa-release` session does and reverts or files a fix when it goes red. Before each merge, check that the latest CI run on `main` isn't red; if it is, merge only the fix or revert.
 - Report to the human with links (Tooling → Notifications):
   - the deliverables from `AGENTS.md` → Git & CI;
-  - **Usage** table in tokens (same columns as the ticket tables): each finished ticket, your own session, and the round total; link the project, whose description carries the running table;
+  - **Excluded by me**: the scope decisions you took yourself (see Before filing);
+  - **Open gaps**: product gaps first, then tech debt, each with its ticket or "not filed";
+  - **Usage** table (same columns as the ticket tables, ≈ $ first): each finished ticket, your own session, and the round total; link the project, whose description carries the running table;
   - the queue: tickets still Todo/Backlog and what each waits for;
   - what a human still has to check on a real device or another browser.
 - A red `main` is the top priority: pick up the QA fix task first.
