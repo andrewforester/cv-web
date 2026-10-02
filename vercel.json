@@ -4,7 +4,10 @@
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/new", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/new", "destination": "/index.html" },
+    { "source": "/new/", "destination": "/index.html" }
+  ],
   "functions": {
     "api/chat.ts": { "maxDuration": 60, "supportsCancellation": true }
   }
