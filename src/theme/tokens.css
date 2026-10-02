@@ -1,81 +1,17 @@
 /*
  * Design tokens: the only place for colours, type, spacing and radii.
- * Values come from docs/design/cv/SPEC.md (Tokens, Scale); sizes are Figma pt x 1.5, in px.
+ * Values come from docs/design/forest/SPEC.md (Tokens); the page-agent highlight still uses the
+ * one colour kept from the previous look (docs/design/cv/SPEC.md).
  */
 :root {
-  /* Colours */
-  --color-bg: #ffffff;
-  --color-text: #001670;
+  /* Colours kept from the previous look: the page-agent highlight (below) points at it */
   --color-text-secondary: #445598;
-  --color-text-muted: rgba(0, 22, 112, 0.6);
-  --color-card-border: #49cc8f;
-  --color-highlight: #efbf04;
-  --gradient-ai: linear-gradient(
-    38deg,
-    rgba(255, 0, 0, 0.53) 0%,
-    rgba(255, 255, 0, 0.53) 23.6%,
-    rgba(14, 29, 246, 0.53) 48.6%,
-    rgba(228, 19, 243, 0.53) 76.4%,
-    rgba(238, 10, 14, 0.53) 100%
-  );
-  --color-app-text: #202124;
-  --color-app-muted: #717479;
-  --color-app-accent: rgba(3, 135, 95, 0.9);
-  --color-app-border: rgba(3, 135, 95, 0.8);
 
-  /* Shadows */
-  --shadow-card: 0 4px 12px rgba(25, 198, 89, 0.25);
-  --shadow-book: 0 3px 6px rgba(0, 0, 0, 0.25);
-
-  /* Typography */
-  --font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --letter-spacing: 0.02em;
-  --letter-spacing-app: 0.0078em;
-  --font-name-size: 24px;
-  --font-name-line-height: 24px;
-  --font-name-weight: 700;
-  --font-section-size: 21px;
-  --font-section-line-height: 22px;
-  --font-section-weight: 500;
-  --font-subsection-size: 17px;
-  --font-subsection-line-height: 17px;
-  --font-subsection-weight: 500;
+  /* Body text (global.css) */
   --font-body-size: 15px;
   --font-body-line-height: 22px;
   --font-body-weight: 400;
-  --font-education-size: 17px;
-  --font-education-line-height: 21px;
-  --font-education-weight: 400;
-  --font-card-title-size: 15px;
-  --font-card-title-line-height: 16px;
-  --font-card-title-weight: 600;
-  --font-card-body-size: 14px;
-  --font-card-body-line-height: 20px;
-  --font-card-body-weight: 400;
-  --font-meta-size: 14px;
-  --font-meta-line-height: 14px;
-  --font-meta-weight: 400;
-  --font-tag-size: 11px;
-  --font-tag-line-height: 12px;
-  --font-tag-weight: 400;
-  --font-book-title-size: 15px;
-  --font-book-title-line-height: 15px;
-  --font-book-title-weight: 400;
-  --font-book-author-size: 13px;
-  --font-book-author-line-height: 13px;
-  --font-book-author-weight: 400;
-  --font-app-name-size: 17px;
-  --font-app-name-line-height: 17px;
-  --font-app-name-weight: 500;
-  --font-app-publisher-size: 9px;
-  --font-app-publisher-line-height: 9px;
-  --font-app-publisher-weight: 500;
-  --font-app-value-size: 15px;
-  --font-app-value-line-height: 15px;
-  --font-app-value-weight: 500;
-  --font-app-label-size: 12px;
-  --font-app-label-line-height: 12px;
-  --font-app-label-weight: 400;
+  --letter-spacing: 0.02em;
 
   /* Spacing (4 px grid) */
   --space-1: 4px;
@@ -89,13 +25,7 @@
   --space-9: 48px;
 
   /* Shape */
-  --radius-card: 12px;
-  --radius-logo: 9px;
   --border-card: 1px;
-
-  /* Layout */
-  --content-max-width: 672px;
-  --page-gutter: 24px;
 
   /* Forest (docs/design/forest/SPEC.md, Tokens). Chat tokens (--forest-chat-*) are below. */
   --forest-bg: #ffffff;

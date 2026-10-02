@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react';
 import { classNames } from './classNames';
+import type { DataAttributes } from './dataAttributes';
 import styles from './Section.module.css';
 import { SectionLabel } from './SectionLabel';
 
@@ -10,6 +11,7 @@ interface SectionProps {
   /** `rows`: hairline rows follow the label closely (experience, skills). */
   variant?: 'blocks' | 'rows';
   testId?: string;
+  attributes?: DataAttributes;
   children: ReactNode;
 }
 
@@ -20,6 +22,7 @@ export function Section({
   title,
   variant = 'blocks',
   testId,
+  attributes,
   children,
 }: SectionProps) {
   const labelId = useId();
@@ -28,6 +31,7 @@ export function Section({
       className={classNames(styles.root, styles[variant], className)}
       aria-labelledby={labelId}
       data-testid={testId}
+      {...attributes}
     >
       <SectionLabel id={labelId} index={index} title={title} />
       {children}

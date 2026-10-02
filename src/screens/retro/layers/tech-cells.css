@@ -1,12 +1,10 @@
-[data-retro-stage] [data-testid='cv-technology-card'] {
+[data-retro-stage] [data-testid='forest-skill'] {
   gap: 2px;
   padding: 4px;
   border: 2px inset #c0c0c0;
   border-radius: 0;
   box-shadow: none;
 }
-
-[data-retro-stage] [data-testid='cv-technology-card'] > img,
-[data-retro-stage] [data-testid='cv-technology-card']::before {
+[data-retro-stage] [data-testid='forest-skill']::before {
   display: none;
 }

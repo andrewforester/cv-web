@@ -68,7 +68,7 @@ async function expectEndsAsNormalSite(page: Page, screenshot?: string): Promise<
 
   await expect.poll(() => leftovers(page)).toEqual([]);
   await expect(page.getByTestId('chat-fab')).toBeVisible();
-  await expect(page.getByTestId('app-header')).toBeVisible();
+  await expect(page.getByTestId('language-switcher')).toBeVisible();
   await expect.poll(async () => differences(await snapshotPage(page), normal)).toEqual([]);
   if (screenshot) await page.screenshot({ path: `${SCREENSHOT_DIR}/${screenshot}` });
 
@@ -86,7 +86,7 @@ test.describe('with reduced motion', () => {
     const errors = collectErrors(page);
     await page.clock.install();
     await page.goto(SHOW_SITE);
-    await expect(page.getByTestId('cv-name')).toBeVisible();
+    await expect(page.getByTestId('forest-name')).toBeVisible();
     const checked = new Set<string>();
     const groups: string[] = [];
     let screenshot = false;
@@ -130,7 +130,7 @@ test.describe('with reduced motion', () => {
     const errors = collectErrors(page);
     await page.clock.install();
     await page.goto(SHOW_SITE);
-    await expect(page.getByTestId('cv-name')).toBeVisible();
+    await expect(page.getByTestId('forest-name')).toBeVisible();
     await expect(page.getByTestId('retro-dock')).toHaveCount(0);
 
     await page.clock.runFor(1_000);
@@ -203,7 +203,7 @@ test('the show never starts on its own: without ?retro=1 the visitor gets todayâ
   page,
 }) => {
   await page.goto('./');
-  await expect(page.getByTestId('cv-name')).toBeVisible();
+  await expect(page.getByTestId('forest-name')).toBeVisible();
   await expect(page.getByTestId('chat-fab')).toBeVisible();
   await expect(page.locator(stageSelector)).toHaveCount(0);
 });

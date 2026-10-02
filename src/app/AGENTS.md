@@ -1,7 +1,7 @@
 # app
 
-Why it exists: the shell that turns the pieces into the site: the header with the language
-switcher, the page for the URL, and the floating AI chat over it. Over the CV (`/`) it starts the
+Why it exists: the shell that turns the pieces into the site: the page for the URL with the
+language switcher in its meta bar, and the floating AI chat over it. Over the CV (`/`) it starts the
 Retro Rebuild show (the CV turns into a broken 2002 site and an "agent" fixes it live) when asked,
 and otherwise shows today's site. It is also the single place where the app decides which data
 sources it uses.
@@ -13,8 +13,8 @@ Domain terms:
   replays; today's site stays until the show's chunk has loaded, then the page scrolls to the top
   and turns broken in one commit. The AI chat is off the page while the show runs (its open
   conversation is lost) until the show's last step loads it.
-- **Stage:** the shell carrying `data-retro-stage` while the show runs; the show's damage layers
-  select only under it. The header keeps `data-testid="app-header"` so a layer can hide it.
+- **Stage:** the shell's wrapper (page + chat) carrying `data-retro-stage` while the show runs;
+  the show's damage layers select only under it.
 
 Place in the architecture: the top of the tree. `AppProviders` wires i18n, the data bindings
 (the CV and profile repositories, today one instance over the bundled JSON; the chat repository,
@@ -38,8 +38,9 @@ and the AI chat loads.
 Rules and limits:
 - Owner: Scaffold. Screens may only register their own route in `App.tsx`.
 - Two pages, no router library: `routes.ts` maps `/new` to the profile screen and every other path
-  to the CV; header, language switcher and chat are shared. Production serves `/new` through the
-  rewrite in `vercel.json`; Vite dev/preview fall back to `index.html` by themselves.
+  to the CV; both are Forest pages that lay themselves out; the language switcher and chat are
+  shared. Production serves `/new` through the rewrite in `vercel.json`; Vite dev/preview fall
+  back to `index.html` by themselves.
 - Entry point is `src/main.tsx` (global styles, providers, `App`).
 - Reduced motion is read by the show itself. The Show case button (start and replay) is R24;
   the show is desktop and English only (the start seam doesn't check either yet).

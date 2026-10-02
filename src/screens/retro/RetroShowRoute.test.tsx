@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { AppProviders } from '../../app/AppProviders';
 import { FAKE_SHOW_REPLY, FakeShowRepository, ShowRepositoryContext } from '../../data/retro';
-import { cvTestIds } from '../cv/testIds';
+import { forestTestIds } from '../../shared/forest/testIds';
 import { RetroShowRoute } from './RetroShowRoute';
 import { RetroStageTestHarness } from './RetroStageTestHarness';
 import { retroStrings } from './strings';
@@ -104,11 +104,11 @@ describe('retro show screen', { timeout: 60_000 }, () => {
 
   it('opens broken, fixes the page step by step and ends on the real site', async () => {
     // The site's own token value: the colours step prints it and sets it inline.
-    siteStyle(':root { --color-bg: #ffffff; }');
-    const inlineBg = () => document.documentElement.style.getPropertyValue('--color-bg');
+    siteStyle(':root { --forest-bg: #ffffff; }');
+    const inlineBg = () => document.documentElement.style.getPropertyValue('--forest-bg');
     const { loaders, onDone } = renderShow();
     await advance(0);
-    expect(screen.getByTestId(cvTestIds.name)).toBeInTheDocument();
+    expect(screen.getByTestId(forestTestIds.name)).toBeInTheDocument();
     expect(layers()).toHaveLength(32);
     expect(document.getElementById('oh-snap')).toHaveTextContent(strings.noteTitle);
     expect(screen.queryByTestId(retroTestIds.dock)).not.toBeInTheDocument();
@@ -141,7 +141,7 @@ describe('retro show screen', { timeout: 60_000 }, () => {
 
     await advanceUntil(() => inlineBg() !== '', 40_000);
     expect(inlineBg()).toBe('#ffffff');
-    expect(log).toHaveTextContent("style.setProperty('--color-bg', '#ffffff')");
+    expect(log).toHaveTextContent("style.setProperty('--forest-bg', '#ffffff')");
     expect(log).toHaveTextContent('✓ base-colors: 1 token set');
 
     await advance(80_000);
@@ -212,12 +212,12 @@ describe('retro show screen', { timeout: 60_000 }, () => {
   });
 
   it('shields the dock from the damage token layers with the live site values', async () => {
-    siteStyle(':root { --color-bg: #ffffff; --font-family: Inter; }');
+    siteStyle(':root { --forest-bg: #ffffff; --forest-font-display: Inter; }');
     renderShow();
     await advance(3_000);
     const dock = screen.getByTestId(retroTestIds.dock);
-    expect(dock.style.getPropertyValue('--color-bg')).toBe('#ffffff');
-    expect(dock.style.getPropertyValue('--font-family')).toBe('Inter');
+    expect(dock.style.getPropertyValue('--forest-bg')).toBe('#ffffff');
+    expect(dock.style.getPropertyValue('--forest-font-display')).toBe('Inter');
   });
 
   it('highlights the current chunk while it types, flashes it at the apply, then lets go', async () => {
@@ -241,13 +241,13 @@ describe('retro show screen', { timeout: 60_000 }, () => {
     // Chunk 1 targets the name and every section title.
     const boxes = screen.getAllByTestId(retroTestIds.highlightBox);
     const titles = document.querySelectorAll(
-      "[data-retro-stage] [data-testid='cv-name'], [data-retro-stage] h2",
+      "[data-retro-stage] [data-testid='forest-name'], [data-retro-stage] h2",
     );
     expect(boxes.length).toBe(titles.length);
     expect(boxes[0]).toHaveStyle({ left: '10px', top: '100px', width: '200px', height: '40px' });
     // Several matches: the first one's tag and class, and how many there are.
     const plate = screen.getByTestId(retroTestIds.highlightPlate);
-    expect(plate).toHaveTextContent(`h1.name × ${boxes.length}`);
+    expect(plate).toHaveTextContent(`p.name × ${boxes.length}`);
   });
 
   it('tints the page area for a page-wide chunk, with the body plate', async () => {

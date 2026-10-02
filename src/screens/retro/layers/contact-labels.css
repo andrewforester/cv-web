@@ -1,12 +1,10 @@
-[data-retro-stage] address p::before {
+[data-retro-stage] [data-testid='forest-contact']::before {
   margin-right: 4px;
   font-weight: 700;
 }
-
 [data-retro-stage] [data-agent-id='contact:email']::before {
   content: 'E-mail me:';
 }
-
-[data-retro-stage] address p:has([data-agent-id='contact:phone'])::before {
+[data-retro-stage] [data-agent-id='contact:phone']::before {
   content: 'Phone:';
 }

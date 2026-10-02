@@ -25,7 +25,7 @@ function declarations(css: string): [property: string, value: string][] {
 /** A change that can't interpolate, so it must morph (§9: font family, layout, `display` …). */
 function isStructural([property, value]: [string, string]): boolean {
   return (
-    /^(font-family|--font-family|display|float|text-align|content|object-position|object-fit)$/.test(
+    /^(font-family|--forest-font-\w+|display|float|text-align|content|object-position|object-fit)$/.test(
       property,
     ) ||
     /^(grid-template-|list-style)/.test(property) ||

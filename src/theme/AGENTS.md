@@ -1,10 +1,11 @@
 # theme
 
-Why it exists: the site's visual language in one place, so every screen looks like the Figma
+Why it exists: the site's visual language in one place, so every screen looks like the design
 reference (`docs/COORDINATION.md` → Design source of truth) and a style change is a token change,
-not a hunt through components. Tokens come from `docs/design/cv/SPEC.md`: colours, the AI
-gradient, shadows, radii, the type scale per role, the spacing scale, content width and gutters,
-and the page-agent highlight.
+not a hunt through components. Tokens come from `docs/design/forest/SPEC.md` (below), plus the
+spacing scale, the body text, the chat's sizes and the page-agent highlight. Of the previous look
+(`docs/design/cv/SPEC.md`) only `--color-text-secondary` is left: the highlight colour points at
+it until the Theme moves it to a Forest colour.
 
 Place in the architecture: global CSS custom properties, fonts and base styles, imported once by
 `src/main.tsx`; every CSS Module reads `var(--token)`. No TypeScript mirror: add one only when code
@@ -21,8 +22,8 @@ Rules and limits:
   group (the DevTools panel's Chrome-light surfaces, text, badge and syntax colours, fonts, plate shadow).
   The Win98/terminal tokens stay until R16/R17 stop reading them, then they are removed.
 - Fonts are self-hosted, Latin and Cyrillic only, a fixed set of weights; Cyrillic files load only
-  when Cyrillic text is on the page. Inter is the current site's font; Forest adds Onest (display),
-  IBM Plex Sans (text) and JetBrains Mono (meta). Inter goes when the last screen leaves it.
+  when Cyrillic text is on the page: Onest (display, the body default), IBM Plex Sans (text) and
+  JetBrains Mono (meta). Inter is no longer imported (its npm package is still installed).
 
 Forest tokens (`docs/design/forest/SPEC.md`; the names are the contract for screen and chat tasks,
 all in `tokens.css`; the AI chat uses them, plus its own `--forest-chat-*` from
