@@ -958,8 +958,8 @@ unchanged; `?retro=1` on `/new` starts the `/new` show; the in-show chat works a
   export interface ShowScenarioManifest {
     /** The wire `scenario` value. */
     id: string;
-    /** Whose content grounds the in-show replies: today's CV or the `/new` profile. */
-    page: 'cv' | 'profile';
+    /** Whose content grounds the in-show replies (`ChatPage` from `src/data/chat/contract.ts`, ADR-0004). */
+    page: ChatPage;
     /** In `RETRO_STEP_IDS` order: every scenario has the same eight step ids. */
     steps: readonly RetroStepMeta[];
     finale: string;
@@ -1007,11 +1007,12 @@ unchanged; `?retro=1` on `/new` starts the `/new` show; the in-show chat works a
 - `buildShowRequest.ts`: `buildNarrateRequest(manifest, model)`, `buildReplyRequest(request,
   manifest, knowledge, model)`; `showStateBlock` reads `of` from the manifest. `planShow.ts` looks
   up the manifest by `request.scenario`. The log line gains `showScenario` (an id, not text).
-- **Replies on `/new`** ground in the manifest's `page`. Today the server has one knowledge
-  source (the CV); CV-94 designs per-page knowledge for the AI chat. The `/new` data task passes
-  `manifest.page` to that loader if CV-94's backend has merged; otherwise `/new` replies use the
-  CV knowledge (the same person; `/new`'s impact and loop facts missing) and the task files the
-  follow-up. Question on CV-95; that conservative option is the default.
+- **Replies on `/new`** ground in `/new`'s content, like the AI chat on that page (ADR-0004:
+  "the chat answers only about the page it is on"; it leaves the show's choice to this section,
+  "its `scenario` id can select it"). `planShow` passes the manifest's `page` to the per-page
+  knowledge loader CV-96 builds (`server/chat/knowledge/assembleKnowledge.ts`, per page and
+  locale; the show is EN, so `profile.en.json`); `/`'s replies keep the CV knowledge byte for
+  byte. Until CV-96 has merged the loader takes no page, which is why task B is blocked by it.
 - `showFakeScript.ts` (`CHAT_FAKE_LLM=1`): its narration keys are the shared step ids, so it works
   for `/new` as is; the data task adds `/new`-worded lines, picked by the outline block, so dev
   mode reads like the page.
@@ -1083,6 +1084,13 @@ Order: **A** first (it blocks B and C). Then **B** and **C** in parallel: C star
 contract C codes against; B merges before C. A and B, and A and C, share a few files, but only
 in sequence (A is merged first); **B and C share none**.
 
+**Against the page-aware chat tasks (ADR-0004 → Build split):** A shares files with CV-96
+(`server/chat/show/planShow.ts`, `server/chat/log.ts`, `server/test/helpers.ts`) and CV-97
+(`src/app/App.tsx`, `src/shared/forest/AGENTS.md`, `src/screens/cv/AGENTS.md`), so **A is
+blocked by CV-96 and CV-97** (same file = hard dependency); B uses CV-96's per-page knowledge
+loader, so it is blocked by CV-96 too (already true through A). CV-97 adds `data-agent-id`s to
+`/new`; C's layers don't use them, so nothing else depends on it.
+
 **A. Plumbing** (Development; no `/new` content; `/` unchanged):
 - `src/app/`: `App.tsx`, `useShowCase.ts` + `useShowCase.test.tsx`, `showScenarios.ts` (new,
   `cv` only) + test, `useShowCaseAvailable.ts` (new), `App.showCase.test.tsx` (new: button
@@ -1112,8 +1120,9 @@ in sequence (A is merged first); **B and C share none**.
   `scenarios.ts` (register `retro-new-1`, page `profile`), `scenarioNew.test.ts` (new: ids in
   order, one-line intents, fallbacks ≤ 200 chars and verbatim), `AGENTS.md`.
 - `server/chat/show/`: `showPrompt.ts` (`SHOW_PROMPT_VERSION` bump), `showFakeScript.ts` + test
-  (`/new` lines by outline), `planShow.ts` (replies' knowledge by `manifest.page`, per Replies
-  above) + test, `validateShow.test.ts`, `buildShowRequest.test.ts` (the `/new` outline lists its
+  (`/new` lines by outline), `planShow.ts` (replies' knowledge by `manifest.page` through CV-96's
+  loader, per Replies above) + test (a `/new` reply carries `/new`'s knowledge, a `/` reply the
+  CV's, unchanged), `validateShow.test.ts`, `buildShowRequest.test.ts` (the `/new` outline lists its
   intents); a handler test with the fake LLM: `narrate` on `retro-new-1` streams 8 lines and the
   finale, `reply` carries the `/new` outline.
 - Done when: with `CHAT_FAKE_LLM=1`, `curl -N -X POST localhost:5173/api/chat … -d

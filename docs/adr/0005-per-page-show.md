@@ -68,8 +68,11 @@ and editing `/`'s files to fit both (changes `/`'s show, against the brief).
 - Harder: a shared layer file is a two-page contract (a change for `/` must still match `/new`);
   `ShowRepository` calls carry the scenario; the guards iterate scenarios.
 - Revisit: per-page step ids if a page ever needs a step that isn't one of the eight concerns (that
-  is then a contract change); reply knowledge per page once CV-94's per-page knowledge exists (until
-  then `/new`'s in-show replies may ground in the CV knowledge).
+  is then a contract change); per-page instruction text for the narrate prompt if the `/new` golden check
+  (CV-45) shows the shared "2002 build" wording misleads the model.
+- Depends on the page-aware chat (ADR-0004): `/new`'s in-show replies ground in `/new`'s
+  knowledge through CV-96's per-page loader, and the plumbing shares files with CV-96 and CV-97,
+  so it starts after both.
 
 ## Action items
 
