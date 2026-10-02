@@ -1,9 +1,10 @@
 import { expect, type Page } from '@playwright/test';
 import { collectErrors, SCREENSHOT_DIR, type ShowUrls } from './support';
 
-// Helpers for the show specs (`retro.spec.ts` for `/`, `retroNew.spec.ts` for `/new`): drive a page's Retro Rebuild show on
-// Playwright's fake clock, read what the console printed and what the show left on the page
-// (docs/retro/ARCHITECTURE.md §1 → guards 3 and 4; §10: a page's URLs come as `ShowUrls`).
+// Helpers for the show specs (`retro.spec.ts` for `/`, `retroNew.spec.ts` for `/new`): drive a
+// page's Retro Rebuild show on Playwright's fake clock, read what the console printed and what the
+// show left on the page (docs/retro/ARCHITECTURE.md §1 → guards 3 and 4; §10: a page's URLs come
+// as `ShowUrls`).
 
 /** Fake time per turn of the loop; the runner is time-based, so the slice only sets the pace. */
 const SLICE_MS = 250;
@@ -13,8 +14,17 @@ export const SHOW_LIMIT_MS = 110_000;
 export const MIN_SHOW_MS = 60_000;
 
 export const stageSelector = '[data-retro-stage]';
-const leftoverSelector =
-  '[data-retro-stage], style[data-retro-layer], style[data-retro-host], style[data-retro-motion], #top-bar, #page-footer, #oh-snap, [data-testid="retro-decoration"], [data-testid="retro-dock"]';
+const leftoverSelector = [
+  '[data-retro-stage]',
+  'style[data-retro-layer]',
+  'style[data-retro-host]',
+  'style[data-retro-motion]',
+  '#top-bar',
+  '#page-footer',
+  '#oh-snap',
+  '[data-testid="retro-decoration"]',
+  '[data-testid="retro-dock"]',
+].join(', ');
 
 /** One row of the DevTools console: its kind (`data-kind`) and its text. */
 export interface ConsoleRowText {
@@ -198,7 +208,7 @@ export interface RanChunk {
   outcome: ConsoleRowText;
 }
 
-/** The chunks that have run, in order: each echo with its `✓` row (after `<· undefined`) or warning. */
+/** The chunks that have run, in order: each echo with its `✓` row (after `<· undefined`) or warn. */
 export function ranChunks(rows: ConsoleRowText[]): RanChunk[] {
   return rows.flatMap((row, index) => {
     if (row.kind !== 'echo') return [];
@@ -254,7 +264,7 @@ export async function expectChunkApplied(page: Page, { input, outcome }: RanChun
 /** Time for the AI chat's first-visit hint and similar timers, the same on both pages. */
 const AFTER_MS = 3_000;
 
-/** The page's show on a fake clock, from the first paint to the end. Returns its show time in ms. */
+/** The page's show on a fake clock, from the first paint to the end. Returns its show ms. */
 async function runShow(page: Page, urls: ShowUrls): Promise<number> {
   await page.clock.install();
   await page.goto(urls.show);

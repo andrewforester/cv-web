@@ -8,9 +8,10 @@ import { registeredSources, type RetroShowSource } from './scenarios';
 // motion fits its CSS.
 const sources = registeredSources();
 const chunksOf = ({ show }: RetroShowSource) => show.steps.flatMap((step) => step.chunks);
-const layerFiles = Object.keys(import.meta.glob('./layers/**/*.css', { query: '?raw' })).map(
-  (path) => path.replace(/^.*\/|\.css$/g, ''),
-);
+/** Every layer file by its path under `layers/` (subfolders too) with its CSS. */
+const layerFiles = Object.entries(
+  import.meta.glob<string>('./layers/**/*.css', { query: '?raw', import: 'default', eager: true }),
+).map(([path, css]) => ({ path: path.replace('./layers/', ''), css }));
 
 /** The declarations of a stylesheet: `[property, value]` from every `{ … }` block. */
 function declarations(css: string): [property: string, value: string][] {
@@ -38,9 +39,24 @@ function isStructural([property, value]: [string, string]): boolean {
   );
 }
 
-it('registers every layer file under layers/ with at least one scenario, and nothing else', () => {
-  const registered = new Set(sources.flatMap(([, { show }]) => Object.keys(show.layers)));
-  expect([...new Set(layerFiles)].sort()).toEqual([...registered].sort());
+it('registers every layer file under layers/ by its path, and nothing else', () => {
+  // Ids repeat across pages (`/new` has its own `heading-colors`), so a file is matched by its path
+  // (`<id>.css`, `new/<id>.css`) and its CSS: an orphan, a stale copy or a wrongly named file fails.
+  const registered = new Map(
+    sources.flatMap(([, { show }]) => Object.values(show.layers)).map((l) => [l.css, l.id]),
+  );
+  const matched = [...registered].map(([css, id]) =>
+    layerFiles
+      .filter(
+        (file) =>
+          file.css === css &&
+          /^(new\/)?[^/]+\.css$/.test(file.path) &&
+          file.path.replace(/^new\//, '') === `${id}.css`,
+      )
+      .map((file) => file.path),
+  );
+  expect(matched.filter((paths) => paths.length !== 1)).toEqual([]);
+  expect(layerFiles.map((file) => file.path).sort()).toEqual(matched.flat().sort());
 });
 
 describe.each(sources)('%s scenario (guard 1: completeness)', (scenario, source) => {
