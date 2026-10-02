@@ -4,10 +4,13 @@
  * `.js` specifiers because `server/**` runs this file on Node.
  */
 import type { Cv } from '../models.js';
+import type { Profile } from '../profile.js';
 import {
   AGENT_CONTACT_CHANNELS,
   AGENT_SECTION_IDS,
   CHAT_LOCALES,
+  PROFILE_CONTACT_CHANNELS,
+  PROFILE_SECTION_IDS,
   type AgentTargetId,
   type AgentTargetKind,
   type AgentToolCall,
@@ -57,10 +60,11 @@ export function agentTargetId(kind: AgentTargetKind, id: string): AgentTargetId 
   return `${kind}:${id}`;
 }
 
+const items = (kind: AgentTargetKind, list: readonly { id: string }[]) =>
+  list.map((item) => agentTargetId(kind, item.id));
+
 /** Every highlightable target: sections, CV items in data order, contacts. */
 export function agentTargetIds(cv: Cv): AgentTargetId[] {
-  const items = (kind: AgentTargetKind, list: { id: string }[]) =>
-    list.map((item) => agentTargetId(kind, item.id));
   return [
     ...AGENT_SECTION_IDS.map((id) => agentTargetId('section', id)),
     ...items('technology', cv.technologies),
@@ -68,6 +72,22 @@ export function agentTargetIds(cv: Cv): AgentTargetId[] {
     ...items('app', cv.apps),
     ...items('book', cv.books),
     ...AGENT_CONTACT_CHANNELS.map((id) => agentTargetId('contact', id)),
+  ];
+}
+
+/**
+ * Every highlightable target of `/new`, `<kind>:<id>`: sections, then impact cards, jobs
+ * (`experience:`, jobs then earlier jobs), apps, skill groups, books, contacts, in data order.
+ */
+export function profileTargetIds(profile: Profile): AgentTargetId[] {
+  return [
+    ...PROFILE_SECTION_IDS.map((id) => agentTargetId('section', id)),
+    ...items('impact', profile.impact),
+    ...items('experience', [...profile.jobs, ...profile.earlier]),
+    ...items('app', profile.apps),
+    ...items('skill', profile.skills),
+    ...items('book', profile.about.books),
+    ...PROFILE_CONTACT_CHANNELS.map((id) => agentTargetId('contact', id)),
   ];
 }
 
@@ -106,12 +126,51 @@ export function buildAgentToolSpecs(cv: Cv): AgentToolSpec[] {
       inputSchema: oneEnumParam('section', 'The section to scroll to.', AGENT_SECTION_IDS),
       confirm: false,
     },
+    switchLanguageSpec(),
+  ];
+  return sortByName(specs);
+}
+
+/** The `/new` catalogue: deterministic (sorted by name, ids in data order), the same in every locale. */
+export function buildProfileToolSpecs(profile: Profile): AgentToolSpec[] {
+  const specs: AgentToolSpec[] = [
     {
-      name: 'switchLanguage',
-      description: 'Switch the page language: en = English, uk = Ukrainian.',
-      inputSchema: oneEnumParam('locale', 'The language to switch to.', CHAT_LOCALES),
+      name: 'highlightElement',
+      description:
+        'Scroll to a section or item of the page and briefly highlight it, e.g. an impact card, a job, an app, a skill group, a book or a contact.',
+      inputSchema: oneEnumParam('target', 'The element to highlight.', profileTargetIds(profile)),
       confirm: false,
     },
+    {
+      name: 'openContact',
+      description: 'Open a contact channel of Andrew (email or phone). The visitor confirms first.',
+      inputSchema: oneEnumParam('channel', 'The contact channel.', PROFILE_CONTACT_CHANNELS),
+      confirm: true,
+    },
+    {
+      name: 'scrollToSection',
+      description: 'Scroll the profile page to a section.',
+      inputSchema: oneEnumParam(
+        'section',
+        'The section to scroll to. impact = "Selected impact", loop = "How I build with agents", footer = the closing call to action.',
+        PROFILE_SECTION_IDS,
+      ),
+      confirm: false,
+    },
+    switchLanguageSpec(),
   ];
+  return sortByName(specs);
+}
+
+function switchLanguageSpec(): AgentToolSpec {
+  return {
+    name: 'switchLanguage',
+    description: 'Switch the page language: en = English, uk = Ukrainian.',
+    inputSchema: oneEnumParam('locale', 'The language to switch to.', CHAT_LOCALES),
+    confirm: false,
+  };
+}
+
+function sortByName(specs: AgentToolSpec[]): AgentToolSpec[] {
   return specs.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 }
