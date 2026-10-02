@@ -33,7 +33,7 @@ describe('validateChatRequest: v2', () => {
       messages: body.messages.map((m) => ({ ...m, extra: 1 })),
     };
     const result = validateChatRequest(withExtras);
-    expect(result).toEqual({ ok: true, request: { ...body, toolRound: 1 } });
+    expect(result).toEqual({ ok: true, request: { ...body, page: 'cv', toolRound: 1 } });
   });
 
   it('keeps only known page fields and sorts page.tools', () => {

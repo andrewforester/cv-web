@@ -80,6 +80,22 @@ describe('chat on each page', () => {
     expect(texts(chatTestIds.command)).toEqual(commands);
   });
 
+  it.each<[ChatPage, Locale, string, string]>([
+    ['cv', 'en', 'AI assistant · answers from this CV', 'I answer from his CV.'],
+    ['cv', 'uk', 'ШІ-асистент · відповідає за резюме', 'я відповідаю на основі його резюме.'],
+    ['profile', 'en', 'AI assistant · answers from this page', 'I answer from this page.'],
+    [
+      'profile',
+      'uk',
+      'ШІ-асистент · відповідає за сторінкою',
+      'я відповідаю на основі цієї сторінки.',
+    ],
+  ])('says what it answers from on the %s page (%s)', async (page, locale, subtitle, greeting) => {
+    await renderOpenChat(locale, { page });
+    expect(screen.getByRole('dialog')).toHaveAccessibleDescription(subtitle);
+    expect(inList().getAllByRole('listitem')[0]).toHaveTextContent(new RegExp(`${greeting}$`));
+  });
+
   it.each<[ChatPage, string]>([
     ['cv', '/'],
     ['profile', '/new'],

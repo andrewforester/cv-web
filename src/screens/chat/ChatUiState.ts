@@ -78,6 +78,10 @@ export interface ChatUiState {
   /** The next question would break the conversation limits: offer a new chat. */
   readonly conversationFull: boolean;
   readonly announcement: ChatAnnouncement | null;
+  /** The header's subtitle: what the assistant answers from on this page. */
+  readonly subtitle: string;
+  /** The assistant's first message on this page. */
+  readonly greeting: string;
   /** The page's first questions, offered under the greeting. */
   readonly suggestions: readonly string[];
   /** The page's example commands; empty while its tools aren't mounted. */

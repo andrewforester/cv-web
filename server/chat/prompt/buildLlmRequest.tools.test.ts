@@ -12,6 +12,7 @@ import { pageStateBlock } from './renderMessagesV2.js';
 import { INSTRUCTIONS, PAGE_TOOL_INSTRUCTIONS } from './systemPrompt.js';
 
 const chat = (toolRound: number, ...messages: Parameters<typeof v2Body>): ValidatedChatV2 => ({
+  page: 'cv',
   ...v2Body(...messages),
   toolRound,
 });

@@ -15,13 +15,13 @@ const withPage = (page: object) => ({
 });
 
 describe('validateChatRequest: page-aware v2', () => {
-  it('keeps the page when sent, and resolves an absent one to the CV', () => {
+  it('carries the page when sent, and resolves an absent one to the CV', () => {
     const profile = validateChatRequest(profileBody());
     expect(profile.ok && profile.request).toMatchObject({ page: 'profile', toolRound: 0 });
     expect(profile.ok && chatPageOf(profile.request)).toBe('profile');
 
     const legacy = validateChatRequest(v2Body());
-    expect(legacy.ok && 'page' in legacy.request).toBe(false);
+    expect(legacy.ok && legacy.request).toMatchObject({ page: 'cv' });
     expect(legacy.ok && chatPageOf(legacy.request)).toBe('cv');
 
     const cv = validateChatRequest({ ...v2Body(), page: 'cv' });

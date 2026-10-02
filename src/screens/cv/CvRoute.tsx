@@ -11,6 +11,6 @@ interface CvRouteProps {
 /** Connects the CV state holder to the stateless screen and offers the page tools to the chat. */
 export function CvRoute({ metaBarEnd }: CvRouteProps) {
   const { state, highlight } = useCvState();
-  useCvAgentTools(state.status === 'ready' ? state.cv : null, highlight);
+  useCvAgentTools(state, highlight);
   return <CvScreen state={state} metaBarEnd={metaBarEnd} />;
 }

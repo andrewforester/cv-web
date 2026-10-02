@@ -100,7 +100,7 @@ for (const { locale, browserLocale, question, before, after } of cases) {
 
 test('highlights a CV item with the highlight marker', async ({ page }) => {
   const errors = collectErrors(page);
-  await scriptToolRound(page, {
+  const requests = await scriptToolRound(page, {
     before: 'Here.',
     call: { id: 'toolu_e2e_h', name: 'highlightElement', input: { target: 'section:apps' } },
     after: 'Done.',
@@ -108,8 +108,23 @@ test('highlights a CV item with the highlight marker', async ({ page }) => {
   await page.goto(NORMAL_SITE);
   await ask(page, 'highlight the apps');
 
-  await expect(page.locator('[data-agent-id="section:apps"]')).toBeInViewport();
+  const apps = page.locator('[data-agent-id="section:apps"]');
+  await expect(apps).toBeInViewport();
+  await expect(apps).toHaveAttribute('data-agent-highlighted');
   await expect(page.getByTestId('chat-action-chip').first()).toBeVisible();
+  await expect(page.getByTestId('chat-assistant-message').last()).toContainText('Done.');
+
+  // The next question's snapshot says what the visitor sees now (the highlight lasts 3 s).
+  await page.getByTestId('chat-input').fill('what is this?');
+  await page.getByTestId('chat-input').press('Enter');
+  await expect.poll(() => requests.length).toBe(3);
+  expect(requests[0]).toMatchObject({
+    messages: [{ page: { activeSection: 'header', highlighted: null } }],
+  });
+  const next = requests[2] as { messages: unknown[] };
+  expect(next.messages.at(-1)).toMatchObject({
+    page: { activeSection: 'apps', highlighted: 'section:apps' },
+  });
   expect(errors).toEqual([]);
 });
 
@@ -174,7 +189,10 @@ for (const { locale, browserLocale } of cases) {
         locale === 'en' ? 'Selected impact' : 'Вибрані результати',
       );
       expect(requests).toHaveLength(2);
-      expect(requests[0]).toMatchObject({ page: 'profile' });
+      expect(requests[0]).toMatchObject({
+        page: 'profile',
+        messages: [{ page: { activeSection: 'header', highlighted: null } }],
+      });
       expect(errors).toEqual([]);
     });
   });

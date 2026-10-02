@@ -8,7 +8,11 @@ import type { ValidatedChatV2 } from '../validateParts.js';
 import { buildLlmRequest } from './buildLlmRequest.js';
 import { LLM_TOOLS, LLM_TOOLS_BY_PAGE } from './llmTools.js';
 
-const validated = (body: ReturnType<typeof v2Body>): ValidatedChatV2 => ({ ...body, toolRound: 0 });
+const validated = (body: ReturnType<typeof v2Body>): ValidatedChatV2 => ({
+  page: 'cv',
+  ...body,
+  toolRound: 0,
+});
 
 describe('buildLlmRequest: per page', () => {
   it('sends the CV catalogue without a page and on cv: the same request byte for byte', () => {

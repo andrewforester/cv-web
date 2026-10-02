@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AgentToolRegistry } from '../../agent';
+import { AgentToolRegistry, type AgentPageView } from '../../agent';
 import { AppProviders } from '../../app/AppProviders';
 import { buildAgentToolSpecs, FakeChatRepository } from '../../data/chat';
 import { StaticCvRepository } from '../../data/mock/StaticCvRepository';
@@ -332,5 +332,34 @@ describe('chat over the real tool registry', () => {
     expect(repository.requests.at(-1)?.messages.at(-1)).toMatchObject({
       toolResults: [{ result: { ok: true } }],
     });
+  });
+
+  it("sends the page's view (section in view, highlighted target) with each question", async () => {
+    const cv = await new StaticCvRepository().getCv('en');
+    const registry = new AgentToolRegistry(buildAgentToolSpecs(cv));
+    let view: AgentPageView = { activeSection: 'apps', highlighted: 'app:savant' };
+    registry.setViewSource(() => view);
+    const repository = new FakeChatRepository();
+    const user = userEvent.setup();
+    render(
+      <AppProviders chatRepository={repository} locale="en" agentRegistry={registry}>
+        <ChatRoute />
+      </AppProviders>,
+    );
+    await user.click(screen.getByTestId(chatTestIds.fab));
+    repository.reply(...answer('One.')).reply(...answer('Two.'));
+
+    await ask(user, 'What is this?');
+    expect(await inList().findByText('One.')).toBeInTheDocument();
+    expect(repository.requests[0]?.messages.at(-1)).toMatchObject({
+      page: { activeSection: 'apps', highlighted: 'app:savant' },
+    });
+
+    view = { activeSection: 'about', highlighted: null };
+    await ask(user, 'And this?');
+    expect(await inList().findByText('Two.')).toBeInTheDocument();
+    const [first, , second] = repository.requests[1]?.messages ?? [];
+    expect(first).toMatchObject({ page: { activeSection: 'apps', highlighted: 'app:savant' } });
+    expect(second).toMatchObject({ page: { activeSection: 'about', highlighted: null } });
   });
 });

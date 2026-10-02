@@ -78,7 +78,7 @@ for (const { locale, browserLocale, question, deltas, answer } of cases) {
                 locale,
                 viewport: 'desktop',
                 chat: 'card',
-                activeSection: null,
+                activeSection: 'header',
                 highlighted: null,
                 tools: ['highlightElement', 'openContact', 'scrollToSection', 'switchLanguage'],
               },

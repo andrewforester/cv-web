@@ -14,6 +14,8 @@ const FOLLOW_THRESHOLD_PX = 48;
 
 interface MessageListProps {
   className?: string;
+  /** The assistant's first message on this page. */
+  greeting: string;
   turns: readonly ChatTurn[];
   conversationFull: boolean;
   suggestions: readonly string[];
@@ -29,6 +31,7 @@ interface MessageListProps {
 /** The scrollable conversation: greeting, suggestions (empty state), turns, limit notice. */
 export function MessageList({
   className,
+  greeting,
   turns,
   conversationFull,
   suggestions,
@@ -77,7 +80,7 @@ export function MessageList({
       onScroll={onScroll}
     >
       <MessageRow author="assistant">
-        <p>{strings.greeting}</p>
+        <p>{greeting}</p>
       </MessageRow>
       {turns.length === 0 && (
         <li>
