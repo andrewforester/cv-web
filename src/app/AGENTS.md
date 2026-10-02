@@ -1,15 +1,18 @@
 # app
 
 Why it exists: the shell that turns the pieces into the site: the page for the URL with the
-language switcher in its meta bar, and the floating AI chat over it. Over the CV (`/`) it starts the
-Retro Rebuild show (the CV turns into a broken 2002 site and an "agent" fixes it live) when asked,
-and otherwise shows today's site. It is also the single place where the app decides which data
+Show case button and the language switcher in its meta bar, and the floating AI chat over it. On a
+page with a show (today `/`) it starts the Retro Rebuild show (the page turns into a broken 2002
+site and an "agent" fixes it live) when asked, and otherwise shows today's site. It is also the single place where the app decides which data
 sources it uses.
 
 Domain terms:
 - **Mode:** `show` or `normal` at page load (docs/retro/ARCHITECTURE.md §9 → Round 5): `?retro=1`
-  on `/` opens with the show, anything else is today's site. Nothing starts on its own any more.
-- **Show case / start seam** (`useShowCase`): `start()` for the CV's Show case button (R24, passed to `CvRoute`) and
+  on a page with a show opens with it, anything else is today's site. Nothing starts on its own.
+- **Scenario per page** (`showScenarios.ts`, ARCHITECTURE §10): which show a page runs (`/` →
+  `retro-3`; `/new` has none yet, so `?retro=1` there is today's profile). Adding a page's show is
+  one line here, landing together with its source in `src/screens/retro/scenarios.ts`.
+- **Show case / start seam** (`useShowCase`): `start()` for the Show case button (R24) and
   replays; today's site stays until the show's chunk has loaded, then the page scrolls to the top
   and turns broken in one commit. The AI chat is off the page while the show runs (its open
   conversation is lost) until the show's last step loads it.
@@ -23,7 +26,7 @@ the real `/api/chat`; the show repository, `/api/chat` `v: 3`) and the page-agen
 is one line there. Tests pass fakes, a fixed `retroMode` and a fixed `page` through its props. The shell also offers the `switchLanguage` tool to the page agent,
 since language is an app-level concern.
 
-Both modes render one tree shape, so `CvRoute` never remounts: the show (`RetroShowRoute`, from
+Both modes render one tree shape, so the page's route never remounts: the show (`RetroShowRoute`, from
 `src/screens/retro`) mounts next to the shell and portals its windows into `body`. The AI chat
 (`ChatRoute`) is a lazy chunk on both pages and in both modes: normal mode loads it at start; the
 show's last step loads it through the `ai-chat` loader, which resolves once the chat is rendered.
@@ -38,10 +41,11 @@ and the AI chat loads.
 Rules and limits:
 - Owner: Scaffold. Screens may only register their own route in `App.tsx`.
 - Two pages, no router library: `routes.ts` maps `/new` to the profile screen and every other path
-  to the CV; both are Forest pages that lay themselves out; the language switcher and chat are
-  shared. The page id (`cv` / `profile`) is the chat contract's: the shell passes it to the chat,
+  to the CV; both are Forest pages that lay themselves out; the shell composes their meta bar's end
+  (Show case button, language switcher) and the chat is shared. The page id (`cv` / `profile`) is the chat contract's: the shell passes it to the chat,
   which answers about that page and offers its own first questions. Production serves `/new` through the rewrite in `vercel.json`; Vite dev/preview fall
   back to `index.html` by themselves.
 - Entry point is `src/main.tsx` (global styles, providers, `App`).
-- Reduced motion is read by the show itself. The Show case button (start and replay) shows only for English on ≥ 1024 px (`CvRoute`
-  decides); the start seam itself doesn't check either.
+- Reduced motion is read by the show itself. The Show case button (start and replay) shows only
+  on a page with a scenario, for English, on ≥ 1024 px (`useShowCaseAvailable`); the start seam
+  itself checks only the scenario.

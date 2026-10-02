@@ -1,8 +1,9 @@
 import { expect, type Page } from '@playwright/test';
+import { collectErrors, SCREENSHOT_DIR, type ShowUrls } from './support';
 
-// Helpers for `retro.spec.ts`: drive the Retro Rebuild show on Playwright's fake clock, read what
-// the console printed and what the show left on the page (docs/retro/ARCHITECTURE.md §1 → guards
-// 3 and 4).
+// Helpers for the show specs (`retro.spec.ts` for `/`): drive a page's Retro Rebuild show on
+// Playwright's fake clock, read what the console printed and what the show left on the page
+// (docs/retro/ARCHITECTURE.md §1 → guards 3 and 4; §10: a page's URLs come as `ShowUrls`).
 
 /** Fake time per turn of the loop; the runner is time-based, so the slice only sets the pace. */
 const SLICE_MS = 250;
@@ -246,4 +247,58 @@ export async function expectChunkApplied(page: Page, { input, outcome }: RanChun
   if (loadsModule) await expect(page.getByTestId('chat-fab')).toBeVisible();
   const kinds = [removed, input.includes('document.documentElement'), decoration, loadsModule];
   expect(kinds.filter(Boolean), input).toHaveLength(1);
+}
+
+/** Time for the AI chat's first-visit hint and similar timers, the same on both pages. */
+const AFTER_MS = 3_000;
+
+/** The page's show on a fake clock, from the first paint to the end. Returns its show time in ms. */
+async function runShow(page: Page, urls: ShowUrls): Promise<number> {
+  await page.clock.install();
+  await page.goto(urls.show);
+  await expect(page.locator(stageSelector)).toHaveCount(1);
+  await expect(page.getByTestId('chat-fab')).toHaveCount(0);
+  const showMs = await runShowToEnd(page);
+  await page.clock.runFor(AFTER_MS);
+  return showMs;
+}
+
+/** The page as today's site in a second tab: the reference the ended show is compared with. */
+async function normalSiteSnapshot(
+  page: Page,
+  urls: ShowUrls,
+): Promise<{ snapshot: PageSnapshot; errors: string[] }> {
+  const normalPage = await page.context().newPage();
+  const errors = collectErrors(normalPage);
+  await normalPage.clock.install();
+  await normalPage.goto(urls.normal);
+  await expect(normalPage.getByTestId('chat-fab')).toBeVisible();
+  await normalPage.clock.runFor(AFTER_MS);
+  return { snapshot: await snapshotPage(normalPage), errors };
+}
+
+/**
+ * Guard 3: runs the page's show and checks that it left nothing (styles, stage, decorations,
+ * windows, motion styles and classes) and that every computed style equals the page with
+ * `?retro=0`. View transitions and CSS transitions run in real time, so the comparison retries
+ * until they have settled. Returns the show time in ms.
+ */
+export async function expectEndsAsNormalSite(
+  page: Page,
+  urls: ShowUrls,
+  screenshot?: string,
+): Promise<number> {
+  const errors = collectErrors(page);
+  const { snapshot: normal, errors: normalErrors } = await normalSiteSnapshot(page, urls);
+  const showMs = await runShow(page, urls);
+
+  await expect.poll(() => leftovers(page)).toEqual([]);
+  await expect(page.getByTestId('chat-fab')).toBeVisible();
+  await expect(page.getByTestId('language-switcher')).toBeVisible();
+  await expect.poll(async () => differences(await snapshotPage(page), normal)).toEqual([]);
+  if (screenshot) await page.screenshot({ path: `${SCREENSHOT_DIR}/${screenshot}` });
+
+  expect(Object.keys((await snapshotPage(page)).styles).length).toBeGreaterThan(100);
+  expect([...errors, ...normalErrors]).toEqual([]);
+  return showMs;
 }
