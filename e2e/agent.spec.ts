@@ -147,3 +147,35 @@ test.describe('openContact confirmation', () => {
     expect(errors).toEqual([]);
   });
 });
+
+// `/new` (ADR-0004): the same tools over `/new`'s own sections.
+for (const { locale, browserLocale } of cases) {
+  test.describe(`page agent on /new (${locale})`, () => {
+    test.use({ locale: browserLocale });
+
+    test('scrolls to the selected impact and names it in the chip', async ({ page }) => {
+      const errors = collectErrors(page);
+      const requests = await scriptToolRound(page, {
+        before: '',
+        call: { id: 'toolu_e2e_n', name: 'scrollToSection', input: { section: 'impact' } },
+        after: 'Done.',
+      });
+      await page.goto('./new');
+      const impact = page.locator('[data-agent-id="section:impact"]');
+      await expect(impact).not.toBeInViewport({ ratio: 1 });
+
+      await ask(page, 'impact');
+
+      await expect(impact).toBeInViewport({ ratio: 0.5 });
+      await expect
+        .poll(() => impact.evaluate((section) => Math.round(section.getBoundingClientRect().top)))
+        .toBeLessThan(200);
+      await expect(page.getByTestId('chat-action-chip').first()).toContainText(
+        locale === 'en' ? 'Selected impact' : 'Вибрані результати',
+      );
+      expect(requests).toHaveLength(2);
+      expect(requests[0]).toMatchObject({ page: 'profile' });
+      expect(errors).toEqual([]);
+    });
+  });
+}

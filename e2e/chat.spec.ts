@@ -68,6 +68,7 @@ for (const { locale, browserLocale, question, deltas, answer } of cases) {
         {
           v: 2,
           locale,
+          page: 'cv',
           messages: [
             {
               role: 'user',
@@ -150,3 +151,77 @@ for (const { locale, browserLocale, question, deltas, answer } of cases) {
     });
   }
 }
+
+// `/new` (ADR-0004): the chat offers `/new`'s own first questions and says which page it is on.
+const profileCases = [
+  {
+    locale: 'en',
+    browserLocale: 'en-US',
+    suggestions: [
+      'What does he build with AI?',
+      'How does he work with coding agents?',
+      'What impact has he had?',
+      'Which apps has he worked on?',
+    ],
+  },
+  {
+    locale: 'uk',
+    browserLocale: 'uk-UA',
+    suggestions: [
+      'Що він створює з ШІ?',
+      'Як він працює з агентами для програмування?',
+      'Яких результатів він досяг?',
+      'Над якими застосунками він працював?',
+    ],
+  },
+] as const;
+
+for (const { locale, browserLocale, suggestions } of profileCases) {
+  test.describe(`chat on /new (${locale})`, () => {
+    test.use({ locale: browserLocale });
+
+    test('offers /new’s questions and sends the profile page', async ({ page }) => {
+      const errors = collectErrors(page);
+      const requests: { page?: string; messages: { page?: { route: string } }[] }[] = [];
+      await page.route('**/api/chat', async (route) => {
+        requests.push(route.request().postDataJSON());
+        await route.fulfill({
+          status: 200,
+          headers: {
+            'Content-Type': 'text/event-stream; charset=utf-8',
+            'X-Chat-Api-Version': '2',
+          },
+          body: sseBody(['Agents.']),
+        });
+      });
+      await page.goto('./new#ask');
+
+      const dialog = page.getByRole('dialog');
+      await expect(dialog).toBeVisible();
+      await expect(dialog.getByTestId('chat-suggestion')).toHaveText([...suggestions]);
+      await dialog.evaluate((panel) =>
+        Promise.all(panel.getAnimations().map((animation) => animation.finished)),
+      );
+      await page.screenshot({ path: `${SCREENSHOT_DIR}/chat-new-${locale}.png` });
+
+      await dialog.getByRole('button', { name: suggestions[0] }).click();
+      await expect(dialog.getByTestId('chat-assistant-message')).toContainText('Agents.');
+      expect(requests).toHaveLength(1);
+      expect(requests[0]?.page).toBe('profile');
+      expect(requests[0]?.messages[0]?.page?.route).toBe('/new');
+      expect(errors).toEqual([]);
+    });
+  });
+}
+
+test('on / the chat still offers today’s questions', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto(`${NORMAL_SITE}#ask`);
+  await expect(page.getByRole('dialog').getByTestId('chat-suggestion')).toHaveText([
+    'What is his experience with Android?',
+    'Which AI tools does he use?',
+    'Which apps has he worked on?',
+    'Has he led a team?',
+  ]);
+  expect(errors).toEqual([]);
+});
