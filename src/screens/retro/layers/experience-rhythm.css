@@ -1,6 +1,7 @@
-[data-retro-stage] [data-testid='forest-job'] ul {
-  margin-top: 2px;
+[data-retro-stage] [data-testid='forest-job'] {
+  padding: 8px 0 12px;
 }
-[data-retro-stage] div:has(> [data-testid='forest-job']) {
-  gap: 12px;
+[data-retro-stage] [data-testid='forest-job'] ul {
+  gap: 0;
+  margin-top: 4px;
 }

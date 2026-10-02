@@ -4,7 +4,6 @@ import badgeNew from './assets/retro_badge_new.svg';
 import tileStars from './assets/retro_tile_stars.svg';
 import type { ModuleDisplay, ShowSource } from './engine/consolePlan';
 import type { DamageLayer } from './engine/showTypes';
-import aboutSpacingCss from './layers/about-spacing.css?raw';
 import appCellsCss from './layers/app-cells.css?raw';
 import appStackCss from './layers/app-stack.css?raw';
 import baseColorsCss from './layers/base-colors.css?raw';
@@ -14,6 +13,7 @@ import brokenIconCss from './layers/broken-icon.css?raw';
 import brokenPhotoCss from './layers/broken-photo.css?raw';
 import bulletsCss from './layers/bullets.css?raw';
 import cardColorsCss from './layers/card-colors.css?raw';
+import cardPaddingCss from './layers/card-padding.css?raw';
 import contactLabelsCss from './layers/contact-labels.css?raw';
 import decorRoomCss from './layers/decor-room.css?raw';
 import experienceHeadsCss from './layers/experience-heads.css?raw';
@@ -21,12 +21,12 @@ import experienceRhythmCss from './layers/experience-rhythm.css?raw';
 import headerLayoutCss from './layers/header-layout.css?raw';
 import headingColorsCss from './layers/heading-colors.css?raw';
 import headingRulesCss from './layers/heading-rules.css?raw';
-import hideHeaderCss from './layers/hide-header.css?raw';
+import hideMetaBarCss from './layers/hide-meta-bar.css?raw';
 import linkStyleCss from './layers/link-style.css?raw';
 import newBurstsCss from './layers/new-bursts.css?raw';
 import pageBackgroundCss from './layers/page-background.css?raw';
 import pageFrameCss from './layers/page-frame.css?raw';
-import squashedLogosCss from './layers/squashed-logos.css?raw';
+import squashedIconsCss from './layers/squashed-icons.css?raw';
 import techCellsCss from './layers/tech-cells.css?raw';
 import techFillsCss from './layers/tech-fills.css?raw';
 import techGridCss from './layers/tech-grid.css?raw';
@@ -65,7 +65,7 @@ export const DAMAGE_LAYERS = {
   'experience-heads': layer('experience-heads', experienceHeadsCss, 'rules'),
   'app-stack': layer('app-stack', appStackCss, 'rules'),
   'broken-photo': layer('broken-photo', brokenPhotoCss, 'rules'),
-  'squashed-logos': layer('squashed-logos', squashedLogosCss, 'rules'),
+  'squashed-icons': layer('squashed-icons', squashedIconsCss, 'rules'),
   'broken-icon': layer('broken-icon', brokenIconCss, 'rules'),
   'broken-cover': layer('broken-cover', brokenCoverCss, 'rules'),
   'tech-cells': layer('tech-cells', techCellsCss, 'rules'),
@@ -75,10 +75,10 @@ export const DAMAGE_LAYERS = {
   'heading-rules': layer('heading-rules', headingRulesCss, 'rules'),
   bullets: layer('bullets', bulletsCss, 'rules'),
   'experience-rhythm': layer('experience-rhythm', experienceRhythmCss, 'rules'),
-  'about-spacing': layer('about-spacing', aboutSpacingCss, 'rules'),
+  'card-padding': layer('card-padding', cardPaddingCss, 'rules'),
   'new-bursts': layer('new-bursts', newBurstsCss, 'rules'),
   'decor-room': layer('decor-room', decorRoomCss, 'rules'),
-  'hide-header': layer('hide-header', hideHeaderCss, 'rules'),
+  'hide-meta-bar': layer('hide-meta-bar', hideMetaBarCss, 'rules'),
   'link-style': layer('link-style', linkStyleCss, 'rules'),
   'contact-labels': layer('contact-labels', contactLabelsCss, 'rules'),
 } as const satisfies Record<string, DamageLayer>;

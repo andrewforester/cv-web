@@ -15,8 +15,8 @@ Start here, in this order:
 1. [`ARCHITECTURE.md`](ARCHITECTURE.md) **section 9**: what is built and where, the final
    decisions, round 3 as built (atomic chunks, motion, highlight, smooth close; GRA-49–53), round 5
    (the Show case flow: start on request, intro and close in the chat, narration as DevTools
-   comments; GRA-87), round 6 (the show over the Forest `/` after merging `main`, and what R23
-   must redo; GRA-89), how to add or change a fix chunk, the known debt.
+   comments; GRA-87), round 6 (the show over the Forest `/` after merging `main`; GRA-89), round 7
+   (the broken page refitted to Forest; CV-90), how to add or change a fix chunk, the known debt.
 2. `docs/design/retro/SPEC.md`: the look (retro values, damage layers, copy, the atomic fix list,
    chunk timing, transitions, the highlight, `--retro-*` tokens).
 3. The package `AGENTS.md` of the code you touch: `src/screens/retro/` (and `engine/`, `layers/`),

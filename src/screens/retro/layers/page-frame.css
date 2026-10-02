@@ -1,6 +1,4 @@
 [data-retro-stage] {
-  max-width: none;
-  margin: 0;
   padding: 8px;
 }
 
@@ -8,4 +6,8 @@
   width: 640px;
   padding: 6px;
   border: 3px outset #c0c0c0;
+}
+
+[data-retro-stage] [data-testid='cv'] {
+  padding-inline: 0;
 }

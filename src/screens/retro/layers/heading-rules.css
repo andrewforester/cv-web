@@ -1,3 +1,6 @@
+[data-retro-stage] [data-testid='cv'] {
+  gap: 16px;
+}
 [data-retro-stage] h2 {
   margin: 16px 0 8px;
   padding-bottom: 2px;

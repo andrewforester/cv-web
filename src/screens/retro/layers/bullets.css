@@ -6,3 +6,6 @@
 [data-retro-stage] [data-testid='forest-job'] li {
   list-style-type: square;
 }
+[data-retro-stage] [data-testid='forest-job'] li > [aria-hidden='true'] {
+  display: none;
+}

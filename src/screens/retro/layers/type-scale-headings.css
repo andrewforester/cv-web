@@ -1,6 +1,7 @@
 :root {
   --forest-type-name-size: 34px;
-  --forest-type-h1-size: 34px;
-  --forest-type-h1-line-height: 38px;
+  --forest-type-h1-size: 15px;
+  --forest-type-h1-line-height: 18px;
+  --forest-type-subtitle-size: 13px;
   --forest-type-label-size: 24px;
 }

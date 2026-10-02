@@ -1,6 +1,7 @@
 :root {
-  --font-name-size: 34px;
-  --font-name-line-height: 38px;
-  --font-section-size: 24px;
-  --font-section-line-height: 28px;
+  --forest-type-name-size: 34px;
+  --forest-type-h1-size: 15px;
+  --forest-type-h1-line-height: 18px;
+  --forest-type-subtitle-size: 13px;
+  --forest-type-label-size: 24px;
 }

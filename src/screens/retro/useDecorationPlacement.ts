@@ -15,7 +15,7 @@ const ANCHORS = {
   cv: "[data-retro-stage] [data-testid='cv']",
   main: '[data-retro-stage] main',
   header: "[data-retro-stage] [data-agent-id='section:header']",
-  photo: "[data-retro-stage] [data-agent-id='section:header'] > img",
+  photo: "[data-retro-stage] [data-testid='forest-photo']",
 };
 
 type Placement = Partial<Record<DecorationId, DecorationBox>>;
