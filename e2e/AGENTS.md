@@ -33,6 +33,13 @@ What it guarantees today:
   While it runs, the agent chat is the site's chat card (title, no IRC lines, the Forest chat's
   Onest despite the damage token layers), the page reserves the 400 px dock, and the highlight's plate names the
   targets (`p.name × N`: the name and the section titles, then `body 880 × 800` for the page-wide chunk).
+- The same show on `/new` (`retroNew.spec.ts`, `PROFILE_SHOW_URLS`, ARCHITECTURE §10): at t = 0
+  the profile is the broken 2001 page alone (32 layers, the three decorations with `/new`'s copy,
+  no meta bar or dock; `retro-new-start.png`, compared with `docs/design/retro/new/screenshot.png`);
+  guard 4 per chunk (`retro-new-mid.png`) and guard 3 against `/new?retro=0` (`retro-new-end.png`)
+  through the same helpers (`expectShownIsApplied`, `expectEndsAsNormalSite`); the motion-on run
+  with the same 60–110 s timing smoke; and the Show case button in `/new`'s meta bar starts it
+  (stage on, `/new`'s layers in, ✖ 36).
 - The show is a lazy chunk (`retroLazy.spec.ts`): `?retro=0` never requests it; in show mode no
   frame of today's design is painted before the broken page; a failed chunk leaves the normal site.
 
