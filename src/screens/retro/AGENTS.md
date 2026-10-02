@@ -71,4 +71,4 @@ Rules and limits:
 - Motion never touches the CV screen: the classes live only for a chunk's window and go with the
   show. Reduced motion: no classes, no view transitions, no leave, instant close. Browsers without
   view transitions get morphs instantly (the highlight still shows where).
-- Desktop only. Started by the shell (`?retro=1` or its start seam); replay = start again (R24).
+- Desktop only, over `/` only (not `/new`). Started by the shell (`?retro=1` or its start seam); replay = start again (R24).

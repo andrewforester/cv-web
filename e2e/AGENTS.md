@@ -26,9 +26,9 @@ What it guarantees today:
   never starts on its own (only `?retro=1`, or the shell's start function, which has no button
   yet). The intro: the broken page alone, then the agent chat with its two lines, then DevTools;
   each step's narration is a `//` comment above its first command and the chat stays silent.
-  While it runs, the agent chat is the site's chat card (title, no IRC lines, Inter despite the
-  damage token layers), the page reserves the 400 px dock, and the highlight's plate names the
-  targets (`h1.name × N`, then `body 880 × 800` for the page-wide chunk).
+  While it runs, the agent chat is the site's chat card (title, no IRC lines, the Forest chat's
+  Onest despite the damage token layers), the page reserves the 400 px dock, and the highlight's plate names the
+  targets (`p.name × N`: the name and the section titles, then `body 880 × 800` for the page-wide chunk).
 - The show is a lazy chunk (`retroLazy.spec.ts`): `?retro=0` never requests it; in show mode no
   frame of today's design is painted before the broken page; a failed chunk leaves the normal site.
 

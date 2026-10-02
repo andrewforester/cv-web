@@ -172,7 +172,7 @@ test.describe('with reduced motion', () => {
       }
     }
     // Chunk 1 marks every heading, chunk 2 the whole page area.
-    expect([...plates]).toEqual([expect.stringMatching(/^h1\.name × \d+$/), 'body880 × 800']);
+    expect([...plates]).toEqual([expect.stringMatching(/^p\.name × \d+$/), 'body880 × 800']);
     await expect(page.getByTestId('retro-console')).toBeVisible();
     expect(errors).toEqual([]);
   });
@@ -182,10 +182,10 @@ test.describe('with reduced motion', () => {
   });
 });
 
-/** Chunk 1's plate sits on the first heading's bottom-left corner (SPEC → Plate). */
+/** Chunk 1's plate sits on its first target's (the name's) bottom-left corner (SPEC → Plate). */
 async function expectPlateOnFirstHeading(page: Page) {
   const plate = await page.getByTestId('retro-highlight-plate').boundingBox();
-  const heading = await page.locator('h1').first().boundingBox();
+  const heading = await page.getByTestId('forest-name').boundingBox();
   if (!plate || !heading) return;
   expect(plate.x).toBeCloseTo(Math.max(heading.x, 0), 0);
   expect(plate.y + plate.height).toBeCloseTo(Math.min(heading.y + heading.height, 800), 0);
