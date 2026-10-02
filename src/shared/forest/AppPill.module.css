@@ -18,11 +18,13 @@
 
 .name {
   flex: 1;
+  white-space: nowrap;
   font-size: var(--forest-type-skills-title-size);
   font-weight: var(--forest-type-skills-title-weight);
 }
 
 .meta {
+  white-space: nowrap;
   font-family: var(--forest-font-mono);
   font-size: var(--forest-app-meta-size);
   font-weight: var(--forest-type-label-weight);

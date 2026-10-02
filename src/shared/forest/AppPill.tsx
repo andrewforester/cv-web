@@ -19,7 +19,7 @@ interface AppPillProps {
 export function AppPill({ className, app }: AppPillProps) {
   return (
     <div className={classNames(styles.root, className)} data-testid={forestTestIds.app}>
-      <img className={styles.icon} src={app.iconSrc} alt="" loading="lazy" />
+      <img className={styles.icon} src={app.iconSrc} alt="" />
       <span className={styles.name}>{app.name}</span>
       <span className={styles.meta}>{app.meta}</span>
     </div>

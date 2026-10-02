@@ -19,7 +19,7 @@ export function BookCovers({ className, books }: BookCoversProps) {
     <ul className={classNames(styles.root, className)}>
       {books.map((book) => (
         <li key={book.id} data-testid={forestTestIds.book}>
-          <img className={styles.cover} src={book.coverSrc} alt={book.title} loading="lazy" />
+          <img className={styles.cover} src={book.coverSrc} alt={book.title} />
         </li>
       ))}
     </ul>
