@@ -1,0 +1,25 @@
+import { useStrings } from '../../i18n';
+import { classNames } from '../../shared/forest/classNames';
+import styles from './ShowCaseButton.module.css';
+import { cvStrings } from './strings';
+import { cvTestIds } from './testIds';
+
+interface ShowCaseButtonProps {
+  className?: string;
+  onClick: () => void;
+}
+
+/** The meta bar's text control that starts the Retro Rebuild show (docs/design/retro/SPEC.md). */
+export function ShowCaseButton({ className, onClick }: ShowCaseButtonProps) {
+  const strings = useStrings(cvStrings);
+  return (
+    <button
+      type="button"
+      className={classNames(styles.root, className)}
+      onClick={onClick}
+      data-testid={cvTestIds.showCase}
+    >
+      <span aria-hidden="true">▶</span> {strings.showCase}
+    </button>
+  );
+}
