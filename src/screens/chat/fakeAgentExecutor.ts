@@ -1,23 +1,18 @@
 import {
-  buildAgentToolSpecs,
   type AgentToolCall,
   type AgentToolExecutor,
   type AgentToolName,
   type AgentToolResult,
   type AgentToolSpec,
 } from '../../data/chat';
-import type { Cv } from '../../data/models';
 
-/** Test double of the page registry: the real catalogue, recorded calls, scripted results. */
+/** Test double of the page registry: a page's real catalogue, recorded calls, scripted results. */
 export class FakeAgentExecutor implements AgentToolExecutor {
   readonly executed: AgentToolCall[] = [];
-  private readonly specList: AgentToolSpec[];
   /** Results by tool name; `ok` for anything not listed. */
   results: Partial<Record<AgentToolName, AgentToolResult>> = {};
 
-  constructor(cv: Cv) {
-    this.specList = buildAgentToolSpecs(cv);
-  }
+  constructor(private readonly specList: AgentToolSpec[]) {}
 
   specs(): AgentToolSpec[] {
     return this.specList;
