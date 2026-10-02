@@ -29,8 +29,7 @@ export function App() {
 
   const isProfile = pageFor(window.location.pathname) === 'profile';
   const retroMode = useRetroMode();
-  // Its `start` is the seam for the Show case button (R24).
-  const { showing, pending, Show, end } = useShowCase(!isProfile && retroMode === 'show');
+  const { showing, pending, Show, start, end } = useShowCase(!isProfile && retroMode === 'show');
   // Today's site loads the chat at start; after a show it is already there (or loads if it failed).
   const { Chat, load } = useLazyChat(!showing && !pending);
   const loaders = useMemo(() => ({ 'ai-chat': load }), [load]);
@@ -44,7 +43,11 @@ export function App() {
         data-retro-stage={showing ? '' : undefined}
       >
         <main>
-          {isProfile ? <ProfileRoute metaBarEnd={switcher} /> : <CvRoute metaBarEnd={switcher} />}
+          {isProfile ? (
+            <ProfileRoute metaBarEnd={switcher} />
+          ) : (
+            <CvRoute metaBarEnd={switcher} onShowCase={start} />
+          )}
         </main>
         {Chat && <Chat />}
       </div>
