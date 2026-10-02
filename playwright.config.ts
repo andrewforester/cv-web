@@ -1,7 +1,15 @@
+import { createHash } from 'node:crypto';
 import { defineConfig, devices } from '@playwright/test';
 
 // Web smoke check: serves the production build (`npm run build` first) and opens it in Chromium.
-const PORT = 4173;
+// CI uses 4173. Locally the port comes from the worktree path (override: PW_PORT), so parallel
+// worktrees never share a server; a busy port fails (`--strictPort`) instead of being reused.
+function worktreePort(): number {
+  const hash = createHash('sha1').update(process.cwd()).digest().readUInt16BE(0);
+  return 4200 + (hash % 800);
+}
+
+const PORT = Number(process.env.PW_PORT) || (process.env.CI ? 4173 : worktreePort());
 
 export default defineConfig({
   testDir: 'e2e',
@@ -14,8 +22,8 @@ export default defineConfig({
     viewport: { width: 1280, height: 800 },
   },
   webServer: {
-    command: 'npm run preview',
+    command: `npx vite preview --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}/`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
   },
 });

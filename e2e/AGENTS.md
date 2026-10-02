@@ -44,7 +44,7 @@ What it guarantees today:
 - The show is a lazy chunk (`retroLazy.spec.ts`): `?retro=0` never requests it; in show mode no
   frame of today's design is painted before the broken page; a failed chunk leaves the normal site.
 
-Place in the architecture: runs against `vite preview` of `dist/`, where `/api/chat` doesn't
+Place in the architecture: runs against `vite preview` of `dist/` (port 4173 in CI, a per-worktree port locally, `PW_PORT` overrides; never reuses a running server), where `/api/chat` doesn't
 exist, so every chat scenario mocks the endpoint with scripted SSE, and the show runs scripted
 (automation gets no LLM). No test here calls a real model. Specs about today's site open
 `NORMAL_SITE` (`?retro=0`, `support.ts`; the default since the show stopped starting on its own).
