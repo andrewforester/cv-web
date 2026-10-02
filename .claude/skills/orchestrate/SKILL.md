@@ -42,7 +42,7 @@ Launch every task as a **new agent in a new background session**, with the launc
 2. Write the prompt: only the ticket id, the branch, the draft PR number, the skill and the standing rules. The brief lives on the ticket; never paste it into the prompt (a copy goes stale and costs context):
    ```
    You are a working session on CV Andrew Panasiuk. No human is watching; work until the PR is ready.
-   Ticket: GRA-N (read the brief and all comments there). Branch: claude/<short>. Draft PR: #P (already open; don't open another).
+   Ticket: CV-N (read the brief and all comments there). Branch: claude/<short>. Draft PR: #P (already open; don't open another).
    Use the `<skill>` skill. Plan, questions and the report go on the ticket; the PR holds only code and review.
    Use Anthropic's design / system-design / architecture skills when available, after the project skills.
    Start with `git fetch origin && git merge origin/main`. Commit and push early and often.
@@ -60,12 +60,14 @@ Launch every task as a **new agent in a new background session**, with the launc
 The human sends tasks one after another. File each one as soon as it arrives; don't wait for the batch.
 
 - **Dependencies are explicit** tracker relations (hard: blocked by; soft: starts on branch of). Two tasks touching the same file are always a hard dependency. A screen always depends on its design task.
-- **Status on filing:** an open hard dependency (or a soft one without a branch yet) → Backlog with a comment "Waiting for GRA-12, GRA-15"; otherwise Todo.
+- **Status on filing:** an open hard dependency (or a soft one without a branch yet) → Backlog with a comment "Waiting for CV-12, CV-15"; otherwise Todo.
 - **Dispatch** is one step you run at every wake-up (a new task, a merge, a session's expected finish, a failed session):
-  1. For each Backlog ticket: if every hard dependency is Done (merged) and every soft one has a branch, move it to Todo and comment "Unblocked by GRA-N".
+  1. For each Backlog ticket: if every hard dependency is Done (merged) and every soft one has a branch, move it to Todo and comment "Unblocked by CV-N".
   2. Count running sessions (In Progress). While fewer than the limit are running and the usage limit allows, launch the Todo tickets, oldest first.
   3. Nothing launchable: do nothing, write nothing.
 - **Merge first, then dispatch**, in the same wake-up: a merge is what unblocks the next tasks, so the queue moves without the human.
+- **Start early behind a gate** when most of a dependency is already merged and the rest only adds to it (e.g. a big merge of `main` while the last page task is still in review): launch the dependent task now, turn the `blocked by` into `related`, and write on its ticket "before Ready: wait for PR #N to merge (background until-loop), merge again, re-run everything". It saved 30–40 min twice in Oct 2026.
+- **Two orchestrators on one project:** if the other one stalls (a ready, green PR with no review for 15+ min, its session `waiting`), run the check and the review for its tickets yourself, say so on each ticket and to the other orchestrator, and tell the human.
 - A dependency canceled rather than merged doesn't unblock: set **Needs human** on the dependent and ask.
 
 ## Follow by events, not polling
@@ -84,12 +86,12 @@ Code tasks (Role Development or DevOps, including quick fixes) are merged by a *
 Not OK (UI, scope, a missing screenshot): comment on the ticket with exactly what to change, convert the PR to draft (the developer's signal), set the ticket to In Progress. The developer session fixes it and marks it Ready again.
 
 **Launch the review** when your check passes:
-1. The ticket must link the PR (Linear's GitHub integration does it via `Closes GRA-N`; otherwise attach it).
+1. The ticket must link the PR (Linear's GitHub integration does it via `Closes CV-N`; otherwise attach it).
 2. Comment on the ticket: "Review: autonomous merge allowed / not allowed" (the reviewer reads it), then set it to In Review.
 3. Launch a new session of the same kind as yourself (Tooling → Sessions → Review sessions) with the prompt below. The ticket carries everything else; don't paste the brief.
    ```
    You are the review session for CV Andrew Panasiuk. No human is watching.
-   Use the `review` skill. Ticket: GRA-N. Read the ticket, its comments and its PR from the tracker.
+   Use the `review` skill. Ticket: CV-N. Read the ticket, its comments and its PR from the tracker.
    Review the code only; merge when it passes, otherwise send it back and follow the PR.
    ```
 4. Comment on the ticket with the review session's name and id. Keep following the PR: a merge is your next signal; a `Needs human` from the reviewer (3 rounds without passing) goes to the human.
