@@ -21,6 +21,11 @@ const DEV_COMMANDS: { pattern: RegExp; name: AgentToolCall['name']; value: strin
     value: 'apps',
   },
   {
+    pattern: /(show|scroll|go to|покажи|перейди|прокрути).*(impact|результат)/i,
+    name: 'scrollToSection',
+    value: 'impact',
+  },
+  {
     pattern: /(switch|перемкни|переключи).*(ukrainian|українськ)/i,
     name: 'switchLanguage',
     value: 'uk',

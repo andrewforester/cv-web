@@ -1,8 +1,8 @@
 import { CHAT_LIMITS_V2, type ChatRequest } from '../../../src/data/chat/contract.js';
 import type { LlmRequest, LlmSystemBlock } from '../llm/LlmClient.js';
 import type { ModelOptions } from '../llm/modelOptions.js';
-import type { ValidatedChatV2 } from '../validateParts.js';
-import { LLM_TOOLS } from './llmTools.js';
+import { chatPageOf, type ValidatedChatV2 } from '../validateParts.js';
+import { LLM_TOOLS_BY_PAGE } from './llmTools.js';
 import { renderMessagesV2 } from './renderMessagesV2.js';
 import { INSTRUCTIONS, localeLine, PAGE_TOOL_INSTRUCTIONS } from './systemPrompt.js';
 
@@ -25,10 +25,11 @@ function systemBlocks(
 
 /**
  * The model request. v1: system = [instructions, knowledge (cache marker), locale line] and the
- * messages as sent. v2 adds the tool catalogue (rendered first, byte-identical every time), the
+ * messages as sent. v2 adds the page's tool catalogue (rendered first, byte-identical per page), the
  * page-tool rules after the instructions, and `tool_choice: none` once the turn has used its tool
  * rounds. Stable blocks come first so the cached prefix stays byte-identical across requests;
- * top-level automatic caching covers the growing conversation.
+ * top-level automatic caching covers the growing conversation. The page's knowledge comes in
+ * `knowledge`; the instruction blocks are the same on every page (ADR-0004).
  */
 export function buildLlmRequest(
   request: ChatRequest | ValidatedChatV2,
@@ -48,7 +49,7 @@ export function buildLlmRequest(
   const toolsOff = request.toolRound >= CHAT_LIMITS_V2.maxToolRoundsPerTurn;
   return {
     ...common,
-    tools: [...LLM_TOOLS],
+    tools: [...LLM_TOOLS_BY_PAGE[chatPageOf(request)]],
     tool_choice: { type: toolsOff ? 'none' : 'auto' },
     system: systemBlocks([PAGE_TOOL_INSTRUCTIONS], knowledge, request),
     messages: renderMessagesV2(request.messages),

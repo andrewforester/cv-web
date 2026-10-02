@@ -10,8 +10,8 @@ import { RETRO_SCENARIO_ID } from '../../src/data/retro/scenario.js';
 import { readChatConfig } from '../chat/config.js';
 import type { ChatDeps } from '../chat/handler.js';
 import { DayCostMeter } from '../chat/dayCost.js';
-import { createKnowledgeLoader } from '../chat/knowledge/assembleKnowledge.js';
-import { KNOWLEDGE_SOURCES } from '../chat/knowledge/sources.js';
+import { createPageKnowledgeLoader } from '../chat/knowledge/assembleKnowledge.js';
+import { KNOWLEDGE_SOURCES_BY_PAGE } from '../chat/knowledge/sources.js';
 import { FakeLlmClient, type FakeScript } from '../chat/llm/FakeLlmClient.js';
 import type { ChatLogEntry } from '../chat/log.js';
 import { RateLimiter } from '../chat/rateLimiter.js';
@@ -120,7 +120,7 @@ export function testDeps(
     llm: new FakeLlmClient(script),
     limiter: new RateLimiter(),
     dayCost: new DayCostMeter(),
-    knowledge: createKnowledgeLoader(KNOWLEDGE_SOURCES),
+    knowledge: createPageKnowledgeLoader(KNOWLEDGE_SOURCES_BY_PAGE),
     log: (entry) => logs.push(entry),
     newRequestId: () => 'req-1',
     logs,
