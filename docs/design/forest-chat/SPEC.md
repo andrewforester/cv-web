@@ -3,8 +3,8 @@
 ## Source
 
 - Linear **GRA-81** (2 Oct 2026). The Claude Design file has no chat frame, so this package is drawn **from a description**: structure, behaviour, texts and accessibility are exactly those of `docs/design/chat/SPEC.md` (with its *Orchestrator decisions* O1–O4) and of the built chat in `src/screens/chat/` (action chips, confirmation card, notices, command chips came after that package). Only the look changes, in the language of `docs/design/forest/SPEC.md`.
-- Token names are the ones the Forest theme task ships (`--forest-*`, `--forest-radius-*`, `--forest-font-*`, `--forest-type-*`; PR #67). The chat's geometry tokens (`--chat-fab-size`, `--chat-control-size`, `--chat-panel-*`, motion, z-index) and the `--space-*` grid stay as they are.
-- `mock.html`: static HTML/CSS mock. Backdrop = the Forest `/new` render (`../forest/screenshot.png`, `screenshot-mobile.png`), as a picture. It links `src/theme/tokens.css` for `--space-*` / `--chat-*`, declares the Forest tokens and the new `--forest-chat-*` tokens at the top of its `<style>`, and loads the three fonts from Google Fonts for standalone viewing. `?state=launcher|empty|typing|streaming|errors|notices|actions|offline` and `&lang=en|uk` switch states.
+- Token names are the Forest theme's (`--forest-*`, `--forest-radius-*`, `--forest-font-*`, `--forest-type-*` in `src/theme/tokens.css`, #67). The chat's geometry tokens (`--chat-fab-size`, `--chat-control-size`, `--chat-panel-*`, motion, z-index) and the `--space-*` grid stay as they are.
+- `mock.html`: static HTML/CSS mock. Backdrop = the Forest `/new` render (`../forest/screenshot.png`, `screenshot-mobile.png`), as a picture. It links the real `src/theme/tokens.css` (Forest, `--space-*`, `--chat-*`), declares the new `--forest-chat-*` tokens at the top of its `<style>`, and loads the three fonts from Google Fonts for standalone viewing. `?state=launcher|empty|typing|streaming|errors|notices|actions|offline` and `&lang=en|uk` switch states.
 - Renders (1×, CSS px = image px) by `render.sh` (headless Chrome, reduced motion; `frame.html` hosts the mock in an exact 390 px iframe for phone shots). Neither is product code.
 
 | File | Viewport | Shows |
@@ -64,7 +64,7 @@ Three Forest families, by role (as on the page: Onest = UI, Plex = reading text,
 
 | Role | Font, size / line-height, weight | Tokens | Where |
 |---|---|---|---|
-| Panel title | Onest 16 / 20, 600, ls −.015em | `--forest-type-skills-title-{family,size,weight}` + `--forest-chat-ui-line-height`; ls as `--forest-type-title-letter-spacing` | header title |
+| Panel title | Onest 16 / 20 (15 at ≤ 600 px), 600, ls −.015em | `--forest-type-skills-title-{family,size,weight}` + `--forest-chat-ui-line-height`; ls as `--forest-type-title-letter-spacing` | header title |
 | Message text | IBM Plex Sans 15 / 22, 400 | `--forest-font-text`, **new** `--forest-chat-text-{size,line-height}` | both bubbles, textarea, confirmation title (Onest 600 there, see below) |
 | Bold in answers | Plex **500** | — | `**bold**` (the theme loads Plex 400/500 only) |
 | UI text | Onest 14 / 20, 400 | `--forest-font-display`, **new** `--forest-chat-ui-{size,line-height}` | chips, hint, offline banner |
@@ -73,7 +73,7 @@ Three Forest families, by role (as on the page: Onest = UI, Plex = reading text,
 | Caption (meta) | JetBrains Mono 11.5 / 16, 400 | `--forest-font-mono`, **new** `--forest-chat-caption-{size,line-height}` | subtitle, disclaimer, counter, limit message, "Answer stopped.", action chips, confirmation detail |
 | Group label | Mono 11.5 / 16, 500, ls .02em, gold-soft | caption tokens + weight/ls of `--forest-type-label-*` | "Try asking", "Or ask me to do something on the page" (the page's section-label style) |
 
-Why 11.5 for captions: the EN disclaimer (51 characters) in Mono 12 is 367 px and wraps in the 358 px composer; 11.5 (352 px, a Forest size: the phone step number) keeps it on one line on desktop and 390 px phones. On 320 px it wraps, which the layout allows. Text sizes don't step at 600 px: the chat has its own desktop/phone switch (below) and the same sizes in both.
+Why 11.5 for captions: the EN disclaimer (51 characters) in Mono 12 is 367 px and wraps in the 358 px composer; 11.5 (352 px, a Forest size: the phone step number) keeps it on one line on desktop and 390 px phones. On 320 px it wraps, which the layout allows. The chat's own sizes don't step at 600 px (the chat has its own desktop/phone switch, below); only the panel title follows its Forest role's step (16 → 15 at ≤ 600 px).
 
 ## Layout
 
