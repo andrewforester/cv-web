@@ -9,29 +9,34 @@
   align-items: flex-end;
 }
 
+/* Message text: IBM Plex Sans; the loop-step card's radius with a 4 px tail corner. */
 .bubble {
   max-width: 100%;
-  border-radius: var(--radius-card);
+  font-family: var(--forest-font-text);
+  font-size: var(--forest-chat-text-size);
+  line-height: var(--forest-chat-text-line-height);
+  border-radius: var(--forest-radius-step);
   overflow-wrap: anywhere;
 }
 
+/* The first impact card's treatment. */
 .visitor .bubble {
   max-width: var(--chat-bubble-max-width);
   padding: var(--space-3) var(--space-4);
   white-space: pre-wrap;
-  color: var(--color-bg);
-  background: var(--color-text);
+  color: var(--forest-bg);
+  background: var(--forest-gradient-hero);
   border-bottom-right-radius: var(--chat-radius-tail);
 }
 
+/* Outline-only, like the loop steps; 15 + 1 px border = 16 to the text. */
 .assistant .bubble {
   padding: var(--space-3) calc(var(--space-4) - var(--border-card));
-  background: var(--color-bg);
-  border: var(--border-card) solid var(--color-card-border);
+  border: var(--border-card) solid var(--forest-dark-line);
   border-bottom-left-radius: var(--chat-radius-tail);
 }
 
 .assistant .error {
-  background: var(--chat-color-error-bg);
-  border-color: var(--chat-color-error);
+  background: var(--forest-chat-error-bg);
+  border-color: var(--forest-chat-error);
 }

@@ -106,3 +106,47 @@ test('shows the rate-limit notice for a platform 429', async ({ page }) => {
   // The browser logs the failed request itself; only app errors count here.
   expect(errors.filter((error) => !error.includes('429'))).toEqual([]);
 });
+
+// Forest look (docs/design/forest-chat): the chat opened by the `#ask` link, empty and answered,
+// on the desktop card and the phone sheet. Compare the screenshots with the package's PNGs.
+const viewports = [
+  { name: 'desktop', size: { width: 1280, height: 800 } },
+  { name: 'phone', size: { width: 390, height: 844 } },
+] as const;
+
+for (const { locale, browserLocale, question, deltas, answer } of cases) {
+  for (const { name, size } of viewports) {
+    test.describe(`chat look (${locale}, ${name})`, () => {
+      test.use({ locale: browserLocale, viewport: size });
+
+      test('opens from #ask and shows the empty state and an answer', async ({ page }) => {
+        const errors = collectErrors(page);
+        await page.route('**/api/chat', (route) =>
+          route.fulfill({
+            status: 200,
+            headers: {
+              'Content-Type': 'text/event-stream; charset=utf-8',
+              'X-Chat-Api-Version': '1',
+            },
+            body: sseBody([...deltas]),
+          }),
+        );
+        await page.goto('./#ask');
+
+        const dialog = page.getByRole('dialog');
+        await expect(dialog).toBeVisible();
+        await expect(page).toHaveURL(/\/$/);
+        // Let the open animation finish so the screenshot shows the final look.
+        await dialog.evaluate((panel) =>
+          Promise.all(panel.getAnimations().map((animation) => animation.finished)),
+        );
+        await page.screenshot({ path: `${SCREENSHOT_DIR}/chat-empty-${locale}-${name}.png` });
+
+        await dialog.getByRole('button', { name: question }).click();
+        await expect(dialog.getByTestId('chat-assistant-message')).toContainText(answer);
+        await page.screenshot({ path: `${SCREENSHOT_DIR}/chat-answer-${locale}-${name}.png` });
+        expect(errors).toEqual([]);
+      });
+    });
+  }
+}

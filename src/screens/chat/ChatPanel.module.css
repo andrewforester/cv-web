@@ -1,4 +1,4 @@
-/* The frame (column, radius, shadow, gradient border) is the shared `ChatCard`; this adds the
+/* The frame (column, dark gradient, border, radius, shadow) is the shared `ChatCard`; this adds the
    fixed placement, size and motion. Imported after the card so these overrides win. */
 .panel {
   position: fixed;

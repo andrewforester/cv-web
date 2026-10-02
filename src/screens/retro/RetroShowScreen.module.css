@@ -90,8 +90,8 @@
     width: var(--chat-fab-size);
     height: var(--chat-fab-size);
     border-radius: 50%;
-    background-color: var(--color-text);
-    box-shadow: var(--chat-shadow-fab);
+    background: var(--forest-gradient-dark);
+    box-shadow: var(--forest-chat-shadow-fab);
     opacity: 0;
   }
 }

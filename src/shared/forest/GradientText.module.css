@@ -1,0 +1,13 @@
+.root {
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.text {
+  background-image: var(--forest-gradient-text);
+}
+
+.cta {
+  background-image: var(--forest-gradient-cta);
+}

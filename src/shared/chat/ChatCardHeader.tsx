@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import chat from './chat.module.css';
 import { ChatIcon } from './ChatIcon';
 import styles from './ChatCardHeader.module.css';
 
@@ -31,7 +32,7 @@ export function ChatCardHeader({
         <h2 id={titleId} className={styles.title}>
           {title}
         </h2>
-        <p id={subtitleId} className={styles.subtitle}>
+        <p id={subtitleId} className={chat.caption}>
           {subtitle}
         </p>
       </div>

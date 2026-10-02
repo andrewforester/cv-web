@@ -20,5 +20,21 @@ Rules and limits:
   Round 4 adds the box-model highlight fills, the close slide/shrink timings and the `--devtools-*`
   group (the DevTools panel's Chrome-light surfaces, text, badge and syntax colours, fonts, plate shadow).
   The Win98/terminal tokens stay until R16/R17 stop reading them, then they are removed.
-- Fonts are self-hosted Inter, Latin and Cyrillic only, a fixed set of weights; Cyrillic files
-  load only when Cyrillic text is on the page.
+- Fonts are self-hosted, Latin and Cyrillic only, a fixed set of weights; Cyrillic files load only
+  when Cyrillic text is on the page. Inter is the current site's font; Forest adds Onest (display),
+  IBM Plex Sans (text) and JetBrains Mono (meta). Inter goes when the last screen leaves it.
+
+Forest tokens (`docs/design/forest/SPEC.md`; the names are the contract for screen and chat tasks,
+all in `tokens.css`; the AI chat uses them, plus its own `--forest-chat-*` from
+`docs/design/forest-chat/SPEC.md`: raised fills, error / notice colours, shadows, text sizes):
+- Colours: `--forest-{bg,ink,ink-2,ink-3,accent,accent-hover,green,gold,gold-soft,status,status-dot,
+  line,surface,card-sage,card-sand,dark-ink,dark-ink-2,dark-line}`; gradients
+  `--forest-gradient-{text,cta,hero,dark}`; shadow `--forest-shadow-dark`.
+- Radii: `--forest-radius-{impact,panel,step,pill,book}` (50% is written inline).
+- Layout: `--forest-content-max`, `--forest-page-padding-{top,x,bottom}`, `--forest-section-gap`.
+- Fonts: `--forest-font-{display,text,mono}`.
+- Type: `--forest-type-<role>-{family,size,weight,line-height,letter-spacing}` for roles `h1`,
+  `subtitle`, `name`, `lead`, `label`, `impact`, `card`, `dark-lead`, `title` (company / card title),
+  `role` (role, meta), `period`, `body` (bullet / body), `skills-title`, `skills-items`, `meta-bar`,
+  `cta`. Stepped sizes switch to the phone value in one `@media (max-width: 600px)`; `text-wrap`
+  stays in the component.

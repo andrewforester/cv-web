@@ -24,7 +24,7 @@ export function ConfirmationCard({ action, onConfirm, onDecline }: ConfirmationC
       data-testid={chatTestIds.confirmation}
     >
       <p className={styles.title}>{title}</p>
-      {detail && <p className={styles.detail}>{detail}</p>}
+      {detail && <p className={`${chat.caption} ${styles.detail}`}>{detail}</p>}
       <div className={styles.buttons}>
         <button
           type="button"
