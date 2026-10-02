@@ -10,6 +10,8 @@ The look of the show. The mechanism (damage layers, decorations, runner, LLM, sh
 
 **Revision CV-90 (2 Oct 2026, R23)**: the site under the show is now the **Forest `/`** (`docs/design/forest/SPEC.md`), so the broken page is refitted to it: the same 2002 homepage (star tile, 640 px cream table, Verdana/Times/Comic, bevels, marquee, "NEW!", blue links, broken images, footer furniture), drawn over Forest's hooks and tokens, and every chunk moves it toward the Forest page. Still 8 steps, 36 chunks, 32 layers, 3 decorations; step ids unchanged (`retro-3`). Sections changed: Source, Screen layout (meta bar), Damage layers (Forest refit), Decorations (note anchor), Per section, The fix list, Chunk rhythm budget, Texts (intents, fallbacks, labels), Decisions 46–52. Where this file still names the pre-Forest CV (`cv-name`, Inter, navy, logos, renders 01–12), that is history.
 
+**Revision CV-95 (2 Oct 2026)**: the show also runs on **`/new`** (the Forest profile), over its own 2001 version: part **2001 `/new`** at the end of this file (direction, per-section look, damage layers, decorations, the 8 steps of 36 chunks with targets, console commands, timing, copy, decisions 53–64), its layer files in `new/layers/` and its render in `new/`. The mechanism per page is `docs/retro/ARCHITECTURE.md` §10. `/`'s show (everything above) is unchanged; only the Show case button section now covers both pages.
+
 ## Source
 
 - Designed from the brief of Linear **GRA-38** and the project *Retro Rebuild* (30 Sep 2026); revised by **GRA-49**. **No screenshot or Figma frame exists.** The end state is today's design unchanged (`docs/design/cv/SPEC.md`, `src/theme/tokens.css`); the retro look comes from 1998–2006 references (below).
@@ -722,7 +724,9 @@ Alternative if the orchestrator prefers no change to the site chat now: show-loc
 
 ## Show case button (R24, CV-91)
 
-The visitor starts the show with a **"Show case"** text control in the Forest meta bar on `/`, at the right end **before the language switcher** (`docs/design/forest/SPEC.md` → Structure 1). Look: the meta bar's text controls (Mono, `--forest-ink-2`; hover `--forest-accent-hover`, focus ring per Forest Interactions), a small `▶` glyph before the label. Shown only where the show can run: locale `en` and `min-width: 1024px`; otherwise absent (no disabled state). Not on `/new`. Click calls the shell's start seam (`useShowCase().start`); once the show has ended it can be clicked again (replay). While the show runs the stage covers it.
+The visitor starts the show with a **"Show case"** text control in the Forest meta bar on `/`, at the right end **before the language switcher** (`docs/design/forest/SPEC.md` → Structure 1). Look: the meta bar's text controls (Mono, `--forest-ink-2`; hover `--forest-accent-hover`, focus ring per Forest Interactions), a small `▶` glyph before the label. Shown only where the show can run: locale `en` and `min-width: 1024px`; otherwise absent (no disabled state). Click calls the shell's start seam (`useShowCase().start`); once the show has ended it can be clicked again (replay). While the show runs the stage covers it.
+
+**CV-95:** the same control, same look and place, also on **`/new`**: at the right end of its meta bar, after `Open to roles` and before the language switcher (2001 `/new` → Show case button). On `/` nothing changes visually. Was "Not on `/new`" (Decision 45).
 
 ## Decisions (defaults taken; the orchestrator may change them)
 
@@ -770,7 +774,7 @@ The visitor starts the show with a **"Show case"** text control in the Forest me
 42. **Intro in the chat:** broken page alone 1 s → the chat opens and streams `That's how this CV would look like in 2001.` → 1 s → `Now let's fix it.` → 0.8 s → DevTools docks → 0.8 s → step 1. Texts verbatim from the human.
 43. **Silent chat while fixing:** the step narration (LLM line or fallback, contract unchanged) is typed into DevTools as `// …` comments wrapped at 52 characters, at the code rate (100 chars/s, clamped 0.6–2 s), then 0.6 s to read; the first chunk continues in the same prompt, so the comment is part of its echo. Comments change nothing, so code shown = code applied holds. Visitor replies still appear in the chat.
 44. **Close sequence:** `✓ All fixes applied.` → 1 s → DevTools collapses (300 ms slide, the page re-centres over 400 ms) → 1 s → `All good now.` → 2 s → the chat collapses into the launcher (500 ms; was 650 ms with DevTools). Reduced motion: same order and pauses, no motion. The finale line goes; the LLM's `finale` narration is still requested but not shown (dropping it is a contract change for a later task).
-45. **Show case button (CV-91):** a meta bar text control on `/` (en, ≥ 1024 px), before the language switcher, calls the shell's `start`; hidden otherwise, not on `/new`. No hover prefetch of the show chunk (R20 exposes none).
+45. **Show case button (CV-91):** a meta bar text control on `/` (en, ≥ 1024 px), before the language switcher, calls the shell's `start`; hidden otherwise, not on `/new` (**superseded by Decision 53**: on `/new` too). No hover prefetch of the show chunk (R20 exposes none).
 46. **Forest refit (CV-90):** the broken page is the same 2002 homepage drawn over the Forest `/`: 32 layers on Forest hooks and `--forest-*` tokens, same steps, chunk count and step ids (`retro-3`), three layers renamed for what they now hold (`squashed-icons`, `card-padding`, `hide-meta-bar`). Every layer changes something visible on Forest; no-op rules from R22 (the job-head grid, the skills `::before`, shadows Forest doesn't have, `--forest-gold` (read only by the chat send button, which it turned yellow), the title line height) are gone.
 47. **Headline:** Forest's 84 px hero h1 is the 2002 page's small bold Verdana line under the purple name (`type-scale-headings`), so the fonts step grows it back; the purple Times name keeps the 2002 hierarchy.
 48. **Gradient text** (the headline's `.`, *AI Tools*, the CTA's ↗) is flat in the text colour while `heading-colors` is on: gradient text did not exist in 2002. It returns in the colours step.
@@ -778,3 +782,233 @@ The visitor starts the show with a **"Show case"** text control in the Forest me
 50. **Meta bar:** `hide-meta-bar` hides the whole Forest meta bar (handle, Show case button, language switcher) until the chrome step; a Show case click after it returns is a no-op while the show runs (`useShowCase.start`).
 51. **Contacts** sit in centred inline blocks while `header-layout` is on (one 2002 line where it fits, two at 640 px), blue and labelled until the links step; Forest's contact rows come back in steps 3 and 8.
 52. **Guard 1:** `flex-direction`, `flex-wrap` and `width` count as structural (they can't interpolate to Forest's layout), so `page-frame` and `header-layout` morph.
+
+---
+
+# 2001 `/new` (CV-95)
+
+The Show case on **`/new`**, the Forest profile (`docs/design/forest/SPEC.md` → Structure `/new`). The same show as on `/` (same panels, flow, copy, timing model, highlight, plate, close; everything above that this part doesn't override), drawn over `/new`'s own markup and tokens, so its end state is the real `/new` with zero layers. How the show picks this scenario is `docs/retro/ARCHITECTURE.md` §10.
+
+## Source (`/new`)
+
+- **No reference from the human** (scope default l): this part defines the look. Same direction as `/` (Decision 1): the page is `/new` as its author would have built it as a 2001 FrontPage/GeoCities homepage, with today's content unchanged (Decision 11); `/new`'s own blocks (impact figures, the "How I build" panel, the Earlier row, the "Live AI CV" contact) get their 2001 equivalents (Decision 55).
+- `new/layers/*.css`: the **15 `/new`-only damage layers** (the build copies them to `src/screens/retro/layers/new/`, Prettier-formatted as they will be there). The other **17 layers are `/`'s files, reused unchanged** from `src/screens/retro/layers/` (Damage layers below says which).
+- `new/screenshot.png` (1280 × 800) and `new/screenshot-full.png` (1280 wide, full page): t = 0, the broken page alone, no dock. Rendered by `new/render.mjs` from the **real built `/new`**: it puts the stage on the shell's wrapper, injects the 32 layers of this scenario and the three decorations with the `/new` copy, and **fails if any layer selector matches nothing on today's `/new`** (a one-off guard 2). Run from the repo root: `npm run build && npx vite preview --port 4391 --strictPort &`, then `node docs/design/retro/new/render.mjs`. Reduced motion (marquee and bursts hold still); render on macOS or Windows (retro core fonts). The mock decorations are placed like `useDecorationPlacement` with the anchors below.
+
+## Flow, layout and copy (`/new`)
+
+Unchanged from `/`, verbatim: the trigger (the Show case button, `?retro=1` on `/new`, scope default j), Screen layout (dock 400 px, page area 880 px, chat card 368 × 392), Timeline and Round 5 phases, the intro lines `That's how this CV would look like in 2001.` and `Now let's fix it.`, the silent chat while fixing (narration only as `//` comments in DevTools), the close (`✓ All fixes applied.` → DevTools collapses → `All good now.` → the chat collapses into the launcher), Agent chat panel, DevTools console (chrome, rows, opening line `Agent connected to andrew-cv: 36 changes in 8 steps.`, counters ✖ 36 → 0, ⚠ 8 → 0), Console commands, Chunk rhythm, Transitions, Highlight, **Plate** (bottom-left corner of the chunk's first target; page-wide chunks at the page area's corner; decorations on their own box), Scrolling, End of the show, Tokens, Assets, States, reduced motion, EN only and desktop only (scope default e). The browser tab title during the show is the same `Andrew Panasiuk - Homepage`.
+
+During the show the meta bar (`andrew.panasiuk / cv`, `Wroclaw area`, `Remote / B2B across EU`, `Open to roles`, Show case, switcher) is hidden by `hide-meta-bar` and comes back in the chrome step, as on `/`. The AI chat launcher is off the page until the last chunk loads it.
+
+## Per section: what the visitor sees (`/new`, all layers on)
+
+| Section | Broken (2001) |
+|---|---|
+| Frame | star tile; a cream 640 px table with an outset grey border at x = 8, y = 8; nav bar (`Home` `Resume` `Impact` `My Apps` `Guestbook` `Links`) and the Comic Sans marquee at its top; no meta bar |
+| Hero | broken photo box (148 × 148) on the left; purple Times name, bold Verdana headline `AI Product Engineer.` at 15 px with "Product" and the "." flat in the text colour (no gradient), green subtitle `Mobile & Agentic Systems`, all centred beside the photo; Forest's 2 px rule in blue |
+| Lead and contacts | the summary as one Verdana 12/16 paragraph (no bullet: it is a single paragraph on `/new`); under it a bold centred `Contact me:` over the three contacts as centred inline blue underlined links (email, phone, `Live AI CV — ask it anything`), no ↗ |
+| 01 — Selected impact | red Times title with a groove rule and a blinking "NEW!"; the four figures as a **2 × 2 table** of bevelled grey cells (`#C0C0C0`, `2px outset`, square, 2 px apart), figures in bold Verdana 22 px, text 11 px green; the featured first cell **flat navy** `#000080` with cream text (no gradient in 2001) |
+| 02 — How I build with agents | red Times title with a groove rule and a "NEW!"; the dark panel as a **black box with a grey ridge border**, square corners, no shadow: the lead in green `#00FF00` Verdana 13/17, the six steps as a **decimal list** `1.`–`6.` in green (Forest's `01`–`06` hidden, the step tiles gone), the footnote in `#00CC00` Courier New |
+| 03 — Experience | red Times title; each job as a block: company in Times 13, role in green and period in grey Courier stacked over **square** bullets (Forest's "—" hidden); grey rules between jobs; the Earlier row in green; the app pills as green `#CCFFCC` boxes with a black border, icons squashed to 64 × 28 |
+| 04 — Skills | red Times title centred; six bevelled cells (`2px inset #C0C0C0`) in **3 columns** 2 px apart, Arial titles, green items |
+| 05 — Education, 06 — About me | plain table areas: no sage or sand fill, no card padding, each under its red title and groove rule; the three book covers "don't load" (white boxes, inset outline, broken-image icon, square) |
+| Footer | blue 2 px rule; `Let's build something ↗` as a 13 px blue underlined link, the © in grey Courier at the right; then the construction sign, `You are visitor number 004271`, the two badges, `[ << Prev | AI Builders Webring | Next >> ]`, `Last updated: 14.03.2002 · © 2002 Andrew Panasiuk. All rights reserved.` |
+| Margin | the "Oh, snap!" note right of the table |
+
+## Damage layers (`/new`)
+
+32 layers, one per chunk, the same rules as `/`'s (one concern in one place, no two layers set the same property on the same element, only hooks, retro literals only in layer files). **Shared** = `/`'s file in `src/screens/retro/layers/`, used by both scenarios unchanged (guard 2 checks it against both pages); **`/new`** = a file in `new/layers/` → `src/screens/retro/layers/new/<id>.css`. A `/new` file may carry the same id as a `/` file with different content (`heading-colors`, `page-frame`, `heading-rules`, `bullets`, `card-padding`, `new-bursts`, `decor-room`, `contact-labels`): ids are unique per scenario, and only one scenario runs at a time.
+
+| Layer | File | Holds on `/new` (retro → Forest) |
+|---|---|---|
+| `type-faces` | shared | name, `h2`, `h3` (companies, Earlier, skills, degree) in Times New Roman bold; skill titles in Arial |
+| `type-family` | shared | `--forest-font-display`/`-text` Verdana, `-mono` Courier New, h1 letter spacing normal |
+| `type-scale-headings` | shared | name 34, headline 15/18, subtitle 13, section labels 24 |
+| `type-scale-text` | shared | summary 12/16, body (bullets, education and about text) 11/15 |
+| `type-scale-impact` | `/new` | `--forest-type-impact-size` 22px, impact letter spacing normal, `--forest-type-card-size` 11px (impact text, loop steps), `--forest-type-dark-lead-size` 13px, `--forest-type-dark-lead-line-height` 17px |
+| `type-scale-cards` | shared | skill title 12, items 11/14, periods 11 |
+| `type-scale-details` | shared | company and degree titles 13, roles 11, footer CTA 13 |
+| `page-background` | shared | `body` `#000033` + star tile, `main` `#FFFFCC` |
+| `base-colors` | shared | `--forest-bg` `#FFFFCC`, ink `#000000`, ink-2 `#008000`, ink-3 `#808080` |
+| `heading-colors` | `/new` | name `#800080`, `h2` `#CC0000`, gradient text flat: `:is(h1, footer a) > span` (the headline's *Product* and `.`, the CTA's ↗). `/`'s file also names `h3 > span` (its gradient skill title), which `/new` doesn't have |
+| `panel-colors` | `/new` | `--forest-gradient-hero` `#000080` (featured impact cell), `--forest-gradient-dark` `#000000` (loop panel), `--forest-dark-ink` `#00FF00`, `--forest-dark-ink-2` `#00CC00`, `--forest-dark-line` `#008000`, `--forest-gold-soft` `#FFFF00`, `--forest-shadow-dark` `none` |
+| `page-frame` | `/new` | stage padding 8, `main` 640 px with 6 px padding and `3px outset #C0C0C0`, `[data-testid='profile']` without side padding (`/`'s names `cv`) |
+| `header-layout` | shared | hero: photo left of the centred text, no wrap; contacts in centred inline blocks |
+| `impact-grid` | `/new` | the impact list in 2 equal columns 2 px apart; cells without Forest's 200 px minimum height |
+| `experience-heads` | shared | job rows as blocks: company, role, period stacked over the bullets |
+| `skills-grid` | `/new` | skills in 3 equal columns 2 px apart, *Skills* title centred (`/`'s `tech-grid` finds its title by `data-agent-id`, which `/new` doesn't have) |
+| `broken-photo` | shared | photo "doesn't load": white box, inset outline, broken-image icon, square |
+| `squashed-icons` | shared | app icons 64 × 28, `object-fit: fill`, square |
+| `broken-covers` | `/new` | **all three** book covers "don't load" (white box, inset outline, broken-image icon), square |
+| `impact-cells` | `/new` | impact cells: padding 6, `2px outset #C0C0C0`, square, 4 px gap between figure and text |
+| `loop-frame` | `/new` | the loop panel: padding 8, `3px ridge #808080`, square, 8 px gaps; steps without tile border, padding or radius |
+| `app-cells` | shared | app pills as `#CCFFCC` boxes, `1px solid #000`, square, padding 4 |
+| `tech-cells` | shared | skill rows as bevelled cells: `2px inset #C0C0C0`, padding 4, 2 px title gap |
+| `card-colors` | shared | `--forest-line` `#808080`, `--forest-accent` `#0000FF`, `--forest-surface` `#C0C0C0` (impact cells, pills), Education/About fills transparent |
+| `heading-rules` | `/new` | `[data-testid='profile']` sections 16 px apart (Forest's 48–88), `h2` margins 16/8 and a `2px groove` rule |
+| `bullets` | `/new` | the loop steps' list as a block with decimal items (step numbers hidden), job bullets as square items (Forest's "—" hidden), 28 px indent |
+| `card-padding` | `/new` | `profile-education` and `profile-about` without their 24 px card padding |
+| `new-bursts` | `/new` | blinking "NEW!" after the *Selected impact* and *How I build with agents* titles |
+| `decor-room` | `/new` | `[data-testid='profile']` 72 px top and 216 px bottom padding for the nav bar and footer |
+| `hide-meta-bar` | shared | the meta bar hidden |
+| `link-style` | shared | contact rows and the footer CTA `#0000EE` underlined; the contact ↗ hidden |
+| `contact-labels` | `/new` | a bold `Contact me:` line before the contact list (`/`'s file labels the email and phone rows by `data-agent-id`, which `/new` doesn't have) |
+
+**Hooks.** Every selector exists on today's `/new` (`render.mjs` checks them): section test ids (`profile`, `profile-header`, `profile-impact`, `profile-loop`, `profile-experience`, `profile-skills`, `profile-education`, `profile-about`, `src/screens/profile/testIds.ts`), Forest item test ids (`forest-meta-bar`, `forest-hero`, `forest-name`, `forest-headline`, `forest-photo`, `forest-lead`, `forest-contact`, `forest-impact-card`, `forest-loop-step`, `forest-job`, `forest-app`, `forest-skill`, `forest-book`, `src/shared/forest/testIds.ts`), element types, `:has(…)` on a hook, a hook's direct child (`[data-testid='profile-loop'] > div`, the loop panel), `[aria-hidden='true']`, `:is()`, `::before`/`::after`. **No hook has to be added** and no `data-agent-id` is used (`/new` has none today; CV-94 may add them for the chat, and the show doesn't depend on them). Not reached on purpose: the meta bar's status dot colour (hidden anyway), the app pills' meta stats, the Earlier row's flex layout (it wraps at 640 px by itself).
+
+Host variables and keyframes: as on `/` (`--retro-broken-image`, `--retro-tile-stars`, `--retro-badge-new`, `@keyframes retro-blink`).
+
+## Decorations (`/new`)
+
+The same three decorations with the same look and leave motion as on `/`; only their anchors and some copy differ.
+
+| Id | Anchor on `/new` | Copy that differs from `/` | Removed by |
+|---|---|---|---|
+| `top-bar` | top-left of `[data-testid='profile']`, its full width | nav `Home` · `Resume` · `Impact` · `My Apps` · `Guestbook` · `Links` (`Books` → `Impact`); marquee `*** Welcome to my homepage! *** AI Product Engineer *** Mobile & Agentic Systems *** Please sign my guestbook! ***` (`/new`'s own headline and subtitle) | chunk 29 |
+| `page-footer` | bottom of `[data-testid='profile']`, its full width, top edge 200 px above the bottom | webring `AI Builders Webring` (was `Android Devs Webring`); the sign, counter `004271`, badges and the last-updated line are `/`'s | chunk 31 |
+| `oh-snap` | while `page-frame` is on: 28 px right of `main`, 40 px below the top of `[data-testid='profile-header']`; after: over the photo's top-right corner (`forest-photo`), as on `/` | none | chunk 18 |
+
+## The fix list (`/new`)
+
+8 steps of 36 chunks: 32 layers (17 morph, 15 fade), 3 decorations (leave), 1 module. Step ids and titles are `/`'s (`fonts`, `colours`, `layout`, `images`, `cards`, `spacing`, `chrome`, `links`; titles `fonts` · `colours` · `layout` · `images` · `cards` · `spacing & lists` · `2002 chrome` · `links & contacts`); narration fallbacks and LLM intents follow `/new`'s content (Texts below). Columns as in `/`'s fix list; **Chars** counts the typed input with the token layers' full `setProperty` lines and today's values; **s** = typing (100 chars/s, 0.6–1.3 s) + 1 s beat. Selectors are hooks under `[data-retro-stage]`.
+
+**Step 1 · `fonts`** · narration: *Starting with typography: the current typeface and type scale, so the headline and the impact figures read at a glance.*
+
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
+|---|---|---|---|---|---|---|
+| 1 | `type-faces` | 85 | Times New Roman headings, Arial skill titles → Onest | headings: `[data-testid='forest-name']`, `h2` | morph | 1.9 |
+| 2 | `type-family` | 454 | Verdana, Courier New → Onest, IBM Plex Sans, JetBrains Mono, −0.045em | page | morph | 2.3 |
+| 3 | `type-scale-headings` | 394 | name 34, headline 15/18, subtitle 13, labels 24 → 19–21, 40–84 / 0.98, 19–24, 14 | name & headline: `[data-testid='forest-name']`, `[data-testid='forest-headline']`, `h2` | fade | 2.3 |
+| 4 | `type-scale-text` | 301 | summary 12/16, body 11/15 → 18–20 / 1.55, 16 / 1.55 | summary: `[data-testid='forest-lead']` | fade | 2.3 |
+| 5 | `type-scale-impact` | 395 | figures 22, card text 11, panel lead 13/17 → 34–44 / −0.04em, 15, 19–22 / 1.4 | impact & loop: `[data-testid='profile-impact']`, `[data-testid='profile-loop']` | fade | 2.3 |
+| 6 | `type-scale-cards` | 307 | skill title 12, items 11/14, periods 11 → 16, 15 / 1.55, 13 | skills & dates: `[data-testid='profile-skills']` | fade | 2.3 |
+| 7 | `type-scale-details` | 247 | company 13, role 11, footer CTA 13 → 20, 15, 28–52 | experience & education: `[data-testid='profile-experience']`, `[data-testid='profile-education']` | fade | 2.3 |
+
+**Step 2 · `colours`** · narration: *Colours: replacing the tiled background and the period palette with the current colour scheme, including the impact and process panels.*
+
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
+|---|---|---|---|---|---|---|
+| 8 | `page-background` | 86 | star tile, cream table → plain page | page | morph | 1.9 |
+| 9 | `base-colors` | 235 | cream, black, green, grey → white, forest inks | page | fade | 2.3 |
+| 10 | `heading-colors` | 94 | purple name, red labels, flat *Product* and ↗ → ink, accent green, the green-gold gradient back | name & titles: `[data-testid='forest-name']`, `h2` | fade | 1.9 |
+| 11 | `panel-colors` | 550 | navy featured cell, black panel with green text, yellow numbers, no shadow → the hero and dark gradients, dark-panel inks, gold-soft, the panel shadow | impact & loop: `[data-testid='forest-impact-card']`, `[data-testid='profile-loop'] > div` | morph | 2.3 |
+
+**Step 3 · `layout`** · narration: *Layout: replacing the fixed-width table layout, standard practice at the time, with a centred column and grids.* (`/`'s line)
+
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
+|---|---|---|---|---|---|---|
+| 12 | `page-frame` | 81 | 640 px outset table at the left → the centred 1080 px column | page | morph | 1.8 |
+| 13 | `header-layout` | 86 | photo left of the centred text, contacts in centred blocks → hero with the photo right, contact rows | header: `[data-testid='forest-hero']` | morph | 1.9 |
+| 14 | `impact-grid` | 84 | 2 × 2 table → four figures in a row, 200 px tall | impact: `ul:has(> [data-testid='forest-impact-card'])` | morph | 1.8 |
+| 15 | `experience-heads` | 93 | job heads stacked over the bullets → company / role / period beside the bullets | experience: `[data-testid='forest-job']` | morph | 1.9 |
+| 16 | `skills-grid` | 84 | 3 tight columns, centred title → the skills grid | skills: `[data-testid='profile-skills']` | morph | 1.8 |
+
+**Step 4 · `images`** · narration: *Images: correcting the asset paths and aspect ratios, so the photo, app icons and book covers display properly.*
+
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
+|---|---|---|---|---|---|---|
+| 17 | `broken-photo` | 84 | photo "doesn't load" → the round photo with its green ring | photo: `[data-testid='forest-photo']` | morph | 1.8 |
+| 18 | `oh-snap` (decoration) | 53 | the note → gone | note: `#oh-snap` | leave | 1.6 |
+| 19 | `squashed-icons` | 90 | app icons 64 × 28, square → 36 px round icons | app icons: `[data-testid='forest-app'] img` | morph | 1.9 |
+| 20 | `broken-covers` | 91 | three covers "don't load", square → the covers, radius 6 | book covers: `[data-testid='forest-book'] img` | morph | 1.9 |
+
+**Step 5 · `cards`** · narration: *Cards: converting the bevelled table cells into impact cards, the process panel, app pills and skill rows.*
+
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
+|---|---|---|---|---|---|---|
+| 21 | `impact-cells` | 91 | bevelled square cells, padding 6 → radius 20, padding 22 | impact cards: `[data-testid='forest-impact-card']` | fade | 1.9 |
+| 22 | `loop-frame` | 87 | ridge-bordered square box, plain step rows → radius 24, the step tiles with their hairline | loop panel: `[data-testid='profile-loop'] > div` | fade | 1.9 |
+| 23 | `app-cells` | 80 | green boxes, black border → round pills | apps: `[data-testid='forest-app']` | fade | 1.8 |
+| 24 | `tech-cells` | 83 | bevelled skill cells → rows under a 1 px line | skills: `[data-testid='forest-skill']` | fade | 1.8 |
+| 25 | `card-colors` | 298 | grey line and surface, blue accent, no card fills → forest line, surface, green accent, sage and sand cards | cards: `[data-testid='forest-impact-card']`, `[data-testid='profile-education']`, `[data-testid='profile-about']` | fade | 2.3 |
+
+**Step 6 · `spacing` · title `spacing & lists`** · narration: *Spacing: replacing the horizontal rules and numbered lists with consistent section spacing, so the page is easier to scan.*
+
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
+|---|---|---|---|---|---|---|
+| 26 | `heading-rules` | 94 | sections 16 px apart, groove rules under the titles → 48–88 px apart, no rule | section titles: `h2` | fade | 1.9 |
+| 27 | `bullets` | 79 | decimal loop list, square job bullets → the six step tiles with `01`–`06`, "—" bullets | lists: `ol:has(> [data-testid='forest-loop-step'])`, `[data-testid='forest-job'] ul` | morph | 1.8 |
+| 28 | `card-padding` | 96 | Education and About without padding → 24 px cards | education & about: `[data-testid='profile-education']`, `[data-testid='profile-about']` | fade | 2.0 |
+
+**Step 7 · `chrome` · title `2002 chrome`** · narration: *Removing the navigation bar, marquee and footer badges of the original build, and restoring the meta bar.* (`/`'s line)
+
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
+|---|---|---|---|---|---|---|
+| 29 | `top-bar` (decoration) | 56 | nav bar and marquee → gone | nav bar: `#top-bar` | leave | 1.6 |
+| 30 | `new-bursts` | 88 | blinking "NEW!" after two section titles → gone | NEW! badges: `[data-testid='profile-impact'] > h2`, `[data-testid='profile-loop'] > h2` | morph | 1.9 |
+| 31 | `page-footer` (decoration) | 59 | construction sign, counter, badges, webring → gone | footer: `#page-footer` | leave | 1.6 |
+| 32 | `decor-room` | 81 | 72 px top and 216 px bottom padding → Forest's | page | fade | 1.8 |
+| 33 | `hide-meta-bar` | 88 | meta bar (handle, location, work mode, status, Show case, switcher) hidden → back | meta bar: `[data-testid='forest-meta-bar']` | morph | 1.9 |
+
+**Step 8 · `links` · title `links & contacts`** · narration: *Finally, links: restoring the contact rows and the footer link, and loading the AI chat assistant.* (`/`'s line)
+
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
+|---|---|---|---|---|---|---|
+| 34 | `link-style` | 82 | contacts and the CTA `#0000EE` underlined, ↗ hidden → ink rows with green ↗, the ink CTA | links: `ul:has(> li > [data-testid='forest-contact'])`, `footer a` | morph | 1.8 |
+| 35 | `contact-labels` | 89 | bold `Contact me:` line → gone | contacts: `ul:has(> li > [data-testid='forest-contact'])` | morph | 1.9 |
+| 36 | `ai-chat` (module) | 44 | the AI chat button loads | none | none | 1.6 |
+
+Order within a step runs down the page where it can (the camera goes header → impact → loop → experience → skills → education/about → footer in most steps); `type-scale-cards` (skills) before `type-scale-details` (experience) mirrors `/`, so the camera moves down and back once in the fonts step.
+
+**Console commands**: generated exactly as on `/` (Console commands): e.g. chunk 11 types `// → impact & loop`, `const { style } = document.documentElement`, then seven lines such as `style.setProperty('--forest-gradient-hero', 'linear-gradient(135deg, #1f3a22, #3e7a34)')` and `style.setProperty('--forest-shadow-dark', '0 30px 80px -40px rgba(62, 122, 52, 0.5)')`, values read live; done line `✓ panel-colors: 7 tokens set`. Chunk 20 types `// → book covers` and `document.querySelector('style[data-retro-layer="broken-covers"]').remove()`, done line `✓ broken-covers removed`.
+
+## Timing budget (`/new`)
+
+Measured the way `showTiming.test.ts` measures `/` (fake clock: fallback narration, a camera that settles at once, token chunks typing their first two lines):
+
+| Part | Time |
+|---|---:|
+| Intro (as `/`) | 5.1 s |
+| 1 fonts (7 chunks) | 13.8 s |
+| 2 colours (4) | 9.3 s |
+| 3 layout (5) | 11.4 s |
+| 4 images (4) | 9.3 s |
+| 5 cards (5) | 11.1 s |
+| 6 spacing & lists (3) | 7.9 s |
+| 7 2002 chrome (5) | 10.8 s |
+| 8 links & contacts (3) | 7.3 s |
+| Close (as `/`) | 5.2 s |
+| **Total** | **≈ 91 s** (91.2) |
+
+In the browser the 9 token chunks print every `setProperty` line and hit the 1.3 s cap: ≈ 97 s (`/` ≈ 96 s). The `/new` e2e timing smoke keeps `/`'s window: done within 110 s of show time and not under 60 s. Reduced motion ≈ 78 s, as `/`.
+
+## Texts (`/new`, EN only, verbatim)
+
+- Same as `/`: intro and close lines, the agent chat strings, the DevTools strings and the opening line, the scripted reply, limit, too-long and offline lines, the note, the counter, the construction sign, the last-updated line, the browser tab title, step titles, the finale fallback (not shown).
+- `/new` decoration copy: nav `Home` · `Resume` · `Impact` · `My Apps` · `Guestbook` · `Links`; marquee `*** Welcome to my homepage! *** AI Product Engineer *** Mobile & Agentic Systems *** Please sign my guestbook! ***`; webring `[ << Prev | AI Builders Webring | Next >> ]`.
+- Layer content: `Contact me:` (`contact-labels`).
+- Narration fallbacks: the fix list above (Tone as `/`: calm, professional, one sentence; the LLM may rephrase).
+- **LLM intents** (manifest, one English line each, the `/new` narrate and reply outline):
+  - `fonts`: Replace the 2002 system fonts (Verdana, Times New Roman, Arial, Courier New) and small sizes with today's typeface and type scale: the AI Product Engineer headline, the impact figures and the process panel.
+  - `colours`: Replace the star-field background, the cream page and the flat navy and black panels with today's palette and gradients: the featured impact card and the dark "How I build with agents" panel.
+  - `layout`: Move the page from the fixed-width, left-aligned table into the centred column: the hero beside the photo, the impact figures in one row, the job rows and the skills grid.
+  - `images`: Correct the image paths and the app icons' aspect ratios so the photo, the app icons and the book covers load, and remove the "Oh, snap!" note.
+  - `cards`: Turn the bevelled table cells into today's impact cards, the framed process panel, app pills, skill rows and the education and about cards.
+  - `spacing`: Remove the horizontal rules and the numbered and square-bullet lists, and restore today's section spacing, the six loop steps as tiles and the job bullets.
+  - `chrome`: Remove the nav bar, marquee, "NEW!" bursts, hit counter, badges and webring, and bring back the meta bar with location, availability and the language switcher.
+  - `links`: Restore the contact rows with their arrows (email, phone, the live AI CV) and the footer link, and load the real AI chat button.
+- **Target labels** (after `// → `): `headings` · `page` · `name & headline` · `summary` · `impact & loop` · `skills & dates` · `experience & education` · `name & titles` · `header` · `impact` · `experience` · `skills` · `photo` · `note` · `app icons` · `book covers` · `impact cards` · `loop panel` · `apps` · `cards` · `section titles` · `lists` · `education & about` · `nav bar` · `NEW! badges` · `footer` · `meta bar` · `links` · `contacts`.
+
+## Show case button (`/new`)
+
+The shared control of the section *Show case button* above, in `/new`'s meta bar: right group, after the status `● Open to roles` and before the language switcher, the meta bar's 16 px gap between items (`--space-4`, the `.right` group's gap). Same look, label `▶ Show case`, same rule (en and ≥ 1024 px, else absent), same seam. On `/` its place and look don't change.
+
+## Accessibility (`/new`, the broken page)
+
+As `/` (States → Accessibility). New retro pairs: `#00FF00` on `#000000` 15.3:1, `#00CC00` on `#000000` 9.6:1, `#FFFFCC` on `#000080` 15.6:1, black on `#C0C0C0` 11.5:1. Known short-lived misses: the impact text `#008000` on the grey cells is 2.8:1 until `base-colors` (chunk 9, ≈ 25 s in), and the periods `#808080` on cream 3.8:1 until the same chunk.
+
+## Decisions (`/new`, CV-95; defaults taken, the orchestrator may change them)
+
+53. **Show case on `/new`**: the shared meta-bar control, same look and rule as `/`, after the status and before the switcher; `?retro=1` on `/new` starts the `/new` show (scope defaults i, j).
+54. **One look for both pages**: the same 2001 homepage language on `/new` (star tile, 640 px cream table, Verdana/Times/Comic, bevels, NEW!, blue links, broken images, the same decorations), so the two shows read as one series; `/new` differs only where its blocks differ.
+55. **`/new`'s own blocks in 2001 terms**: impact figures → a 2 × 2 table of bevelled grey cells with the featured one flat navy; the dark "How I build" panel → a black ridge-bordered box with green text and a decimal list (a 2001 "terminal" box); the contacts → a `Contact me:` line over inline links; the "Live AI CV" row stays (content is never hidden).
+56. **Reuse `/`'s layer files** where every selector already matches both pages (17 files); `/new`-only files (15) live in `layers/new/` and may share an id with a `/` file. A shared file is a two-page contract: guard 2 checks it against both pages.
+57. **No new hooks**: test ids, element types and structural selectors only; no `data-agent-id` (the `/`-only per-item breakage, Savant's icon and Siddhartha's cover, becomes "all three covers don't load" on `/new`).
+58. **Same step ids and titles as `/`** (`retro-3`'s eight), so the v3 contract stays as it is (ARCHITECTURE §10); the narration fallbacks for fonts, colours, images, cards and spacing name `/new`'s content, the other three are `/`'s lines.
+59. **36 chunks, ≈ 91 s** on the fake clock (scope default f); trimmed from a 41-chunk draft: no separate loop-list, app-stack, skill-fill, book-frame or job-rhythm chunks (the first is part of `bullets`; the others add little at 640 px).
+60. **`panel-colors` morphs**: its tokens' "after" values are gradients, which can't interpolate; guard 1 treats `--forest-gradient-*` tokens as structural (ARCHITECTURE §10 → Guards).
+61. **2002 in the furniture, 2001 in the intro** on both pages, as on `/` (`2002 chrome`, `Last updated: 14.03.2002`): the narrate prompt says "original 2002 build" for both scenarios and stays unchanged.
+62. **Decoration copy**: the marquee quotes `/new`'s own headline and subtitle; the nav names `/new`'s sections; the webring is `AI Builders Webring`. Nothing else differs.
+63. **The intro and close are `/`'s lines verbatim** (the human's wording says "this CV" on both pages).
+64. **Plate and highlight unchanged**: the plate sits on the first target's bottom-left corner; multi-target chunks list the topmost block first where the camera should go.
