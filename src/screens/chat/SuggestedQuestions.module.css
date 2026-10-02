@@ -5,28 +5,35 @@
   gap: var(--space-2);
 }
 
+/* The page's section-label style: Mono 500, gold-soft on dark. */
 .label {
   margin-top: var(--space-1);
+  font-weight: var(--forest-type-label-weight);
+  letter-spacing: var(--forest-type-label-letter-spacing);
+  color: var(--forest-gold-soft);
 }
 
+/* A pill on one line, a rounded card when a long question wraps. */
 .chip {
   max-width: 100%;
   min-height: var(--chat-secondary-button-height);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-4);
   font: inherit;
-  font-size: var(--font-card-body-size);
-  line-height: var(--font-card-body-line-height);
   letter-spacing: inherit;
   text-align: left;
-  color: var(--color-text);
-  background: var(--color-bg);
-  border: var(--border-card) solid var(--color-card-border);
-  border-radius: var(--radius-logo);
+  color: var(--forest-dark-ink);
+  background: var(--forest-chat-fill);
+  border: var(--border-card) solid var(--forest-dark-line);
+  border-radius: var(--forest-radius-step);
   cursor: pointer;
+  transition:
+    background-color var(--chat-transition),
+    border-color var(--chat-transition);
 }
 
 .chip:hover {
-  border-color: var(--color-text);
+  background: var(--forest-chat-fill-hover);
+  border-color: var(--forest-gold-soft);
 }
 
 .groups {

@@ -5,17 +5,24 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-3);
-  font-size: var(--font-chat-caption-size);
-  line-height: var(--font-chat-caption-line-height);
-  color: var(--color-text);
-  background: var(--color-bg);
-  border: var(--border-card) solid var(--color-card-border);
-  border-radius: var(--radius-logo);
+  font-family: var(--forest-font-mono);
+  font-size: var(--forest-chat-caption-size);
+  line-height: var(--forest-chat-caption-line-height);
+  color: var(--forest-dark-ink);
+  border: var(--border-card) solid var(--forest-dark-line);
+  border-radius: var(--forest-radius-pill);
   overflow-wrap: anywhere;
 }
 
 .icon {
   flex: none;
+  width: var(--chat-action-icon-size);
+  height: var(--chat-action-icon-size);
+  color: var(--forest-gold-soft);
+}
+
+.running {
+  color: var(--forest-dark-ink-2);
 }
 
 .running .icon {
@@ -23,9 +30,13 @@
 }
 
 .failed {
-  color: var(--chat-color-error);
-  background: var(--chat-color-error-bg);
-  border-color: var(--chat-color-error);
+  color: var(--forest-chat-error);
+  background: var(--forest-chat-error-bg);
+  border-color: var(--forest-chat-error);
+}
+
+.failed .icon {
+  color: currentColor;
 }
 
 @keyframes pulse {

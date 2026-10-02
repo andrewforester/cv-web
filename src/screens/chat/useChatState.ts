@@ -7,6 +7,7 @@ import type {
   ChatUiState,
 } from './ChatUiState';
 import { exceedsConversationLimits } from './conversation';
+import { useAskHash } from './useAskHash';
 import { useChatConversation } from './useChatConversation';
 import { useChatHint } from './useChatHint';
 import { CHAT_SHEET_QUERY, useMediaQuery } from './useMediaQuery';
@@ -15,7 +16,10 @@ import { useOnlineStatus } from './useOnlineStatus';
 /** The counter appears from 80 % of the limit (SPEC O1: from 800 of 1,000). */
 const COUNTER_FROM = CHAT_LIMITS.maxUserMessageChars * 0.8;
 
-/** State holder of the chat widget: panel, hint, composer, conversation, connectivity. */
+/**
+ * State holder of the chat widget: panel (also opened by the `#ask` hash), hint, composer,
+ * conversation, connectivity.
+ */
 export function useChatState(): { state: ChatUiState; actions: ChatActions } {
   const [isOpen, setOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -25,6 +29,12 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
   }, []);
   const online = useOnlineStatus();
   const hint = useChatHint();
+  const { markSeen } = hint;
+  const open = useCallback(() => {
+    markSeen();
+    setOpen(true);
+  }, [markSeen]);
+  useAskHash(open);
   const sheet = useMediaQuery(CHAT_SHEET_QUERY);
   const closeSheet = useCallback(() => setOpen(false), []);
   const conversation = useChatConversation({ announce, sheet, closeSheet });
@@ -37,12 +47,9 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
   const canSend = question !== '' && !tooLong(input) && !blocked;
 
   const actions: ChatActions = {
-    open: () => {
-      hint.markSeen();
-      setOpen(true);
-    },
+    open,
     close: () => setOpen(false),
-    dismissHint: hint.markSeen,
+    dismissHint: markSeen,
     changeInput: (value) => {
       if (tooLong(value) && !tooLong(input)) announce({ kind: 'tooLong' });
       setInput(value);

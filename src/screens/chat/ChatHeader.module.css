@@ -2,8 +2,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-2) var(--space-3) var(--space-4);
-  border-bottom: var(--border-card) solid var(--chat-color-divider);
+  padding: var(--space-3) var(--space-2) var(--space-3) var(--space-5);
+  border-bottom: var(--border-card) solid var(--forest-dark-line);
 }
 
 .badge {
@@ -12,8 +12,8 @@
   height: var(--chat-badge-size);
   display: grid;
   place-items: center;
-  color: var(--color-text);
-  background: var(--gradient-ai);
+  color: var(--forest-ink);
+  background: var(--forest-gradient-text);
   border-radius: 50%;
 }
 
@@ -26,19 +26,16 @@
 }
 
 .title {
-  font-size: var(--font-subsection-size);
-  line-height: var(--font-section-line-height);
-  font-weight: var(--font-subsection-weight);
-}
-
-.subtitle {
-  font-size: var(--font-card-body-size);
-  line-height: var(--font-card-body-line-height);
-  color: var(--color-text-secondary);
+  font-family: var(--forest-type-skills-title-family);
+  font-size: var(--forest-type-skills-title-size);
+  line-height: var(--forest-chat-ui-line-height);
+  font-weight: var(--forest-type-skills-title-weight);
+  letter-spacing: var(--forest-type-title-letter-spacing);
 }
 
 @media (max-width: 599px), (max-height: 499px) {
   .header {
     padding-top: calc(var(--space-3) + env(safe-area-inset-top));
+    padding-left: var(--space-4);
   }
 }
