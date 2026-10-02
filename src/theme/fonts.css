@@ -1,13 +1,20 @@
-/* Inter, self-hosted: latin (+ cyrillic for the UA locale, fetched only when its glyphs appear). */
-@import '@fontsource/inter/latin-400.css';
-@import '@fontsource/inter/latin-400-italic.css';
-@import '@fontsource/inter/latin-500.css';
-@import '@fontsource/inter/latin-600.css';
-@import '@fontsource/inter/latin-700.css';
-@import '@fontsource/inter/latin-700-italic.css';
-@import '@fontsource/inter/cyrillic-400.css';
-@import '@fontsource/inter/cyrillic-400-italic.css';
-@import '@fontsource/inter/cyrillic-500.css';
-@import '@fontsource/inter/cyrillic-600.css';
-@import '@fontsource/inter/cyrillic-700.css';
-@import '@fontsource/inter/cyrillic-700-italic.css';
+/*
+ * Forest fonts, self-hosted: Onest (display, UI), IBM Plex Sans (reading text), JetBrains Mono
+ * (meta); latin + cyrillic (cyrillic files load only when its glyphs appear).
+ */
+@import '@fontsource/onest/latin-400.css';
+@import '@fontsource/onest/latin-500.css';
+@import '@fontsource/onest/latin-600.css';
+@import '@fontsource/onest/latin-700.css';
+@import '@fontsource/onest/cyrillic-400.css';
+@import '@fontsource/onest/cyrillic-500.css';
+@import '@fontsource/onest/cyrillic-600.css';
+@import '@fontsource/onest/cyrillic-700.css';
+@import '@fontsource/ibm-plex-sans/latin-400.css';
+@import '@fontsource/ibm-plex-sans/latin-500.css';
+@import '@fontsource/ibm-plex-sans/cyrillic-400.css';
+@import '@fontsource/ibm-plex-sans/cyrillic-500.css';
+@import '@fontsource/jetbrains-mono/latin-400.css';
+@import '@fontsource/jetbrains-mono/latin-500.css';
+@import '@fontsource/jetbrains-mono/cyrillic-400.css';
+@import '@fontsource/jetbrains-mono/cyrillic-500.css';

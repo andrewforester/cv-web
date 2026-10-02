@@ -44,12 +44,18 @@ export function MessageList({
   const lastTurnId = useRef<string | undefined>(undefined);
 
   // A new question always scrolls down; a growing answer only while the visitor is at the bottom.
+  // The empty state (taller than the list) opens at its top, on the greeting.
   useLayoutEffect(() => {
     const list = listRef.current;
+    if (!list) return;
+    if (turns.length === 0) {
+      list.scrollTop = 0;
+      return;
+    }
     const newestId = turns.at(-1)?.id;
     const newTurn = newestId !== lastTurnId.current;
     lastTurnId.current = newestId;
-    if (list && (newTurn || nearBottom.current)) list.scrollTop = list.scrollHeight;
+    if (newTurn || nearBottom.current) list.scrollTop = list.scrollHeight;
   }, [turns, conversationFull]);
 
   const onScroll = () => {

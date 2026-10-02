@@ -1,13 +1,14 @@
 .caret {
   --chat-caret-width: 2px;
   --chat-caret-height: 18px;
+  --chat-caret-offset: -3px;
 
   display: inline-block;
   width: var(--chat-caret-width);
   height: var(--chat-caret-height);
   margin-left: var(--chat-caret-width);
-  vertical-align: text-bottom;
-  background: currentColor;
+  vertical-align: var(--chat-caret-offset);
+  background: var(--forest-gold-soft);
   animation: blink 1s steps(1) infinite;
 }
 

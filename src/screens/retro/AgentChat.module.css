@@ -4,11 +4,13 @@
  * tokens are the live site values (the dock's token shield), so the damage layers never reach it.
  */
 .card {
-  font-family: var(--font-family);
-  font-size: var(--font-body-size);
-  line-height: var(--font-body-line-height);
-  letter-spacing: var(--letter-spacing);
-  color: var(--color-text);
+  /* The site chat's root type: UI text in Onest; bubbles and the field switch to Plex. */
+  font-family: var(--forest-font-display);
+  font-size: var(--forest-chat-ui-size);
+  line-height: var(--forest-chat-ui-line-height);
+  letter-spacing: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   transform-origin: right bottom;
   animation: retro-chat-in var(--chat-motion-duration) var(--chat-motion-easing) both;
 }
@@ -17,7 +19,7 @@
 .card :focus-visible:not(textarea) {
   --retro-focus-ring-width: 2px;
 
-  outline: var(--retro-focus-ring-width) solid var(--color-text);
+  outline: var(--retro-focus-ring-width) solid var(--forest-gold-soft);
   outline-offset: var(--retro-focus-ring-width);
 }
 
@@ -37,12 +39,14 @@
   flex: 1;
   min-height: 0;
   margin: 0;
-  padding: var(--space-4);
+  padding: var(--space-4) var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--forest-dark-line) transparent;
   list-style: none;
 }
 

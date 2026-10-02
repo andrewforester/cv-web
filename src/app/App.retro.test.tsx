@@ -1,7 +1,8 @@
 import { act, render, screen } from '@testing-library/react';
 import { FakeShowRepository } from '../data/retro';
 import { chatTestIds } from '../screens/chat/testIds';
-import { cvTestIds } from '../screens/cv/testIds';
+import { forestTestIds } from '../shared/forest/testIds';
+import { profileTestIds } from '../screens/profile/testIds';
 import { App } from './App';
 import { AppProviders } from './AppProviders';
 import type { RetroMode } from './retroMode';
@@ -27,7 +28,20 @@ describe('App modes', () => {
     expect(await screen.findByTestId(chatTestIds.fab)).toBeInTheDocument();
     expect(stage()).toBeNull();
     expect(layers()).toHaveLength(0);
-    expect(screen.getByTestId('app-header')).toBeVisible();
+    expect(screen.getByTestId('language-switcher')).toBeVisible();
+  });
+
+  it('show mode on /new: the profile as is, no stage, the AI chat loads', async () => {
+    window.history.replaceState(null, '', '/new');
+    try {
+      renderApp('show');
+      expect(await screen.findByTestId(chatTestIds.fab)).toBeInTheDocument();
+      expect(screen.getByTestId(profileTestIds.root)).toBeInTheDocument();
+      expect(stage()).toBeNull();
+      expect(layers()).toHaveLength(0);
+    } finally {
+      window.history.replaceState(null, '', '/');
+    }
   });
 
   // Plays the whole ~91 s show frame by frame: CPU-bound (10x slower when other test runs share the machine), so far above the 5 s default.
@@ -54,7 +68,7 @@ describe('App modes', () => {
       await import('../screens/retro/RetroShowRoute');
       renderApp('show');
       await advance(50);
-      const name = screen.getByTestId(cvTestIds.name);
+      const name = screen.getByTestId(forestTestIds.name);
       expect(stage()).not.toBeNull();
       expect(layers().length).toBeGreaterThan(0);
       expect(screen.queryByTestId(chatTestIds.fab)).toBeNull();
@@ -65,7 +79,7 @@ describe('App modes', () => {
       expect(stage()).toBeNull();
       expect(layers()).toHaveLength(0);
       expect(screen.getByTestId(chatTestIds.fab)).toBeInTheDocument();
-      expect(screen.getByTestId(cvTestIds.name)).toBe(name);
+      expect(screen.getByTestId(forestTestIds.name)).toBe(name);
       expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'instant' });
     });
   });

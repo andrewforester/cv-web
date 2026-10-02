@@ -1,20 +1,3 @@
-.shell {
-  max-width: calc(var(--content-max-width) + 2 * var(--page-gutter));
-  margin: 0 auto;
-  /* Extra bottom space so the chat FAB never hides the last CV line. */
-  padding: var(--space-4) var(--page-gutter) calc(var(--chat-fab-size) + 2 * var(--space-6));
-}
-
-.header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: var(--space-8);
-}
-
-.main {
-  display: block;
-}
-
 /* Show mode while the show's chunk loads: no frame of today's design before the broken page. */
 .pending {
   visibility: hidden;

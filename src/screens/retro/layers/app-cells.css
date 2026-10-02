@@ -1,11 +1,10 @@
-[data-retro-stage] [data-testid='cv-app-card'] {
+[data-retro-stage] [data-testid='forest-app'] {
   padding: 4px;
   background: #ccffcc;
   border: 1px solid #000000;
   border-radius: 0;
   box-shadow: none;
 }
-
-[data-retro-stage] [data-testid='cv-app-card'] img {
+[data-retro-stage] [data-testid='forest-app'] img {
   border-radius: 0;
 }

@@ -1,81 +1,17 @@
 /*
  * Design tokens: the only place for colours, type, spacing and radii.
- * Values come from docs/design/cv/SPEC.md (Tokens, Scale); sizes are Figma pt x 1.5, in px.
+ * Values come from docs/design/forest/SPEC.md (Tokens); the page-agent highlight still uses the
+ * one colour kept from the previous look (docs/design/cv/SPEC.md).
  */
 :root {
-  /* Colours */
-  --color-bg: #ffffff;
-  --color-text: #001670;
+  /* Colours kept from the previous look: the page-agent highlight (below) points at it */
   --color-text-secondary: #445598;
-  --color-text-muted: rgba(0, 22, 112, 0.6);
-  --color-card-border: #49cc8f;
-  --color-highlight: #efbf04;
-  --gradient-ai: linear-gradient(
-    38deg,
-    rgba(255, 0, 0, 0.53) 0%,
-    rgba(255, 255, 0, 0.53) 23.6%,
-    rgba(14, 29, 246, 0.53) 48.6%,
-    rgba(228, 19, 243, 0.53) 76.4%,
-    rgba(238, 10, 14, 0.53) 100%
-  );
-  --color-app-text: #202124;
-  --color-app-muted: #717479;
-  --color-app-accent: rgba(3, 135, 95, 0.9);
-  --color-app-border: rgba(3, 135, 95, 0.8);
 
-  /* Shadows */
-  --shadow-card: 0 4px 12px rgba(25, 198, 89, 0.25);
-  --shadow-book: 0 3px 6px rgba(0, 0, 0, 0.25);
-
-  /* Typography */
-  --font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --letter-spacing: 0.02em;
-  --letter-spacing-app: 0.0078em;
-  --font-name-size: 24px;
-  --font-name-line-height: 24px;
-  --font-name-weight: 700;
-  --font-section-size: 21px;
-  --font-section-line-height: 22px;
-  --font-section-weight: 500;
-  --font-subsection-size: 17px;
-  --font-subsection-line-height: 17px;
-  --font-subsection-weight: 500;
+  /* Body text (global.css) */
   --font-body-size: 15px;
   --font-body-line-height: 22px;
   --font-body-weight: 400;
-  --font-education-size: 17px;
-  --font-education-line-height: 21px;
-  --font-education-weight: 400;
-  --font-card-title-size: 15px;
-  --font-card-title-line-height: 16px;
-  --font-card-title-weight: 600;
-  --font-card-body-size: 14px;
-  --font-card-body-line-height: 20px;
-  --font-card-body-weight: 400;
-  --font-meta-size: 14px;
-  --font-meta-line-height: 14px;
-  --font-meta-weight: 400;
-  --font-tag-size: 11px;
-  --font-tag-line-height: 12px;
-  --font-tag-weight: 400;
-  --font-book-title-size: 15px;
-  --font-book-title-line-height: 15px;
-  --font-book-title-weight: 400;
-  --font-book-author-size: 13px;
-  --font-book-author-line-height: 13px;
-  --font-book-author-weight: 400;
-  --font-app-name-size: 17px;
-  --font-app-name-line-height: 17px;
-  --font-app-name-weight: 500;
-  --font-app-publisher-size: 9px;
-  --font-app-publisher-line-height: 9px;
-  --font-app-publisher-weight: 500;
-  --font-app-value-size: 15px;
-  --font-app-value-line-height: 15px;
-  --font-app-value-weight: 500;
-  --font-app-label-size: 12px;
-  --font-app-label-line-height: 12px;
-  --font-app-label-weight: 400;
+  --letter-spacing: 0.02em;
 
   /* Spacing (4 px grid) */
   --space-1: 4px;
@@ -89,13 +25,150 @@
   --space-9: 48px;
 
   /* Shape */
-  --radius-card: 12px;
-  --radius-logo: 9px;
   --border-card: 1px;
 
-  /* Layout */
-  --content-max-width: 672px;
-  --page-gutter: 24px;
+  /* Forest (docs/design/forest/SPEC.md, Tokens). Chat tokens (--forest-chat-*) are below. */
+  --forest-bg: #ffffff;
+  --forest-ink: #15211a;
+  --forest-ink-2: #52604f;
+  --forest-ink-3: #7f8a78;
+  --forest-accent: #3e7a34;
+  --forest-accent-hover: #a9832a;
+  --forest-green: #4e9a36;
+  --forest-gold: #c49a34;
+  --forest-gold-soft: #e3c46a;
+  --forest-status: #15803d;
+  --forest-status-dot: #16a34a;
+  --forest-line: #dce2d2;
+  --forest-surface: #f1f4ec;
+  --forest-card-sage: #dfe8d0;
+  --forest-card-sand: #f3ecd6;
+  --forest-dark-ink: #eef2e8;
+  --forest-dark-ink-2: #a8b4a0;
+  --forest-dark-line: #3a4d3f;
+  --forest-gradient-text: linear-gradient(90deg, #4e9a36, #c49a34);
+  --forest-gradient-cta: linear-gradient(90deg, #3e7a34 0%, #4e9a36 65%, #c49a34 100%);
+  --forest-gradient-hero: linear-gradient(135deg, #1f3a22, #3e7a34);
+  --forest-gradient-dark: linear-gradient(150deg, #1a2b1e 0%, #0e120f 40%, #0a0b0a 100%);
+  --forest-shadow-dark: 0 30px 80px -40px rgba(62, 122, 52, 0.5);
+
+  /* Forest radii */
+  --forest-radius-impact: 20px;
+  --forest-radius-panel: 24px;
+  --forest-radius-step: 16px;
+  --forest-radius-pill: 999px;
+  --forest-radius-book: 6px;
+
+  /* Forest layout */
+  --forest-content-max: 1080px;
+  --forest-page-padding-top: clamp(16px, 4vw, 48px);
+  --forest-page-padding-x: clamp(16px, 4vw, 40px);
+  --forest-page-padding-bottom: 40px;
+  --forest-section-gap: clamp(48px, 7vw, 88px);
+
+  /* Forest fonts */
+  --forest-font-display: 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --forest-font-text: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --forest-font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Forest type: --forest-type-<role>-{family,size,weight,line-height,letter-spacing} */
+  --forest-type-h1-family: var(--forest-font-display);
+  --forest-type-h1-size: clamp(40px, 7.4vw, 84px);
+  --forest-type-h1-weight: 600;
+  --forest-type-h1-line-height: 0.98;
+  --forest-type-h1-letter-spacing: -0.045em;
+  --forest-type-subtitle-family: var(--forest-font-display);
+  --forest-type-subtitle-size: clamp(19px, 2.2vw, 24px);
+  --forest-type-subtitle-weight: 400;
+  --forest-type-subtitle-line-height: normal;
+  --forest-type-subtitle-letter-spacing: -0.01em;
+  --forest-type-name-family: var(--forest-font-display);
+  --forest-type-name-size: clamp(19px, 2vw, 21px);
+  --forest-type-name-weight: 600;
+  --forest-type-name-line-height: normal;
+  --forest-type-name-letter-spacing: normal;
+  --forest-type-lead-family: var(--forest-font-text);
+  --forest-type-lead-size: clamp(18px, 1.7vw, 20px);
+  --forest-type-lead-weight: 400;
+  --forest-type-lead-line-height: 1.55;
+  --forest-type-lead-letter-spacing: normal;
+  --forest-type-label-family: var(--forest-font-mono);
+  --forest-type-label-size: 14px;
+  --forest-type-label-weight: 500;
+  --forest-type-label-line-height: normal;
+  --forest-type-label-letter-spacing: 0.02em;
+  --forest-type-impact-family: var(--forest-font-display);
+  --forest-type-impact-size: clamp(34px, 4vw, 44px);
+  --forest-type-impact-weight: 600;
+  --forest-type-impact-line-height: 1;
+  --forest-type-impact-letter-spacing: -0.04em;
+  --forest-type-card-family: var(--forest-font-display);
+  --forest-type-card-size: 15px;
+  --forest-type-card-weight: 400;
+  --forest-type-card-line-height: 1.5;
+  --forest-type-card-letter-spacing: normal;
+  --forest-type-dark-lead-family: var(--forest-font-display);
+  --forest-type-dark-lead-size: clamp(19px, 2vw, 22px);
+  --forest-type-dark-lead-weight: 400;
+  --forest-type-dark-lead-line-height: 1.4;
+  --forest-type-dark-lead-letter-spacing: normal;
+  --forest-type-title-family: var(--forest-font-display);
+  --forest-type-title-size: 20px;
+  --forest-type-title-weight: 600;
+  --forest-type-title-line-height: normal;
+  --forest-type-title-letter-spacing: -0.015em;
+  --forest-type-role-family: var(--forest-font-display);
+  --forest-type-role-size: 15px;
+  --forest-type-role-weight: 400;
+  --forest-type-role-line-height: normal;
+  --forest-type-role-letter-spacing: normal;
+  --forest-type-period-family: var(--forest-font-mono);
+  --forest-type-period-size: 13px;
+  --forest-type-period-weight: 400;
+  --forest-type-period-line-height: normal;
+  --forest-type-period-letter-spacing: normal;
+  --forest-type-body-family: var(--forest-font-text);
+  --forest-type-body-size: 16px;
+  --forest-type-body-weight: 400;
+  --forest-type-body-line-height: 1.55;
+  --forest-type-body-letter-spacing: normal;
+  --forest-type-skills-title-family: var(--forest-font-display);
+  --forest-type-skills-title-size: 16px;
+  --forest-type-skills-title-weight: 600;
+  --forest-type-skills-title-line-height: normal;
+  --forest-type-skills-title-letter-spacing: normal;
+  --forest-type-skills-items-family: var(--forest-font-text);
+  --forest-type-skills-items-size: 15px;
+  --forest-type-skills-items-weight: 400;
+  --forest-type-skills-items-line-height: 1.55;
+  --forest-type-skills-items-letter-spacing: normal;
+  --forest-type-meta-bar-family: var(--forest-font-mono);
+  --forest-type-meta-bar-size: 14.5px;
+  --forest-type-meta-bar-weight: 400;
+  --forest-type-meta-bar-line-height: normal;
+  --forest-type-meta-bar-letter-spacing: normal;
+  --forest-type-cta-family: var(--forest-font-display);
+  --forest-type-cta-size: clamp(28px, 5vw, 52px);
+  --forest-type-cta-weight: 600;
+  --forest-type-cta-line-height: 1;
+  --forest-type-cta-letter-spacing: -0.04em;
+
+  /* Forest chat (docs/design/forest-chat/SPEC.md, New tokens) */
+  --forest-chat-fill: rgba(238, 242, 232, 0.06);
+  --forest-chat-fill-hover: rgba(238, 242, 232, 0.12);
+  --forest-chat-error: #f08a80;
+  --forest-chat-error-bg: rgba(240, 138, 128, 0.12);
+  --forest-chat-notice-bg: rgba(227, 196, 106, 0.12);
+  --forest-chat-shadow-fab:
+    0 12px 28px -12px rgba(62, 122, 52, 0.6), 0 2px 6px rgba(10, 11, 10, 0.3);
+  --forest-chat-shadow-panel:
+    0 30px 80px -40px rgba(62, 122, 52, 0.5), 0 16px 40px -12px rgba(10, 11, 10, 0.35);
+  --forest-chat-text-size: 15px;
+  --forest-chat-text-line-height: 22px;
+  --forest-chat-ui-size: 14px;
+  --forest-chat-ui-line-height: 20px;
+  --forest-chat-caption-size: 11.5px;
+  --forest-chat-caption-line-height: 16px;
 
   /* Chat (docs/design/chat/SPEC.md, New tokens) */
   --chat-fab-size: 56px;
@@ -103,22 +176,13 @@
   --chat-control-size: 44px;
   --chat-icon-size: 20px;
   --chat-badge-size: 36px;
-  --chat-ai-border-width: 1.5px;
+  --chat-secondary-button-height: 36px;
+  --chat-transition: 150ms ease;
   --chat-panel-width: 400px;
   --chat-panel-height: 600px;
   --chat-hint-max-width: 240px;
   --chat-bubble-max-width: 85%;
   --chat-radius-tail: 4px;
-  --chat-color-divider: rgba(0, 22, 112, 0.12);
-  --chat-color-disabled-bg: rgba(0, 22, 112, 0.12);
-  --chat-color-error: #c0262d;
-  --chat-color-error-bg: #fdeeee;
-  --chat-color-notice-bg: rgba(239, 191, 4, 0.14);
-  --chat-shadow-fab: 0 4px 12px rgba(0, 22, 112, 0.3);
-  --chat-shadow-panel: 0 12px 32px rgba(0, 22, 112, 0.16), 0 2px 8px rgba(0, 22, 112, 0.08);
-  --font-chat-caption-size: 12px;
-  --font-chat-caption-line-height: 16px;
-  --font-chat-caption-weight: 400;
   --chat-z-index: 1000;
   --chat-motion-duration: 200ms;
   --chat-motion-easing: cubic-bezier(0.2, 0, 0, 1);
@@ -180,4 +244,19 @@
   --devtools-code-font-size: 11px;
   --devtools-code-line-height: 16px;
   --devtools-plate-shadow: 0 1px 4px rgba(0, 0, 0, 0.24);
+}
+
+/* Forest stepped sizes: phone values (SPEC Decision 6) */
+@media (max-width: 600px) {
+  :root {
+    --forest-type-label-size: 13px;
+    --forest-type-card-size: 14px;
+    --forest-type-title-size: 19px;
+    --forest-type-role-size: 14px;
+    --forest-type-period-size: 12px;
+    --forest-type-body-size: 15px;
+    --forest-type-skills-title-size: 15px;
+    --forest-type-skills-items-size: 14px;
+    --forest-type-meta-bar-size: 13.5px;
+  }
 }

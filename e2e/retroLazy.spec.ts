@@ -44,7 +44,7 @@ test('show mode: hidden while the chunk loads, then the broken page from the fir
     const frames = { hidden: 0, flash: 0, broken: 0 };
     window.retroFrames = frames;
     const probe = () => {
-      const shell = document.querySelector('[data-testid="app-header"]')?.parentElement;
+      const shell = document.querySelector('main')?.parentElement;
       if (shell) {
         if (getComputedStyle(shell).visibility !== 'visible') frames.hidden++;
         else if (document.querySelector('style[data-retro-layer]')) frames.broken++;
@@ -62,13 +62,13 @@ test('show mode: hidden while the chunk loads, then the broken page from the fir
   });
 
   await page.goto(SHOW_SITE);
-  await expect(page.getByTestId('cv-name')).toBeAttached();
-  await expect(page.getByTestId('cv-name')).toBeHidden();
+  await expect(page.getByTestId('forest-name')).toBeAttached();
+  await expect(page.getByTestId('forest-name')).toBeHidden();
   await page.screenshot({ path: `${SCREENSHOT_DIR}/retro-loading.png` });
 
   release();
   await expect(page.locator('style[data-retro-layer]').first()).toBeAttached();
-  await expect(page.getByTestId('cv-name')).toBeVisible();
+  await expect(page.getByTestId('forest-name')).toBeVisible();
   await page.screenshot({ path: `${SCREENSHOT_DIR}/retro-first-frame.png` });
 
   const frames = await page.evaluate(() => window.retroFrames);
@@ -88,7 +88,7 @@ test('a show chunk that fails to load leaves the normal site, without an uncaugh
   await page.goto(SHOW_SITE);
 
   await expect(page.getByTestId('chat-fab')).toBeVisible();
-  await expect(page.getByTestId('cv-name')).toBeVisible();
+  await expect(page.getByTestId('forest-name')).toBeVisible();
   await expect(page.locator('[data-retro-stage], style[data-retro-layer]')).toHaveCount(0);
   expect(uncaught).toEqual([]);
 });

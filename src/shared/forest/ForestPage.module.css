@@ -1,0 +1,31 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--forest-section-gap);
+  max-width: var(--forest-content-max);
+  margin: 0 auto;
+  /* The bottom keeps room for the chat FAB, so it never covers the footer. */
+  padding: var(--forest-page-padding-top) var(--forest-page-padding-x)
+    calc(var(--forest-page-padding-bottom) + var(--chat-fab-size) + var(--space-6));
+  font-family: var(--forest-font-display);
+  letter-spacing: normal;
+  color: var(--forest-ink);
+  background: var(--forest-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.root a {
+  color: var(--forest-accent);
+  text-decoration: none;
+  transition: var(--forest-transition);
+}
+
+.root a:hover {
+  color: var(--forest-accent-hover);
+}
+
+.root a:focus-visible,
+.root button:focus-visible {
+  outline: var(--forest-focus-ring);
+  outline-offset: var(--forest-focus-offset);
+}

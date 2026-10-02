@@ -1,10 +1,9 @@
-[data-retro-stage] [data-testid='cv-experience-entry'] img {
+[data-retro-stage] [data-testid='forest-app'] img {
   width: 64px;
   height: 28px;
   object-fit: fill;
   border-radius: 0;
 }
-
-[data-retro-stage] [data-testid='cv-experience-entry'] div:has(> h3) {
+[data-retro-stage] [data-testid='forest-job'] div:has(> h3) {
   grid-template-columns: auto 1fr auto;
 }

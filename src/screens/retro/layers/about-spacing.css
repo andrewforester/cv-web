@@ -1,7 +1,6 @@
-[data-retro-stage] [data-agent-id='section:about'] h3 {
+[data-retro-stage] [data-agent-id='section:about'] h2 {
   margin: 12px 0 4px;
 }
-
 [data-retro-stage] [data-agent-id='section:about'] ul {
   column-gap: 12px;
 }

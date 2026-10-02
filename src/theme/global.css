@@ -13,13 +13,13 @@ html {
 
 body {
   margin: 0;
-  font-family: var(--font-family);
+  font-family: var(--forest-font-display);
   font-size: var(--font-body-size);
   line-height: var(--font-body-line-height);
   font-weight: var(--font-body-weight);
   letter-spacing: var(--letter-spacing);
-  color: var(--color-text);
-  background: var(--color-bg);
+  color: var(--forest-ink);
+  background: var(--forest-bg);
 }
 
 h1,

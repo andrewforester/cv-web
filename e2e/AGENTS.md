@@ -6,9 +6,11 @@ can't: a green build can still crash at startup. It is the *web check* in the ro
 and the `web-smoke` job in CI.
 
 What it guarantees today:
-- The CV page renders in English and Ukrainian browsers, the language switch works and survives a
-  reload, and there are no page or console errors.
-- The chat answers a question with a streamed reply, and rate limiting shows its notice.
+- Both Forest pages, `/` (the CV) and `/new` (the profile), load directly in English and
+  Ukrainian browsers with no page or console errors and fit a phone screen without horizontal
+  scrolling (desktop and 390 px screenshots); the language switch works and survives a reload.
+- The chat answers a question with a streamed reply, and rate limiting shows its notice. A `#ask`
+  link opens it; its Forest look is screenshotted empty and answered, desktop and phone, EN + UK.
 - The page agent: asking the chat to show a section scrolls and highlights it; opening a contact
   asks for confirmation and does nothing on Cancel.
 - The Retro Rebuild show (`retro.spec.ts`, docs/retro/ARCHITECTURE.md §1 guards 3 and 4; §9 →
@@ -24,9 +26,9 @@ What it guarantees today:
   never starts on its own (only `?retro=1`, or the shell's start function, which has no button
   yet). The intro: the broken page alone, then the agent chat with its two lines, then DevTools;
   each step's narration is a `//` comment above its first command and the chat stays silent.
-  While it runs, the agent chat is the site's chat card (title, no IRC lines, Inter despite the
-  damage token layers), the page reserves the 400 px dock, and the highlight's plate names the
-  targets (`h1.name × N`, then `body 880 × 800` for the page-wide chunk).
+  While it runs, the agent chat is the site's chat card (title, no IRC lines, the Forest chat's
+  Onest despite the damage token layers), the page reserves the 400 px dock, and the highlight's plate names the
+  targets (`p.name × N`: the name and the section titles, then `body 880 × 800` for the page-wide chunk).
 - The show is a lazy chunk (`retroLazy.spec.ts`): `?retro=0` never requests it; in show mode no
   frame of today's design is painted before the broken page; a failed chunk leaves the normal site.
 

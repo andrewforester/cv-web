@@ -26,17 +26,17 @@ const load = (id: ShowModuleId): RetroChunk => ({
   target: null,
 });
 
-const NAME = "[data-testid='cv-name']";
+const NAME = "[data-testid='forest-name']";
 const HEADER = "[data-agent-id='section:header']";
 const TECHNOLOGIES = "[data-agent-id='section:technologies']";
-const TECHNOLOGY_CARD = "[data-testid='cv-technology-card']";
+const TECHNOLOGY_CARD = "[data-testid='forest-skill']";
 const EXPERIENCE = "[data-agent-id='section:latest-experience']";
-const APP_CARD = "[data-testid='cv-app-card']";
+const APP_CARD = "[data-testid='forest-app']";
 const ABOUT = "[data-agent-id='section:about']";
-const SUMMARY = "[data-testid='cv-summary']";
+const SUMMARY = "[data-testid='forest-lead']";
 
 const NAME_AND_TITLES = on('name & titles', NAME, 'h2');
-const CONTACTS = on('contacts', `${HEADER} address`);
+const CONTACTS = on('contacts', "ul:has(> li > [data-testid='forest-contact'])");
 
 /** Chunks per manifest step, in the order they are typed and applied (8 steps, 36 chunks). */
 export const RETRO_CHUNKS: readonly RetroStep[] = [
@@ -69,19 +69,16 @@ export const RETRO_CHUNKS: readonly RetroStep[] = [
       morph('page-frame', PAGE),
       morph('header-layout', on('header', HEADER)),
       morph('tech-grid', on('technologies', TECHNOLOGIES)),
-      morph(
-        'experience-heads',
-        on('experience', `${EXPERIENCE} [data-testid='cv-experience-entry']`),
-      ),
+      morph('experience-heads', on('experience', `${EXPERIENCE} [data-testid='forest-job']`)),
       morph('app-stack', on('apps', "[data-agent-id='section:apps']")),
     ],
   },
   {
     id: 'images',
     chunks: [
-      morph('broken-photo', on('photo', `${HEADER} > img`)),
+      morph('broken-photo', on('photo', "[data-testid='forest-photo']")),
       leave('oh-snap', 'note'),
-      morph('squashed-logos', on('logos', "[data-testid='cv-experience-entry'] img")),
+      morph('squashed-logos', on('logos', `${APP_CARD} img`)),
       morph('broken-icon', on('Savant icon', "[data-agent-id='app:savant'] img")),
       morph('broken-cover', on('book cover', "[data-agent-id='book:siddhartha'] img")),
     ],
@@ -92,7 +89,7 @@ export const RETRO_CHUNKS: readonly RetroStep[] = [
       morph('tech-cells', on('technologies', TECHNOLOGY_CARD)),
       fade('app-cells', on('apps', APP_CARD)),
       fade('card-colors', on('card borders', TECHNOLOGY_CARD, APP_CARD)),
-      fade('book-frames', on('books', "[data-testid='cv-book'] img")),
+      fade('book-frames', on('books', "[data-testid='forest-book'] img")),
     ],
   },
   {
@@ -110,11 +107,15 @@ export const RETRO_CHUNKS: readonly RetroStep[] = [
       leave('top-bar', 'nav bar'),
       morph(
         'new-bursts',
-        on('NEW! badges', "[data-agent-id='technology:ai-tools']", `${EXPERIENCE} h2`),
+        on(
+          'NEW! badges',
+          "[data-agent-id='technology:ai-tools']",
+          "[data-testid='cv-experience'] h2",
+        ),
       ),
       leave('page-footer', 'footer'),
       fade('decor-room', PAGE),
-      morph('hide-header', on('language switcher', "[data-testid='app-header']")),
+      morph('hide-header', on('language switcher', "[data-testid='language-switcher']")),
     ],
   },
   {

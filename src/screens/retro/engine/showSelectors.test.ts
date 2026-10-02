@@ -185,7 +185,7 @@ describe('chunk selectors (for the stage)', () => {
       key: 'layer:type-faces',
       phase: 'typing',
       page: false,
-      queries: ["[data-retro-stage] [data-testid='cv-name']", '[data-retro-stage] h2'],
+      queries: ["[data-retro-stage] [data-testid='forest-name']", '[data-retro-stage] h2'],
     });
     run.advanceUntil(applied('layer:type-faces'));
     const at = run.state.effects['layer:type-faces']?.at ?? NaN;

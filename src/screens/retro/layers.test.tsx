@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { AppProviders } from '../../app/AppProviders';
 import tokensCss from '../../theme/tokens.css?raw';
-import { cvTestIds } from '../cv/testIds';
+import { forestTestIds } from '../../shared/forest/testIds';
 import { targetQuery } from './engine/chunkSelectors';
 import { effectKey, tokenDeclarations } from './engine/consolePlan';
 import type { DamageLayer } from './engine/showTypes';
@@ -90,7 +90,7 @@ describe('damage layers (guard 2: hook coverage)', () => {
         <RetroStageTestHarness />
       </AppProviders>,
     );
-    await screen.findByTestId(cvTestIds.name);
+    await screen.findByTestId(forestTestIds.name);
   });
 
   it.each(ids('rules'))('%s: every selector matches the real CV', (id) => {

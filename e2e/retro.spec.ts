@@ -68,7 +68,7 @@ async function expectEndsAsNormalSite(page: Page, screenshot?: string): Promise<
 
   await expect.poll(() => leftovers(page)).toEqual([]);
   await expect(page.getByTestId('chat-fab')).toBeVisible();
-  await expect(page.getByTestId('app-header')).toBeVisible();
+  await expect(page.getByTestId('language-switcher')).toBeVisible();
   await expect.poll(async () => differences(await snapshotPage(page), normal)).toEqual([]);
   if (screenshot) await page.screenshot({ path: `${SCREENSHOT_DIR}/${screenshot}` });
 
@@ -86,7 +86,7 @@ test.describe('with reduced motion', () => {
     const errors = collectErrors(page);
     await page.clock.install();
     await page.goto(SHOW_SITE);
-    await expect(page.getByTestId('cv-name')).toBeVisible();
+    await expect(page.getByTestId('forest-name')).toBeVisible();
     const checked = new Set<string>();
     const groups: string[] = [];
     let screenshot = false;
@@ -130,7 +130,7 @@ test.describe('with reduced motion', () => {
     const errors = collectErrors(page);
     await page.clock.install();
     await page.goto(SHOW_SITE);
-    await expect(page.getByTestId('cv-name')).toBeVisible();
+    await expect(page.getByTestId('forest-name')).toBeVisible();
     await expect(page.getByTestId('retro-dock')).toHaveCount(0);
 
     await page.clock.runFor(1_000);
@@ -159,7 +159,7 @@ test.describe('with reduced motion', () => {
     await expect(chat.getByText('Fixing this site live')).toBeVisible();
     await expect(chat).not.toContainText('***');
     // The site's chat tokens, shielded from the damage layers that restyle `:root`.
-    await expect(chat).toHaveCSS('font-family', /Inter/);
+    await expect(chat).toHaveCSS('font-family', /Onest/);
     await expect(page.locator('body')).toHaveCSS('padding-right', '400px');
 
     const plate = page.getByTestId('retro-highlight-plate');
@@ -172,7 +172,7 @@ test.describe('with reduced motion', () => {
       }
     }
     // Chunk 1 marks every heading, chunk 2 the whole page area.
-    expect([...plates]).toEqual([expect.stringMatching(/^h1\.name × \d+$/), 'body880 × 800']);
+    expect([...plates]).toEqual([expect.stringMatching(/^p\.name × \d+$/), 'body880 × 800']);
     await expect(page.getByTestId('retro-console')).toBeVisible();
     expect(errors).toEqual([]);
   });
@@ -182,10 +182,10 @@ test.describe('with reduced motion', () => {
   });
 });
 
-/** Chunk 1's plate sits on the first heading's bottom-left corner (SPEC → Plate). */
+/** Chunk 1's plate sits on its first target's (the name's) bottom-left corner (SPEC → Plate). */
 async function expectPlateOnFirstHeading(page: Page) {
   const plate = await page.getByTestId('retro-highlight-plate').boundingBox();
-  const heading = await page.locator('h1').first().boundingBox();
+  const heading = await page.getByTestId('forest-name').boundingBox();
   if (!plate || !heading) return;
   expect(plate.x).toBeCloseTo(Math.max(heading.x, 0), 0);
   expect(plate.y + plate.height).toBeCloseTo(Math.min(heading.y + heading.height, 800), 0);
@@ -203,7 +203,7 @@ test('the show never starts on its own: without ?retro=1 the visitor gets today�
   page,
 }) => {
   await page.goto('./');
-  await expect(page.getByTestId('cv-name')).toBeVisible();
+  await expect(page.getByTestId('forest-name')).toBeVisible();
   await expect(page.getByTestId('chat-fab')).toBeVisible();
   await expect(page.locator(stageSelector)).toHaveCount(0);
 });

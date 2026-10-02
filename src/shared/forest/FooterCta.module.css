@@ -1,0 +1,29 @@
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-5);
+  padding-top: var(--space-7);
+  border-top: var(--forest-rule-width) solid var(--forest-accent);
+}
+
+/* `.root .cta` beats the page's link colour: the CTA is ink, only ↗ is in the gradient. */
+.root .cta {
+  font-family: var(--forest-type-cta-family);
+  font-size: var(--forest-type-cta-size);
+  font-weight: var(--forest-type-cta-weight);
+  line-height: var(--forest-type-cta-line-height);
+  letter-spacing: var(--forest-type-cta-letter-spacing);
+  color: var(--forest-ink);
+}
+
+.root .cta:hover {
+  color: var(--forest-accent-hover);
+}
+
+.note {
+  font-family: var(--forest-type-period-family);
+  font-size: var(--forest-type-period-size);
+  color: var(--forest-ink-3);
+}

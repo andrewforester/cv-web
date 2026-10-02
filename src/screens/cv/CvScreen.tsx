@@ -1,61 +1,78 @@
+import type { ReactNode } from 'react';
 import { commonStrings, useStrings } from '../../i18n';
-import { AboutSection } from './AboutSection';
-import { AppsSection } from './AppsSection';
-import styles from './CvScreen.module.css';
+import { FooterCta } from '../../shared/forest/FooterCta';
+import { ForestPage } from '../../shared/forest/ForestPage';
+import { PageStatus } from '../../shared/forest/PageStatus';
+import { Section } from '../../shared/forest/Section';
+import { SkillsGrid } from '../../shared/forest/SkillsGrid';
+import { agentTargetProps } from './agentTarget';
+import { CvCards } from './CvCards';
+import { CvExperience } from './CvExperience';
+import { CvHeader } from './CvHeader';
 import type { CvUiState } from './CvUiState';
-import { EducationSection } from './EducationSection';
-import { ExperienceSection } from './ExperienceSection';
-import { HeaderSection } from './HeaderSection';
+import { contactHref } from './contactLinks';
 import { cvStrings } from './strings';
-import { SummarySection } from './SummarySection';
-import { TechnologiesSection } from './TechnologiesSection';
 import { cvTestIds } from './testIds';
 
 interface CvScreenProps {
   className?: string;
   state: CvUiState;
+  /** Controls at the right end of the meta bar (the language switcher). */
+  metaBarEnd?: ReactNode;
 }
 
-/** The CV page: sections top to bottom in SPEC order. Stateless. */
-export function CvScreen({ className, state }: CvScreenProps) {
+/** The CV page in the Forest look (SPEC → Mapping `/`), sections numbered top to bottom. */
+export function CvScreen({ className, state, metaBarEnd }: CvScreenProps) {
   const common = useStrings(commonStrings);
   const strings = useStrings(cvStrings);
 
   if (state.status !== 'ready') {
     return (
-      <p className={styles.status} role="status" data-testid={cvTestIds.status}>
-        {state.status === 'loading' ? common.loading : common.loadError}
-      </p>
+      <ForestPage className={className} testId={cvTestIds.root}>
+        <CvHeader metaBarEnd={metaBarEnd} />
+        <PageStatus
+          text={state.status === 'loading' ? common.loading : common.loadError}
+          testId={cvTestIds.status}
+        />
+      </ForestPage>
     );
   }
 
   const { cv, highlightedId } = state;
   return (
-    <article
-      className={[styles.root, className].filter(Boolean).join(' ')}
-      data-testid={cvTestIds.root}
-    >
-      <HeaderSection header={cv.header} highlightedId={highlightedId} />
-      <SummarySection summary={cv.summary} highlightedId={highlightedId} />
-      <TechnologiesSection cards={cv.technologies} highlightedId={highlightedId} />
-      <ExperienceSection
-        title={strings.latestExperienceTitle}
-        entries={cv.latestExperience}
-        testId={cvTestIds.latestExperience}
-        sectionId="latest-experience"
-        highlightedId={highlightedId}
+    <ForestPage className={className} testId={cvTestIds.root}>
+      <CvHeader cv={cv} highlightedId={highlightedId} metaBarEnd={metaBarEnd} />
+      <Section
+        index={1}
+        title={strings.skillsTitle}
+        variant="rows"
+        testId={cvTestIds.skills}
+        attributes={agentTargetProps('section', 'technologies', highlightedId)}
+      >
+        <SkillsGrid
+          groups={cv.technologies.map((card) => ({
+            id: card.id,
+            title: card.title,
+            items: card.items.join(', '),
+            emphasis: SKILL_EMPHASIS[card.variant],
+            attributes: agentTargetProps('technology', card.id, highlightedId),
+          }))}
+        />
+      </Section>
+      <CvExperience index={2} cv={cv} highlightedId={highlightedId} />
+      <CvCards index={3} cv={cv} highlightedId={highlightedId} />
+      <FooterCta
+        label={strings.footerCta}
+        href={contactHref(cv.header.contacts, 'email')}
+        note={`${strings.copyright} ${cv.header.name}`}
       />
-      <AppsSection apps={cv.apps} highlightedId={highlightedId} />
-      <EducationSection lines={cv.education} highlightedId={highlightedId} />
-      <AboutSection books={cv.books} interests={cv.interests} highlightedId={highlightedId} />
-      <ExperienceSection
-        title={strings.previousExperienceTitle}
-        entries={cv.previousExperience}
-        testId={cvTestIds.previousExperience}
-        sectionId="previous-experience"
-        highlightedId={highlightedId}
-        lazy
-      />
-    </article>
+    </ForestPage>
   );
 }
+
+/** How a technology card's variant shows in the skills grid. */
+const SKILL_EMPHASIS = {
+  default: undefined,
+  highlighted: 'accent',
+  ai: 'gradient',
+} as const;

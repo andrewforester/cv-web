@@ -448,7 +448,7 @@ Resolved: the defaults below stand; final answers are in section 9 → Decisions
 
 ## 9. As built and working rules
 
-Merged into `claude/retro-rebuild`: round 1 (POC) GRA-40 (tokens), GRA-41 (contract + manifest),
+Merged into `claude/retro-rebuild`: `main`'s Forest milestone 1 (GRA-89, see *Round 6* below); round 1 (POC) GRA-40 (tokens), GRA-41 (contract + manifest),
 GRA-42 (server v3), GRA-43 (show screen), GRA-44 (shell + e2e); then GRA-46 (the 7-step show,
 `retro-2`, guard 4 for every step), GRA-47 (panel tokens), GRA-48 (the show as a lazy chunk). Round
 3, designed in GRA-49 and **built**: GRA-50 (R10: the 8-step, 36-chunk scenario and the per-chunk
@@ -468,7 +468,7 @@ is *Round 3* below. Everything in this section is built.
 |---|---|
 | `src/data/retro/` | Manifest (`scenario.ts`: `RETRO_SCENARIO_ID`, `RETRO_STEPS` with id, title, LLM intent, fallback), v3 contract, `ShowRepository` + `FakeShowRepository` + `HttpShowRepository`. Shared with the server. |
 | `src/screens/retro/` | `scenario.ts` (`DAMAGE_LAYERS`, `DECORATION_IDS`, `SHOW_MODULES`, `HOST_VARIABLES`) and `scenarioSteps.ts` (`RETRO_CHUNKS`: the fix list as data, 8 steps of 36 chunks with target and motion); `engine/` (reducer, clock, timing, layer host with `morph`, console plan, `chunkSelectors.ts`: `currentChunk`, `highlightOf`, `leavingDecorations`, `targetQuery`); `layers/*.css` (the 32 damage layers); panels (`AgentChat`, `LiveConsole` + `Devtools*`, decorations); motion and pointer (`RetroMotion.module.css`, `useShowStage`, `Highlight` + `useHighlightBoxes`, `useChunkFocus`); `harness/` (dev-only, not shipped). |
-| `src/app/` | `retroMode.ts` (mode decision), `useRetroMode`, `useLazyShow` (the show's chunk, requested only in show mode; the shell stays hidden until it loads), `useLazyChat` (chat chunk, the `ai-chat` loader), `App.tsx` (one tree shape, `data-retro-stage`), `AppProviders` (repository binding, `retroMode` seam). |
+| `src/app/` | `retroMode.ts` (mode decision), `useRetroMode`, `useShowCase` (the start seam), `useLazyShow` (the show's chunk, requested only in show mode; the shell stays hidden until it loads), `useLazyChat` (chat chunk, the `ai-chat` loader), `routes.ts` (`/` the CV, `/new` the profile; the show runs only on `/`), `App.tsx` (one tree shape, `data-retro-stage` on the wrapper around `<main>` and the chat), `AppProviders` (repository binding, `retroMode` seam). |
 | `server/chat/show/` | v3 validation, narrate/reply prompts, narration line parser, fake scripts; v3 branch in `server/chat/handler.ts`. |
 | `src/theme/tokens.css` | `--retro-*` panel tokens (not the damage values). |
 | `e2e/retro.spec.ts`, `e2e/retroShow.ts`, `e2e/retroLazy.spec.ts` | End-state guard and guard 4 per step (reduced motion), one motion-on run with the timing smoke, lazy-chunk checks; other specs open the normal site with `?retro=0`. |
@@ -740,6 +740,49 @@ Show time on the fake clock (`showTiming.test.ts`, SPEC → Chunk rhythm budget)
 instantly settling camera, ≈ 92 s when every targeted chunk waits the cap, ≈ 78 s with reduced
 motion. The shorter intro and close pay for the narration comments, so the e2e timing smoke keeps
 its 60–110 s window.
+
+### Round 6: the show over the Forest `/` (GRA-89)
+
+`main`'s milestone 1 (Forest tokens and fonts, routes `/` and `/new`, `src/shared/forest`, `/`
+re-composed, the chat restyle) was merged into this branch. What changed for the show:
+
+- **Chat pieces:** one set, in `src/shared/chat` (R19's location) with the Forest look from `main`:
+  `ChatCard` is the dark Forest panel (the AI-gradient border is gone), `ChatCardHeader`'s subtitle
+  is the shared `caption`. `--chat-transition` and `--chat-secondary-button-height` moved to
+  `tokens.css` (shared pieces need them outside the site chat's root). The show's `AgentChat` and
+  `AgentComposer` take the Forest chat tokens (Onest UI text, Plex field, gold focus), mirroring
+  the site's `ChatComposer`; the close keyframe ends on the Forest launcher.
+- **Shell and routing:** no app header any more: both pages lay themselves out and the language
+  switcher sits in their meta bar. The stage is the shell's wrapper around `<main>` and the chat;
+  `App.module.css` keeps only `.pending`. The show runs only over `/`: `?retro=1` on `/new` is
+  today's profile with the chat.
+- **Hooks:** section ids and `data-agent-id` are unchanged; item test ids are Forest's
+  (`forest-name`, `forest-lead`, `forest-photo`, `forest-contact`, `forest-skill`, `forest-job`,
+  `forest-app`, `forest-book`, `forest-meta-bar`, `language-switcher`). Layers, chunk targets,
+  the stage harness and the tests point at them; no CV hook was added.
+- **Token layers** set Forest tokens with the old retro values: `base-colors` →
+  `--forest-{bg,ink,ink-2,ink-3}`, `card-colors` → `--forest-{line,gold,accent,surface}`,
+  `type-family` → `--forest-font-{display,text,mono}` + the h1 letter spacing, `type-scale-*` →
+  `--forest-type-<role>-size/line-height` (headings: name, h1, label; text: lead, body; cards:
+  skills, period; details: title, role, meta bar). Guard 1 treats `--forest-font-*` as structural
+  (morph). The `docs/design/retro/layers/` copies still show the old CV's selectors until R23.
+
+**For R23** (mechanical refit only: these hit little or the wrong thing on Forest):
+- `experience-heads`: only `display: block` on the job head (Forest jobs have no logo to float);
+  `squashed-logos` now squashes the app icons, its job-head grid is a no-op.
+- `header-layout`: centred text and inline contacts only (the old photo/intro grid areas are gone).
+- `tech-cells` (its `::before`), `tech-grid` (one gap): little to break in the skills list.
+- `bullets`: Forest rows already have "—" markers, so they get a second one.
+- `link-style` hides the contact arrows (the old contact icons are gone); `contact-labels` sit in
+  the contact rows.
+- `hide-header` hides only the switcher (the meta bar's `andrew.panasiuk / cv` stays);
+  `new-bursts` sits on `02 — Experience` (the latest-experience group has no title);
+  `about-spacing` spaces the About card's `h2` (no sub-headings any more).
+- Not reached at all: the gradients (headline accent, hero, AI skill, footer CTA arrow) are
+  literals in Forest's tokens and modules, the Education/About card fills
+  (`--forest-card-sage/sand`), the app pills' stats, the footer CTA.
+- The token layers' mapping is by role, not by design; the type scale mixes clamp tokens with
+  fixed retro sizes.
 
 ### How to add or change a fix chunk
 

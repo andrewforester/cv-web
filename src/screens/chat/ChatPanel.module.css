@@ -1,4 +1,4 @@
-/* The frame (column, radius, shadow, gradient border) is the shared `ChatCard`; this adds the
+/* The frame (column, dark gradient, border, radius, shadow) is the shared `ChatCard`; this adds the
    fixed placement, size and motion. Imported after the card so these overrides win. */
 .panel {
   position: fixed;
@@ -66,13 +66,10 @@
     width: 100%;
     /* Set by useVisualViewportFit while the keyboard is open. */
     height: var(--chat-vv-height, 100dvh);
+    border: 0;
     border-radius: 0;
     box-shadow: none;
     animation-name: sheet-in;
-  }
-
-  .panel::before {
-    display: none;
   }
 
   .closing {

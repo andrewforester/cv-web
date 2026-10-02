@@ -1,0 +1,5 @@
+.root {
+  font-family: var(--forest-type-body-family);
+  font-size: var(--forest-type-body-size);
+  color: var(--forest-ink-2);
+}

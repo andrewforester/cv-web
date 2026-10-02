@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { FakeShowRepository } from '../data/retro';
 import { chatTestIds } from '../screens/chat/testIds';
-import { cvTestIds } from '../screens/cv/testIds';
+import { forestTestIds } from '../shared/forest/testIds';
 import type { RetroMode } from './retroMode';
 
 // The show's chunk, replaced per test (vi.doMock + a fresh module registry) so each test controls
@@ -27,7 +27,7 @@ async function renderApp(retroMode: RetroMode, showModule: () => Promise<unknown
   return importShow;
 }
 
-const shell = () => screen.getByTestId('app-header').parentElement;
+const shell = () => screen.getByRole('main').parentElement;
 const stage = () => document.querySelector('[data-retro-stage]');
 
 /** A promise the test settles by hand. */
@@ -67,7 +67,7 @@ describe('App: the show as a lazy chunk', () => {
     expect(stage()).toBeNull();
     expect(shell()).toHaveClass('pending');
     expect(screen.queryByTestId(chatTestIds.fab)).toBeNull();
-    expect(screen.getByTestId(cvTestIds.name)).toBeInTheDocument();
+    expect(screen.getByTestId(forestTestIds.name)).toBeInTheDocument();
 
     chunk.resolve();
 

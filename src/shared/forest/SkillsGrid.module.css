@@ -1,0 +1,33 @@
+.root {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 0 var(--forest-row-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) 0;
+  border-top: var(--forest-line-width) solid var(--forest-line);
+}
+
+.title {
+  font-family: var(--forest-type-skills-title-family);
+  font-size: var(--forest-type-skills-title-size);
+  font-weight: var(--forest-type-skills-title-weight);
+}
+
+.accent {
+  color: var(--forest-accent);
+}
+
+.items {
+  font-family: var(--forest-type-skills-items-family);
+  font-size: var(--forest-type-skills-items-size);
+  line-height: var(--forest-type-skills-items-line-height);
+  color: var(--forest-ink-2);
+}

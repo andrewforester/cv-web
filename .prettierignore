@@ -7,3 +7,6 @@ package-lock.json
 test-results/
 playwright-report/
 web-check/
+# Design-tool exports kept verbatim (docs/design/<name>/).
+docs/design/**/*.dc.html
+docs/design/**/support.js
