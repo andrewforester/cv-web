@@ -1,6 +1,5 @@
 :root {
-  --font-education-size: 13px;
-  --font-education-line-height: 16px;
-  --font-book-title-size: 11px;
-  --font-book-author-size: 10px;
+  --forest-type-title-size: 13px;
+  --forest-type-role-size: 11px;
+  --forest-type-cta-size: 13px;
 }

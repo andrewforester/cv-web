@@ -27,16 +27,18 @@ const load = (id: ShowModuleId): RetroChunk => ({
 });
 
 const NAME = "[data-testid='forest-name']";
-const HEADER = "[data-agent-id='section:header']";
+const HEADLINE = "[data-testid='forest-headline']";
 const TECHNOLOGIES = "[data-agent-id='section:technologies']";
 const TECHNOLOGY_CARD = "[data-testid='forest-skill']";
 const EXPERIENCE = "[data-agent-id='section:latest-experience']";
+const JOB = "[data-testid='forest-job']";
 const APP_CARD = "[data-testid='forest-app']";
+const EDUCATION = "[data-agent-id='section:education']";
 const ABOUT = "[data-agent-id='section:about']";
 const SUMMARY = "[data-testid='forest-lead']";
 
 const NAME_AND_TITLES = on('name & titles', NAME, 'h2');
-const CONTACTS = on('contacts', "ul:has(> li > [data-testid='forest-contact'])");
+const CONTACT_LIST = "ul:has(> li > [data-testid='forest-contact'])";
 
 /** Chunks per manifest step, in the order they are typed and applied (8 steps, 36 chunks). */
 export const RETRO_CHUNKS: readonly RetroStep[] = [
@@ -45,13 +47,10 @@ export const RETRO_CHUNKS: readonly RetroStep[] = [
     chunks: [
       morph('type-faces', on('headings', NAME, 'h2')),
       morph('type-family', PAGE),
-      fade('type-scale-headings', NAME_AND_TITLES),
+      fade('type-scale-headings', on('name & headline', NAME, HEADLINE, 'h2')),
       fade('type-scale-text', on('body text', SUMMARY)),
-      fade('type-scale-cards', on('cards & dates', TECHNOLOGIES)),
-      fade(
-        'type-scale-details',
-        on('education & books', "[data-agent-id='section:education']", ABOUT),
-      ),
+      fade('type-scale-cards', on('skills & dates', TECHNOLOGIES)),
+      fade('type-scale-details', on('experience & education', EXPERIENCE, EDUCATION)),
     ],
   },
   {
@@ -60,16 +59,16 @@ export const RETRO_CHUNKS: readonly RetroStep[] = [
       morph('page-background', PAGE),
       fade('base-colors', PAGE),
       fade('heading-colors', NAME_AND_TITLES),
-      fade('tech-fills', on('technologies', TECHNOLOGY_CARD)),
+      fade('tech-fills', on('skills', TECHNOLOGY_CARD)),
     ],
   },
   {
     id: 'layout',
     chunks: [
       morph('page-frame', PAGE),
-      morph('header-layout', on('header', HEADER)),
-      morph('tech-grid', on('technologies', TECHNOLOGIES)),
-      morph('experience-heads', on('experience', `${EXPERIENCE} [data-testid='forest-job']`)),
+      morph('header-layout', on('header', "[data-testid='forest-hero']")),
+      morph('tech-grid', on('skills', TECHNOLOGIES)),
+      morph('experience-heads', on('experience', JOB)),
       morph('app-stack', on('apps', "[data-agent-id='section:apps']")),
     ],
   },
@@ -78,7 +77,7 @@ export const RETRO_CHUNKS: readonly RetroStep[] = [
     chunks: [
       morph('broken-photo', on('photo', "[data-testid='forest-photo']")),
       leave('oh-snap', 'note'),
-      morph('squashed-logos', on('logos', `${APP_CARD} img`)),
+      morph('squashed-icons', on('app icons', `${APP_CARD} img`)),
       morph('broken-icon', on('Savant icon', "[data-agent-id='app:savant'] img")),
       morph('broken-cover', on('book cover', "[data-agent-id='book:siddhartha'] img")),
     ],
@@ -86,9 +85,9 @@ export const RETRO_CHUNKS: readonly RetroStep[] = [
   {
     id: 'cards',
     chunks: [
-      morph('tech-cells', on('technologies', TECHNOLOGY_CARD)),
+      fade('tech-cells', on('skills', TECHNOLOGY_CARD)),
       fade('app-cells', on('apps', APP_CARD)),
-      fade('card-colors', on('card borders', TECHNOLOGY_CARD, APP_CARD)),
+      fade('card-colors', on('cards', APP_CARD, EDUCATION, ABOUT)),
       fade('book-frames', on('books', "[data-testid='forest-book'] img")),
     ],
   },
@@ -97,8 +96,8 @@ export const RETRO_CHUNKS: readonly RetroStep[] = [
     chunks: [
       fade('heading-rules', on('section titles', 'h2')),
       morph('bullets', on('bullets', SUMMARY, EXPERIENCE)),
-      fade('experience-rhythm', on('experience', EXPERIENCE)),
-      fade('about-spacing', on('about me', ABOUT)),
+      fade('experience-rhythm', on('experience', JOB)),
+      fade('card-padding', on('education & about', EDUCATION, ABOUT)),
     ],
   },
   {
@@ -107,19 +106,19 @@ export const RETRO_CHUNKS: readonly RetroStep[] = [
       leave('top-bar', 'nav bar'),
       morph(
         'new-bursts',
-        on(
-          'NEW! badges',
-          "[data-agent-id='technology:ai-tools']",
-          "[data-testid='cv-experience'] h2",
-        ),
+        on('NEW! badges', `${EXPERIENCE} h3`, "[data-agent-id='technology:ai-tools'] h3"),
       ),
       leave('page-footer', 'footer'),
       fade('decor-room', PAGE),
-      morph('hide-header', on('language switcher', "[data-testid='language-switcher']")),
+      morph('hide-meta-bar', on('meta bar', "[data-testid='forest-meta-bar']")),
     ],
   },
   {
     id: 'links',
-    chunks: [morph('link-style', CONTACTS), morph('contact-labels', CONTACTS), load('ai-chat')],
+    chunks: [
+      morph('link-style', on('links', CONTACT_LIST, 'footer a')),
+      morph('contact-labels', on('contacts', CONTACT_LIST)),
+      load('ai-chat'),
+    ],
   },
 ];

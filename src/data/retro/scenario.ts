@@ -41,7 +41,7 @@ export const RETRO_STEPS: readonly RetroStepMeta[] = [
     id: 'fonts',
     title: 'fonts',
     intent:
-      "Replace the 2002 system fonts (Verdana, Times New Roman, Arial) and small text sizes with today's typeface and type scale.",
+      "Replace the 2002 system fonts (Verdana, Times New Roman, Arial, Courier New) and small text sizes with today's typeface and type scale.",
     fallback:
       'Starting with typography: replacing the system fonts of the time with the current typeface and type scale.',
   },
@@ -49,7 +49,7 @@ export const RETRO_STEPS: readonly RetroStepMeta[] = [
     id: 'colours',
     title: 'colours',
     intent:
-      "Replace the star-field background and the cream, black, red, purple and cyan colours with today's palette.",
+      "Replace the star-field background and the cream, black, red, purple and cyan colours with today's palette and gradient accents.",
     fallback:
       'Colours: replacing the tiled background and the period palette with the current colour scheme, for readable contrast.',
   },
@@ -57,23 +57,25 @@ export const RETRO_STEPS: readonly RetroStepMeta[] = [
     id: 'layout',
     title: 'layout',
     intent:
-      'Move the page from the fixed-width, left-aligned table layout into the centred column and grids.',
+      'Move the page from the fixed-width, left-aligned table layout into the centred column, rows and grids.',
     fallback:
       'Layout: replacing the fixed-width table layout, standard practice at the time, with a centred column and grids.',
   },
   {
     id: 'images',
     title: 'images',
-    intent: 'Correct the image paths and the logo aspect ratios, and remove the "Oh, snap!" note.',
+    intent:
+      'Correct the image paths and the aspect ratios of the app icons, and remove the "Oh, snap!" note.',
     fallback:
-      'Images: correcting the asset paths and aspect ratios, so the photo, logos and covers display properly.',
+      'Images: correcting the asset paths and aspect ratios, so the photo, app icons and covers display properly.',
   },
   {
     id: 'cards',
     title: 'cards',
-    intent: "Turn the bevelled table cells into today's cards with borders, radius and shadows.",
+    intent:
+      "Turn the bevelled table cells into today's skill rows, app pills and cards, with their borders, radius and colours.",
     fallback:
-      'Cards: converting the bevelled table cells into cards, which group related content more clearly.',
+      'Cards: converting the bevelled table cells into rows, pills and cards, which group related content more clearly.',
   },
   {
     id: 'spacing',
@@ -86,16 +88,17 @@ export const RETRO_STEPS: readonly RetroStepMeta[] = [
     id: 'chrome',
     title: '2002 chrome',
     intent:
-      'Remove the nav bar, marquee, "NEW!" bursts, hit counter, badges and webring, and bring back the language switcher.',
+      'Remove the nav bar, marquee, "NEW!" bursts, hit counter, badges and webring, and bring back the meta bar with the language switcher.',
     fallback:
-      'Removing the navigation bar, marquee and footer badges of the original build, and restoring the language switcher.',
+      'Removing the navigation bar, marquee and footer badges of the original build, and restoring the meta bar.',
   },
   {
     id: 'links',
     title: 'links & contacts',
-    intent: 'Restore the contact links and icons, and load the real AI chat button.',
+    intent:
+      'Restore the contact rows with their arrows and the footer link, and load the real AI chat button.',
     fallback:
-      'Finally, contacts: restoring the contact links and icons, and loading the AI chat assistant.',
+      'Finally, links: restoring the contact rows and the footer link, and loading the AI chat assistant.',
   },
 ];
 

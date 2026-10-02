@@ -4,3 +4,7 @@
 [data-retro-stage] h2 {
   color: #cc0000;
 }
+[data-retro-stage] :is(h1, h3, footer a) > span {
+  color: inherit;
+  background: none;
+}

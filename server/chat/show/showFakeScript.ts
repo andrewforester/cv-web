@@ -17,7 +17,7 @@ const FAKE_NARRATION = [
   'images: Images: correcting the asset paths so every picture loads.',
   'cards: Cards: grouping related content into bordered cards.',
   'spacing: Spacing: consistent section rhythm in place of horizontal rules.',
-  'chrome: Removing the original navigation elements and restoring the language switcher.',
+  'chrome: Removing the original navigation elements and restoring the meta bar.',
   'links: Finally, the contact links and the AI chat assistant.',
   'finale: The update is complete. The chat button in the bottom right corner answers questions about Andrew.',
 ].join('\n');

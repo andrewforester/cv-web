@@ -1,4 +1,4 @@
 [data-retro-stage] [data-testid='forest-book'] img {
   border: 2px solid #000000;
-  box-shadow: none;
+  border-radius: 0;
 }
