@@ -93,7 +93,7 @@ describe('chat on each page', () => {
     await inList().findByText('Here.');
 
     expect(repository.requests).toHaveLength(2);
-    for (const request of repository.requests) expect(request.page).toBe(page);
+    for (const request of repository.requests) expect(request).toMatchObject({ page });
     expect(repository.requests[0]?.messages[0]).toMatchObject({ page: { route } });
   });
 });
