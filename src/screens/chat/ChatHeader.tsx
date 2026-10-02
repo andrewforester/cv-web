@@ -25,7 +25,7 @@ export function ChatHeader({ className, titleId, subtitleId, onClose }: ChatHead
         <h2 id={titleId} className={styles.title}>
           {strings.title}
         </h2>
-        <p id={subtitleId} className={styles.subtitle}>
+        <p id={subtitleId} className={chat.caption}>
           {strings.subtitle}
         </p>
       </div>

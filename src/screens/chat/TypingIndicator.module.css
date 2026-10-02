@@ -2,14 +2,14 @@
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  height: var(--font-body-line-height);
+  height: var(--forest-chat-text-line-height);
 }
 
 .dot {
   width: var(--chat-dot-size);
   height: var(--chat-dot-size);
   border-radius: 50%;
-  background: var(--color-text-secondary);
+  background: var(--forest-gold-soft);
   animation: pulse 1.2s infinite both;
 }
 

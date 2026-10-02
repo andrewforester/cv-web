@@ -18,7 +18,8 @@ Rules and limits:
   IBM Plex Sans (text) and JetBrains Mono (meta). Inter goes when the last screen leaves it.
 
 Forest tokens (`docs/design/forest/SPEC.md`; the names are the contract for screen and chat tasks,
-all in `tokens.css`, none used by components yet; chat ones `--forest-chat-*` come later):
+all in `tokens.css`; the AI chat uses them, plus its own `--forest-chat-*` from
+`docs/design/forest-chat/SPEC.md`: raised fills, error / notice colours, shadows, text sizes):
 - Colours: `--forest-{bg,ink,ink-2,ink-3,accent,accent-hover,green,gold,gold-soft,status,status-dot,
   line,surface,card-sage,card-sand,dark-ink,dark-ink-2,dark-line}`; gradients
   `--forest-gradient-{text,cta,hero,dark}`; shadow `--forest-shadow-dark`.

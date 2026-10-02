@@ -5,19 +5,20 @@
   display: grid;
   place-items: center;
   padding: 0;
-  color: var(--color-bg);
-  background: var(--color-text);
+  color: var(--forest-ink);
+  background: var(--forest-gold-soft);
   border: 0;
   border-radius: 50%;
   cursor: pointer;
+  transition: background-color var(--chat-transition);
 }
 
 .button:hover:enabled {
-  background: var(--color-text-secondary);
+  background: var(--forest-gold);
 }
 
 .button:disabled {
-  color: var(--color-text-muted);
-  background: var(--chat-color-disabled-bg);
+  color: var(--forest-ink-3);
+  background: var(--forest-chat-fill-hover);
   cursor: default;
 }
