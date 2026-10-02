@@ -36,7 +36,7 @@ Skills refer to these slots by name (*lint*, *format*, *test*, *build*, *run*, *
 | test | `npm test` | fast tests, no device/emulator: Vitest projects `web` (Testing Library, jsdom, `src/**/*.test.ts(x)`) and `server` (node, `server/**/*.test.ts`, fake LLM only; the setup deletes `ANTHROPIC_API_KEY`) |
 | build | `npm run build` | production build; output dir: `dist/` (base path `/`) |
 | run | `npm run dev` | local dev server, http://localhost:5173/; also serves `POST /api/chat` (env from `.env.local`, see `.env.example`; `CHAT_FAKE_LLM=1` answers without a key) |
-| web check | `npm run build && npm run web-check` | Playwright serves `dist/` with `vite preview` (http://localhost:4173/), Chromium 1280×800, browser locales `en-US` and `uk-UA`; fails on `pageerror`/console errors; screenshots in `web-check/home-{en,uk}.png`. In the cloud container the preinstalled Chromium is used (no `playwright install`). |
+| web check | `npm run build && npm run web-check` | Playwright serves `dist/` with `vite preview` (CI: http://localhost:4173/; locally a port derived from the worktree path, or `PW_PORT`, so parallel sessions never share a server), Chromium 1280×800, browser locales `en-US` and `uk-UA`; fails on `pageerror`/console errors; screenshots in `web-check/home-{en,uk}.png`. In the cloud container the preinstalled Chromium is used (no `playwright install`). |
 
 Before every push: *lint* and *test* must pass. In Claude Code sessions (local and cloud) a `PostToolUse` hook (`.claude/hooks/lint-edited-file.sh`) runs ESLint on every `.ts`/`.tsx` file right after it is edited and feeds errors back; fix them on the spot. It skips silently when `node_modules` is missing. `tsc`, Prettier and the tests still run only in *lint* and *test*.
 
