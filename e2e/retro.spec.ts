@@ -1,11 +1,8 @@
 import { expect, type Page, test } from '@playwright/test';
 import {
-  consoleRows,
-  expectChunkApplied,
   expectEndsAsNormalSite,
-  openGroup,
-  ranChunks,
-  runShowToEnd,
+  expectShownIsApplied,
+  MIN_SHOW_MS,
   SHOW_LIMIT_MS,
   stageSelector,
 } from './retroShow';
@@ -19,61 +16,13 @@ import { collectErrors, CV_SHOW_URLS, SCREENSHOT_DIR, SHOW_SITE } from './suppor
 // a model.
 test.use({ locale: 'en-US' });
 
-/**
- * The mid-show screenshot is taken once this step's first chunk has run: its echo carries the
- * step's narration comment (Round 5) above the command.
- */
-const MID_SHOW_STEP = 4;
-/** Below this the show has skipped chunks: 36 chunks with a 1 s beat each take ≈ 90 s. */
-const MIN_SHOW_MS = 60_000;
-
 test.describe('with reduced motion', () => {
   test.use({ contextOptions: { reducedMotion: 'reduce' } });
 
   test('guard 4: after every chunk, what the console printed is what the page has', async ({
     page,
   }) => {
-    const errors = collectErrors(page);
-    await page.clock.install();
-    await page.goto(SHOW_SITE);
-    await expect(page.getByTestId('forest-name')).toBeVisible();
-    const checked = new Set<string>();
-    const groups: string[] = [];
-    let screenshot = false;
-    let ended = false;
-
-    await runShowToEnd(page, async () => {
-      const rows = await consoleRows(page);
-      if (!ended && rows.some(({ kind }) => kind === 'end')) {
-        ended = true;
-        await expect(page.getByTestId('retro-console-errors')).toHaveText('0');
-        await expect(page.getByTestId('retro-console-warnings')).toHaveText('0');
-      }
-      const group = openGroup(rows);
-      if (group && !groups.includes(group)) groups.push(group);
-      const ran = ranChunks(rows);
-      for (const chunk of ran.filter(({ input }) => !checked.has(input))) {
-        checked.add(chunk.input);
-        await expectChunkApplied(page, chunk);
-      }
-      if (!screenshot && group?.startsWith(`${MID_SHOW_STEP}/`) && ran.length > 0) {
-        screenshot = true;
-        // The step's narration is a comment above its first command; the chat stays silent.
-        expect(ran[0]?.input).toMatch(/^\/\/ (?!→)/);
-        await expect(page.getByTestId('retro-chat-log')).not.toContainText('Images:');
-        await page.screenshot({ path: `${SCREENSHOT_DIR}/retro-mid.png` });
-      }
-    });
-
-    // Every step's group opened in order, every chunk ran and was checked, the counters ended at 0.
-    expect(groups.map((title) => title.split(' ')[0])).toEqual(
-      groups.map((_, index) => `${index + 1}/8`),
-    );
-    expect(groups).toHaveLength(8);
-    expect(checked.size).toBe(36);
-    expect(screenshot).toBe(true);
-    expect(ended).toBe(true);
-    expect(errors).toEqual([]);
+    await expectShownIsApplied(page, CV_SHOW_URLS, 'retro-mid.png');
   });
 
   test('the intro: the page alone, our chat with two lines, then DevTools', async ({ page }) => {

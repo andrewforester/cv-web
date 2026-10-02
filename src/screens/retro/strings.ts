@@ -42,21 +42,25 @@ export const retroStrings = defineStrings({
     consoleOpening: 'Agent connected to andrew-cv: {changes} changes in {steps} steps.',
     consoleEnd: 'All fixes applied.',
     stepDoneAnnouncement: 'Step {n} of {total} done: {title}',
-    // Decorations
+    // Decorations (`/`'s copy; `/new`'s own lines are the `…New` keys and `navImpact`)
     navHome: 'Home',
     navResume: 'Resume',
     navApps: 'My Apps',
     navBooks: 'Books',
+    navImpact: 'Impact',
     navGuestbook: 'Guestbook',
     navLinks: 'Links',
     marquee:
       '*** Welcome to my homepage! *** Senior Android Engineer *** Creating Android apps since 2012 *** Please sign my guestbook! ***',
+    marqueeNew:
+      '*** Welcome to my homepage! *** AI Product Engineer *** Mobile & Agentic Systems *** Please sign my guestbook! ***',
     noteTitle: 'Oh, snap!',
     noteBody: "Some pictures didn't load. Try pressing F5... or just wait a minute.",
     visitorNumber: 'You are visitor number',
     counter: '004271',
     webringPrev: '<< Prev',
     webringName: 'Android Devs Webring',
+    webringNameNew: 'AI Builders Webring',
     webringNext: 'Next >>',
     lastUpdated: 'Last updated: 14.03.2002 · © 2002 Andrew Panasiuk. All rights reserved.',
   },

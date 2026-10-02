@@ -1,7 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 import { collectErrors, SCREENSHOT_DIR, type ShowUrls } from './support';
 
-// Helpers for the show specs (`retro.spec.ts` for `/`): drive a page's Retro Rebuild show on
+// Helpers for the show specs (`retro.spec.ts` for `/`, `retroNew.spec.ts` for `/new`): drive a page's Retro Rebuild show on
 // Playwright's fake clock, read what the console printed and what the show left on the page
 // (docs/retro/ARCHITECTURE.md §1 → guards 3 and 4; §10: a page's URLs come as `ShowUrls`).
 
@@ -9,6 +9,8 @@ import { collectErrors, SCREENSHOT_DIR, type ShowUrls } from './support';
 const SLICE_MS = 250;
 /** The 8-step, 36-chunk show takes ≈ 78 s of show time with reduced motion, ≈ 91 s with motion. */
 export const SHOW_LIMIT_MS = 110_000;
+/** Below this the show has skipped chunks: 36 chunks with a 1 s beat each take ≈ 90 s. */
+export const MIN_SHOW_MS = 60_000;
 
 export const stageSelector = '[data-retro-stage]';
 const leftoverSelector =
@@ -301,4 +303,63 @@ export async function expectEndsAsNormalSite(
   expect(Object.keys((await snapshotPage(page)).styles).length).toBeGreaterThan(100);
   expect([...errors, ...normalErrors]).toEqual([]);
   return showMs;
+}
+
+/**
+ * The mid-show screenshot is taken once this step's first chunk has run: its echo carries the
+ * step's narration comment (Round 5) above the command.
+ */
+const MID_SHOW_STEP = 4;
+
+/**
+ * Guard 4: runs the page's show with the console open and, after every chunk, checks that what the
+ * console printed is what the page has; every step's group opens in order, all 36 chunks run and
+ * the counters end at 0. With `midShowScreenshot`, also checks that step 4 opens with its
+ * narration as a `//` comment while the chat stays silent, and screenshots that frame.
+ */
+export async function expectShownIsApplied(
+  page: Page,
+  urls: ShowUrls,
+  midShowScreenshot?: string,
+): Promise<void> {
+  const errors = collectErrors(page);
+  await page.clock.install();
+  await page.goto(urls.show);
+  await expect(page.getByTestId('forest-name')).toBeVisible();
+  const checked = new Set<string>();
+  const groups: string[] = [];
+  let screenshot = false;
+  let ended = false;
+
+  await runShowToEnd(page, async () => {
+    const rows = await consoleRows(page);
+    if (!ended && rows.some(({ kind }) => kind === 'end')) {
+      ended = true;
+      await expect(page.getByTestId('retro-console-errors')).toHaveText('0');
+      await expect(page.getByTestId('retro-console-warnings')).toHaveText('0');
+    }
+    const group = openGroup(rows);
+    if (group && !groups.includes(group)) groups.push(group);
+    const ran = ranChunks(rows);
+    for (const chunk of ran.filter(({ input }) => !checked.has(input))) {
+      checked.add(chunk.input);
+      await expectChunkApplied(page, chunk);
+    }
+    if (midShowScreenshot && !screenshot && group?.startsWith(`${MID_SHOW_STEP}/`) && ran.length) {
+      screenshot = true;
+      // The step's narration is a comment above its first command; the chat stays silent.
+      expect(ran[0]?.input).toMatch(/^\/\/ (?!→)/);
+      await expect(page.getByTestId('retro-chat-log')).not.toContainText('Images:');
+      await page.screenshot({ path: `${SCREENSHOT_DIR}/${midShowScreenshot}` });
+    }
+  });
+
+  expect(groups.map((title) => title.split(' ')[0])).toEqual(
+    groups.map((_, index) => `${index + 1}/8`),
+  );
+  expect(groups).toHaveLength(8);
+  expect(checked.size).toBe(36);
+  expect(screenshot).toBe(midShowScreenshot !== undefined);
+  expect(ended).toBe(true);
+  expect(errors).toEqual([]);
 }

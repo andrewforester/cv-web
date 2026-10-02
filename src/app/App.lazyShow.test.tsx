@@ -57,7 +57,9 @@ describe('App: the show as a lazy chunk', () => {
     expect(shell()).not.toHaveClass('pending');
   });
 
-  it('show mode on a page without a scenario (/new) never requests the show', async () => {
+  it('show mode on a page without a scenario never requests the show', async () => {
+    // Every page has a show today; this one is taken out of the map.
+    vi.doMock('./showScenarios', () => ({ showScenarioFor: () => undefined }));
     window.history.replaceState(null, '', '/new');
     try {
       const importShow = await renderApp('show', async () => ({ RetroShowRoute: StubShow }));
@@ -66,6 +68,7 @@ describe('App: the show as a lazy chunk', () => {
       expect(shell()).not.toHaveClass('pending');
       expect(stage()).toBeNull();
     } finally {
+      vi.doUnmock('./showScenarios');
       window.history.replaceState(null, '', '/');
     }
   });

@@ -7,6 +7,7 @@ import type { Page } from './routes';
  */
 export const SHOW_SCENARIO_BY_PAGE: Partial<Record<Page, ShowScenarioId>> = {
   cv: 'retro-3',
+  profile: 'retro-new-1',
 };
 
 /** The page's scenario; `undefined` when the page has no show. */
