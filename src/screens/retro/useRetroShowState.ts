@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useShowRepository } from '../../data/retro';
+import { useShowRepository, type ShowScenarioId } from '../../data/retro';
 import { useStrings } from '../../i18n';
 import { highlightOf } from './engine/chunkSelectors';
 import type { ShowClock } from './engine/clock';
@@ -8,7 +8,8 @@ import { readLiveToken } from './engine/layerHost';
 import type { ShowConfig } from './engine/showTypes';
 import type { RetroShowUiState } from './RetroShowUiState';
 import { toRetroShowUiState } from './retroShowUi';
-import { RETRO_SHOW, type ShowModuleLoaders } from './scenario';
+import type { ShowModuleLoaders } from './scenario';
+import type { RetroShowSource } from './scenarios';
 import { retroStrings } from './strings';
 import { useChunkFocus } from './useChunkFocus';
 import { useDecorationPlacement } from './useDecorationPlacement';
@@ -19,6 +20,9 @@ import { useShowStage } from './useShowStage';
 import { useTokenShield } from './useTokenShield';
 
 export interface RetroShowOptions {
+  /** The running scenario (its wire id) and what its steps do to its page. */
+  scenario: ShowScenarioId;
+  source: RetroShowSource;
   loaders: ShowModuleLoaders;
   onDone?: () => void;
   /** Test seam: the runner's time source. */
@@ -37,15 +41,21 @@ const matches = (query: string) =>
   typeof window.matchMedia === 'function' && window.matchMedia(query).matches;
 
 /**
- * State holder of the retro show: runs the scenario over the real page (layers, decorations,
+ * State holder of the retro show: runs a page's scenario over the real page (layers, decorations,
  * modules), talks to the LLM through `ShowRepository`, and keeps the agent chat's composer.
  */
-export function useRetroShowState({ loaders, onDone, clock }: RetroShowOptions): RetroShowState {
+export function useRetroShowState({
+  scenario,
+  source,
+  loaders,
+  onDone,
+  clock,
+}: RetroShowOptions): RetroShowState {
   const strings = useStrings(retroStrings);
   const repository = useShowRepository();
   const [state, dispatch] = useShowRunner(
     (): ShowConfig => ({
-      plan: planShow(RETRO_SHOW, (name) => readLiveToken(document, name)),
+      plan: planShow(source.show, (name) => readLiveToken(document, name)),
       copy: strings,
       reducedMotion: matches('(prefers-reduced-motion: reduce)'),
       // Crawlers and automation get the scripted show (ARCHITECTURE §4 → Bots).
@@ -53,8 +63,9 @@ export function useRetroShowState({ loaders, onDone, clock }: RetroShowOptions):
     }),
     clock,
   );
-  useShowLlm(state, dispatch, repository);
+  useShowLlm(state, dispatch, repository, scenario);
   const { layers, layersKey, chunk } = useShowStage(state, dispatch, {
+    layers: source.show.layers,
     loaders,
     onDone,
     pageTitle: strings.pageTitle,
@@ -65,7 +76,12 @@ export function useRetroShowState({ loaders, onDone, clock }: RetroShowOptions):
   // decorations follow them.
   const moving = !reducedMotion && chunk?.status === 'applied' && chunk.motion !== 'none';
   const highlight = useHighlightBoxes(highlightOf(state), moving);
-  const placement = useDecorationPlacement(layersKey, layers.includes('page-frame'), moving);
+  const placement = useDecorationPlacement(
+    source.anchors,
+    layersKey,
+    layers.includes('page-frame'),
+    moving,
+  );
 
   const tokens = useTokenShield();
 
@@ -75,7 +91,12 @@ export function useRetroShowState({ loaders, onDone, clock }: RetroShowOptions):
   const composing = focused && draft.trim() !== '';
   useEffect(() => dispatch({ type: 'composing', on: composing }), [composing, dispatch]);
 
-  const ui = toRetroShowUiState(state, { draft, minimised, placement, highlight, tokens }, strings);
+  const ui = toRetroShowUiState(
+    state,
+    { draft, minimised, placement, highlight, tokens },
+    strings,
+    source.copy,
+  );
   const sendable = ui.chat.canSend;
   const onSend = useCallback(() => {
     if (!sendable) return;

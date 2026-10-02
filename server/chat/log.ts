@@ -1,6 +1,7 @@
 import type { ChatErrorCode, ChatPage, ChatStopReasonV2 } from '../../src/data/chat/contract.js';
 import type { ShowKind } from '../../src/data/retro/contract.js';
 import type { RetroStepId } from '../../src/data/retro/scenario.js';
+import type { ShowScenarioId } from '../../src/data/retro/scenarios.js';
 
 /**
  * One structured line per request (docs/chat/SYSTEM_DESIGN.md §10). Never holds message text,
@@ -44,6 +45,8 @@ export interface ChatLogEntry {
   providerStateBytes: number | null;
   /** v3: the show request's kind. */
   showKind: ShowKind | null;
+  /** v3: the scenario the show runs (its page's), an id. */
+  showScenario: ShowScenarioId | null;
   /** v3 `reply`: the step on screen when the visitor wrote (`null` also before the first step). */
   stepId: RetroStepId | null;
   /** v3 `narrate`: `line` events streamed. */

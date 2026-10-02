@@ -10,5 +10,4 @@ export const cvTestIds = {
   apps: 'cv-apps',
   education: 'cv-education',
   about: 'cv-about',
-  showCase: 'cv-show-case',
 } as const;

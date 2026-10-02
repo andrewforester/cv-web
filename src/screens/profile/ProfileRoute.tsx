@@ -4,7 +4,7 @@ import { useProfileAgentTools } from './useProfileAgentTools';
 import { useProfileState } from './useProfileState';
 
 interface ProfileRouteProps {
-  /** Controls the app shell puts at the right end of the meta bar (the language switcher). */
+  /** Controls the app shell puts at the right end of the meta bar (Show case, language switcher). */
   metaBarEnd?: ReactNode;
 }
 

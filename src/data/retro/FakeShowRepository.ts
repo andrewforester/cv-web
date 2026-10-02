@@ -1,6 +1,6 @@
 import type { ChatUsage } from '../chat/contract';
 import type { ShowNarrateStreamEvent, ShowReplyStreamEvent } from './contract';
-import { RETRO_FINALE_FALLBACK, RETRO_STEPS } from './scenario';
+import { SHOW_SCENARIOS, type ShowScenarioId } from './scenarios';
 import type { ShowReplyInput, ShowRepository } from './ShowRepository';
 
 /** A scripted stream: plain events, or an async iterable a test can hold open. */
@@ -17,12 +17,13 @@ const NO_USAGE: ChatUsage = {
 
 /**
  * Scripted `ShowRepository` for tests and dev. `narrate` plays the script set with
- * `narrateWith()` (default: the manifest's fallback lines, then `done`); each `reply` plays the
+ * `narrateWith()` (default: that scenario's fallback lines, then `done`); each `reply` plays the
  * next script queued with `replyWith()` (default: `FAKE_SHOW_REPLY`, then `done`). A stream stops
  * after its first terminal event, or when `signal` aborts, even while a script is held open.
  */
 export class FakeShowRepository implements ShowRepository {
-  narrateCalls = 0;
+  /** The scenario of every `narrate` call, in order. */
+  readonly narrateScenarios: ShowScenarioId[] = [];
   readonly replyInputs: ShowReplyInput[] = [];
   private narration: ShowScript<ShowNarrateStreamEvent> | null = null;
   private readonly replies: ShowScript<ShowReplyStreamEvent>[] = [];
@@ -37,9 +38,9 @@ export class FakeShowRepository implements ShowRepository {
     return this;
   }
 
-  narrate(signal?: AbortSignal): AsyncIterable<ShowNarrateStreamEvent> {
-    this.narrateCalls += 1;
-    return play(this.narration ?? fallbackNarration(), signal);
+  narrate(scenario: ShowScenarioId, signal?: AbortSignal): AsyncIterable<ShowNarrateStreamEvent> {
+    this.narrateScenarios.push(scenario);
+    return play(this.narration ?? fallbackNarration(scenario), signal);
   }
 
   reply(input: ShowReplyInput, signal?: AbortSignal): AsyncIterable<ShowReplyStreamEvent> {
@@ -48,10 +49,11 @@ export class FakeShowRepository implements ShowRepository {
   }
 }
 
-function fallbackNarration(): ShowNarrateStreamEvent[] {
+function fallbackNarration(scenario: ShowScenarioId): ShowNarrateStreamEvent[] {
+  const { steps, finale } = SHOW_SCENARIOS[scenario];
   return [
-    ...RETRO_STEPS.map(({ id, fallback }) => ({ type: 'line' as const, key: id, text: fallback })),
-    { type: 'line', key: 'finale', text: RETRO_FINALE_FALLBACK },
+    ...steps.map(({ id, fallback }) => ({ type: 'line' as const, key: id, text: fallback })),
+    { type: 'line', key: 'finale', text: finale },
     { type: 'done', stopReason: 'end_turn', usage: NO_USAGE },
   ];
 }

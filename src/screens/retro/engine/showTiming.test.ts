@@ -1,11 +1,13 @@
 import { RETRO_SHOW } from '../scenario';
+import { registeredSources } from '../scenarios';
 import { retroStrings } from '../strings';
 import { currentPlannedChunk } from './showState';
 import { ShowTestRun } from './showTestRun';
 import { commentMs, TIMING, typingMs } from './timing';
 import type { PlannedChunk, ShowState } from './showTypes';
 
-// The chunk rhythm on the fake clock (docs/design/retro/SPEC.md → Chunk rhythm and timing budget).
+// The chunk rhythm on the fake clock (docs/design/retro/SPEC.md → Chunk rhythm and timing budget):
+// one chunk on `/`'s source, the whole show on every page's.
 
 const inChunk = (key: string) => (state: ShowState) =>
   state.stage === 'type' && currentPlannedChunk(state)?.key === key;
@@ -107,17 +109,17 @@ describe('show timing: one chunk', () => {
   });
 });
 
-describe('show timing: the whole show', () => {
+describe.each(registeredSources())('show timing: the whole %s show', (_, { show }) => {
   it('runs in about 91 s with the real copy and a camera that settles at once (Round 5)', () => {
-    const run = new ShowTestRun(RETRO_SHOW, { copy: retroStrings.en });
+    const run = new ShowTestRun(show, { copy: retroStrings.en });
     const total = runWithInstantCamera(run);
     expect(total).toBeGreaterThan(85_000);
     expect(total).toBeLessThan(97_000);
   });
 
   it('never takes longer than the 0.8 s cap per chunk without a camera', () => {
-    const withCamera = runWithInstantCamera(new ShowTestRun(RETRO_SHOW));
-    const run = new ShowTestRun(RETRO_SHOW);
+    const withCamera = runWithInstantCamera(new ShowTestRun(show));
+    const run = new ShowTestRun(show);
     run.advanceUntil(() => run.status('module:ai-chat') === 'running');
     run.dispatch({ type: 'moduleLoaded', key: 'module:ai-chat' });
     run.advanceUntil((state) => state.phase === 'done');

@@ -48,6 +48,7 @@ describe('handleChat v3: narrate', () => {
         locale: 'en',
         promptVersion: SHOW_PROMPT_VERSION,
         showKind: 'narrate',
+        showScenario: 'retro-3',
         stepId: null,
         narrationLines: 4,
         messages: null,
@@ -95,6 +96,7 @@ describe('handleChat v3: reply', () => {
     expect(deps.logs[0]).toMatchObject({
       v: 3,
       showKind: 'reply',
+      showScenario: 'retro-3',
       stepId: 'layout',
       messages: 1,
       inputChars: VISITOR_TEXT.length,

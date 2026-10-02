@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { SHOW_SCENARIOS } from '../../../src/data/retro/scenarios.js';
 import { NARRATE_BODY, replyBody } from '../../test/helpers.js';
 import { HAIKU_4_5 } from '../llm/modelOptions.js';
 import { NARRATE_DEADLINE_MS, narrationStreamer, planShow } from './planShow.js';
+import { showOutline } from './showPrompt.js';
 
 const knowledge = () => Promise.resolve('<knowledge>CV</knowledge>');
 
@@ -12,6 +14,16 @@ describe('planShow', () => {
     );
     expect((await planShow(NARRATE_BODY, knowledge, HAIKU_4_5, 30)).deadlineMs).toBe(30);
     expect((await planShow(replyBody(), knowledge, HAIKU_4_5, 55_000)).deadlineMs).toBe(55_000);
+  });
+
+  it("plans from the request's scenario and logs its id", async () => {
+    const outline = showOutline(SHOW_SCENARIOS[NARRATE_BODY.scenario]);
+    const narrate = await planShow(NARRATE_BODY, knowledge, HAIKU_4_5, 1);
+    expect(narrate.llmRequest.system[1]?.text).toBe(outline);
+    expect(narrate.logFields).toMatchObject({ showKind: 'narrate', showScenario: 'retro-3' });
+    const reply = await planShow(replyBody(), knowledge, HAIKU_4_5, 1);
+    expect(reply.llmRequest.system[1]?.text).toBe(outline);
+    expect(reply.logFields).toMatchObject({ showKind: 'reply', showScenario: 'retro-3' });
   });
 
   it('loads the knowledge only for replies', async () => {

@@ -10,6 +10,13 @@ export interface ChatLineUi {
   streaming: boolean;
 }
 
+/** The page's nav items and marquee (top bar) and webring name (footer). */
+export interface DecorationCopyUi {
+  nav: string[];
+  marquee: string;
+  webringName: string;
+}
+
 /** Where a decoration sits, in page (document) pixels; `null` until its anchor is on the page. */
 export interface DecorationBox {
   left: number;
@@ -112,5 +119,7 @@ export interface RetroShowUiState {
   };
   /** `leaving`: removed a moment ago, fading out before it unmounts. */
   decorations: { id: DecorationId; box: DecorationBox | null; leaving: boolean }[];
+  /** The decorations' texts on this page (SPEC → Texts). */
+  decorationCopy: DecorationCopyUi;
   highlight: HighlightUi | null;
 }
