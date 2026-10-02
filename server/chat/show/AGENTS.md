@@ -15,9 +15,10 @@ Domain terms (contract: `docs/chat/API.md` → v3; design: `docs/retro/ARCHITECT
   `<show_state>` data on the latest message.
 - **Scenario manifest:** step ids, intents and fallbacks of the request's scenario, looked up in
   `src/data/retro/scenarios.ts` (the registry the browser runs too; one scenario per page with a
-  show: `/`'s `retro-3`, `/new`'s `retro-new-1`). An unknown scenario id is `unsupported_version`; `step` and
-  `stepsDone` are checked against that scenario. The outline the model sees is rendered from the
-  manifest, so `/`'s prompt text (and its cache prefix) is the same as before the per-page split.
+  show: `/`'s `retro-3`, `/new`'s `retro-new-1`). An unknown scenario id is
+  `unsupported_version`; `step` and `stepsDone` are checked against that scenario. The outline
+  the model sees is rendered from the manifest, so `/`'s prompt text (and its cache prefix) is the
+  same as before the per-page split.
 
 Place in the architecture: a branch of the chat pipeline (`../handler.ts`). Guards, rate limits,
 daily budget, kill switch, model choice, SSE framing and the log line are the chat's; this folder
