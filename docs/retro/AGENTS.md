@@ -6,8 +6,10 @@ DevTools docks, and the "agent" fixes the page live, step by step, typing real c
 commentary as code comments) that changes the page as shown, until it is today's CV. The visitor
 can talk to the agent while it works.
 
-**Branch:** all work on the show happens on `claude/retro-rebuild` (task branches from it, PRs into
-it); it is never merged into `main`.
+**Branch:** the show lives in `main` (CV-92 shipped it; it overrides the earlier "never merged into
+`main`" rule). New show work branches from `main` and its PR targets `main`, like any task; the
+integration branch `claude/retro-rebuild` is retired. The show stays off for normal visitors: a lazy
+chunk, started only by the Show case button or `?retro=1`.
 
 Start here, in this order:
 1. [`ARCHITECTURE.md`](ARCHITECTURE.md) **section 9**: what is built and where, the final

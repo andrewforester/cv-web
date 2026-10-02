@@ -13,11 +13,15 @@ Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + Rea
 | `src/data/` | CV models, the `CvRepository` interface and its context, `mock/` (JSON per locale + `StaticCvRepository`); `chat/contract.ts`: the `/api/chat` contract types shared with `server/`. |
 | `src/shared/` | Shared stateless components (`LanguageSwitcher/`). |
 | `src/screens/<screen>/` | One folder per screen (`home/` today). |
+| `src/screens/retro/` | The Show case: the live-fix show (the CV opens as a broken 2000s page; an agent chat and a DevTools dock fix it step by step until it is today's CV). A lazy chunk started only by the Show case button or `?retro=1`; `harness/` is dev-only. |
 | `api/` | Vercel Functions (Node runtime), thin entries only: `chat.ts` = `POST /api/chat` (AI CV chat). Every file here becomes a function. |
 | `server/` | Framework-free backend logic: `chat/` (the `/api/chat` pipeline: guards, limiter, validation, knowledge, prompt, Claude via `@anthropic-ai/sdk`, SSE), `dev/` (Vite plugin serving `/api/chat` in `npm run dev`), `test/` (server test setup and helpers). |
+| `server/chat/show/` | The show's narration side of `/api/chat` (`v: 3`): validation, prompts, line parser, scripted fallback when there is no model key. |
+| `src/data/retro/` | The show's scenario data: step manifest, LLM intents, scripted fallback lines. Pure data, no React. |
 | `e2e/` | Playwright web smoke check (`smoke.spec.ts`). |
 | `public/` | Static files copied as is (favicon). |
 | `docs/COORDINATION.md` | Standing rules for parallel Claude sessions: file ownership, design source of truth, the tracker (Linear: statuses, labels, brief format) and **Tooling** (the concrete commands the skills' general steps map to). Read it before touching files. |
+| `docs/retro/` | The show's design record: `AGENTS.md` (read first), `ARCHITECTURE.md` (what is built, rules, how to add a fix chunk); the look is `docs/design/retro/`. |
 | `docs/chat/`, `docs/adr/` | AI chat system design, API contract (`API.md`) and decisions. |
 | `docs/design/<name>/` | Design packages (`SPEC.md`, `screenshot.png`, `assets/`). Build from them; don't call design-tool MCPs. |
 

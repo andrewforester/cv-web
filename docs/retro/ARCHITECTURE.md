@@ -3,7 +3,8 @@
 > GRA-39. Decision record: [`../adr/0003-retro-live-fix-show.md`](../adr/0003-retro-live-fix-show.md).
 > The look (retro values, copy, the full fix list, `--retro-*` tokens) is the design package
 > `docs/design/retro/` (GRA-38); this file is the mechanism.
-> Epic: Linear project *Retro Rebuild*; integration branch `claude/retro-rebuild`.
+> Epic: Linear project *Retro Rebuild*. Built on the integration branch `claude/retro-rebuild`,
+> which CV-92 merged into `main` and retired.
 > **Round 1 (POC) and the 7-step show are built** (GRA-40…48). Sections 0–7 are the design as
 > planned; **section 9** records what was built, the final decisions, the round-3 design (GRA-49:
 > atomic chunks, motion, highlight, smooth close), how to add a fix chunk and the known debt.
@@ -448,7 +449,7 @@ Resolved: the defaults below stand; final answers are in section 9 → Decisions
 
 ## 9. As built and working rules
 
-Merged into `claude/retro-rebuild`: `main`'s Forest milestone 1 (GRA-89, see *Round 6* below); round 1 (POC) GRA-40 (tokens), GRA-41 (contract + manifest),
+Built on `claude/retro-rebuild` (now in `main`): `main`'s Forest milestone 1 (GRA-89, see *Round 6* below); round 1 (POC) GRA-40 (tokens), GRA-41 (contract + manifest),
 GRA-42 (server v3), GRA-43 (show screen), GRA-44 (shell + e2e); then GRA-46 (the 7-step show,
 `retro-2`, guard 4 for every step), GRA-47 (panel tokens), GRA-48 (the show as a lazy chunk). Round
 3, designed in GRA-49 and **built**: GRA-50 (R10: the 8-step, 36-chunk scenario and the per-chunk
@@ -475,9 +476,11 @@ is *Round 3* below. Everything in this section is built.
 
 ### Decisions (final)
 
-- **Branch:** every task of this epic branches from `claude/retro-rebuild` and its PR targets it; it
-  is never merged into `main`. The orchestrator writes this, and "read `docs/retro/AGENTS.md`
-  first", into every brief.
+- **Branch:** the show lives in `main` (CV-92, R25; it overrides the earlier rule "never merged
+  into `main`"). New show work branches from `main` and its PR targets `main` like any task; the
+  integration branch `claude/retro-rebuild` is retired. Until CV-92 every task of this epic
+  branched from `claude/retro-rebuild` and targeted it. The brief of a show task still says "read
+  `docs/retro/AGENTS.md` first".
 - **Hybrid:** authored steps; the LLM writes only narration and replies, through `/api/chat` `v: 3`
   on the existing `@anthropic-ai/sdk` pipeline (no other AI SDK).
 - **EN only** for the show, now and later; **desktop only** for now.
