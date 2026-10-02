@@ -16,7 +16,9 @@ interface FooterCtaProps {
 /** The page's closing call to action under an accent rule, with a gradient ↗. */
 export function FooterCta({ className, label, href, note, attributes }: FooterCtaProps) {
   return (
-    <footer className={classNames(styles.root, className)} data-testid={forestTestIds.footer}
+    <footer
+      className={classNames(styles.root, className)}
+      data-testid={forestTestIds.footer}
       {...attributes}
     >
       <a className={styles.cta} href={href}>
