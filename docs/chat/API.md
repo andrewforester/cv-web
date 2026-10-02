@@ -640,7 +640,7 @@ the error body and codes, SSE framing and stream guarantees. The response header
 | `v` | `3` |
 | `locale` | Must be `"en"` (the show is English only); anything else: `400 invalid_request`. |
 | `kind` | `"narrate"` or `"reply"`; anything else or missing: `400 invalid_request`. |
-| `scenario` | The scenario id the page was built with (`RETRO_SCENARIO_ID`, today `"retro-1"`). A string the server doesn't know (a tab opened before a deploy that changed the steps): `400 unsupported_version`. Not a string: `400 invalid_request`. |
+| `scenario` | A known scenario id, the one the page was built with: `retro-3` (`/`) or `retro-new-1` (`/new`) (`ShowScenarioId`, the keys of `SHOW_SCENARIOS` in `src/data/retro/scenarios.ts`). A string the server doesn't know (a tab opened before a deploy that changed the steps): `400 unsupported_version`. Not a string: `400 invalid_request`. |
 | `narrate` body | `v`, `locale`, `kind`, `scenario` only; other fields ignored. No conversation, no CV knowledge. |
 | `reply` body | Adds `step` (the step on screen when the message was sent: a step id of the scenario, or `null` before the first step and after the last), `stepsDone` (integer, `0` to the number of steps) and `messages` (v1 shape and rules: roles alternate, start and end with `user`). A bad `step` or `stepsDone`: `400 invalid_request`. |
 | Limits (`reply`) | `messages` 1 to **20** (10 visitor messages; more: `422 conversation_limit`); a `user` message at most **1,000** chars, an `assistant` message at most **1,000** chars (`413 too_long`); v1's total and body limits still apply. |
@@ -669,19 +669,23 @@ Client behaviour (the show never waits on the LLM):
 
 Server side (informational): `narrate` asks for one line per step plus the finale, at most 20
 words each, `max_tokens` 800, 20 s deadline. `reply` answers in at most 60 words, grounded in the
-CV like the chat, with the show state (`step`, `stepsDone`, number of steps) passed to the model as
-data, `max_tokens` 300, the normal deadline. The log line carries `v: 3`, the kind, the step id and
+content of the scenario's page like the chat on that page (`/`: the CV, `/new`: the profile), with
+the show state (`step`, `stepsDone`, number of steps) passed to the model as data, `max_tokens`
+300, the normal deadline. The log line carries `v: 3`, the kind, the step id and
 the number of narration lines, never text.
 
 ### Types
 
-`src/data/retro/scenario.ts` (the ids; titles, intents and fallbacks are in the file):
+`src/data/retro/scenario.ts` and `scenarios.ts` (the ids; titles, intents and fallbacks are in the
+files; every scenario has the same step ids):
 
 ```ts
-export const RETRO_SCENARIO_ID = 'retro-1';
-export type RetroScenarioId = typeof RETRO_SCENARIO_ID;
+export const RETRO_SCENARIO_ID = 'retro-3'; // `/`; `/new` is RETRO_NEW_SCENARIO_ID = 'retro-new-1'
+export type ShowScenarioId = keyof typeof SHOW_SCENARIOS; // 'retro-3' | 'retro-new-1'
 
-export const RETRO_STEP_IDS = ['tokens', 'layout', 'rest'] as const;
+export const RETRO_STEP_IDS = [
+  'fonts', 'colours', 'layout', 'images', 'cards', 'spacing', 'chrome', 'links',
+] as const;
 export type RetroStepId = (typeof RETRO_STEP_IDS)[number];
 
 export const RETRO_NARRATION_KEYS = [...RETRO_STEP_IDS, 'finale'] as const;
@@ -704,14 +708,14 @@ export interface ShowNarrateRequest {
   v: typeof CHAT_API_VERSION_V3;
   locale: 'en';
   kind: 'narrate';
-  scenario: RetroScenarioId;
+  scenario: ShowScenarioId;
 }
 
 export interface ShowReplyRequest {
   v: typeof CHAT_API_VERSION_V3;
   locale: 'en';
   kind: 'reply';
-  scenario: RetroScenarioId;
+  scenario: ShowScenarioId;
   step: RetroStepId | null;
   stepsDone: number;
   messages: ChatMessage[];
@@ -744,20 +748,20 @@ export type ShowReplyStreamEvent =
 Request 1, when the show starts:
 
 ```json
-{ "v": 3, "locale": "en", "kind": "narrate", "scenario": "retro-1" }
+{ "v": 3, "locale": "en", "kind": "narrate", "scenario": "retro-3" }
 ```
 
 Response 1:
 
 ```text
 event: line
-data: {"key":"tokens","text":"Starting with typography: replacing the system fonts of the time with the current typeface and type scale."}
+data: {"key":"fonts","text":"Starting with typography: replacing the system fonts of the time with the current typeface and type scale."}
 
 event: line
 data: {"key":"layout","text":"Layout: replacing the fixed-width table layout, standard practice at the time, with a centred column and grids."}
 
 event: line
-data: {"key":"rest","text":"Removing the navigation bar, marquee and footer badges of the original build, and restoring the language switcher."}
+data: {"key":"chrome","text":"Removing the navigation bar, marquee and footer badges of the original build, and restoring the language switcher."}
 
 event: line
 data: {"key":"finale","text":"All changes are applied. The site is up to date; the chat button in the bottom right corner answers questions about Andrew."}
@@ -770,7 +774,7 @@ data: {"stopReason":"end_turn","usage":{"inputTokens":1480,"outputTokens":92,"ca
 Request 2, the visitor writes during step 2:
 
 ```json
-{ "v": 3, "locale": "en", "kind": "reply", "scenario": "retro-1",
+{ "v": 3, "locale": "en", "kind": "reply", "scenario": "retro-3",
   "step": "layout", "stepsDone": 1,
   "messages": [ { "role": "user", "content": "wow, a marquee! haven't seen one in 20 years" } ] }
 ```
