@@ -1,42 +1,14 @@
-import chat from './chat.module.css';
-import { MessageRow } from './MessageRow';
-import styles from './NoticeRow.module.css';
-import { chatTestIds } from './testIds';
+import type { ComponentProps } from 'react';
+import { useStrings } from '../../i18n';
+import { NoticeRow as SharedNoticeRow } from '../../shared/chat/NoticeRow';
+import { chatStrings } from './strings';
 
-export interface NoticeAction {
-  label: string;
-  testId: string;
-  onClick: () => void;
-}
+type NoticeRowProps = Omit<ComponentProps<typeof SharedNoticeRow>, 'assistantLabel'>;
 
-interface NoticeRowProps {
-  className?: string;
-  text: string;
-  /** `error` = red bubble; `neutral` = regular assistant bubble (rate limit, conversation limit). */
-  tone: 'error' | 'neutral';
-  action?: NoticeAction;
-}
+export type { NoticeAction } from '../../shared/chat/NoticeRow';
 
-/** An assistant-side notice bubble with an optional secondary button (Try again, new chat). */
-export function NoticeRow({ className, text, tone, action }: NoticeRowProps) {
-  return (
-    <MessageRow
-      className={className}
-      author="assistant"
-      tone={tone === 'error' ? 'error' : 'normal'}
-      testId={chatTestIds.notice}
-    >
-      <p>{text}</p>
-      {action && (
-        <button
-          type="button"
-          className={`${chat.secondaryButton} ${styles.action}`}
-          data-testid={action.testId}
-          onClick={action.onClick}
-        >
-          {action.label}
-        </button>
-      )}
-    </MessageRow>
-  );
+/** The shared notice row with the chat's "Assistant:" prefix. */
+export function NoticeRow(props: NoticeRowProps) {
+  const strings = useStrings(chatStrings);
+  return <SharedNoticeRow {...props} assistantLabel={strings.assistant} />;
 }

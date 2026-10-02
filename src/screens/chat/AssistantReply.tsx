@@ -1,12 +1,12 @@
 import { useStrings } from '../../i18n';
 import { AnswerText } from './AnswerText';
-import chat from './chat.module.css';
+import chat from '../../shared/chat/chat.module.css';
 import type { ChatTurn } from './ChatUiState';
 import { MessageRow } from './MessageRow';
 import { NoticeRow } from './NoticeRow';
 import { chatStrings } from './strings';
 import { chatTestIds } from './testIds';
-import { TypingIndicator } from './TypingIndicator';
+import { TypingIndicator } from '../../shared/chat/TypingIndicator';
 
 /** The assistant side of a turn: typing dots, the streaming / finished answer and its caption. */
 export function AssistantReply({ turn }: { turn: ChatTurn }) {

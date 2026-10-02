@@ -6,6 +6,8 @@
 }
 
 .dot {
+  --chat-dot-size: 6px;
+
   width: var(--chat-dot-size);
   height: var(--chat-dot-size);
   border-radius: 50%;

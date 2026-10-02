@@ -1,6 +1,6 @@
 import { useId, useLayoutEffect, type ReactNode, type Ref, type RefObject } from 'react';
 import { useStrings } from '../../i18n';
-import chat from './chat.module.css';
+import chat from '../../shared/chat/chat.module.css';
 import styles from './ChatComposer.module.css';
 import { SendButton } from './SendButton';
 import { chatStrings, formatString } from './strings';

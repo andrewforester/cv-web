@@ -1,0 +1,16 @@
+/* Zero specificity: a screen positions the card itself (the site's panel is `fixed`). */
+:where(.card) {
+  position: relative;
+}
+
+/* The Forest dark panel (docs/design/forest-chat/SPEC.md). */
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--forest-dark-ink);
+  background: var(--forest-gradient-dark);
+  border: var(--border-card) solid var(--forest-dark-line);
+  border-radius: var(--forest-radius-panel);
+  box-shadow: var(--forest-chat-shadow-panel);
+}

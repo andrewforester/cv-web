@@ -85,7 +85,11 @@ describe('CV page agent tools', () => {
   });
 
   it('scrolls instantly under prefers-reduced-motion', async () => {
-    vi.stubGlobal('matchMedia', () => ({ matches: true }));
+    vi.stubGlobal('matchMedia', () => ({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
     const { registry } = await renderCv();
 
     await registry.execute(call('scrollToSection', { section: 'about' }));

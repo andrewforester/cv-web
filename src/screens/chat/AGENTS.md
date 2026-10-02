@@ -21,9 +21,11 @@ What the visitor can rely on:
   Markdown subset, never HTML.
 
 Place in the architecture: the screen pattern (state holder → UI state → stateless components)
-over `src/data/chat/` (the conversation stream) and `src/agent/` (running page tools). Strings in
-`strings.ts` (EN + UK); tokens in the theme: `--forest-*` and `--forest-chat-*` for the look,
-`--chat-*` for geometry and motion.
+over `src/data/chat/` (the conversation stream) and `src/agent/` (running page tools). The
+stateless pieces (card frame and header, message and notice rows, send button, offline banner,
+icons, shared CSS) live in `src/shared/chat/`, also used by the show's agent chat; here thin
+wrappers bind them to this screen's strings. Strings in `strings.ts` (EN + UK); tokens in the
+theme: `--forest-*` and `--forest-chat-*` for the look, `--chat-*` for geometry and motion.
 
 Stubs and limits: a few sizes are screen-local custom properties marked `TODO(theme)`; the sheet
 media query is repeated in the CSS modules; the composer reserves a slot for a future voice

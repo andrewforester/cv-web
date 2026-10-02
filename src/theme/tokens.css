@@ -175,6 +175,9 @@
   --chat-fab-icon-size: 24px;
   --chat-control-size: 44px;
   --chat-icon-size: 20px;
+  --chat-badge-size: 36px;
+  --chat-secondary-button-height: 36px;
+  --chat-transition: 150ms ease;
   --chat-panel-width: 400px;
   --chat-panel-height: 600px;
   --chat-hint-max-width: 240px;
@@ -190,6 +193,57 @@
   --agent-highlight-offset: 4px;
   --agent-highlight-duration: 3s;
   --agent-scroll-margin-top: var(--space-6);
+
+  /* Retro Rebuild show: dock, agent chat, highlight and motion (not the damage values) */
+  --retro-dock-width: 400px;
+  --retro-dock-inset: 16px;
+  --retro-chat-height: 392px;
+  --retro-z-index: 1001;
+  --retro-highlight-fade-in: 150ms;
+  --retro-highlight-fade-out: 800ms;
+  --retro-motion-duration: 450ms;
+  --retro-morph-duration: 500ms;
+  --retro-leave-duration: 250ms;
+  --retro-close-stagger: 150ms;
+  --retro-close-easing: cubic-bezier(0.4, 0, 1, 1);
+  --retro-reserve-duration: 400ms;
+  --retro-highlight-content: rgba(111, 168, 220, 0.35);
+  --retro-highlight-content-flash: rgba(111, 168, 220, 0.6);
+  --retro-highlight-padding: rgba(147, 196, 125, 0.3);
+  --retro-highlight-border: rgba(255, 229, 153, 0.4);
+  --retro-highlight-margin: rgba(246, 178, 107, 0.3);
+  --retro-highlight-page: rgba(111, 168, 220, 0.2);
+  --retro-highlight-flash: 100ms;
+  --retro-close-slide: 300ms;
+  --retro-close-shrink: 500ms;
+
+  /* DevTools panel of the Retro Rebuild show (Chrome light theme; docs/design/retro/SPEC.md, Tokens) */
+  --devtools-bg: #ffffff;
+  --devtools-toolbar-bg: #f3f6fc;
+  --devtools-input-bg: #e9eef6;
+  --devtools-divider: #dadce0;
+  --devtools-row-divider: #f1f3f4;
+  --devtools-text: #1f1f1f;
+  --devtools-text-dim: #5f6368;
+  --devtools-accent: #0b57d0;
+  --devtools-error: #dc362e;
+  --devtools-warning: #f29900;
+  --devtools-warning-bg: #fef7e0;
+  --devtools-warning-text: #5c3c00;
+  --devtools-warning-border: #fdeeb5;
+  --devtools-success: #188038;
+  --devtools-code-keyword: #aa0d91;
+  --devtools-code-string: #c41a16;
+  --devtools-code-number: #1c00cf;
+  --devtools-code-comment: #236e25;
+  --devtools-node-tag: #881280;
+  --devtools-node-class: #1a1aa6;
+  --devtools-ui-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --devtools-ui-font-size: 12px;
+  --devtools-code-font: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+  --devtools-code-font-size: 11px;
+  --devtools-code-line-height: 16px;
+  --devtools-plate-shadow: 0 1px 4px rgba(0, 0, 0, 0.24);
 }
 
 /* Forest stepped sizes: phone values (SPEC Decision 6) */

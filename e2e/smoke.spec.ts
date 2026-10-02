@@ -1,16 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-
-// Screenshots land here; CI uploads the folder as the `web-smoke-screenshots` artifact.
-const SCREENSHOT_DIR = 'web-check';
-
-function collectErrors(page: Page): string[] {
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(`console: ${message.text()}`);
-  });
-  return errors;
-}
+import { expect, test } from '@playwright/test';
+import { collectErrors, SCREENSHOT_DIR } from './support';
 
 // Both pages are Forest pages: `/` the CV (its content is English in both locales until
 // translated), `/new` the profile.

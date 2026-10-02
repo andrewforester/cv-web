@@ -14,6 +14,13 @@ needs a value.
 Rules and limits:
 - Owner: Theme. A screen that needs a value adds a token here (through the Theme task), not a
   literal; screen-local values are marked `TODO(theme)`.
+- The `--retro-*` block ("Retro Rebuild show panels", from `docs/design/retro/SPEC.md`) styles only
+  the terminal chat and console windows of the live-fix show (Win98 face, bevel light/inner
+  light/shadow/dark, window shadow, terminal and code colours) and the round-3 motion: highlight look,
+  page frame, fade/morph/leave/close/reserve timings and the close easing; damage values live in the screen's layers.
+  Round 4 adds the box-model highlight fills, the close slide/shrink timings and the `--devtools-*`
+  group (the DevTools panel's Chrome-light surfaces, text, badge and syntax colours, fonts, plate shadow).
+  The Win98/terminal tokens stay until R16/R17 stop reading them, then they are removed.
 - Fonts are self-hosted, Latin and Cyrillic only, a fixed set of weights; Cyrillic files load only
   when Cyrillic text is on the page: Onest (display, the body default), IBM Plex Sans (text) and
   JetBrains Mono (meta). Inter is no longer imported (its npm package is still installed).

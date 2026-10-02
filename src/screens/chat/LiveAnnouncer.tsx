@@ -1,7 +1,7 @@
 import { useStrings } from '../../i18n';
 import { actionText } from './actionText';
 import { answerPlainText } from './answerMarkdown';
-import chat from './chat.module.css';
+import chat from '../../shared/chat/chat.module.css';
 import type { ChatAnnouncement } from './ChatUiState';
 import { errorTextKey } from './errorText';
 import { chatStrings, formatString, type ChatStrings } from './strings';

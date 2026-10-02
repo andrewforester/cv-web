@@ -1,5 +1,5 @@
 import { useStrings } from '../../i18n';
-import chat from './chat.module.css';
+import chat from '../../shared/chat/chat.module.css';
 import styles from './ConfirmationCard.module.css';
 import type { ChatActionCall } from './ChatUiState';
 import { chatStrings } from './strings';

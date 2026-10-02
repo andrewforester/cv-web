@@ -1,4 +1,4 @@
-# AI CV chat: API contract (v1, v2)
+# AI CV chat: API contract (v1, v2, v3)
 
 The contract between the chat widget (`src/data/chat/**`, `src/screens/chat/**`) and the backend
 (`api/chat.ts` + `server/chat/**`). It is final for v1 and for v2 (page-agent tools,
@@ -602,3 +602,167 @@ Request 2 (follow-up after the client scrolled):
 ```
 
 Response 2: `delta` "Here they are: Cync, August Home and Savant." then `done` with `end_turn`.
+
+## v3: the show dialect
+
+> Final (GRA-41). Design: [`../retro/ARCHITECTURE.md`](../retro/ARCHITECTURE.md) §3–4, decision:
+> [`../adr/0003-retro-live-fix-show.md`](../adr/0003-retro-live-fix-show.md). Types live in
+> `src/data/retro/contract.ts` (wire) and `src/data/retro/scenario.ts` (scenario manifest); the
+> blocks below are copies, the files win if they ever differ.
+
+The Retro Rebuild show (the CV opens as a broken 2000s site and an "agent" fixes it live) uses
+the same endpoint for its LLM parts: one **`narrate`** request per show for the commentary on
+every step, and one **`reply`** request per visitor message in the show's terminal chat. The fix
+steps themselves are authored and never chosen by the model.
+
+**Why a new version:** v3 is a sibling dialect, not a successor of v2: the AI chat widget keeps
+sending v2 and the server keeps serving v1, v2 and v3. `v` is the discriminator the contract
+already versions by, so a deployment without v3 answers `400 unsupported_version` (the show then
+runs scripted) instead of silently treating a show request as a chat (unknown fields are ignored).
+Everything else is v1's: the endpoint, headers, Origin/size guards, rate limits, the kill switch,
+the error body and codes, SSE framing and stream guarantees. The response header is
+`X-Chat-Api-Version: 3`.
+
+### What changes from v1
+
+| Area | v3 |
+|---|---|
+| `v` | `3` |
+| `locale` | Must be `"en"` (the show is English only); anything else: `400 invalid_request`. |
+| `kind` | `"narrate"` or `"reply"`; anything else or missing: `400 invalid_request`. |
+| `scenario` | The scenario id the page was built with (`RETRO_SCENARIO_ID`, today `"retro-1"`). A string the server doesn't know (a tab opened before a deploy that changed the steps): `400 unsupported_version`. Not a string: `400 invalid_request`. |
+| `narrate` body | `v`, `locale`, `kind`, `scenario` only; other fields ignored. No conversation, no CV knowledge. |
+| `reply` body | Adds `step` (the step on screen when the message was sent: a step id of the scenario, or `null` before the first step and after the last), `stepsDone` (integer, `0` to the number of steps) and `messages` (v1 shape and rules: roles alternate, start and end with `user`). A bad `step` or `stepsDone`: `400 invalid_request`. |
+| Limits (`reply`) | `messages` 1 to **20** (10 visitor messages; more: `422 conversation_limit`); a `user` message at most **1,000** chars, an `assistant` message at most **1,000** chars (`413 too_long`); v1's total and body limits still apply. |
+| SSE | `narrate`: `line`\* then `done`/`error`. `reply`: `delta`\* then `done`/`error` (as v1). No `tool_call`. |
+| Errors | No new codes. |
+
+### Stream
+
+| Kind | Event | `data` | When |
+|---|---|---|---|
+| `narrate` | `line` | `{ "key": RetroNarrationKey, "text": string }` | Once per complete line the model wrote, in the model's order. `key` is a step id or `"finale"`; unknown keys and repeats (first occurrence wins) are dropped; `text` is plain text, trimmed, at most **200** chars. Some keys may never arrive. |
+| `reply` | `delta` | `{ "text": string }` | As v1: the next piece of the answer. |
+| both | `done` | `{ "stopReason": ChatStopReason, "usage": ChatUsage }` | Terminal, as v1. For `narrate`, `max_tokens` means the lines so far are all there is. |
+| both | `error` | `ChatError` | Terminal, as v1 (`upstream_error`, `internal_error`). Lines already streamed stay valid. |
+
+Client behaviour (the show never waits on the LLM):
+
+- A step without a `line` uses its manifest `fallback`; the finale uses `RETRO_FINALE_FALLBACK`.
+  The show fires `narrate` once, at its start, and never retries it.
+- Any error on `narrate` (before or during the stream), and automation (`navigator.webdriver`):
+  the whole show is scripted, with the same timing.
+- An error on `reply`: a scripted reply. After `unavailable` or `rate_limited`, or two failed
+  replies in a row, replies stay scripted for the rest of the show.
+- Each request is one `POST` for the rate limits; `CHAT_ENABLED=false` answers `503 unavailable`
+  to both kinds.
+
+Server side (informational): `narrate` asks for one line per step plus the finale, at most 20
+words each, `max_tokens` 800, 20 s deadline. `reply` answers in at most 60 words, grounded in the
+CV like the chat, with the show state (`step`, `stepsDone`, number of steps) passed to the model as
+data, `max_tokens` 300, the normal deadline. The log line carries `v: 3`, the kind, the step id and
+the number of narration lines, never text.
+
+### Types
+
+`src/data/retro/scenario.ts` (the ids; titles, intents and fallbacks are in the file):
+
+```ts
+export const RETRO_SCENARIO_ID = 'retro-1';
+export type RetroScenarioId = typeof RETRO_SCENARIO_ID;
+
+export const RETRO_STEP_IDS = ['tokens', 'layout', 'rest'] as const;
+export type RetroStepId = (typeof RETRO_STEP_IDS)[number];
+
+export const RETRO_NARRATION_KEYS = [...RETRO_STEP_IDS, 'finale'] as const;
+export type RetroNarrationKey = (typeof RETRO_NARRATION_KEYS)[number];
+```
+
+`src/data/retro/contract.ts` (`ChatError`, `ChatMessage`, `ChatStopReason`, `ChatUsage` are v1's):
+
+```ts
+export const CHAT_API_VERSION_V3 = 3;
+
+export const RETRO_LIMITS = {
+  maxMessages: 20,
+  maxVisitorMessageChars: 1_000,
+  maxAssistantMessageChars: 1_000,
+  maxNarrationLineChars: 200,
+} as const;
+
+export interface ShowNarrateRequest {
+  v: typeof CHAT_API_VERSION_V3;
+  locale: 'en';
+  kind: 'narrate';
+  scenario: RetroScenarioId;
+}
+
+export interface ShowReplyRequest {
+  v: typeof CHAT_API_VERSION_V3;
+  locale: 'en';
+  kind: 'reply';
+  scenario: RetroScenarioId;
+  step: RetroStepId | null;
+  stepsDone: number;
+  messages: ChatMessage[];
+}
+
+export type ShowRequest = ShowNarrateRequest | ShowReplyRequest;
+export type ShowKind = ShowRequest['kind'];
+
+export interface ShowSsePayloads {
+  line: { key: RetroNarrationKey; text: string };
+  delta: { text: string };
+  done: { stopReason: ChatStopReason; usage: ChatUsage };
+  error: ChatError;
+}
+export type ShowSseEventName = keyof ShowSsePayloads;
+
+/** App-side stream events (what `ShowRepository` yields). */
+export type ShowNarrateStreamEvent =
+  | { type: 'line'; key: RetroNarrationKey; text: string }
+  | { type: 'done'; stopReason: ChatStopReason; usage: ChatUsage }
+  | { type: 'error'; error: ChatError };
+export type ShowReplyStreamEvent =
+  | { type: 'delta'; text: string }
+  | { type: 'done'; stopReason: ChatStopReason; usage: ChatUsage }
+  | { type: 'error'; error: ChatError };
+```
+
+### Example: narrate, then one reply
+
+Request 1, when the show starts:
+
+```json
+{ "v": 3, "locale": "en", "kind": "narrate", "scenario": "retro-1" }
+```
+
+Response 1:
+
+```text
+event: line
+data: {"key":"tokens","text":"Starting with typography: replacing the system fonts of the time with the current typeface and type scale."}
+
+event: line
+data: {"key":"layout","text":"Layout: replacing the fixed-width table layout, standard practice at the time, with a centred column and grids."}
+
+event: line
+data: {"key":"rest","text":"Removing the navigation bar, marquee and footer badges of the original build, and restoring the language switcher."}
+
+event: line
+data: {"key":"finale","text":"All changes are applied. The site is up to date; the chat button in the bottom right corner answers questions about Andrew."}
+
+event: done
+data: {"stopReason":"end_turn","usage":{"inputTokens":1480,"outputTokens":92,"cacheReadInputTokens":0,"cacheCreationInputTokens":0}}
+
+```
+
+Request 2, the visitor writes during step 2:
+
+```json
+{ "v": 3, "locale": "en", "kind": "reply", "scenario": "retro-1",
+  "step": "layout", "stepsDone": 1,
+  "messages": [ { "role": "user", "content": "wow, a marquee! haven't seen one in 20 years" } ] }
+```
+
+Response 2: `delta` "It belongs to the 2002 layout. It goes in the cleanup step, with the hit counter." then `done` with `end_turn`.

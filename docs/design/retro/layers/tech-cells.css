@@ -1,0 +1,5 @@
+[data-retro-stage] [data-testid='forest-skill'] {
+  gap: 2px;
+  padding: 4px;
+  border: 2px inset #c0c0c0;
+}

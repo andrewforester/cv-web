@@ -1,0 +1,6 @@
+[data-retro-stage] [data-agent-id='app:savant'] img {
+  object-position: -9999px 0;
+  background: #ffffff var(--retro-broken-image) no-repeat 2px 2px;
+  outline: 1px inset #c0c0c0;
+  outline-offset: -1px;
+}

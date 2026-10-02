@@ -1,4 +1,7 @@
+import { sharedChatTestIds } from '../../shared/chat/testIds';
+
 export const chatTestIds = {
+  ...sharedChatTestIds,
   root: 'chat',
   fab: 'chat-fab',
   hint: 'chat-hint',
@@ -9,15 +12,10 @@ export const chatTestIds = {
   suggestion: 'chat-suggestion',
   visitorMessage: 'chat-visitor-message',
   assistantMessage: 'chat-assistant-message',
-  typing: 'chat-typing',
   caption: 'chat-caption',
-  notice: 'chat-notice',
   retry: 'chat-retry',
   newChat: 'chat-new-chat',
-  offline: 'chat-offline',
   input: 'chat-input',
-  send: 'chat-send',
-  stop: 'chat-stop',
   meta: 'chat-meta',
   announcer: 'chat-announcer',
   actionChip: 'chat-action-chip',

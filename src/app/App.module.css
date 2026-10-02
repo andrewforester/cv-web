@@ -1,0 +1,4 @@
+/* Show mode while the show's chunk loads: no frame of today's design before the broken page. */
+.pending {
+  visibility: hidden;
+}

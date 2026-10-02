@@ -1,16 +1,7 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { collectErrors, NORMAL_SITE, SCREENSHOT_DIR } from './support';
 
 // Web check of the chat widget with a mocked `/api/chat` (docs/chat/SYSTEM_DESIGN.md, testing).
-const SCREENSHOT_DIR = 'web-check';
-
-function collectErrors(page: Page): string[] {
-  const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(`console: ${message.text()}`);
-  });
-  return errors;
-}
 
 function sseBody(deltas: string[]): string {
   const events = deltas.map((text) => `event: delta\ndata: ${JSON.stringify({ text })}\n\n`);
@@ -62,7 +53,7 @@ for (const { locale, browserLocale, question, deltas, answer } of cases) {
           body: sseBody([...deltas]),
         });
       });
-      await page.goto('./');
+      await page.goto(NORMAL_SITE);
 
       await page.getByTestId('chat-fab').click();
       const dialog = page.getByRole('dialog');
@@ -105,7 +96,7 @@ test('shows the rate-limit notice for a platform 429', async ({ page }) => {
   await page.route('**/api/chat', (route) =>
     route.fulfill({ status: 429, headers: { 'Retry-After': '30' }, body: 'Too Many Requests' }),
   );
-  await page.goto('./');
+  await page.goto(NORMAL_SITE);
   await page.getByTestId('chat-fab').click();
   await page.getByTestId('chat-input').fill('Has he led a team?');
   await page.getByTestId('chat-input').press('Enter');
