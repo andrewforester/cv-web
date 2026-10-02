@@ -35,8 +35,8 @@ export function narrationStreamer(): TextStreamer {
 
 /**
  * The model request, streaming and log fields of a v3 request (docs/chat/API.md → v3), for the
- * request's scenario. Replies answer from the CV's knowledge (only `/` has a show yet; ADR-0004 →
- * Decision 2, docs/retro/ARCHITECTURE.md §10 → Server).
+ * request's scenario. Replies answer from the knowledge of the scenario's page, like the chat on
+ * that page (ADR-0004, docs/retro/ARCHITECTURE.md §10 → Server).
  */
 export async function planShow(
   request: ShowRequest,
@@ -55,7 +55,7 @@ export async function planShow(
     };
   }
   return {
-    llmRequest: buildReplyRequest(request, manifest, await knowledge('cv', locale), model),
+    llmRequest: buildReplyRequest(request, manifest, await knowledge(manifest.page, locale), model),
     deadlineMs,
     logFields: {
       locale,

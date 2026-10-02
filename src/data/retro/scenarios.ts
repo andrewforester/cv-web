@@ -10,6 +10,11 @@ import {
   RETRO_STEPS,
   type RetroStepMeta,
 } from './scenario.js';
+import {
+  RETRO_NEW_FINALE_FALLBACK,
+  RETRO_NEW_SCENARIO_ID,
+  RETRO_NEW_STEPS,
+} from './scenarioNew.js';
 
 export interface ShowScenarioManifest {
   /** The wire `scenario` value. */
@@ -29,6 +34,12 @@ export const SHOW_SCENARIOS = {
     page: 'cv',
     steps: RETRO_STEPS,
     finale: RETRO_FINALE_FALLBACK,
+  },
+  [RETRO_NEW_SCENARIO_ID]: {
+    id: RETRO_NEW_SCENARIO_ID,
+    page: 'profile',
+    steps: RETRO_NEW_STEPS,
+    finale: RETRO_NEW_FINALE_FALLBACK,
   },
 } as const satisfies Record<string, ShowScenarioManifest>;
 

@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import type { ChatPage } from '../../../src/data/chat/contract.js';
+import { RETRO_NEW_SCENARIO_ID } from '../../../src/data/retro/scenarioNew.js';
 import { SHOW_SCENARIOS } from '../../../src/data/retro/scenarios.js';
 import { NARRATE_BODY, replyBody } from '../../test/helpers.js';
 import { HAIKU_4_5 } from '../llm/modelOptions.js';
@@ -24,6 +26,17 @@ describe('planShow', () => {
     const reply = await planShow(replyBody(), knowledge, HAIKU_4_5, 1);
     expect(reply.llmRequest.system[1]?.text).toBe(outline);
     expect(reply.logFields).toMatchObject({ showKind: 'reply', showScenario: 'retro-3' });
+  });
+
+  it("grounds replies in the scenario's page: `/new` in the profile, `/` in the CV", async () => {
+    const byPage = (page: ChatPage) => Promise.resolve(`<knowledge>${page}</knowledge>`);
+    const newShow = replyBody({ scenario: RETRO_NEW_SCENARIO_ID });
+    const onNew = await planShow(newShow, byPage, HAIKU_4_5, 1);
+    expect(onNew.llmRequest.system[1]?.text).toBe(showOutline(SHOW_SCENARIOS['retro-new-1']));
+    expect(onNew.llmRequest.system[2]?.text).toBe('<knowledge>profile</knowledge>');
+    expect(onNew.logFields).toMatchObject({ showKind: 'reply', showScenario: 'retro-new-1' });
+    const onCv = await planShow(replyBody(), byPage, HAIKU_4_5, 1);
+    expect(onCv.llmRequest.system[2]?.text).toBe('<knowledge>cv</knowledge>');
   });
 
   it('loads the knowledge only for replies', async () => {
