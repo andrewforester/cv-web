@@ -31,7 +31,8 @@ element such as the "Oh, snap!" note), **step** / **chunk** / **effect** (a step
 chunks under one narration line; a chunk is one visible change: one effect, its target and its
 motion), **beat** (the pause after a chunk applies), **highlight** (the show's pointer on the
 chunk's target), **manifest** (step ids, titles, LLM intents, scripted fallbacks),
-**narration** (the LLM's commentary lines), **stage** (the app shell while the show runs), **hook
+**narration** (the LLM's commentary lines), **scenario** (one page's show: manifest + source;
+`retro-3` for `/`, `retro-new-1` for `/new`, §10), **stage** (the app shell while the show runs), **hook
 contract** (the selectors layers may use), **guards 1–4** (the tests that keep the show honest
 across redesigns).
 
