@@ -207,3 +207,11 @@ test('the show never starts on its own: without ?retro=1 the visitor gets todayâ
   await expect(page.getByTestId('chat-fab')).toBeVisible();
   await expect(page.locator(stageSelector)).toHaveCount(0);
 });
+
+test('the Show case button on / starts the show over the CV', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('./');
+  await page.getByTestId('cv-show-case').click();
+  await expect(page.locator(stageSelector)).toHaveCount(1);
+  await expect(page.locator('style[data-retro-layer]').first()).toBeAttached();
+});

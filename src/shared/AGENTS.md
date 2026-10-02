@@ -3,7 +3,7 @@
 Why it exists: UI pieces used by more than one screen or by the app shell, so they exist once and
 look the same everywhere. Today: the EN / UA language switcher (in the meta bar on `/new`, in the
 header on `/`), `forest/`, the building blocks of the Forest look shared by both CV pages, and
-`chat/`, the stateless pieces of the AI chat shared by the site's chat and the show's agent chat.
+`chat/`, the stateless pieces of the AI chat shared by the site's chat and the show's agent chat. `useMediaQuery` is a viewport-query hook.
 
 Place in the architecture: stateless components below the screens: props in (the first optional
 one is `className`), callbacks out, texts via `useStrings` or props, styles via tokens only. The

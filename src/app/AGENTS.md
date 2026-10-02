@@ -9,7 +9,7 @@ sources it uses.
 Domain terms:
 - **Mode:** `show` or `normal` at page load (docs/retro/ARCHITECTURE.md §9 → Round 5): `?retro=1`
   on `/` opens with the show, anything else is today's site. Nothing starts on its own any more.
-- **Show case / start seam** (`useShowCase`): `start()` for the coming Show case button (R24) and
+- **Show case / start seam** (`useShowCase`): `start()` for the CV's Show case button (R24, passed to `CvRoute`) and
   replays; today's site stays until the show's chunk has loaded, then the page scrolls to the top
   and turns broken in one commit. The AI chat is off the page while the show runs (its open
   conversation is lost) until the show's last step loads it.
@@ -42,5 +42,5 @@ Rules and limits:
   shared. Production serves `/new` through the rewrite in `vercel.json`; Vite dev/preview fall
   back to `index.html` by themselves.
 - Entry point is `src/main.tsx` (global styles, providers, `App`).
-- Reduced motion is read by the show itself. The Show case button (start and replay) is R24;
-  the show is desktop and English only (the start seam doesn't check either yet).
+- Reduced motion is read by the show itself. The Show case button (start and replay) shows only for English on ≥ 1024 px (`CvRoute`
+  decides); the start seam itself doesn't check either.

@@ -678,6 +678,10 @@ Alternative if the orchestrator prefers no change to the site chat now: show-loc
 | `closing` is one hand-placed frame | the animation in End of the show |
 | No motion (renders use reduced motion) | fade, morph, leave, entrance, close as specified |
 
+## Show case button (R24, CV-91)
+
+The visitor starts the show with a **"Show case"** text control in the Forest meta bar on `/`, at the right end **before the language switcher** (`docs/design/forest/SPEC.md` → Structure 1). Look: the meta bar's text controls (Mono, `--forest-ink-2`; hover `--forest-accent-hover`, focus ring per Forest Interactions), a small `▶` glyph before the label. Shown only where the show can run: locale `en` and `min-width: 1024px`; otherwise absent (no disabled state). Not on `/new`. Click calls the shell's start seam (`useShowCase().start`); once the show has ended it can be clicked again (replay). While the show runs the stage covers it.
+
 ## Decisions (defaults taken; the orchestrator may change them)
 
 1. **Direction**: 2002 FrontPage/GeoCities homepage: one era, one look.
@@ -724,3 +728,4 @@ Alternative if the orchestrator prefers no change to the site chat now: show-loc
 42. **Intro in the chat:** broken page alone 1 s → the chat opens and streams `That's how this CV would look like in 2001.` → 1 s → `Now let's fix it.` → 0.8 s → DevTools docks → 0.8 s → step 1. Texts verbatim from the human.
 43. **Silent chat while fixing:** the step narration (LLM line or fallback, contract unchanged) is typed into DevTools as `// …` comments wrapped at 52 characters, at the code rate (100 chars/s, clamped 0.6–2 s), then 0.6 s to read; the first chunk continues in the same prompt, so the comment is part of its echo. Comments change nothing, so code shown = code applied holds. Visitor replies still appear in the chat.
 44. **Close sequence:** `✓ All fixes applied.` → 1 s → DevTools collapses (300 ms slide, the page re-centres over 400 ms) → 1 s → `All good now.` → 2 s → the chat collapses into the launcher (500 ms; was 650 ms with DevTools). Reduced motion: same order and pauses, no motion. The finale line goes; the LLM's `finale` narration is still requested but not shown (dropping it is a contract change for a later task).
+45. **Show case button (CV-91):** a meta bar text control on `/` (en, ≥ 1024 px), before the language switcher, calls the shell's `start`; hidden otherwise, not on `/new`. No hover prefetch of the show chunk (R20 exposes none).
