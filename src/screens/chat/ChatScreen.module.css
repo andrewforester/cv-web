@@ -27,8 +27,11 @@
   color: var(--forest-dark-ink);
 }
 
-/* The textarea's ring is its field's border; the dialog container takes focus without a ring. */
+/*
+ * The textarea's ring is its field's border; the dialog container takes focus without a ring.
+ * Gold-soft on the dark surfaces; an element on the light page overrides the two variables.
+ */
 .root :focus-visible:not(textarea, [tabindex='-1']) {
-  outline: var(--chat-focus-ring-width) solid var(--forest-gold-soft);
-  outline-offset: var(--chat-focus-ring-width);
+  outline: var(--chat-focus-ring-width) solid var(--chat-focus-ring-color, var(--forest-gold-soft));
+  outline-offset: var(--chat-focus-ring-offset, var(--chat-focus-ring-width));
 }

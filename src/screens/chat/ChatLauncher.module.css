@@ -22,6 +22,10 @@
   border-radius: 50%;
   box-shadow: var(--forest-chat-shadow-fab);
   cursor: pointer;
+
+  /* Focus on the light page: the page's accent, outside the gradient ring (4 + 2 = 6 px). */
+  --chat-focus-ring-color: var(--forest-accent);
+  --chat-focus-ring-offset: calc(var(--space-1) + var(--chat-fab-ring-width));
 }
 
 .fab:hover {
@@ -40,12 +44,6 @@
     linear-gradient(#000 0 0) content-box exclude,
     linear-gradient(#000 0 0);
   pointer-events: none;
-}
-
-/* On the light page: the page's accent, outside the gradient ring (4 + 2 = 6 px). */
-.fab:focus-visible {
-  outline-color: var(--forest-accent);
-  outline-offset: calc(var(--space-1) + var(--chat-fab-ring-width));
 }
 
 .icon {
