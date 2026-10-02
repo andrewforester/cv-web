@@ -73,7 +73,7 @@ x: 0                                              880                       1280
    │                                             ││   │ 368 × 392, floating │ │
    │                                             ││   └─────────────────────┘ │ y 784
    └─────────────────────────────────────────────┘└───────────────────────────┘ y 800
-   plate ▲ bottom-left corner of the page area     1 px left border, no shadow
+   plate ▲ bottom-left corner of the first target     1 px left border, no shadow
 ```
 
 - **Dock column**: 400 px (`--retro-dock-width`, was 384), rendered by the retro screen through its portal, `z-index: var(--retro-z-index)` (1001, above the AI chat button until the end).
@@ -82,7 +82,7 @@ x: 0                                              880                       1280
 - **Before the console exists** (the first ≈ 6 s), only the chat card is shown; the column is reserved already.
 - **Page area**: while the dock is shown, `body` gets `padding-right: var(--retro-dock-width)` (400 px; was 416 = width + 2 × inset): show styling, not a damage layer. The page lays out in 880 px and the dock never covers content. The broken page is left-aligned, so reserving the space moves nothing. After `page-frame` the 672 px column centres in the 880 px (x ≈ 104–776). At the end the reserve goes and the page re-centres in the full viewport (End of the show).
 - The page scrolls under the fixed dock. The show scrolls it to a chunk's target when the target is out of view (Show what changed → Scrolling).
-- **Highlight overlay**: show-owned, drawn in the portal over the page and under the dock; the **plate** is fixed to the bottom-left corner of the page area (x 0, bottom 0).
+- **Highlight overlay**: show-owned, drawn in the portal over the page and under the dock; the **plate** sits on the first target's bottom-left corner (the page area's corner for a page-wide chunk).
 - **Shorter viewports** (desktop ≥ 1024 wide, any height): the chat card height is `min(var(--retro-chat-height), 100dvh - 280px)` so at least ≈ 200 px of console stays visible (e.g. 700 px tall → chat 392, console ≈ 220; 600 px tall → chat 320, console ≈ 192). Width is fixed; the show doesn't run below 1024 px (ARCHITECTURE Q2).
 - **During the show there's no AI chat button and no language switcher** (the switcher's app header is hidden by the `hide-header` layer). Both come back through fix chunks.
 
@@ -426,7 +426,10 @@ Every page change lands with motion unless reduced motion is on. Two kinds, chos
 
 ### Plate
 
-The Elements-tab tooltip, fixed in the **bottom-left corner of the page area** (`left: 0`, `bottom: 0`, as on the reference), shown with the highlight (same fade in, hold and fade out).
+The Elements-tab tooltip, pinned to the block: its **bottom-left corner sits on the bottom-left corner of the chunk's first target** (first match in page order, border box), inside the block and overlapping its corner. Shown with the highlight (same fade in, hold and fade out); it follows the block live (re-measured with the box on morphs, scroll and resize), with no animation of its own.
+
+- **Clamping**: the plate stays in the page area (never under DevTools). A block's bottom edge below the viewport: the plate sticks to the bottom of the visible part; a left edge off the page area: it clamps to the page area's left edge (and to its right edge for a block starting past it); a block narrower than the plate: the plate overhangs to the right. Known limit: the plate's width isn't known when measuring, so a block starting just inside the page area's right edge can still overhang under the dock.
+- **Several matches**: at the first match. **Page-wide chunks**: the page area's bottom-left corner (`left: 0`, `bottom: 0`). **Decorations**: their own box.
 
 - **Look**: `--devtools-bg`, `--devtools-plate-shadow` (`0 1px 4px rgba(0,0,0,.24)`), square corners, padding 4 8, `--devtools-ui-font` 12/16, no wrapping; label and size 8 px apart.
 - **Label**: the first match (page order): tag in `--devtools-node-tag` `#881280`, then `#id` (if any) and `.class` in `--devtools-node-class` `#1A1AA6`. The class is the element's first class with the CSS Modules hash removed, so it reads like source (`_title_k3j2a` → `title`); an element without a readable class shows its tag alone.
@@ -709,7 +712,7 @@ Alternative if the orchestrator prefers no change to the site chat now: show-loc
 32. **The console prints commands, not the layer files**: rule layer → `document.querySelector('style[data-retro-layer="<id>"]').remove()`; token layer → `const { style } = document.documentElement` + one `style.setProperty` per token with the live value (the engine sets those inline properties, drops the inert layer, and the shell clears them at `done`); decoration → `document.getElementById('<id>').remove()`; module → `const { ChatRoute } = await import('./chat')`. Every result is `undefined`. The real attribute `data-retro-layer` is used (the brief's `data-layer` was an example).
 33. **Typing 100 chars/s, clamped 0.6–1.3 s** (was 240 chars/s, 0.4–1.3 s), so commands read as typing and the show stays ≈ 91 s.
 34. **Highlight = Chrome's box model, lighter**: content `.35`, padding `.3`, border `.4`, margin `.3` (Chrome `.55`–`.66`); the content flashes to `.6` at the apply; no dashed ring, no offset.
-35. **Plate**: bottom-left corner of the page area; the first match's `tag#id.class` (CSS Module hash stripped) and its live `W × H`; several matches `<label> × N` (all matches on the page), no size; page-wide → `body` + the page area's size.
+35. **Plate**: bottom-left corner of the chunk's first target (GRA-88; clamped into the page area; page-wide chunks and decorations: page-area corner / own box); the first match's `tag#id.class` (CSS Module hash stripped) and its live `W × H`; several matches `<label> × N` (all matches on the page), no size; page-wide → `body` + the page area's size.
 36. **Page-wide chunks tint the page area** (`.2`, flashing to `.35`) with the `body` plate; no box model.
 37. **End of the show**: DevTools slides right (0–300 ms), the chat shrinks into the launcher's box (150–650 ms), the reserve is released over 0–400 ms; 650 ms in all (`closingMs` unchanged); reduced motion: instant.
 38. **Where the site has no colour role, Chrome's default light theme** (blue accent), not the pink custom theme of the reference screenshot.
