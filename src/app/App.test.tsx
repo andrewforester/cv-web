@@ -11,19 +11,19 @@ import { App } from './App';
 import { AppProviders } from './AppProviders';
 
 describe('App', () => {
-  it('switches to Ukrainian (English texts until translated) and remembers the choice', async () => {
+  it('switches to Ukrainian (CV content in English until translated) and remembers the choice', async () => {
     render(
       <AppProviders locale="en">
         <App />
       </AppProviders>,
     );
-    expect(await screen.findByTestId(cvTestIds.name)).toHaveTextContent('Andrew Panasiuk');
+    expect(await screen.findByTestId(forestTestIds.name)).toHaveTextContent('Andrew Panasiuk');
 
     await userEvent.click(screen.getByTestId(languageSwitcherTestIds.option('uk')));
 
     expect(screen.getByRole('group', { name: 'Мова' })).toBeInTheDocument();
-    expect(await screen.findByTestId(cvTestIds.name)).toHaveTextContent('Andrew Panasiuk');
-    expect(screen.getByRole('heading', { name: 'Summary' })).toBeInTheDocument();
+    expect(await screen.findByTestId(forestTestIds.name)).toHaveTextContent('Andrew Panasiuk');
+    expect(screen.getByRole('heading', { name: '01 — Навички' })).toBeInTheDocument();
     expect(document.documentElement.lang).toBe('uk');
     expect(localStorage.getItem('cv.locale')).toBe('uk');
   });
@@ -37,7 +37,7 @@ describe('App', () => {
         <App />
       </AppProviders>,
     );
-    await screen.findByTestId(cvTestIds.name);
+    await screen.findByTestId(forestTestIds.name);
     expect(registry.available()).toContain('switchLanguage');
 
     const call = (locale: string) =>
@@ -74,11 +74,14 @@ describe('App', () => {
       expect(within(metaBar).getByTestId(languageSwitcherTestIds.option('uk'))).toBeInTheDocument();
     });
 
-    it('still renders the CV on /', async () => {
+    it('renders the CV on /, with the language switcher in its meta bar', async () => {
       renderAt('/');
 
-      expect(await screen.findByTestId(cvTestIds.name)).toHaveTextContent('Andrew Panasiuk');
+      expect(await screen.findByTestId(forestTestIds.name)).toHaveTextContent('Andrew Panasiuk');
+      expect(screen.getByTestId(cvTestIds.root)).toBeInTheDocument();
       expect(screen.queryByTestId(profileTestIds.root)).not.toBeInTheDocument();
+      const metaBar = screen.getByTestId(forestTestIds.metaBar);
+      expect(within(metaBar).getByTestId(languageSwitcherTestIds.option('uk'))).toBeInTheDocument();
     });
   });
 });

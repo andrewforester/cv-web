@@ -1,9 +1,0 @@
-/* TODO(theme): use --font-weight-medium / --font-weight-bold once the theme has them (asked in #7). */
-.medium {
-  font-weight: var(--font-subsection-weight);
-}
-
-.boldItalic {
-  font-weight: var(--font-name-weight);
-  font-style: italic;
-}

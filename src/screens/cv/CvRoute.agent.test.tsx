@@ -4,7 +4,7 @@ import { AppProviders } from '../../app/AppProviders';
 import { StaticCvRepository } from '../../data';
 import { buildAgentToolSpecs, type AgentToolName } from '../../data/chat';
 import { CvRoute } from './CvRoute';
-import { cvTestIds } from './testIds';
+import { forestTestIds } from '../../shared/forest/testIds';
 
 const call = (name: AgentToolName, input: Record<string, unknown>) => ({ id: 'c1', name, input });
 const target = (id: string) => document.querySelector(`[data-agent-id="${id}"]`);
@@ -17,7 +17,7 @@ async function renderCv() {
       <CvRoute />
     </AppProviders>,
   );
-  await screen.findByTestId(cvTestIds.name);
+  await screen.findByTestId(forestTestIds.name);
   // Handlers register in an effect after the CV commits.
   await waitFor(() => expect(registry.available()).toContain('highlightElement'));
   return { registry, view };

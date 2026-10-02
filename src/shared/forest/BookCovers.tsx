@@ -1,4 +1,5 @@
 import { classNames } from './classNames';
+import type { DataAttributes } from './dataAttributes';
 import styles from './BookCovers.module.css';
 import { forestTestIds } from './testIds';
 
@@ -6,6 +7,7 @@ export interface BookCoverItem {
   id: string;
   title: string;
   coverSrc: string;
+  attributes?: DataAttributes;
 }
 
 interface BookCoversProps {
@@ -18,7 +20,7 @@ export function BookCovers({ className, books }: BookCoversProps) {
   return (
     <ul className={classNames(styles.root, className)}>
       {books.map((book) => (
-        <li key={book.id} data-testid={forestTestIds.book}>
+        <li key={book.id} data-testid={forestTestIds.book} {...book.attributes}>
           <img className={styles.cover} src={book.coverSrc} alt={book.title} />
         </li>
       ))}

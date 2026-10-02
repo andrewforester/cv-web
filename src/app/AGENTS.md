@@ -1,7 +1,7 @@
 # app
 
-Why it exists: the shell that turns the pieces into the site: the header with the language
-switcher, the page for the URL, and the floating AI chat over it. It is also the single place where the app
+Why it exists: the shell that turns the pieces into the site: the page for the URL with the
+language switcher in its meta bar, and the floating AI chat over it. It is also the single place where the app
 decides which data sources it uses.
 
 Place in the architecture: the top of the tree. `AppProviders` wires i18n, the data bindings
@@ -13,6 +13,7 @@ page agent, since language is an app-level concern.
 Rules and limits:
 - Owner: Scaffold. Screens may only register their own route in `App.tsx`.
 - Two pages, no router library: `routes.ts` maps `/new` to the profile screen and every other path
-  to the CV; header, language switcher and chat are shared. Production serves `/new` through the
+  to the CV; both are Forest pages that lay themselves out; the language switcher and chat are
+  shared. Production serves `/new` through the
   rewrite in `vercel.json`; Vite dev/preview fall back to `index.html` by themselves.
 - Entry point is `src/main.tsx` (global styles, providers, `App`).
