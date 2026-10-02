@@ -11,7 +11,7 @@ import { Hero } from '../../shared/forest/Hero';
 import { LeadRow } from '../../shared/forest/LeadRow';
 import { MetaBar } from '../../shared/forest/MetaBar';
 import { PageHeader } from '../../shared/forest/PageHeader';
-import { agentTargetProps } from './agentTarget';
+import { agentTargetProps } from '../../shared/agentTarget';
 import { contactHref } from './contactLinks';
 import { cvImageUrl } from './images';
 import { RichTextSpans } from './RichTextSpans';

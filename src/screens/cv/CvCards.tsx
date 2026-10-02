@@ -4,7 +4,7 @@ import { useStrings } from '../../i18n';
 import { BookCovers } from '../../shared/forest/BookCovers';
 import { InfoCard } from '../../shared/forest/InfoCard';
 import { InfoCards } from '../../shared/forest/InfoCards';
-import { agentTargetProps } from './agentTarget';
+import { agentTargetProps } from '../../shared/agentTarget';
 import { cvImageUrl } from './images';
 import { cvStrings } from './strings';
 import { cvTestIds } from './testIds';

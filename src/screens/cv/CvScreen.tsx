@@ -5,7 +5,7 @@ import { ForestPage } from '../../shared/forest/ForestPage';
 import { PageStatus } from '../../shared/forest/PageStatus';
 import { Section } from '../../shared/forest/Section';
 import { SkillsGrid } from '../../shared/forest/SkillsGrid';
-import { agentTargetProps } from './agentTarget';
+import { agentTargetProps } from '../../shared/agentTarget';
 import { CvCards } from './CvCards';
 import { CvExperience } from './CvExperience';
 import { CvHeader } from './CvHeader';
