@@ -4,6 +4,7 @@
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "ignoreCommand": "bash scripts/vercel-ignore.sh",
   "rewrites": [
     { "source": "/new", "destination": "/index.html" },
     { "source": "/new/", "destination": "/index.html" }
