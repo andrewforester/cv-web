@@ -6,20 +6,29 @@
   --chat-badge-size: 36px;
   --chat-hint-dismiss-size: 24px;
   --chat-hint-icon-size: 16px;
+  --chat-action-icon-size: 14px;
   --chat-secondary-button-height: 36px;
   --chat-dot-size: 6px;
   --chat-caret-width: 2px;
   --chat-caret-height: 18px;
-  --chat-ai-border-width: 1.5px;
+  --chat-caret-offset: -3px;
   --chat-fab-ring-width: 2px;
   --chat-focus-ring-width: 2px;
   --chat-motion-exit-duration: 150ms;
+  --chat-transition: 150ms ease;
+  /* `**bold**` in answers: Plex 500 (the theme loads Plex 400/500 only). */
+  --chat-bold-weight: 500;
 
-  color: var(--color-text);
+  /* UI text in Onest; bubbles and the textarea switch to Plex, meta to Mono. */
+  font-family: var(--forest-font-display);
+  font-size: var(--forest-chat-ui-size);
+  line-height: var(--forest-chat-ui-line-height);
+  letter-spacing: normal;
+  color: var(--forest-dark-ink);
 }
 
 /* The textarea's ring is its field's border; the dialog container takes focus without a ring. */
 .root :focus-visible:not(textarea, [tabindex='-1']) {
-  outline: var(--chat-focus-ring-width) solid var(--color-text);
+  outline: var(--chat-focus-ring-width) solid var(--forest-gold-soft);
   outline-offset: var(--chat-focus-ring-width);
 }

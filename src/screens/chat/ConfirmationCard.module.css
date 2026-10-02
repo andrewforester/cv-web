@@ -4,28 +4,37 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  background: var(--chat-color-notice-bg);
-  border: var(--border-card) solid var(--color-card-border);
-  border-radius: var(--radius-card);
+  background: var(--forest-chat-notice-bg);
+  border: var(--border-card) solid var(--forest-dark-line);
+  border-radius: var(--forest-radius-step);
 }
 
 .title {
   margin: 0;
-  font-weight: var(--font-card-title-weight);
+  font-size: var(--forest-chat-text-size);
+  line-height: var(--forest-chat-text-line-height);
+  font-weight: var(--forest-type-title-weight);
 }
 
 .detail {
   margin: 0;
-  color: var(--color-text-secondary);
   overflow-wrap: anywhere;
 }
 
 .buttons {
   display: flex;
   gap: var(--space-2);
+  margin-top: var(--space-1);
 }
 
+/* Primary pill: the one action colour on dark. */
 .confirm {
-  color: var(--color-bg);
-  background: var(--color-text);
+  color: var(--forest-ink);
+  background: var(--forest-gold-soft);
+  border-color: var(--forest-gold-soft);
+}
+
+.confirm:hover {
+  background: var(--forest-gold);
+  border-color: var(--forest-gold);
 }

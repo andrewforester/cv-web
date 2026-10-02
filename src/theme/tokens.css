@@ -97,7 +97,7 @@
   --content-max-width: 672px;
   --page-gutter: 24px;
 
-  /* Forest (docs/design/forest/SPEC.md, Tokens). Chat tokens (--forest-chat-*) come with the chat design. */
+  /* Forest (docs/design/forest/SPEC.md, Tokens). Chat tokens (--forest-chat-*) are below. */
   --forest-bg: #ffffff;
   --forest-ink: #15211a;
   --forest-ink-2: #52604f;
@@ -223,6 +223,23 @@
   --forest-type-cta-line-height: 1;
   --forest-type-cta-letter-spacing: -0.04em;
 
+  /* Forest chat (docs/design/forest-chat/SPEC.md, New tokens) */
+  --forest-chat-fill: rgba(238, 242, 232, 0.06);
+  --forest-chat-fill-hover: rgba(238, 242, 232, 0.12);
+  --forest-chat-error: #f08a80;
+  --forest-chat-error-bg: rgba(240, 138, 128, 0.12);
+  --forest-chat-notice-bg: rgba(227, 196, 106, 0.12);
+  --forest-chat-shadow-fab:
+    0 12px 28px -12px rgba(62, 122, 52, 0.6), 0 2px 6px rgba(10, 11, 10, 0.3);
+  --forest-chat-shadow-panel:
+    0 30px 80px -40px rgba(62, 122, 52, 0.5), 0 16px 40px -12px rgba(10, 11, 10, 0.35);
+  --forest-chat-text-size: 15px;
+  --forest-chat-text-line-height: 22px;
+  --forest-chat-ui-size: 14px;
+  --forest-chat-ui-line-height: 20px;
+  --forest-chat-caption-size: 11.5px;
+  --forest-chat-caption-line-height: 16px;
+
   /* Chat (docs/design/chat/SPEC.md, New tokens) */
   --chat-fab-size: 56px;
   --chat-fab-icon-size: 24px;
@@ -233,16 +250,6 @@
   --chat-hint-max-width: 240px;
   --chat-bubble-max-width: 85%;
   --chat-radius-tail: 4px;
-  --chat-color-divider: rgba(0, 22, 112, 0.12);
-  --chat-color-disabled-bg: rgba(0, 22, 112, 0.12);
-  --chat-color-error: #c0262d;
-  --chat-color-error-bg: #fdeeee;
-  --chat-color-notice-bg: rgba(239, 191, 4, 0.14);
-  --chat-shadow-fab: 0 4px 12px rgba(0, 22, 112, 0.3);
-  --chat-shadow-panel: 0 12px 32px rgba(0, 22, 112, 0.16), 0 2px 8px rgba(0, 22, 112, 0.08);
-  --font-chat-caption-size: 12px;
-  --font-chat-caption-line-height: 16px;
-  --font-chat-caption-weight: 400;
   --chat-z-index: 1000;
   --chat-motion-duration: 200ms;
   --chat-motion-easing: cubic-bezier(0.2, 0, 0, 1);

@@ -16,34 +16,35 @@
   display: grid;
   place-items: center;
   padding: 0;
-  color: var(--color-bg);
-  background: var(--color-text);
+  color: var(--forest-dark-ink);
+  background: var(--forest-gradient-dark);
   border: 0;
   border-radius: 50%;
-  box-shadow: var(--chat-shadow-fab);
+  box-shadow: var(--forest-chat-shadow-fab);
   cursor: pointer;
 }
 
 .fab:hover {
-  background: var(--color-text-secondary);
+  background: var(--forest-gradient-hero);
 }
 
-/* AI ring: the AI Tools card gradient, 2 px wide, 4 px outside the button. */
+/* AI ring: the Forest green→gold gradient, 2 px wide, 4 px outside the button. */
 .fab::before {
   content: '';
   position: absolute;
   inset: calc(-1 * var(--space-1));
   padding: var(--chat-fab-ring-width);
   border-radius: 50%;
-  background: var(--gradient-ai);
+  background: var(--forest-gradient-text);
   mask:
     linear-gradient(#000 0 0) content-box exclude,
     linear-gradient(#000 0 0);
   pointer-events: none;
 }
 
+/* On the light page: the page's accent, outside the gradient ring (4 + 2 = 6 px). */
 .fab:focus-visible {
-  /* Outside the gradient ring: 4 + 2 = 6 px. */
+  outline-color: var(--forest-accent);
   outline-offset: calc(var(--space-1) + var(--chat-fab-ring-width));
 }
 

@@ -8,29 +8,17 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--color-bg);
-  border-radius: var(--radius-card);
-  box-shadow: var(--chat-shadow-panel);
+  color: var(--forest-dark-ink);
+  background: var(--forest-gradient-dark);
+  border: var(--border-card) solid var(--forest-dark-line);
+  border-radius: var(--forest-radius-panel);
+  box-shadow: var(--forest-chat-shadow-panel);
   transform-origin: bottom right;
   animation: panel-in var(--chat-motion-duration) var(--chat-motion-easing) both;
 }
 
 .panel:focus {
   outline: none;
-}
-
-/* 1.5 px gradient border that keeps the radius (same technique as the CV's AI Tools card). */
-.panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  padding: var(--chat-ai-border-width);
-  border-radius: inherit;
-  background: var(--gradient-ai);
-  mask:
-    linear-gradient(#000 0 0) content-box exclude,
-    linear-gradient(#000 0 0);
-  pointer-events: none;
 }
 
 .closing {
@@ -84,13 +72,10 @@
     width: 100%;
     /* Set by useVisualViewportFit while the keyboard is open. */
     height: var(--chat-vv-height, 100dvh);
+    border: 0;
     border-radius: 0;
     box-shadow: none;
     animation-name: sheet-in;
-  }
-
-  .panel::before {
-    display: none;
   }
 
   .closing {
