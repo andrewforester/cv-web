@@ -469,7 +469,7 @@ is *Round 3* below. Everything in this section is built.
 |---|---|
 | `src/data/retro/` | Manifest (`scenario.ts`: `RETRO_SCENARIO_ID`, `RETRO_STEPS` with id, title, LLM intent, fallback), v3 contract, `ShowRepository` + `FakeShowRepository` + `HttpShowRepository`. Shared with the server. |
 | `src/screens/retro/` | `scenario.ts` (`DAMAGE_LAYERS`, `DECORATION_IDS`, `SHOW_MODULES`, `HOST_VARIABLES`) and `scenarioSteps.ts` (`RETRO_CHUNKS`: the fix list as data, 8 steps of 36 chunks with target and motion); `engine/` (reducer, clock, timing, layer host with `morph`, console plan, `chunkSelectors.ts`: `currentChunk`, `highlightOf`, `leavingDecorations`, `targetQuery`); `layers/*.css` (the 32 damage layers); panels (`AgentChat`, `LiveConsole` + `Devtools*`, decorations); motion and pointer (`RetroMotion.module.css`, `useShowStage`, `Highlight` + `useHighlightBoxes`, `useChunkFocus`); `harness/` (dev-only, not shipped). |
-| `src/app/` | `retroMode.ts` (mode decision), `useRetroMode`, `useShowCase` (the start seam), `useLazyShow` (the show's chunk, requested only in show mode; the shell stays hidden until it loads), `useLazyChat` (chat chunk, the `ai-chat` loader), `routes.ts` (`/` the CV, `/new` the profile; the show runs only on `/`), `App.tsx` (one tree shape, `data-retro-stage` on the wrapper around `<main>` and the chat), `AppProviders` (repository binding, `retroMode` seam). |
+| `src/app/` | `retroMode.ts` (mode decision), `useRetroMode`, `useShowCase` (the start seam), `useLazyShow` (the show's chunk, requested only in show mode; the shell stays hidden until it loads), `useLazyChat` (chat chunk, the `ai-chat` loader), `routes.ts` (`/` the CV, `/new` the profile; the show runs only on `/` until §10 is built), `App.tsx` (one tree shape, `data-retro-stage` on the wrapper around `<main>` and the chat), `AppProviders` (repository binding, `retroMode` seam). |
 | `server/chat/show/` | v3 validation, narrate/reply prompts, narration line parser, fake scripts; v3 branch in `server/chat/handler.ts`. |
 | `src/theme/tokens.css` | `--retro-*` panel tokens (not the damage values). |
 | `e2e/retro.spec.ts`, `e2e/retroShow.ts`, `e2e/retroLazy.spec.ts` | End-state guard and guard 4 per step (reduced motion), one motion-on run with the timing smoke, lazy-chunk checks; other specs open the normal site with `?retro=0`. |
@@ -870,3 +870,267 @@ refit, The fix list and Decisions 46–52; the mechanism is unchanged.
   as history; the layer copies next to them are current).
 - The narrate request still asks the LLM for a `finale` line nobody sees since Round 5 (GRA-87);
   drop it with the next contract change.
+
+## 10. Per-page scenarios (designed in CV-95)
+
+The Show case also runs on **`/new`** (the Forest profile) as well as on `/` (today's CV): a
+"Show case" button in `/new`'s meta bar, the same flow (2001 page, intro lines, DevTools fixing
+with `//` narration, the silent chat, collapse, `All good now.`), every damage layer, target and
+command on `/new`'s own markup, and the real `/new` with zero layers at the end. The look is
+`docs/design/retro/SPEC.md` → **2001 `/new`**; the options rejected here are in
+[ADR-0005](../adr/0005-per-page-show.md). This section is a design: §9 stays the record of what
+is built until the tasks below land. Scope defaults (project *Page-aware AI chat and Show case on
+/new*): EN only, desktop ≥ 1024 px; ≈ 90 s, 8 steps; the button's code moves to shared with `/`
+unchanged; `?retro=1` on `/new` starts the `/new` show; the in-show chat works as on `/` with
+`/new`'s steps as context.
+
+### Model: one engine, a scenario per page
+
+- A **scenario** is the unit a page selects. It has two halves, split like today's code:
+  - the **manifest** (`src/data/retro`, shared with the server): the wire id, the page whose
+    content grounds replies, the 8 step metas (id, title, intent, fallback) and the finale
+    fallback;
+  - the **source** (`src/screens/retro`): the chunks per step, the damage layer registry, the
+    decorations' anchors and copy, the modules (`ShowSource` plus what the screen needs).
+- **Ids:** `/` keeps **`retro-3`** (its manifest, chunks, layers and copy are untouched); `/new`
+  is **`retro-new-1`**. Each page bumps its own id when its steps change (`retro-4`,
+  `retro-new-2`); chunk-only changes don't bump (as §9 → How to add a fix chunk).
+- **Same step ids on every page** (`fonts`, `colours`, `layout`, `images`, `cards`, `spacing`,
+  `chrome`, `links`): steps are concerns of a 2002/2001 page, not sections of one CV, so they fit
+  `/new` as they are. Per page differ the intents and fallbacks (manifest), the chunks, layers
+  and targets (source). This is what keeps the v3 contract unchanged (below; ADR-0005 option C).
+- **One lazy chunk** holds both sources (`/new` adds ≈ 15 short CSS strings and a chunk list);
+  the engine (reducer, clock, timing, console plan, layer host, highlight, camera, panels) is
+  scenario-agnostic already (`planShow(source, …)`, `createLayerHost(document, layers, …)`).
+
+### Selection by page (`src/app`)
+
+- `src/app/routes.ts` `pageFor(pathname)` stays the one place that knows the page.
+- New `src/app/showScenarios.ts`:
+  ```ts
+  /** Pages with a Show case and the scenario each one runs (docs/retro/ARCHITECTURE.md §10). */
+  export const SHOW_SCENARIO_BY_PAGE: Partial<Record<Page, ShowScenarioId>> = {
+    cv: 'retro-3',
+    profile: 'retro-new-1', // added by the `/new` layers task, with its source
+  };
+  export const showScenarioFor = (page: Page): ShowScenarioId | undefined =>
+    SHOW_SCENARIO_BY_PAGE[page];
+  ```
+- `useShowCase(scenario: ShowScenarioId | undefined, atLoad: boolean)`: `atLoad` is
+  `retroMode === 'show'`; with no scenario for the page the seam stays off (`start` is a no-op,
+  `?retro=1` gives today's page: `/new` before the `/new` tasks land, as today). Everything else
+  in the seam (the lazy chunk, `pending`, the one-commit swap, scroll to top, replay) is §9's.
+- `App.tsx`: `const page = pageFor(location.pathname)`, `const scenario = showScenarioFor(page)`;
+  the `!isProfile` condition goes; `<Show scenario={scenario} loaders={loaders} onDone={end} />`.
+  The stage, the chat's lazy loading and the one tree shape are unchanged, so `ProfileRoute`
+  never remounts either.
+
+### The Show case button in the shared meta-bar end
+
+- The button moves from `src/screens/cv/ShowCaseButton.tsx` to
+  **`src/shared/forest/ShowCaseButton.tsx`** (+ its `.module.css`, unchanged), next to the meta
+  bar it sits in. Label `commonStrings.showCase` (`src/i18n/common.ts`, the `en`/`uk` values
+  moved from `cvStrings`); test id **`forestTestIds.showCase` = `'forest-show-case'`** (was
+  `cv-show-case`; `/`'s tests follow the rename, no behaviour change).
+- **The shell composes the meta bar's end** for both pages, as it already does for the switcher:
+  ```tsx
+  const end = (
+    <>
+      {canShow && <ShowCaseButton onClick={start} />}
+      <LanguageSwitcher locale={locale} onChange={setLocale} />
+    </>
+  );
+  ```
+  `canShow` = a scenario for the page && locale `en` && `useMediaQuery('(min-width: 1024px)')`
+  (`src/app/useShowCaseAvailable.ts`; the rule moves out of `CvRoute`). `CvRoute` loses
+  `onShowCase`, the media query and the button; `ProfileRoute` is unchanged (it already takes
+  `metaBarEnd`). The DOM on `/` is the same (button, then switcher, in the meta bar's right
+  group), so its look and position don't change; on `/new` it lands after `Open to roles`.
+- Why the shell and not `MetaBar` itself: the start seam lives in the shell, `MetaBar` stays a
+  stateless layout piece, and no screen needs to know about the show (ADR-0005).
+
+### Manifests (`src/data/retro`)
+
+- `scenario.ts` stays `/`'s manifest, unchanged (`RETRO_SCENARIO_ID = 'retro-3'`,
+  `RETRO_STEP_IDS`, `RETRO_STEPS`, `RETRO_FINALE_FALLBACK`, `RetroStepId`, narration keys).
+- New `scenarios.ts`, the registry the browser and the server read:
+  ```ts
+  export interface ShowScenarioManifest {
+    /** The wire `scenario` value. */
+    id: string;
+    /** Whose content grounds the in-show replies: today's CV or the `/new` profile. */
+    page: 'cv' | 'profile';
+    /** In `RETRO_STEP_IDS` order: every scenario has the same eight step ids. */
+    steps: readonly RetroStepMeta[];
+    finale: string;
+  }
+  export const SHOW_SCENARIOS = {
+    [RETRO_SCENARIO_ID]: { id: RETRO_SCENARIO_ID, page: 'cv', steps: RETRO_STEPS, finale: RETRO_FINALE_FALLBACK },
+    [RETRO_NEW_SCENARIO_ID]: { … }, // the `/new` data task
+  } as const satisfies Record<string, ShowScenarioManifest>;
+  export type ShowScenarioId = keyof typeof SHOW_SCENARIOS;
+  export function isShowScenarioId(value: unknown): value is ShowScenarioId;
+  ```
+- New `scenarioNew.ts` (`/new`): `RETRO_NEW_SCENARIO_ID = 'retro-new-1'`, `RETRO_NEW_STEPS`
+  (titles as `/`, intents and fallbacks verbatim from SPEC → 2001 `/new`), finale =
+  `RETRO_FINALE_FALLBACK` (not shown since Round 5).
+- `contract.ts`: `ShowNarrateRequest.scenario` and `ShowReplyRequest.scenario` become
+  `ShowScenarioId` (TypeScript only); `step: RetroStepId | null`, `line.key: RetroNarrationKey`
+  and `stepsDone` stay as they are.
+- `ShowRepository`: the scenario becomes a call argument, since one bound repository serves both
+  pages: `narrate(scenario, signal?)`, `reply({ scenario, step, stepsDone, messages }, signal?)`
+  (`ShowReplyInput` gains `scenario`). `HttpShowRepository` sends it instead of the constant;
+  `FakeShowRepository` yields that scenario's fallbacks. `useShowLlm` passes the running one.
+
+### The v3 contract: unchanged on the wire
+
+- A new **known `scenario` value** is not a contract change: `docs/chat/API.md` → v3 already says
+  the server answers an unknown id with `400 unsupported_version`. `step` is still a step id of
+  the scenario (the same eight), `stepsDone` 0–8, `narrate` still returns 8 `line`s plus
+  `finale`. No `v` bump, no new field.
+- **For the API.md owner** (not edited here, CV-94 owns `docs/chat/**`): the v3 section is stale
+  (it shows `retro-1` and the round-1 ids `tokens`, `layout`, `rest`). When it is next touched:
+  "`scenario`: a known scenario id: `retro-3` (`/`) or `retro-new-1` (`/new`)", and the step ids
+  `fonts` … `links`. Posted on CV-95.
+
+### Server (`server/chat/show`)
+
+- `validateShow.ts`: `scenario` must satisfy `isShowScenarioId` (else `unsupported_version`, as
+  today); `step` is checked against that manifest's step ids and `stepsDone` against its length;
+  the validated request keeps the id.
+- `showPrompt.ts`: `showOutline(manifest)` replaces the constant `SHOW_OUTLINE`; for `retro-3` it
+  renders the same text, so `/`'s system blocks and their cache prefix are byte-identical. The
+  instructions (`NARRATE_INSTRUCTIONS`, `REPLY_INSTRUCTIONS`) are shared and unchanged; they say
+  "original 2002 build", which holds for both pages (SPEC Decision 61). The plumbing doesn't bump
+  `SHOW_PROMPT_VERSION` (no prompt text changes); the `/new` data task bumps it when it adds the
+  `/new` outline.
+- `buildShowRequest.ts`: `buildNarrateRequest(manifest, model)`, `buildReplyRequest(request,
+  manifest, knowledge, model)`; `showStateBlock` reads `of` from the manifest. `planShow.ts` looks
+  up the manifest by `request.scenario`. The log line gains `showScenario` (an id, not text).
+- **Replies on `/new`** ground in the manifest's `page`. Today the server has one knowledge
+  source (the CV); CV-94 designs per-page knowledge for the AI chat. The `/new` data task passes
+  `manifest.page` to that loader if CV-94's backend has merged; otherwise `/new` replies use the
+  CV knowledge (the same person; `/new`'s impact and loop facts missing) and the task files the
+  follow-up. Question on CV-95; that conservative option is the default.
+- `showFakeScript.ts` (`CHAT_FAKE_LLM=1`): its narration keys are the shared step ids, so it works
+  for `/new` as is; the data task adds `/new`-worded lines, picked by the outline block, so dev
+  mode reads like the page.
+
+### Screen (`src/screens/retro`)
+
+- New `scenarios.ts`, the source registry:
+  ```ts
+  export interface RetroShowSource {
+    show: ShowSource; // steps (chunks), meta (manifest steps), layers, modules
+    /** The page under the show: the guards render it, the decorations anchor on it. */
+    page: 'cv' | 'profile';
+    anchors: { root: string; header: string }; // `[data-testid='cv']` / `[data-testid='profile']` …
+    copy: DecorationCopy; // nav items, marquee, webring name (keys of `retroStrings`)
+  }
+  export const SHOW_SOURCES: Partial<Record<ShowScenarioId, RetroShowSource>> = {
+    'retro-3': { show: RETRO_SHOW, page: 'cv', anchors: CV_ANCHORS, copy: CV_COPY },
+  };
+  ```
+  `Partial`, so the `/new` manifest can land before its source; the shell maps a page to a
+  scenario only together with its source (the layers task adds both). A scenario without a
+  source ends at once (`onDone`), like a failed chunk.
+- `RetroShowRoute` takes `scenario`; `useRetroShowState` plans from `SHOW_SOURCES[scenario].show`;
+  `useShowStage` builds the layer host from its layers; `useDecorationPlacement` takes its
+  anchors (the photo and `main` anchors are shared); `TopBar` and `PageFooter` take their copy
+  from the UI state instead of fixed keys. Nothing else in the screen or engine changes.
+- `/`'s `scenario.ts`, `scenarioSteps.ts` and `layers/*.css` stay; `/new` adds
+  `scenarioNew.ts` (its layer registry: 17 shared files from `layers/`, 15 from `layers/new/`,
+  ids per SPEC), `scenarioNewSteps.ts` (36 chunks) and `layers/new/*.css` (copied from
+  `docs/design/retro/new/layers/`). A shared layer file is a two-page contract: changing it
+  changes both shows, and guard 2 checks it on both pages.
+- `RetroStageTestHarness` takes `page` and renders `CvRoute` or `ProfileRoute` (test harnesses
+  may import screens, `eslint.config.js` → `testFiles`); the dev harness gets a page switch.
+
+### Guards 1–4 per page (`/`'s assertions unchanged)
+
+1. **Scenario completeness** (`scenario.test.ts`): `describe.each` over `SHOW_SOURCES`: steps =
+   the manifest's ids in order; 36 chunks; every layer of the scenario's registry removed exactly
+   once; the three decorations once; the module last; unique keys; labelled targets; decoration
+   targets `#<id>`; motion ↔ CSS. Layer files: every file under `layers/` and `layers/new/`
+   (glob `./layers/**/*.css`) is registered by at least one scenario. `isStructural` adds
+   `--forest-gradient-*` tokens (their "after" value is a gradient, which can't interpolate; no
+   `/` layer sets one, so `/`'s results don't change).
+2. **Hook coverage** (`layers.test.tsx`): per source, render `RetroStageTestHarness
+   page={source.page}` and check that scenario's rule-layer selectors and chunk targets, the
+   tokens it sets, its decoration targets.
+3. **End state** and 4. **shown = applied**, plus the **timing smoke** (Playwright):
+   `e2e/retroShow.ts` helpers take the page's URLs (`{ show: './new?retro=1', normal:
+   './new?retro=0' }`); `e2e/retro.spec.ts` keeps `/` as it is (only the button's test id
+   follows the rename). A new **`e2e/retroNew.spec.ts`**: the end state equals `/new?retro=0`
+   (computed styles, classes, no stage, layer, host, motion style, decoration, dock or inline
+   custom property left, the chat button on, no console errors); guard 4 per chunk (36 chunks, 8
+   groups in order, ✖ / ⚠ at 0); one motion-on run done within 60–110 s; and the **Show case
+   click on `/new`** (`forest-show-case` in the meta bar → the stage is on and the broken `/new`
+   shows, ✖ 36).
+- `engine/showTiming.test.ts` measures every source (≈ 91 s for both on the fake clock); the
+  engine tests (`showReducer`, `consolePlan`, `showSelectors`) keep `/`'s source.
+
+### What stays as it is
+
+`/`'s show (steps, copy, layers, chunks, timings, guard assertions), the engine, the panels, the
+highlight and plate, the lazy-chunk boundary, the AI chat's own behaviour (CV-94 owns its page
+awareness), the v3 wire.
+
+### Build split
+
+Order: **A** first (it blocks B and C). Then **B** and **C** in parallel: C starts on B's branch
+(`Starts on branch of: B`) and merges B's **first commit, the `/new` manifest**, which is the
+contract C codes against; B merges before C. A and B, and A and C, share a few files, but only
+in sequence (A is merged first); **B and C share none**.
+
+**A. Plumbing** (Development; no `/new` content; `/` unchanged):
+- `src/app/`: `App.tsx`, `useShowCase.ts` + `useShowCase.test.tsx`, `showScenarios.ts` (new,
+  `cv` only) + test, `useShowCaseAvailable.ts` (new), `App.showCase.test.tsx` (new: button
+  shown/hidden per locale, viewport and page, click starts the show; replaces
+  `CvRoute.showCase.test.tsx`), `App.retro.test.tsx`, `App.lazyShow.test.tsx`, `AGENTS.md`.
+- `src/shared/forest/`: `ShowCaseButton.tsx` + `ShowCaseButton.module.css` (moved),
+  `testIds.ts` (`showCase`), `AGENTS.md`; `src/i18n/common.ts` (`showCase`).
+- `src/screens/cv/`: `CvRoute.tsx`, `strings.ts`, `testIds.ts`, `AGENTS.md`;
+  `ShowCaseButton.tsx`, `ShowCaseButton.module.css`, `CvRoute.showCase.test.tsx` deleted.
+- `src/data/retro/`: `scenarios.ts` (new, `retro-3` only) + `scenarios.test.ts`, `contract.ts`,
+  `contract.test.ts`, `ShowRepository.ts`, `HttpShowRepository.ts` + test,
+  `FakeShowRepository.ts` + test, `index.ts`, `AGENTS.md`.
+- `server/chat/show/`: `validateShow.ts`, `showPrompt.ts`, `buildShowRequest.ts`, `planShow.ts`
+  and their tests, `AGENTS.md`; `server/chat/log.ts` (`showScenario`); `server/test/helpers.ts`.
+- `src/screens/retro/`: `scenarios.ts` (new, `/` only), `RetroShowRoute.tsx`,
+  `useRetroShowState.ts`, `useShowStage.ts`, `useShowLlm.ts`, `useDecorationPlacement.ts`,
+  `Decorations.tsx`, `TopBar.tsx`, `PageFooter.tsx`, `RetroShowUiState.ts`, `retroShowUi.ts`,
+  `RetroStageTestHarness.tsx`, `scenario.test.ts`, `layers.test.tsx`,
+  `engine/showTiming.test.ts`, `RetroShowRoute.test.tsx`, `harness/*`, `AGENTS.md`.
+- `e2e/`: `retroShow.ts`, `support.ts` (URLs per page), `retro.spec.ts` (the test id only),
+  `AGENTS.md`.
+- Done when: every existing test passes with `/` unchanged in look and behaviour; `?retro=1` on
+  `/new` is still today's profile (nothing registered for it); no `/new` content anywhere.
+
+**B. `/new` scenario data + server** (Development):
+- `src/data/retro/scenarioNew.ts` (new; **first commit**, pushed before anything else),
+  `scenarios.ts` (register `retro-new-1`, page `profile`), `scenarioNew.test.ts` (new: ids in
+  order, one-line intents, fallbacks ≤ 200 chars and verbatim), `AGENTS.md`.
+- `server/chat/show/`: `showPrompt.ts` (`SHOW_PROMPT_VERSION` bump), `showFakeScript.ts` + test
+  (`/new` lines by outline), `planShow.ts` (replies' knowledge by `manifest.page`, per Replies
+  above) + test, `validateShow.test.ts`, `buildShowRequest.test.ts` (the `/new` outline lists its
+  intents); a handler test with the fake LLM: `narrate` on `retro-new-1` streams 8 lines and the
+  finale, `reply` carries the `/new` outline.
+- Done when: with `CHAT_FAKE_LLM=1`, `curl -N -X POST localhost:5173/api/chat … -d
+  '{"v":3,"locale":"en","kind":"narrate","scenario":"retro-new-1"}'` streams `/new`'s lines; `/`'s
+  requests are unchanged.
+
+**C. `/new` layers + chunks** (Development; starts on B's branch):
+- `src/screens/retro/`: `layers/new/*.css` (15 files from `docs/design/retro/new/layers/`),
+  `scenarioNew.ts` (new: layer registry, anchors, decoration copy), `scenarioNewSteps.ts` (new:
+  the 36 chunks of SPEC → 2001 `/new` → The fix list), `scenarios.ts` (register `retro-new-1`),
+  `strings.ts` (the `/new` nav, marquee and webring copy), `layers/AGENTS.md`, `AGENTS.md`.
+- `src/app/showScenarios.ts`: the line `profile: 'retro-new-1'` (like a screen registering its
+  route).
+- `e2e/retroNew.spec.ts` (new: guards 3 and 4, the motion-on run with the timing smoke, the Show
+  case click on `/new`), an `e2e/AGENTS.md` line. Guards 1 and 2 and the timing test pick `/new`
+  up from the registry, without test edits.
+- Web check: `/new?retro=1` at t = 0 against `docs/design/retro/new/screenshot.png`, a mid-show
+  shot and the end state against `/new`.
+- Done when: the `/new` show runs end to end from the button and from `?retro=1`, ends on the
+  real `/new`, and every guard passes on both pages.

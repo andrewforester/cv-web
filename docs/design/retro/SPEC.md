@@ -996,7 +996,7 @@ The shared control of the section *Show case button* above, in `/new`'s meta bar
 
 ## Accessibility (`/new`, the broken page)
 
-As `/` (States → Accessibility). New retro pairs: `#00FF00` on `#000000` 15.3:1, `#00CC00` on `#000000` 9.6:1, `#FFFFCC` on `#000080` 15.6:1, black on `#C0C0C0` 11.5:1. Known short-lived misses: the impact text `#008000` on the grey cells is 2.8:1 until `base-colors` (chunk 9, ≈ 25 s in), and the periods `#808080` on cream 3.8:1 until the same chunk.
+As `/` (States → Accessibility). New retro pairs: `#00FF00` on `#000000` 15.3:1, `#00CC00` on `#000000` 9.6:1, `#FFFFCC` on `#000080` 15.6:1, black on `#C0C0C0` 11.5:1. Known short-lived misses: the impact text (`--forest-ink-2`) on the grey `--forest-surface` cells is 2.8:1 until `base-colors` (chunk 9, ≈ 25 s in), then 3.7:1 until `card-colors` restores the surface (chunk 25, ≈ 66 s in); the periods `#808080` on cream are 3.8:1 until chunk 9.
 
 ## Decisions (`/new`, CV-95; defaults taken, the orchestrator may change them)
 

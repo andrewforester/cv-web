@@ -17,6 +17,8 @@ Start here, in this order:
    (the Show case flow: start on request, intro and close in the chat, narration as DevTools
    comments; GRA-87), round 6 (the show over the Forest `/` after merging `main`; GRA-89), round 7
    (the broken page refitted to Forest; CV-90), how to add or change a fix chunk, the known debt.
+   Then **section 10** (CV-95): the show per page (`/` and `/new`), scenario selection, the shared
+   Show case button, guards per page and the build split; its look is SPEC → 2001 `/new`.
 2. `docs/design/retro/SPEC.md`: the look (retro values, damage layers, copy, the atomic fix list,
    chunk timing, transitions, the highlight, `--retro-*` tokens).
 3. The package `AGENTS.md` of the code you touch: `src/screens/retro/` (and `engine/`, `layers/`),
@@ -33,7 +35,7 @@ chunk's target), **manifest** (step ids, titles, LLM intents, scripted fallbacks
 contract** (the selectors layers may use), **guards 1–4** (the tests that keep the show honest
 across redesigns).
 
-Rules for implementers: the CV screen is never changed for the show (except adding a missing hook
+Rules for implementers: the CV and profile screens are never changed for the show (except adding a missing hook
 in its own task); the end state is always the real site with zero layers; the model never supplies
 code or chooses steps; the show must run without the LLM; no message text in logs. Where this
 folder and the code disagree, the code and the package `AGENTS.md` files win; update this folder in
