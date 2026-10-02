@@ -1,8 +1,10 @@
-import { RETRO_FINALE_FALLBACK, RETRO_STEP_IDS, RETRO_STEPS } from '../../../data/retro';
+import { RETRO_STEP_IDS, RETRO_STEPS } from '../../../data/retro';
 import { RETRO_SHOW } from '../scenario';
+import { narrateEndsAt } from './showProgress';
 import { canSend, MAX_VISITOR_MESSAGES } from './showReducer';
 import { ShowTestRun, TEST_COPY } from './showTestRun';
-import { TIMING } from './timing';
+import { narrationComment } from './consolePlan';
+import { commentMs, revealMs, TIMING } from './timing';
 import type { ShowState } from './showTypes';
 
 const agentLines = (state: ShowState) =>
@@ -18,22 +20,25 @@ const inChunk = (key: string, stage: 'type' | 'beat') => (state: ShowState) =>
 const appliedAt = (run: ShowTestRun, key: string) => run.state.effects[key]?.at ?? NaN;
 
 describe('showReducer: timeline', () => {
-  it('opens the chat after 3 s, then the console, then runs every step, closes and ends', () => {
+  it('runs the Round 5 flow: intro lines, DevTools, silent steps, then the close one by one', () => {
     const run = new ShowTestRun(RETRO_SHOW);
-    run.advance(TIMING.chatDelayMs - 1);
+    // Each phase ends a set time after the previous one ended (the run observes in 10 ms steps).
+    let ends = TIMING.introDelayMs;
+    const expectPhase = (phase: ShowState['phase'], ms: number) => {
+      run.advanceUntil((state) => state.phase === phase);
+      ends += ms;
+      expect(run.state.phaseEndsAt).toBe(ends);
+    };
+    run.advance(TIMING.introDelayMs - 1);
     expect(run.state.phase).toBe('idle');
     expect(run.state.chat).toEqual([]);
 
     run.advance(1);
-    expect(run.state.phase).toBe('chat');
-    expect(run.state.chat.map(({ text }) => text)).toEqual([
-      TEST_COPY.systemJoin,
-      TEST_COPY.systemJoined,
-      TEST_COPY.greeting,
-    ]);
-
-    run.advanceUntil((state) => state.phase === 'console');
-    expect(agentLines(run.state).at(-1)).toBe(TEST_COPY.handoff);
+    expectPhase('intro', revealMs(TEST_COPY.introLine, false) + TIMING.introPauseMs);
+    expect(agentLines(run.state)).toEqual([TEST_COPY.introLine]);
+    expectPhase('handoff', revealMs(TEST_COPY.fixLine, false) + TIMING.consoleDelayMs);
+    expect(agentLines(run.state)).toEqual([TEST_COPY.introLine, TEST_COPY.fixLine]);
+    expectPhase('console', TIMING.consoleLeadMs);
 
     const steps: string[] = [];
     run.advanceUntil((state) => {
@@ -42,23 +47,33 @@ describe('showReducer: timeline', () => {
       return run.status('module:ai-chat') === 'running';
     });
     expect(steps).toEqual([...RETRO_STEP_IDS]);
-    expect(agentLines(run.state)).toEqual([
-      TEST_COPY.greeting,
-      TEST_COPY.handoff,
-      ...RETRO_STEPS.map(({ fallback }) => fallback),
-    ]);
+    // The chat stays silent while fixing: the narration goes into the console.
+    expect(agentLines(run.state)).toEqual([TEST_COPY.introLine, TEST_COPY.fixLine]);
     run.dispatch({ type: 'moduleLoaded', key: 'module:ai-chat' });
     run.advanceUntil((state) => state.phase === 'finale');
-    expect(agentLines(run.state).at(-1)).toBe(RETRO_FINALE_FALLBACK);
     expect(Object.values(run.state.effects).every(({ status }) => status === 'applied')).toBe(true);
 
-    const finaleAt = run.state.t;
-    run.advanceUntil((state) => state.phase === 'closing');
-    expect(run.state.t - finaleAt).toBeGreaterThanOrEqual(TIMING.closeDelayMs);
+    ends = run.state.phaseEndsAt - TIMING.finaleHoldMs;
+    expectPhase('finale', TIMING.finaleHoldMs);
+    expectPhase('undock', TIMING.undockMs + TIMING.outroDelayMs);
+    expectPhase('outro', revealMs(TEST_COPY.closingLine, false) + TIMING.outroHoldMs);
+    expect(agentLines(run.state).at(-1)).toBe(TEST_COPY.closingLine);
+    expect(canSend(run.state)).toBe(true);
+    expectPhase('closing', TIMING.closingMs);
     expect(canSend(run.state)).toBe(false);
-    const closingAt = run.state.t;
     run.advanceUntil((state) => state.phase === 'done');
-    expect(run.state.t - closingAt).toBe(TIMING.closingMs);
+    expect(run.state.t).toBeGreaterThanOrEqual(ends);
+  });
+
+  it('types each step’s narration as console comments before its first chunk', () => {
+    const run = new ShowTestRun(RETRO_SHOW);
+    run.advanceUntil(inStep('fonts', 'narrate'));
+    const fonts = RETRO_STEPS[0]?.fallback ?? '';
+    expect(run.state.comment).toEqual(narrationComment(fonts));
+    const narrateAt = run.state.t;
+    const chars = run.state.comment.join('').length;
+    run.advanceUntil(inStep('fonts', 'type'));
+    expect(run.state.t - narrateAt).toBe(commentMs(chars, false) + TIMING.narrateMs);
   });
 
   it('applies one chunk at a time: the next one waits for the beat', () => {
@@ -74,14 +89,15 @@ describe('showReducer: timeline', () => {
     expect(run.state.stageAt).toBe(appliedAt(run, 'layer:type-faces') + TIMING.beatMs);
   });
 
-  it('shows the LLM line for a step when it arrived, and the fallback otherwise', () => {
+  it('comments the LLM line for a step when it arrived, and the fallback otherwise', () => {
     const run = new ShowTestRun(RETRO_SHOW, { llm: true });
     run.dispatch({ type: 'narrationLine', key: 'colours', text: 'LLM says: colours.' });
     run.dispatch({ type: 'narrationLine', key: 'colours', text: 'A second line is ignored.' });
     run.advanceUntil(inStep('fonts'));
-    expect(agentLines(run.state).at(-1)).toBe(RETRO_STEPS[0]?.fallback);
+    expect(run.state.comment).toEqual(narrationComment(RETRO_STEPS[0]?.fallback ?? ''));
     run.advanceUntil(inStep('colours'));
-    expect(agentLines(run.state).at(-1)).toBe('LLM says: colours.');
+    expect(run.state.comment).toEqual(['// LLM says: colours.']);
+    expect(agentLines(run.state)).toEqual([TEST_COPY.introLine, TEST_COPY.fixLine]);
   });
 
   it('with reduced motion shows a chunk at once, applies it 0.6 s later and closes at once', () => {
@@ -93,6 +109,10 @@ describe('showReducer: timeline', () => {
 
     run.advanceUntil(() => run.status('module:ai-chat') === 'running');
     run.dispatch({ type: 'moduleLoaded', key: 'module:ai-chat' });
+    run.advanceUntil((state) => state.phase === 'undock');
+    const undockAt = run.state.t;
+    run.advanceUntil((state) => state.phase === 'outro');
+    expect(run.state.t - undockAt).toBe(TIMING.outroDelayMs);
     run.advanceUntil((state) => state.phase === 'closing');
     run.advance(1);
     expect(run.state.phase).toBe('done');
@@ -102,12 +122,12 @@ describe('showReducer: timeline', () => {
 describe('showReducer: holds', () => {
   it('freezes everything while the tab is hidden and resumes where it stopped', () => {
     const run = new ShowTestRun(RETRO_SHOW);
-    run.advance(2_000).dispatch({ type: 'visibility', hidden: true });
+    run.advance(500).dispatch({ type: 'visibility', hidden: true });
     run.advance(60_000);
     expect(run.state.phase).toBe('idle');
-    expect(run.state.t).toBe(2_000);
-    run.dispatch({ type: 'visibility', hidden: false }).advance(1_000);
-    expect(run.state.phase).toBe('chat');
+    expect(run.state.t).toBe(500);
+    run.dispatch({ type: 'visibility', hidden: false }).advance(500);
+    expect(run.state.phase).toBe('intro');
   });
 
   it("holds before a step's first chunk while the visitor composes, up to 15 s", () => {
@@ -121,7 +141,7 @@ describe('showReducer: holds', () => {
 
     run.advanceUntil(inStep('colours', 'narrate'));
     run.dispatch({ type: 'composing', on: true });
-    const ready = run.state.stageAt + TIMING.narrateMs;
+    const ready = narrateEndsAt(run.state);
     run.advance(ready + TIMING.composingCapMs - 1 - run.state.t);
     expect(run.state.stage).toBe('narrate');
     run.advance(1);
@@ -195,7 +215,7 @@ describe('showReducer: failures never block', () => {
 });
 
 describe('showReducer: the visitor', () => {
-  const chatOpen = (run: ShowTestRun) => run.advanceUntil((state) => state.phase === 'chat');
+  const chatOpen = (run: ShowTestRun) => run.advanceUntil((state) => state.phase === 'intro');
 
   it('answers with the scripted reply when the LLM is off', () => {
     const run = new ShowTestRun(RETRO_SHOW, { llm: false });

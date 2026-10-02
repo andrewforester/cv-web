@@ -1,40 +1,41 @@
 # app
 
 Why it exists: the shell that turns the pieces into one page: the header with the language
-switcher, the CV, and the floating AI chat over it. It decides, once per page load, whether the
-visitor first gets the Retro Rebuild show (the CV opens as a broken 2002 site and an "agent" fixes
-it live) or today's site. It is also the single place where the app decides which data sources
-it uses.
+switcher, the CV, and the floating AI chat over it. It starts the Retro Rebuild show (the CV turns
+into a broken 2002 site and an "agent" fixes it live) when asked, and otherwise shows today's
+site. It is also the single place where the app decides which data sources it uses.
 
 Domain terms:
-- **Mode:** `show` or `normal` (docs/retro/ARCHITECTURE.md §6). `?retro=1` forces the show,
-  `?retro=0` skips it; otherwise English desktop visitors (`min-width: 1024px`) get it once per
-  browser session (`sessionStorage['retro.done']`, written when the show ends).
+- **Mode:** `show` or `normal` at page load (docs/retro/ARCHITECTURE.md §9 → Round 5): `?retro=1`
+  opens with the show, anything else is today's site. Nothing starts on its own any more.
+- **Show case / start seam** (`useShowCase`): `start()` for the coming Show case button (R24) and
+  replays; today's site stays until the show's chunk has loaded, then the page scrolls to the top
+  and turns broken in one commit. The AI chat is off the page while the show runs (its open
+  conversation is lost) until the show's last step loads it.
 - **Stage:** the shell carrying `data-retro-stage` while the show runs; the show's damage layers
   select only under it. The header keeps `data-testid="app-header"` so a layer can hide it.
 
 Place in the architecture: the top of the tree. `AppProviders` wires i18n, the data bindings
 (the CV repository, today the bundled JSON; the chat repository, the real `/api/chat`; the show
 repository, `/api/chat` `v: 3`) and the page-agent tool registry (`src/agent/`). Swapping the CV
-mock for a backend is one line there. Tests pass fakes and a fixed `retroMode` through its props;
-without the seam jsdom has no `matchMedia`, so tests get the normal site. The shell also offers
-the `switchLanguage` tool to the page agent, since language is an app-level concern.
+mock for a backend is one line there. Tests pass fakes and a fixed `retroMode` through its props.
+The shell also offers the `switchLanguage` tool to the page agent, since language is an app-level concern.
 
 Both modes render one tree shape, so `CvRoute` never remounts: the show (`RetroShowRoute`, from
 `src/screens/retro`) mounts next to the shell and portals its windows into `body`. The AI chat
 (`ChatRoute`) is a lazy chunk in both modes: normal mode loads it at start; the show's last step
 loads it through the `ai-chat` loader, which resolves once the chat is rendered.
 
-The show is a lazy chunk too, requested only in show mode, so normal visitors never download it.
-While it loads the shell is `visibility: hidden`; it is revealed in the commit that mounts the
-show, whose damage layers go in before the browser paints, so the first visible frame is already
-the broken page (no flash of today's design). If the chunk fails to load (offline, a deploy
-swapped the chunks) the shell falls back to the normal site: the show counts as done for the
-session and the AI chat loads.
+The show is a lazy chunk too, requested only when the show is asked for, so other visitors never
+download it. At a `?retro=1` load the shell is `visibility: hidden` while it loads; it is revealed
+in the commit that mounts the show, whose damage layers go in before the browser paints, so the
+first visible frame is already the broken page (no flash of today's design). If the chunk fails
+to load (offline, a deploy swapped the chunks) the shell stays on (or falls back to) today's site
+and the AI chat loads.
 
 Rules and limits:
 - Owner: Scaffold. Screens may only register their own route in `App.tsx`.
 - One page, no router yet: add one when a second page appears.
 - Entry point is `src/main.tsx` (global styles, providers, `App`).
-- Reduced motion is read by the show itself; no replay button, no show on mobile or in Ukrainian
-  (out of scope for now).
+- Reduced motion is read by the show itself. The Show case button (start and replay) is R24;
+  the show is desktop and English only (the start seam doesn't check either yet).

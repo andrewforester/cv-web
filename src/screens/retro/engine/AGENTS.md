@@ -5,8 +5,12 @@ network, and never show code that isn't what changes the page. This folder is th
 guarantees it, free of React so it can be tested on a fake clock.
 
 What it holds (ARCHITECTURE §2–§3, §9 → Round 3):
-- a pure state machine `idle → chat → console → steps → finale → closing → done` over **show
-  time**, which stands still while the tab is hidden. A step is `narrate` (0.6 s), then per
+- a pure state machine `idle → intro → handoff → console → steps → finale → undock → outro →
+  closing → done` over **show time**, which stands still while the tab is hidden (Round 5: two
+  intro lines in the chat, DevTools, the steps with a silent chat, then DevTools collapses, the
+  chat's closing line, the chat collapses). A step is `narrate` (its narration typed into the
+  console as `// …` comments at 100 chars/s, then 0.6 s to read; the first chunk's input continues
+  under them), then per
   **chunk** (one visible change) `type` → apply → `beat` (1 s), then `stepDone` (0.3 s). A chunk
   types on its own clock (100 chars/s, 0.6–1.3 s) and applies at its last character once the
   screen's camera has settled on its target (`focusSettled`, capped at 0.8 s). Holds for a

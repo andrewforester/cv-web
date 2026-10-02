@@ -483,8 +483,10 @@ is *Round 3* below. Everything in this section is built.
 - **EN only** for the show, now and later; **desktop only** for now.
 - **Q1 analytics:** backlog. The show logs counts only, never message text. Only Vercel-native
   options (Hobby has no custom events); no new accounts or databases without the human.
-- **Q2 who:** `?retro=1` forces, `?retro=0` skips; otherwise locale `en` + `min-width: 1024px` +
-  not yet seen in this browser session. **Q3:** once per session (`sessionStorage['retro.done']`).
+- **Q2 who / Q3 how often** (superseded in Round 5, GRA-87): the show starts only on request,
+  `?retro=1` or the shell's start function (the Show case button); no auto-start, no
+  `sessionStorage['retro.done']`. Was: `?retro=1` forces, `?retro=0` skips, otherwise English
+  desktop visitors once per session.
 - **Q4 reduced motion:** the show runs without typing and without motion: no motion classes, no
   view transitions, no leave, instant close (the screen reads the media query itself).
 - **Q5 literals:** allowed only in `src/screens/retro/layers/*.css` and `Decorations.module.css`
@@ -495,7 +497,7 @@ is *Round 3* below. Everything in this section is built.
   are dropped and the fallback is used.
 - **The show is a lazy chunk** (GRA-48): normal-mode visitors never download it; a failed chunk
   falls back to the normal site.
-- **Replay** (later): an "open the old site" button restarts the show.
+- **Replay**: calling the shell's start function again (Round 5); the button is R24.
 - **Round 3 (GRA-49, built in GRA-50–52):** one visible change per chunk with a beat; fade or morph
   per chunk; a show-owned highlight and camera, not the page agent's registry; 8 steps, one
   narration line per step; a `closing` phase for the windows. Details and the reasons below and in
@@ -674,6 +676,71 @@ That is the "code piles up, then it all changes" the human saw.
 - **Tokens:** SPEC's `--retro-*` motion tokens (GRA-51); `--retro-term-font` dropped IBM Plex Mono
   (it never shipped; the terminal renders Courier New, which the human wants kept).
 
+### Round 5: the Show case flow (GRA-87)
+
+The human's flow for the Show case: the show is something the visitor asks for, the chat tells the
+story at the edges (intro and close) and stays quiet while the agent works, and the agent's
+commentary moves into the code it types.
+
+#### Trigger
+
+- `src/app/retroMode.ts`: `?retro=1` → show at page load; anything else → today's site. The
+  first-visit auto-start (locale, viewport, once per session) and `retro.done` are gone; `?retro=0`
+  is a no-op kept by the other e2e specs.
+- `src/app/useShowCase.ts` is the seam: `{ showing, pending, Show, start, end }`. `start()` asks
+  for the lazy show chunk; today's site stays on screen until it has loaded, then one commit puts
+  the stage on, mounts the show (its layers go in before paint) and scrolls to the top (layout
+  effect, `behavior: 'instant'`). A page load with `?retro=1` hides the shell while the chunk loads
+  (`pending`), as before, so no frame of today's design shows. `end()` (the show's `onDone`, or a
+  failed chunk) returns to today's site; a later `start()` is the replay (the chunk is cached, so
+  it swaps at once). The Show case button (R24) only calls `start`.
+- The AI chat is hidden while the show runs (`useLazyChat(normal)`): started from today's site it
+  unmounts (its open conversation is lost, Q7 already says nothing carries over), and the show's
+  module chunk shows it again through the `ai-chat` loader.
+
+#### Phases
+
+`idle` (1 s, `introDelayMs`) → `intro` (line 1 streams; then `introPauseMs` 1 s) → `handoff`
+(line 2 streams; then `consoleDelayMs` 0.8 s) → `console` (DevTools docked with the opening line;
+`consoleLeadMs` 0.8 s) → `steps` → `finale` (`✓ All fixes applied.`; `finaleHoldMs` 1 s) →
+`undock` (DevTools collapses, the reserve is released; `undockMs` 0.4 s, 0 with reduced motion,
+then `outroDelayMs` 1 s) → `outro` (`All good now.` streams; then `outroHoldMs` 2 s) → `closing`
+(the chat collapses into the launcher; `closingMs` 500, 0 with reduced motion) → `done`. The two
+intro lines are added when their phase starts, so the chat never shows an empty bubble. The UI's
+`windows`: `none` → `chat` (intro, handoff) → `chatAndConsole` (console … finale) → `undocked`
+(undock, outro: DevTools mounted but slid out and hidden, the page re-centred) → `closing`.
+`canSend` is false only in `closing`.
+
+#### Narration routing
+
+- `enterStep` no longer writes a chat entry. It fixes the step's line (`narration[step]`, else the
+  manifest fallback; a line arriving later is ignored, as before) as **comment lines**:
+  `narrationComment` in `consolePlan.ts` wraps it at word boundaries to 52 characters
+  (`COMMENT_COLUMNS`, the ≈ 55-character console row less `// `), each line prefixed `// `
+  (a longer word stays whole and the row wraps it). Stored as `ShowState.comment`.
+- `narrate` stage: the comment types at `codeCharsPerSecond`, clamped to `chunkMinMs`–
+  `commentMaxMs` (2 s), then `narrateMs` (0.6 s) to read it; with reduced motion it shows at once
+  and only the 0.6 s count. `consoleRows` opens the step's group at `narrate` (it opened at the
+  first chunk before) and shows the comment in the prompt; the first chunk's input continues under
+  it in the same prompt, and its echo carries the comment. A comment runs nothing, so §2 holds and
+  guard 4 skips `//` lines as it did for `// →`.
+- The LLM contract is unchanged: `narrate` still returns 8 step lines and `finale`; `finale` is
+  not shown any more (the close line is the fixed `All good now.`). Removing it from the prompt is
+  a later contract change (known debt).
+
+#### Close sequence
+
+Screen side (`RetroShowScreen.module.css`): `undocked` puts the slide-out animation on DevTools
+(`forwards`, ending `visibility: hidden`, so it leaves the accessibility tree) and drops the
+`docked` body class, so the stage's `padding-right` transition re-centres the page; `closing`
+shrinks the chat alone (no stagger), its contents fade over `--retro-close-stagger`. With reduced
+motion DevTools is `display: none` in `undocked` and the chat goes at `done`.
+
+Show time on the fake clock (`showTiming.test.ts`, SPEC → Chunk rhythm budget): ≈ 91 s with an
+instantly settling camera, ≈ 92 s when every targeted chunk waits the cap, ≈ 78 s with reduced
+motion. The shorter intro and close pay for the narration comments, so the e2e timing smoke keeps
+its 60–110 s window.
+
 ### How to add or change a fix chunk
 
 1. **Look first.** Anything visible goes into `docs/design/retro/SPEC.md` (the fix list: chunk,
@@ -721,4 +788,6 @@ That is the "code piles up, then it all changes" the human saw.
   `Highlight.module.css`): the token is missing in `tokens.css`.
 - Guard 1's `isStructural` heuristic (`scenario.test.ts`) doesn't cover every structural property
   (e.g. `flex-direction`, `position`); widen it when a layer needs them (GRA-50 review note).
-- Analytics (Q1), replay button, mobile.
+- Analytics (Q1), the Show case / replay button (R24), mobile.
+- The narrate request still asks the LLM for a `finale` line nobody sees since Round 5 (GRA-87);
+  drop it with the next contract change.

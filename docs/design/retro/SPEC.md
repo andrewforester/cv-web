@@ -88,21 +88,23 @@ x: 0                                              880                       1280
 
 ## Timeline
 
-Timings are the runner's (`timing.ts`); the design values:
+Round 5 (GRA-87) flow. Timings are the runner's (`timing.ts`); the design values:
 
 | t | What happens |
 |---|---|
+| start | The show starts only when asked: `?retro=1` (dev, e2e) or the app shell's start function (the coming **Show case** button). From today's site the show's chunk loads first (today's site stays on screen meanwhile), then in one frame the page scrolls to the top and turns into the broken 2002 page. Nothing starts on its own any more (no first-visit auto-start, no once-per-session rule); a replay is another start. |
 | 0 s | Page alone, fully broken. Marquee scrolls (18 s loop), "NEW!" bursts blink (1 s steps). |
-| 3 s | The agent chat card appears with the site panel's open motion (fade + `translateY(8px) scale(.98)` → none, 200 ms `--chat-motion-duration`, `--chat-motion-easing`, origin bottom right). The greeting types at 40 chars/s (≈ 3 s) with the streaming caret. The composer works from now on; focus is **not** moved into it. |
-| greeting + 2 s | Agent (scripted): "Opening the console…". **DevTools appears docked** (instant, as when DevTools opens), Console tab, with the opening log line, counters ✖ 36 ⚠ 8 and an empty prompt row. |
-| then | **8 steps of atomic chunks** (The fix list). Each step: **narrate** (its chat line starts streaming; 0.6 s later its console group opens and the first chunk starts) → **chunk** → **chunk** → … → 0.3 s → the group collapses to `✓ n/8 <title>`, ⚠ − 1. Each chunk: **target** (highlight + plate appear, scroll if needed) → **type** the command into the prompt row (≤ 1.3 s) → **apply** at its last character (the row becomes the echo, `<· undefined` and `✓ …` print under it, ✖ − 1, the change transitions in) → **beat** 1 s. |
-| end | Finale line in the chat; the console shows every group ✓, `✓ All fixes applied.`, ✖ 0 ⚠ 0. **3 s later DevTools slides out to the right and the chat shrinks into the site's chat launcher** (0.65 s) while the page re-centres; the page is the real site, AI chat button included. |
+| 1 s | **Our chat opens**: the agent chat card appears with the site panel's open motion (fade + `translateY(8px) scale(.98)` → none, 200 ms `--chat-motion-duration`, `--chat-motion-easing`, origin bottom right) and streams **"That's how this CV would look like in 2001."** at 40 chars/s with the streaming caret. The composer works from now on; focus is **not** moved into it. |
+| + 1 s pause | The agent streams **"Now let's fix it."** |
+| + 0.8 s | **DevTools appears docked** (instant, as when DevTools opens), Console tab, with the opening log line, counters ✖ 36 ⚠ 8 and an empty prompt row. 0.8 s later the first step starts. |
+| then | **8 steps of atomic chunks** (The fix list), with a **silent chat**: no narration in the chat. Each step: its console group opens and the step's **narration is typed into the prompt as a code comment** (`// …`, wrapped to the console width, 100 chars/s, 0.6–2 s), 0.6 s to read it → **chunk** → **chunk** → … → 0.3 s → the group collapses to `✓ n/8 <title>`, ⚠ − 1. The first chunk types on under the comment in the same prompt (one multi-line input). Each chunk: **target** (highlight + plate appear, scroll if needed) → **type** `// → <label>` and the command into the prompt row (≤ 1.3 s) → **apply** at its last character (the row becomes the echo, `<· undefined` and `✓ …` print under it, ✖ − 1, the change transitions in) → **beat** 1 s. The visitor can still write in the chat; replies appear there as before. |
+| end | The console shows every group ✓, `✓ All fixes applied.`, ✖ 0 ⚠ 0. **1 s later DevTools collapses** (slides out to the right, 300 ms) while the page re-centres (400 ms). **1 s later** the chat streams **"All good now."**; **2 s later the chat collapses into the site's AI chat launcher** (500 ms). The page is the real site, AI chat button included (End of the show). |
 
-**Total at normal motion ≈ 91 s** (Chunk rhythm and timing budget).
+**Total at normal motion ≈ 91 s** (Round 5, measured on the fake clock; Chunk rhythm and timing budget).
 
 **Progress** (GRA-54): the **counters replace the Win98 progress row**. ✖ = chunks not done yet (36 → 0, −1 at each `✓`); ⚠ = steps not done yet (8 → 0, −1 when a step's group collapses). The step label lives in the console as the open group's title; the percentage is gone (Decision 27).
 
-**`prefers-reduced-motion`** (ARCHITECTURE Q4): each chunk's command appears at once and applies 0.6 s later, then the 1 s beat; no transitions, no view transitions, no smooth scroll (jumps), the highlight appears and disappears without fading; the chat card appears without motion; DevTools and the chat disappear at once at the end; marquee static (text starts at the left); no blinking (bursts and carets stay visible); chat lines appear whole. ≈ 73 s.
+**`prefers-reduced-motion`** (ARCHITECTURE Q4): the same order and pauses without motion: each step's narration comment appears at once and the step reads it for 0.6 s; each chunk's command appears at once and applies 0.6 s later, then the 1 s beat; no transitions, no view transitions, no smooth scroll (jumps), the highlight appears and disappears without fading; the chat card appears without motion; at the end DevTools disappears at once, the page re-centres at once, and after "All good now." the chat disappears at once; marquee static (text starts at the left); no blinking (bursts and carets stay visible); chat lines appear whole. ≈ 78 s (Round 5).
 
 ## The broken page
 
@@ -169,6 +171,7 @@ The alt text of a broken image isn't shown (CSS can't read it; ARCHITECTURE → 
 - **Header** (69 = 12 + 44 + 12 + 1): the site's: badge 36 (`--gradient-ai`, `chat_icon_sparkle.svg` 20 px in `--color-text`), titles (gap 2): title **`Agent`** (17/22/500), subtitle **`Fixing this site live`** (14/20, `--color-text-secondary`). Right: **minimise** instead of close, a 44 × 44 icon button (`--chat-control-size`, radius `--radius-logo`, hover `--chat-color-divider`) with `assets/retro_icon_chevron.svg` at 20 px (chevron down). Width check: 16 + 36 + 12 + 240 + 12 + 44 + 8 = 368.
   - **Minimised**: the card collapses to its header (69 px, same bottom-right anchor; 200 ms `--chat-motion-easing`, instant with reduced motion), the chevron turns up (rotate 180°), `aria-expanded="false"`; the button or a click on the header restores. The console's bottom padding follows the card (69 + 32 px). The show keeps running. It replaces the Win98 `_` button; DevTools has no minimise (Decision 29).
 - **Offline banner** (only offline): the site's, under the header, with the show's offline text.
+- **What the agent says** (Round 5, GRA-87): only the two intro lines, the replies to the visitor and, at the end, "All good now.". The step narration is no longer in the chat (it is typed into DevTools as code comments); the greeting, the console hand-off line and the finale line are gone.
 - **Message list** (`role="log"`, `aria-live="polite"`, `aria-label` `Conversation with the agent`): padding 16, column, gap 12, follows the last message; content width 336.
   - **Agent line**: the site's assistant bubble, left: white, 1 px `--color-card-border`, radius 12 with bottom-left 4 (`--chat-radius-tail`), padding 12 15, 15/22. Plain text.
   - **Visitor line**: the site's visitor bubble, right: `--color-text` fill, `--color-bg` text, max 85 % (286 px), padding 12 16, radius 12 with bottom-right 4, `pre-wrap`.
@@ -180,7 +183,7 @@ The alt text of a broken image isn't shown (CSS can't read it; ARCHITECTURE → 
   - **Enter sends**, Shift+Enter inserts a newline, Enter while composing (IME) does nothing; empty input does nothing; focus stays in the field after sending. No Stop button: while a reply streams, Send is disabled (the show holds at chunk boundaries as before).
   - **Meta row** (caption 12/16, `--color-text-secondary`): `Answers are AI-generated and may contain mistakes.`; the counter `{count} / 500` appears from 400 characters; over 500 the field border, counter and meta text turn `--chat-color-error`, the meta text becomes `Message too long (500 characters max).` and Send is disabled (the site's pattern, replacing the round-1 log line; Decision 30).
   - **Limit reached** (the visitor's 10th message): the neutral notice with the limit line appears in the list; the field is disabled (border `--chat-color-divider`, no focus ring, placeholder unchanged, Send disabled).
-  - **Closing** (end of the show): the composer stops taking input (same disabled look, no notice).
+  - **Closing** (end of the show, the chat's own collapse into the launcher): the composer stops taking input (same disabled look, no notice). While DevTools collapses and "All good now." streams, the composer still works.
 - No close button, no Stop, no suggestion chips, no hint (the show's chat has a script, not an empty state).
 
 ## DevTools console (GRA-54; was Live-fix console)
@@ -211,6 +214,7 @@ The alt text of a broken image isn't shown (CSS can't read it; ARCHITECTURE → 
 | opening | `Agent connected to andrew-cv: 36 changes in 8 steps.` | console.log: default text, no icon; the numbers come from the plan |
 | step group, open | `▾ 3/8 layout` | console.group: `devtools_triangle.svg` in `--devtools-text-dim`, title weight 700 (`n/8 <title>`). No extra indent for its rows (the panel is narrow) |
 | step group, done | `▸ ✓ 3/8 layout` | the same group collapsed (triangle rotated −90°), `✓` in `--devtools-success`; its rows are hidden |
+| narration (typing) | `› // Layout: replacing the fixed-width table layout,▏` | Round 5: the step's narration as a code comment, typed into the open group's prompt before its first chunk: `// ` + the line wrapped at word boundaries to **52 characters** per console line (the ≈ 55-character row minus the `// `), every line a comment (`--devtools-code-comment`). The first chunk then types under it in the same prompt; at the apply the whole input is the echo |
 | prompt (typing) | `› // → header▏` | `devtools_prompt.svg` in `--devtools-accent`; the chunk's input as typed so far, syntax-coloured; caret 1 × 14 px `--devtools-text`, blinks 1 s (static with reduced motion); no bottom border |
 | input echo | `› // → header` / `document.querySelector('style[data-retro-layer="header-layout"]').remove()` | at the apply the prompt row becomes the echo: same text, gains its bottom border; continuation lines align with the first, no extra `›` |
 | result | `<· undefined` | `devtools_result.svg` and `undefined`, both `--devtools-text-dim` |
@@ -225,7 +229,7 @@ At the apply, in one frame: the prompt row turns into the echo, `<· undefined` 
 
 ### Console commands (code shown = code applied)
 
-Each chunk types **one console input**: its target comment (`// → <label>`, scenario data, as before), then the command for its kind. What is typed is what the engine does (`docs/retro/ARCHITECTURE.md` §2, revised by GRA-54):
+Each step's narration is typed as `// …` comment lines at the start of the step (Round 5); comments run nothing, so code shown = code applied still holds. Each chunk types **one console input**: its target comment (`// → <label>`, scenario data, as before), then the command for its kind. What is typed is what the engine does (`docs/retro/ARCHITECTURE.md` §2, revised by GRA-54):
 
 | Chunk kind | Typed after `// → <label>` | What the engine does at the apply | Result | Done line |
 |---|---|---|---|---|
@@ -241,7 +245,10 @@ Each chunk types **one console input**: its target comment (`// → <label>`, sc
 
 ```
 ▾ 3/8 layout
-› // → page
+› // Layout: replacing the fixed-width table layout,
+  // standard practice at the time, with a centred column
+  // and grids.
+  // → page
   document.querySelector('style[data-retro-layer="page-frame"]').remove()
 <· undefined
   ✓ page-frame removed
@@ -351,25 +358,27 @@ One chunk, at normal motion:
 | **apply** | at the last character (after the show's own scroll has settled, ≤ 0.8 s) | The command runs (layer removed, tokens set, decoration leaves, or module loads); the row becomes the echo, `<· undefined` and `✓ …` print under it, ✖ − 1; the change transitions in (fade 450 ms, morph 500 ms, leave 250 ms); the highlight flashes its content box. |
 | **beat** | **1.0 s** from the apply | Nothing else starts: the eye catches the change. The highlight and plate hold 200 ms, then fade out over 800 ms, gone at the beat's end. The next chunk starts. |
 
-Step overhead: narrate 0.6 s before the first chunk (the narration line keeps typing at 40 chars/s while the chunk types) and 0.3 s after the last beat before the group collapses to `✓ n/8 <title>`.
+Step overhead (Round 5): the narration comment types at 100 chars/s (clamped 0.6–2 s; the fallbacks take ≈ 1–1.3 s), then 0.6 s to read it before the first chunk, and 0.3 s after the last beat before the group collapses to `✓ n/8 <title>`. (Until Round 5 the line streamed in the chat while the chunks typed, so only the 0.6 s counted.)
 
 **Why the typing rate changes (GRA-54):** a command is 44–95 characters where the layer files were 80–290, so at 240 chars/s most chunks would hit the 0.4 s floor and the show would shrink to ≈ 77 s with code flashing past. At 100 chars/s a typical command takes ≈ 0.85 s (readable as typing) and the multi-token chunks still cap at 1.3 s, which keeps the ≈ 90 s budget.
 
-Budget (typing times from the GRA-54 commands with today's token values, column *Chars*; a module's time assumes its chunk has loaded):
+Budget (Round 5, GRA-87): measured on the runner's fake clock (`showTiming.test.ts`) with the real copy, the fallback narration, a camera that settles at once and the chat chunk loading at once:
 
 | Part | Time |
 |---|---:|
-| Intro: 3 s alone · greeting (≈ 2.7 s) · 2 s · console hand-off (≈ 1.7 s) | 9.3 s |
-| 1 fonts (6 chunks) | 14.2 s |
-| 2 colours (4) | 8.9 s |
-| 3 layout (5) | 10.1 s |
-| 4 images (5) | 9.9 s |
-| 5 cards (4) | 8.7 s |
-| 6 spacing & lists (4) | 8.4 s |
-| 7 2002 chrome (5) | 9.7 s |
-| 8 links & contacts (3) | 6.2 s |
-| Finale line (≈ 2.2 s) · 3 s · panels close 0.65 s | 5.9 s |
+| Intro: 1 s alone · `That's how this CV would look like in 2001.` (≈ 1.1 s) · 1 s · `Now let's fix it.` (≈ 0.4 s) · 0.8 s · DevTools open 0.8 s | 5.1 s |
+| 1 fonts (6 chunks) | 11.9 s |
+| 2 colours (4) | 9.4 s |
+| 3 layout (5) | 11.3 s |
+| 4 images (5) | 11.0 s |
+| 5 cards (4) | 9.0 s |
+| 6 spacing & lists (4) | 9.7 s |
+| 7 2002 chrome (5) | 10.9 s |
+| 8 links & contacts (3) | 7.2 s |
+| Close: `✓ All fixes applied.` 1 s · DevTools collapses 0.4 s · 1 s · `All good now.` (≈ 0.3 s) · 2 s · the chat collapses 0.5 s | 5.2 s |
 | **Total** | **≈ 91 s** |
+
+Each step now includes its narration comment (≈ 1–1.3 s of typing for the fallbacks) and the 0.6 s read pause. When every targeted chunk waits the 0.8 s camera cap the show takes ≈ 92 s; with reduced motion ≈ 78 s. The intro (−4.2 s) and the close (−0.7 s) are shorter than in GRA-54, which pays for the comments, so the total stays ≈ 91 s. **The e2e motion-on timing smoke keeps its budget**: it fails past 110 s of show time (≈ 20 % over the total for the real chat chunk and the camera) or under 60 s.
 
 Visitor holds (typing ≤ 15 s, reply streaming ≤ 12 s) come on top; they happen only between chunks. Before GRA-49 the 7-step show took ≈ 71 s with 5 s of typing per step; the new show is ≈ 20 s longer because each of its 36 changes gets its own beat. The close delay after the finale drops from 4 s to 3 s to stay near 90 s.
 
@@ -447,21 +456,22 @@ Chunks with target `page` (font family, background, base colours, the page frame
 
 Each chunk's input starts with `// → <label>` (a comment, `--devtools-code-comment`), naming the target in plain words (`headings`, `header`, `Savant icon`, `page`); the plate names the element. Together they tie the console to the page without labels on the page.
 
-## End of the show (GRA-54)
+## End of the show (GRA-54; Round 5 sequence, GRA-87)
 
-- The finale line streams in the chat; the console shows every group collapsed with `✓`, then `✓ All fixes applied.`, ✖ 0 and ⚠ 0 (grey icons), and an empty prompt row.
-- **3 s** after the finale line ends, **DevTools slides out to the right and the chat shrinks into the site's AI chat launcher**, while the page re-centres. The launcher is already rendered (the module chunk loaded it) at its own place, `right`/`bottom` 24 px, 56 × 56 (`docs/design/chat/SPEC.md` → Launcher), under the dock (`--retro-z-index` 1001 > `--chat-z-index` 1000):
+- The console shows every group collapsed with `✓`, then `✓ All fixes applied.`, ✖ 0 and ⚠ 0 (grey icons), and an empty prompt row. No finale line in the chat.
+- Then, one thing at a time (the chat's lines and composer keep working until its own collapse):
 
-| t (ms) | DevTools | Agent chat card | Page |
+| t (ms, from `✓ All fixes applied.`) | DevTools | Agent chat card | Page |
 |---|---|---|---|
-| 0–300 | slides out: `translateX(0 → 100%)`, `--retro-close-slide` 300 ms, `--retro-close-easing` (accelerating away) | — | the reserve is released: `body` `padding-right` 400 → 0 over `--retro-reserve-duration` (400 ms), `--chat-motion-easing`: the column re-centres (0–400) |
-| 150–300 | — | header, list and composer fade out (150 ms, linear) | |
-| 150–650 | gone at 300 | the card's box moves and shrinks from `right`/`bottom` 16, 368 × 392, radius 12 to the launcher's box `right`/`bottom` 24, 56 × 56, radius 50 %; fill `--color-bg` → `--color-text`, shadow `--chat-shadow-panel` → `--chat-shadow-fab`; the gradient border stays and lands on the launcher's AI ring. `--retro-close-shrink` 500 ms, `--chat-motion-easing`. Over its last 100 ms the card fades out on top of the real launcher | |
-| 650 | gone | gone; the real launcher stays | re-centred; the show ends (`done`) |
+| 0–1 000 | stays: the visitor reads the zeros | — | — |
+| 1 000–1 300 | **collapses**: slides out, `translateX(0 → 100%)`, `--retro-close-slide` 300 ms, `--retro-close-easing` (accelerating away), then stays hidden | stays where it is | the reserve is released: `body` `padding-right` 400 → 0 over `--retro-reserve-duration` (400 ms), `--chat-motion-easing`: the column re-centres (1 000–1 400) |
+| 2 400 | gone | streams **"All good now."** (40 chars/s, ≈ 0.3 s) | re-centred |
+| ≈ 4 700–5 200 | gone | 2 s after the line: **collapses into the launcher**. Header, list and composer fade out (`--retro-close-stagger` 150 ms, linear); the card's box moves and shrinks from `right`/`bottom` 16, 368 × 392, radius 12 to the launcher's box `right`/`bottom` 24, 56 × 56, radius 50 %; fill `--color-bg` → `--color-text`, shadow `--chat-shadow-panel` → `--chat-shadow-fab`; the gradient border stays and lands on the launcher's AI ring. `--retro-close-shrink` 500 ms, `--chat-motion-easing`. Over its last 100 ms the card fades out on top of the real launcher | |
+| ≈ 5 200 | gone | gone; the real launcher stays | the show ends (`done`) |
 
-  The chat starts `--retro-close-stagger` (150 ms) after DevTools; the total stays 650 ms (`closingMs`, unchanged). The composer stops taking input when the close starts. A minimised chat shrinks from its header box.
+  The launcher is already rendered (the module chunk loaded it) at its own place, `right`/`bottom` 24 px, 56 × 56 (`docs/design/chat/SPEC.md` → Launcher), under the dock (`--retro-z-index` 1001 > `--chat-z-index` 1000). The composer stops taking input when the chat's collapse starts. A minimised chat shrinks from its header box. The chat no longer waits for DevTools' stagger (`--retro-close-stagger` is now only the contents' fade).
 - The agent conversation doesn't carry over into the AI chat (ARCHITECTURE Q7). If the site chat's first-visit hint has come due during the show, it is revealed next to the launcher as the card leaves.
-- **Reduced motion**: DevTools and the chat disappear at once and the page re-centres at once.
+- **Reduced motion**: the same order and pauses; DevTools disappears at once and the page re-centres at once; "All good now." appears whole; the chat disappears at once.
 
 ## Tokens (in `src/theme/tokens.css`; GRA-54 revision)
 
@@ -546,9 +556,9 @@ Retro values of the **page** are not tokens: they live in the layer files and di
 
 **Agent chat** (the screen's `strings.ts`, except step lines, which are scenario data):
 - Title `Agent` · subtitle `Fixing this site live` · minimise button label `Minimise chat` (restore: `Restore chat`) · list label (visually hidden) `Conversation with the agent` · line prefixes (visually hidden) `You:` · `Agent:` · input label (visually hidden) `Message the agent` · placeholder `Message the agent…` · send button label `Send` · meta `Answers are AI-generated and may contain mistakes.` · counter `{count} / 500`
-- Greeting: `Hello. This is Andrew's CV in its original 2002 build. I'll update it step by step, live. Feel free to ask questions as I go.`
-- Console hand-off: `Opening the console. Each command takes effect on the page as soon as it runs.`
-- Step narration and finale: the fix list above (the LLM may rephrase in the same tone; these are the fallbacks).
+- Intro (Round 5, the human's wording, verbatim): `That's how this CV would look like in 2001.` then `Now let's fix it.` They replace the greeting and the console hand-off line.
+- Closing line: `All good now.` It replaces the finale line.
+- Step narration: the fix list above (the LLM may rephrase in the same tone; these are the fallbacks). Since Round 5 it is typed into DevTools as `// …` comments, not shown in the chat. The finale fallback and the LLM's `finale` line are no longer shown (the narrate contract still carries the key).
 - Scripted reply when the LLM fails (ARCHITECTURE): `Noted, thank you. Continuing with the update.`
 - Limit reached (10 messages, a notice in the list): `That's the message limit for this session. The site's chat button will be available once the update is complete.` (without the IRC `***`)
 - Over 500 characters (meta row, error colour): `Message too long (500 characters max).`
@@ -709,4 +719,8 @@ Alternative if the orchestrator prefers no change to the site chat now: show-loc
 37. **End of the show**: DevTools slides right (0–300 ms), the chat shrinks into the launcher's box (150–650 ms), the reserve is released over 0–400 ms; 650 ms in all (`closingMs` unchanged); reduced motion: instant.
 38. **Where the site has no colour role, Chrome's default light theme** (blue accent), not the pink custom theme of the reference screenshot.
 39. **Shared chat pieces move to `src/shared/chat/`** in a prep task (Shared components); the composer stays show-local.
-40. **DevTools appears instantly** at the console hand-off (as when DevTools opens); the chat card enters with the site panel's open motion at 3 s.
+40. **DevTools appears instantly** at the console hand-off (as when DevTools opens); the chat card enters with the site panel's open motion at 3 s. (Round 5: at 1 s, and DevTools after the two intro lines.)
+41. **Round 5 (GRA-87), the human's flow:** the show starts only on request (`?retro=1` or the shell's start function for the Show case button); the Q2/Q3 auto-start and once-per-session rules go. From today's site the chunk loads first, then the page scrolls to the top and turns broken in one frame.
+42. **Intro in the chat:** broken page alone 1 s → the chat opens and streams `That's how this CV would look like in 2001.` → 1 s → `Now let's fix it.` → 0.8 s → DevTools docks → 0.8 s → step 1. Texts verbatim from the human.
+43. **Silent chat while fixing:** the step narration (LLM line or fallback, contract unchanged) is typed into DevTools as `// …` comments wrapped at 52 characters, at the code rate (100 chars/s, clamped 0.6–2 s), then 0.6 s to read; the first chunk continues in the same prompt, so the comment is part of its echo. Comments change nothing, so code shown = code applied holds. Visitor replies still appear in the chat.
+44. **Close sequence:** `✓ All fixes applied.` → 1 s → DevTools collapses (300 ms slide, the page re-centres over 400 ms) → 1 s → `All good now.` → 2 s → the chat collapses into the launcher (500 ms; was 650 ms with DevTools). Reduced motion: same order and pauses, no motion. The finale line goes; the LLM's `finale` narration is still requested but not shown (dropping it is a contract change for a later task).

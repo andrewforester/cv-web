@@ -6,7 +6,7 @@ import { expect, type Page } from '@playwright/test';
 
 /** Fake time per turn of the loop; the runner is time-based, so the slice only sets the pace. */
 const SLICE_MS = 250;
-/** The 8-step, 36-chunk show takes ≈ 73 s of show time with reduced motion, ≈ 90 s with motion. */
+/** The 8-step, 36-chunk show takes ≈ 78 s of show time with reduced motion, ≈ 91 s with motion. */
 export const SHOW_LIMIT_MS = 110_000;
 
 export const stageSelector = '[data-retro-stage]';

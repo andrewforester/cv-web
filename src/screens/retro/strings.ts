@@ -21,12 +21,10 @@ export const retroStrings = defineStrings({
     send: 'Send',
     disclaimer: 'Answers are AI-generated and may contain mistakes.',
     charCounter: '{count} / 500',
-    // Engine inputs only: the screen drops the engine's IRC-era system lines (GRA-57).
-    systemJoin: '*** Now talking in #andrew-cv',
-    systemJoined: '*** agent has joined',
-    greeting:
-      "Hello. This is Andrew's CV in its original 2002 build. I'll update it step by step, live. Feel free to ask questions as I go.",
-    handoff: 'Opening the console. Each command takes effect on the page as soon as it runs.',
+    // What the agent says before DevTools opens and after it has collapsed (Round 5, verbatim).
+    introLine: "That's how this CV would look like in 2001.",
+    fixLine: "Now let's fix it.",
+    closingLine: 'All good now.',
     scriptedReply: 'Noted, thank you. Continuing with the update.',
     limitReached:
       "That's the message limit for this session. The site's chat button will be available once the update is complete.",

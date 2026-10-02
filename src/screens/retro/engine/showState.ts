@@ -1,6 +1,13 @@
 import type { RetroStepId } from '../../../data/retro';
 import { TIMING } from './timing';
-import type { ChatEntry, PlannedChunk, PlannedStep, ShowConfig, ShowState } from './showTypes';
+import type {
+  ChatEntry,
+  PlannedChunk,
+  PlannedStep,
+  ShowConfig,
+  ShowPhase,
+  ShowState,
+} from './showTypes';
 
 /** The show before anything happened: the broken page alone. `now` is the clock reading. */
 export function createShowState(config: ShowConfig, now: number): ShowState {
@@ -15,11 +22,12 @@ export function createShowState(config: ShowConfig, now: number): ShowState {
     now,
     hidden: false,
     phase: 'idle',
-    phaseEndsAt: TIMING.chatDelayMs,
+    phaseEndsAt: TIMING.introDelayMs,
     step: 0,
     chunk: 0,
     stage: 'narrate',
     stageAt: 0,
+    comment: [],
     focusAt: null,
     heldSince: null,
     effects,
@@ -58,9 +66,11 @@ export function addChat(state: ShowState, ...entries: NewEntry[]): ShowState {
   return { ...state, chat: [...state.chat, ...added], nextId: id };
 }
 
-/** Every step has run: the finale line, the windows closing, or done. */
+const ENDED: readonly ShowPhase[] = ['finale', 'undock', 'outro', 'closing', 'done'];
+
+/** Every step has run: `✓ All fixes applied.`, the windows closing one by one, or done. */
 export function showEnded(state: ShowState): boolean {
-  return state.phase === 'finale' || state.phase === 'closing' || state.phase === 'done';
+  return ENDED.includes(state.phase);
 }
 
 export function currentStep(state: ShowState): PlannedStep | undefined {

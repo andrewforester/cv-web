@@ -28,11 +28,17 @@ function windowsOf(state: ShowState): RetroShowUiState['windows'] {
     case 'idle':
     case 'done':
       return 'none';
-    case 'chat':
+    case 'intro':
+    case 'handoff':
       return 'chat';
+    case 'undock':
+    case 'outro':
+      return 'undocked';
     case 'closing':
       return 'closing';
-    default:
+    case 'console':
+    case 'steps':
+    case 'finale':
       return 'chatAndConsole';
   }
 }

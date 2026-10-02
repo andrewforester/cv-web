@@ -1,17 +1,19 @@
 # docs/retro
 
 Why it exists: the design record of the *Retro Rebuild* show. A visitor opens the CV and sees it as
-a broken 2000s site; a terminal chat and a console appear, and an "agent" fixes the page live, step
-by step, typing real code that changes the page as shown, until it is today's CV. The visitor can
-talk to the agent while it works.
+a broken 2000s site (when they ask for it: the Show case); the agent's chat says what this is,
+DevTools docks, and the "agent" fixes the page live, step by step, typing real code (with its
+commentary as code comments) that changes the page as shown, until it is today's CV. The visitor
+can talk to the agent while it works.
 
 **Branch:** all work on the show happens on `claude/retro-rebuild` (task branches from it, PRs into
 it); it is never merged into `main`.
 
 Start here, in this order:
 1. [`ARCHITECTURE.md`](ARCHITECTURE.md) **section 9**: what is built and where, the final
-   decisions, round 3 as built (atomic chunks, motion, highlight, smooth close; GRA-49–53), how to
-   add or change a fix chunk, the known debt.
+   decisions, round 3 as built (atomic chunks, motion, highlight, smooth close; GRA-49–53), round 5
+   (the Show case flow: start on request, intro and close in the chat, narration as DevTools
+   comments; GRA-87), how to add or change a fix chunk, the known debt.
 2. `docs/design/retro/SPEC.md`: the look (retro values, damage layers, copy, the atomic fix list,
    chunk timing, transitions, the highlight, `--retro-*` tokens).
 3. The package `AGENTS.md` of the code you touch: `src/screens/retro/` (and `engine/`, `layers/`),

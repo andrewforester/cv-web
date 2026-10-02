@@ -56,25 +56,25 @@
 }
 
 /*
- * The close: DevTools slides out to the right; after the stagger the chat's contents fade and its
- * card moves and shrinks onto the AI chat launcher's box, turning into it, then fades over the
- * real launcher in its last 100 ms.
+ * The close, one panel at a time (SPEC → End of the show): DevTools slides out to the right and
+ * stays out, hidden; later the chat's contents fade and its card moves and shrinks onto the AI
+ * chat launcher's box, turning into it, then fades over the real launcher in its last 100 ms.
  */
-.closing .devtools {
+.undocked .devtools {
   animation: retro-slide-out var(--retro-close-slide) var(--retro-close-easing) forwards;
 }
 
 .closing .chat {
-  animation: retro-shrink var(--retro-close-shrink) var(--chat-motion-easing)
-    var(--retro-close-stagger) forwards;
+  animation: retro-shrink var(--retro-close-shrink) var(--chat-motion-easing) forwards;
 }
 
 .closing .chat > * {
-  animation: retro-fade-out var(--retro-close-stagger) linear var(--retro-close-stagger) forwards;
+  animation: retro-fade-out var(--retro-close-stagger) linear forwards;
 }
 
 @keyframes retro-slide-out {
   to {
+    visibility: hidden;
     transform: translateX(100%);
   }
 }
@@ -102,11 +102,15 @@
   }
 }
 
-/* With reduced motion the runner skips the close: the dock goes at once. */
+/* With reduced motion nothing moves: DevTools goes at once, the runner skips the chat's close. */
 @media (prefers-reduced-motion: reduce) {
   .stage,
   .chat {
     transition: none;
+  }
+
+  .undocked .devtools {
+    display: none;
   }
 }
 
