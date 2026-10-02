@@ -11,11 +11,12 @@ interface HighlightPlateViewProps {
 
 /** The Elements-tab tooltip: `tag#id.class  W × H`, or `tag.class × N` for several matches. */
 export function HighlightPlateView({ className, plate, style }: HighlightPlateViewProps) {
-  const { size, count } = plate;
+  const { size, count, anchor } = plate;
+  const anchored = anchor && { left: anchor.left, top: anchor.bottom };
   return (
     <div
-      className={[styles.plate, className].filter(Boolean).join(' ')}
-      style={style}
+      className={[styles.plate, anchor && styles.anchored, className].filter(Boolean).join(' ')}
+      style={{ ...style, ...anchored }}
       data-testid={retroTestIds.highlightPlate}
     >
       <span>

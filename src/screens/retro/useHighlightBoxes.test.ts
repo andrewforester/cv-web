@@ -52,7 +52,20 @@ describe('useHighlightBoxes (the Elements-style highlight)', () => {
       className: 'hdr',
       size: { width: 672, height: 188 },
       count: null,
+      anchor: { left: 100.4, bottom: 238.2 },
     });
+  });
+
+  it('clamps the plate into the page area and the viewport', () => {
+    stage();
+    const at = (rect: DOMRect) =>
+      vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(rect);
+    const anchor = () =>
+      renderHook(() => useHighlightBoxes(target(['header']), false)).result.current?.plate?.anchor;
+    at(DOMRect.fromRect({ x: 100, y: 500, width: 300, height: 600 }));
+    expect(anchor()).toEqual({ left: 100, bottom: window.innerHeight });
+    at(DOMRect.fromRect({ x: -40, y: 10, width: 300, height: 100 }));
+    expect(anchor()).toEqual({ left: 0, bottom: 110 });
   });
 
   it('counts several matches instead of sizing them', () => {
@@ -71,6 +84,7 @@ describe('useHighlightBoxes (the Elements-style highlight)', () => {
     expect(result.current?.plate).toMatchObject({
       tag: 'body',
       size: { width: 880, height: window.innerHeight },
+      anchor: null,
     });
   });
 

@@ -15,6 +15,12 @@ interface Measured {
   plate: HighlightPlate | null;
 }
 
+/** The plate's bottom-left corner on the first target's, kept in the page area (SPEC → Plate). */
+function plateAnchor(rect: DOMRect, right: number): { left: number; bottom: number } {
+  const clamp = (value: number, max: number) => Math.min(Math.max(value, 0), max);
+  return { left: clamp(rect.left, right), bottom: clamp(rect.bottom, window.innerHeight) };
+}
+
 const NOTHING: Measured = { boxes: [], plate: null };
 
 /** Right edge of the page area (the viewport minus the dock's reserve): the stage's own edge. */
@@ -52,7 +58,8 @@ export function readableClass(element: Element): string {
 /**
  * Every visible match is framed while at least partly in the page area (up to 12); when none is
  * in view, the first one on the page (the one the camera goes to). The plate names the first match
- * in page order with its live size, or counts the matches when there are several.
+ * in page order with its live size, or counts the matches when there are several, and sits on that
+ * match's bottom-left corner.
  */
 function measure(query: string): Measured {
   const matches = Array.from(document.querySelectorAll(query), (element) => ({
@@ -79,6 +86,7 @@ function measure(query: string): Measured {
         ? null
         : { width: Math.round(first.rect.width), height: Math.round(first.rect.height) },
       count: several ? matches.length : null,
+      anchor: plateAnchor(first.rect, right),
     },
   };
 }
@@ -86,7 +94,10 @@ function measure(query: string): Measured {
 /** A page-wide chunk: no boxes; the plate is `body` with the page area's size. */
 function measurePage(): Measured {
   const size = { width: Math.round(pageAreaRight()), height: window.innerHeight };
-  return { boxes: [], plate: { tag: 'body', id: '', className: '', size, count: null } };
+  return {
+    boxes: [],
+    plate: { tag: 'body', id: '', className: '', size, count: null, anchor: null },
+  };
 }
 
 const measureTarget = (page: boolean, query: string) => (page ? measurePage() : measure(query));

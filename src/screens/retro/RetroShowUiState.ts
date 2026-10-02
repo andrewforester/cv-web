@@ -50,6 +50,11 @@ export interface HighlightPlate {
   size: { width: number; height: number } | null;
   /** All matches on the page when there are several (`× N`); `null` for one. */
   count: number | null;
+  /**
+   * Where the plate's bottom-left corner sits, in viewport px (the first target's bottom-left
+   * corner, clamped into the page area); `null` for page-wide chunks: the page area's corner.
+   */
+  anchor: { left: number; bottom: number } | null;
 }
 
 /** The show's pointer on the current chunk's target (SPEC → Show what changed). */

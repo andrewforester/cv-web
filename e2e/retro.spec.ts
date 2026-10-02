@@ -143,7 +143,10 @@ test.describe('with reduced motion', () => {
     const plates = new Set<string>();
     for (let elapsed = 0; elapsed < 20_000 && plates.size < 2; elapsed += 250) {
       await page.clock.runFor(250);
-      if (await plate.count()) plates.add((await plate.textContent()) ?? '');
+      if (await plate.count()) {
+        plates.add((await plate.textContent()) ?? '');
+        if (plates.size === 1) await expectPlateOnFirstHeading(page);
+      }
     }
     // Chunk 1 marks every heading, chunk 2 the whole page area.
     expect([...plates]).toEqual([expect.stringMatching(/^h1\.name × \d+$/), 'body880 × 800']);
@@ -155,6 +158,15 @@ test.describe('with reduced motion', () => {
     await expectEndsAsNormalSite(page, 'retro-end.png');
   });
 });
+
+/** Chunk 1's plate sits on the first heading's bottom-left corner (SPEC → Plate). */
+async function expectPlateOnFirstHeading(page: Page) {
+  const plate = await page.getByTestId('retro-highlight-plate').boundingBox();
+  const heading = await page.locator('h1').first().boundingBox();
+  if (!plate || !heading) return;
+  expect(plate.x).toBeCloseTo(Math.max(heading.x, 0), 0);
+  expect(plate.y + plate.height).toBeCloseTo(Math.min(heading.y + heading.height, 800), 0);
+}
 
 test('with motion on the show ends on the normal page within its time budget', async ({ page }) => {
   const showMs = await expectEndsAsNormalSite(page);
