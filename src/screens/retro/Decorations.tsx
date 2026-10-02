@@ -2,29 +2,35 @@ import styles from './Decorations.module.css';
 import { liveName } from './liveName';
 import { OhSnapNote } from './OhSnapNote';
 import { PageFooter } from './PageFooter';
-import type { RetroShowUiState } from './RetroShowUiState';
+import type { DecorationCopyUi, RetroShowUiState } from './RetroShowUiState';
 import motionStyles from './RetroMotion.module.css';
 import type { DecorationId } from './scenario';
 import { retroTestIds } from './testIds';
 import { TopBar } from './TopBar';
 
-const content = (id: DecorationId) => {
+const content = (id: DecorationId, copy: DecorationCopyUi) => {
   switch (id) {
     case 'top-bar':
-      return <TopBar />;
+      return <TopBar nav={copy.nav} marquee={copy.marquee} />;
     case 'page-footer':
-      return <PageFooter />;
+      return <PageFooter webringName={copy.webringName} />;
     case 'oh-snap':
       return <OhSnapNote />;
   }
 };
 
 /**
- * Show-owned DOM over the page, positioned on the CV's hooks; `aria-hidden`. The DOM id is the
+ * Show-owned DOM over the page, positioned on the page's hooks; `aria-hidden`. The DOM id is the
  * decoration id, so the console's `document.getElementById('oh-snap').remove()` names this node.
  * A removed decoration leaves (fades and shrinks) before it unmounts.
  */
-export function Decorations({ decorations }: { decorations: RetroShowUiState['decorations'] }) {
+export function Decorations({
+  decorations,
+  copy,
+}: {
+  decorations: RetroShowUiState['decorations'];
+  copy: DecorationCopyUi;
+}) {
   return decorations.map(({ id, box, leaving }) => {
     const classes = [
       styles.decoration,
@@ -43,7 +49,7 @@ export function Decorations({ decorations }: { decorations: RetroShowUiState['de
         aria-hidden="true"
         data-testid={retroTestIds.decoration}
       >
-        {content(id)}
+        {content(id, copy)}
       </div>
     );
   });

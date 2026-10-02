@@ -14,7 +14,8 @@ import {
   type ShowReplyStreamEvent,
   type ShowRequest,
 } from './contract';
-import { RETRO_NARRATION_KEYS, RETRO_SCENARIO_ID } from './scenario';
+import { RETRO_NARRATION_KEYS } from './scenario';
+import type { ShowScenarioId } from './scenarios';
 import type { ShowReplyInput, ShowRepository } from './ShowRepository';
 
 /** The body of a `200` response, or the error to yield (none when the caller aborted). */
@@ -28,7 +29,7 @@ const STOP_REASONS: readonly string[] = [
   'refusal',
 ] satisfies readonly ChatStopReason[];
 
-const COMMON = { v: CHAT_API_VERSION_V3, locale: 'en', scenario: RETRO_SCENARIO_ID } as const;
+const COMMON = { v: CHAT_API_VERSION_V3, locale: 'en' } as const;
 
 /**
  * `ShowRepository` over `POST /api/chat` `v: 3` (docs/chat/API.md → v3). `reply` reads the body
@@ -45,8 +46,11 @@ export class HttpShowRepository implements ShowRepository {
     this.url = url;
   }
 
-  async *narrate(signal?: AbortSignal): AsyncGenerator<ShowNarrateStreamEvent> {
-    const opened = await this.open({ ...COMMON, kind: 'narrate' }, signal);
+  async *narrate(
+    scenario: ShowScenarioId,
+    signal?: AbortSignal,
+  ): AsyncGenerator<ShowNarrateStreamEvent> {
+    const opened = await this.open({ ...COMMON, kind: 'narrate', scenario }, signal);
     if (!opened.ok) {
       if (opened.error) yield { type: 'error', error: opened.error };
       return;
@@ -55,10 +59,13 @@ export class HttpShowRepository implements ShowRepository {
   }
 
   async *reply(
-    { step, stepsDone, messages }: ShowReplyInput,
+    { scenario, step, stepsDone, messages }: ShowReplyInput,
     signal?: AbortSignal,
   ): AsyncGenerator<ShowReplyStreamEvent> {
-    const opened = await this.open({ ...COMMON, kind: 'reply', step, stepsDone, messages }, signal);
+    const opened = await this.open(
+      { ...COMMON, kind: 'reply', scenario, step, stepsDone, messages },
+      signal,
+    );
     if (!opened.ok) {
       if (opened.error) yield { type: 'error', error: opened.error };
       return;

@@ -12,8 +12,8 @@ holder loads the CV for the current language, the stateless screen maps it onto 
 components (`src/shared/forest/`) and numbers the sections in page order. All content comes from
 data (English only today; Ukrainian falls back to it); section labels and fixed words are strings
 (EN + UK). Data images (photo, app icons, book covers) are resolved from data references to
-bundled assets. The app shell passes the language switcher and the show's start callback; the route adds the
-"Show case" button to the meta bar (English, ≥ 1024 px only: the show's limits).
+bundled assets. The app shell passes the meta bar's end controls (the "Show case" button and the
+language switcher); the screen knows nothing about the show.
 
 Page agent: every section and item is a target the AI chat can point at (`data-agent-id`, passed
 to the Forest components as `data-*` attributes). The screen offers the agent three tools while

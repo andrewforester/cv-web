@@ -1,4 +1,5 @@
 import type { ShowRequest } from '../../../src/data/retro/contract.js';
+import { SHOW_SCENARIOS } from '../../../src/data/retro/scenarios.js';
 import type { PageKnowledgeLoader } from '../knowledge/assembleKnowledge.js';
 import type { LlmRequest } from '../llm/LlmClient.js';
 import type { ModelOptions } from '../llm/modelOptions.js';
@@ -33,8 +34,9 @@ export function narrationStreamer(): TextStreamer {
 }
 
 /**
- * The model request, streaming and log fields of a v3 request (docs/chat/API.md → v3). Replies
- * answer from the CV's knowledge (the show runs on `/`; ADR-0004 → Decision 2).
+ * The model request, streaming and log fields of a v3 request (docs/chat/API.md → v3), for the
+ * request's scenario. Replies answer from the CV's knowledge (only `/` has a show yet; ADR-0004 →
+ * Decision 2, docs/retro/ARCHITECTURE.md §10 → Server).
  */
 export async function planShow(
   request: ShowRequest,
@@ -42,20 +44,23 @@ export async function planShow(
   model: ModelOptions,
   deadlineMs: number,
 ): Promise<ShowPlan> {
+  const manifest = SHOW_SCENARIOS[request.scenario];
+  const { locale, scenario } = request;
   if (request.kind === 'narrate') {
     return {
-      llmRequest: buildNarrateRequest(model),
+      llmRequest: buildNarrateRequest(manifest, model),
       streamer: narrationStreamer(),
       deadlineMs: Math.min(deadlineMs, NARRATE_DEADLINE_MS),
-      logFields: { locale: request.locale, showKind: 'narrate', narrationLines: 0 },
+      logFields: { locale, showKind: 'narrate', showScenario: scenario, narrationLines: 0 },
     };
   }
   return {
-    llmRequest: buildReplyRequest(request, await knowledge('cv', request.locale), model),
+    llmRequest: buildReplyRequest(request, manifest, await knowledge('cv', locale), model),
     deadlineMs,
     logFields: {
-      locale: request.locale,
+      locale,
       showKind: 'reply',
+      showScenario: scenario,
       stepId: request.step,
       messages: request.messages.length,
       inputChars: request.messages.reduce((sum, { content }) => sum + content.length, 0),

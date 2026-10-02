@@ -1,5 +1,5 @@
 import type { ChatErrorCode } from '../../../data/chat';
-import type { RetroNarrationKey, RetroStepId, ShowReplyInput } from '../../../data/retro';
+import type { RetroNarrationKey, RetroStepId, ShowReplyState } from '../../../data/retro';
 
 /** What a chunk does to the page (ARCHITECTURE §2). Ids are the scenario's layer/decoration/module ids. */
 export type RetroEffect =
@@ -159,7 +159,7 @@ export interface VisitorState {
   scripted: boolean;
   offline: boolean;
   /** The reply being requested; the state holder streams it while this is set. */
-  request: { id: number; input: ShowReplyInput; text: string } | null;
+  request: { id: number; input: ShowReplyState; text: string } | null;
   replyEntry: number | null;
   exchanges: readonly { visitor: string; reply: string }[];
 }

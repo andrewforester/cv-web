@@ -80,6 +80,7 @@ function newEntry(requestId: string, deps: ChatDeps, request: Request): ChatLogE
     toolChoice: null,
     providerStateBytes: null,
     showKind: null,
+    showScenario: null,
     stepId: null,
     narrationLines: null,
     dayCostUsd: null,

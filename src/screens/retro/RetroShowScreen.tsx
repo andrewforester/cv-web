@@ -56,7 +56,7 @@ export function RetroShowScreen({
   const dockStyle = { ...state.tokens, ...liveName('retro-dock') } as CSSProperties;
   return createPortal(
     <>
-      <Decorations decorations={state.decorations} />
+      <Decorations decorations={state.decorations} copy={state.decorationCopy} />
       {highlight && <Highlight key={highlight.key} highlight={highlight} />}
       {windows !== 'none' && (
         <div

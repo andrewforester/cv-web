@@ -1,6 +1,7 @@
 import { useLayoutEffect } from 'react';
 import type { DecorationBox } from './RetroShowUiState';
 import type { DecorationId } from './scenario';
+import type { DecorationAnchors } from './scenarios';
 import { useFollowFrames } from './useFollowFrames';
 import { useMeasuredState } from './useMeasuredState';
 
@@ -11,11 +12,11 @@ import { useMeasuredState } from './useMeasuredState';
 const NOTE = { width: 184, marginRight: 28, belowHeader: 40, abovePhoto: 12 };
 const FOOTER_HEIGHT = 200;
 
-const ANCHORS = {
-  cv: "[data-retro-stage] [data-testid='cv']",
-  main: '[data-retro-stage] main',
-  header: "[data-retro-stage] [data-agent-id='section:header']",
-  photo: "[data-retro-stage] [data-testid='forest-photo']",
+const STAGE = '[data-retro-stage]';
+/** Anchors every page shares: the page's `main` and the Forest photo. */
+const SHARED_ANCHORS = {
+  main: `${STAGE} main`,
+  photo: `${STAGE} [data-testid='forest-photo']`,
 };
 
 type Placement = Partial<Record<DecorationId, DecorationBox>>;
@@ -30,16 +31,16 @@ function pageBox(selector: string) {
 }
 
 /** Where each decoration goes now; the note moves to the photo once the layout is fixed. */
-function place(layoutShifted: boolean): Placement {
-  const cv = pageBox(ANCHORS.cv);
-  if (!cv) return {};
+function place(anchors: DecorationAnchors, layoutShifted: boolean): Placement {
+  const root = pageBox(`${STAGE} ${anchors.root}`);
+  if (!root) return {};
   const placement: Placement = {
-    'top-bar': { left: cv.left, top: cv.top, width: cv.width },
-    'page-footer': { left: cv.left, top: cv.bottom - FOOTER_HEIGHT, width: cv.width },
+    'top-bar': { left: root.left, top: root.top, width: root.width },
+    'page-footer': { left: root.left, top: root.bottom - FOOTER_HEIGHT, width: root.width },
   };
-  const main = pageBox(ANCHORS.main);
-  const header = pageBox(ANCHORS.header);
-  const photo = pageBox(ANCHORS.photo);
+  const main = pageBox(SHARED_ANCHORS.main);
+  const header = pageBox(`${STAGE} ${anchors.header}`);
+  const photo = pageBox(SHARED_ANCHORS.photo);
   if (layoutShifted && main && header) {
     placement['oh-snap'] = {
       left: main.right + NOTE.marginRight,
@@ -56,10 +57,11 @@ function place(layoutShifted: boolean): Placement {
 
 /**
  * Measures the decorations' anchors on the page (stable hooks only) and keeps them in place while
- * layers come off, the CV loads, fonts arrive or the window resizes, and every animation frame
+ * layers come off, the page loads, fonts arrive or the window resizes, and every animation frame
  * while a change is `moving` the page (a fade or a morph just applied).
  */
 export function useDecorationPlacement(
+  anchors: DecorationAnchors,
   layersKey: string,
   layoutShifted: boolean,
   moving: boolean,
@@ -67,7 +69,7 @@ export function useDecorationPlacement(
   const [placement, setPlacement] = useMeasuredState<Placement>({});
 
   useLayoutEffect(() => {
-    const update = () => setPlacement(place(layoutShifted));
+    const update = () => setPlacement(place(anchors, layoutShifted));
     update();
     window.addEventListener('resize', update);
     void document.fonts?.ready.then(update);
@@ -77,9 +79,9 @@ export function useDecorationPlacement(
       window.removeEventListener('resize', update);
       observer?.disconnect();
     };
-  }, [layersKey, layoutShifted, setPlacement]);
+  }, [anchors, layersKey, layoutShifted, setPlacement]);
 
-  useFollowFrames(moving, () => setPlacement(place(layoutShifted)));
+  useFollowFrames(moving, () => setPlacement(place(anchors, layoutShifted)));
 
   return placement;
 }

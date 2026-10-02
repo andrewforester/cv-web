@@ -4,7 +4,7 @@ import {
   RETRO_LIMITS,
   type ShowRequest,
 } from '../../../src/data/retro/contract.js';
-import { RETRO_SCENARIO_ID, RETRO_STEP_IDS } from '../../../src/data/retro/scenario.js';
+import { isShowScenarioId, SHOW_SCENARIOS } from '../../../src/data/retro/scenarios.js';
 import { chatError } from '../errors.js';
 import { isOneOf, isRecord } from '../validateParts.js';
 
@@ -65,26 +65,23 @@ export function validateShowRequest(body: unknown): ShowValidationResult {
   }
   if (typeof body.scenario !== 'string')
     return fail('invalid_request', 'scenario must be a string');
-  if (body.scenario !== RETRO_SCENARIO_ID) {
-    return fail('unsupported_version', 'Unknown scenario');
-  }
-  const common = { v: CHAT_API_VERSION_V3, locale: 'en', scenario: RETRO_SCENARIO_ID } as const;
+  const { scenario } = body;
+  if (!isShowScenarioId(scenario)) return fail('unsupported_version', 'Unknown scenario');
+  const common = { v: CHAT_API_VERSION_V3, locale: 'en', scenario } as const;
   if (body.kind === 'narrate') return { ok: true, request: { ...common, kind: 'narrate' } };
 
+  const stepIds = SHOW_SCENARIOS[scenario].steps.map(({ id }) => id);
   const { step, stepsDone } = body;
-  if (step !== null && !isOneOf(RETRO_STEP_IDS, step)) {
+  if (step !== null && !isOneOf(stepIds, step)) {
     return fail('invalid_request', 'step must be a step id of the scenario or null');
   }
   if (
     typeof stepsDone !== 'number' ||
     !Number.isInteger(stepsDone) ||
     stepsDone < 0 ||
-    stepsDone > RETRO_STEP_IDS.length
+    stepsDone > stepIds.length
   ) {
-    return fail(
-      'invalid_request',
-      `stepsDone must be an integer from 0 to ${RETRO_STEP_IDS.length}`,
-    );
+    return fail('invalid_request', `stepsDone must be an integer from 0 to ${stepIds.length}`);
   }
   const messages = checkMessages(body.messages);
   if (!Array.isArray(messages)) return messages;
