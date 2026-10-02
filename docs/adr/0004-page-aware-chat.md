@@ -28,9 +28,10 @@ hold: stateless function, no storage, byte-stable cached prefix, tests never cal
 ## Decision 1: The page identifies itself by a page id, sent once per request
 
 `ChatRequestV2` gets an optional top-level `page: ChatPage` (`'cv' | 'profile'`, the ids
-`pageFor` in `src/app/routes.ts` already returns). The app shell, which already calls `pageFor`,
-passes the page to the chat (`<Chat page={page} />`) and to the agent registry
-(`AgentProvider page`). The snapshot's `route` stays and now says the page's path
+`pageFor` in `src/app/routes.ts` already returns). The app shell reads it from
+`pageFor(location.pathname)`, as it already does: `App` passes it to the chat
+(`<Chat page={page} />`), `AppProviders` to the agent registry (`<AgentProvider page>`; a `page`
+prop overrides it in tests). The snapshot's `route` stays and now says the page's path
 (`CHAT_PAGE_ROUTES`: `cv` → `/`, `profile` → `/new`); the server requires every question's
 `page.route` to match the request's page.
 
@@ -161,7 +162,7 @@ assumed for Cyrillic), because no API key was available for `count_tokens`.
   today); `/new` UK sits around the threshold and may. The top-level automatic marker caches
   every page once prefix + history passes 4,096. On Sonnet 5.5 (minimum 512) every prefix caches
   from the first request; a cold write per page and locale after 5 idle minutes costs about
-  $0.013. Switching the language on `/new` changes the knowledge, so the next request writes a new
+  $0.01. Switching the language on `/new` changes the knowledge, so the next request writes a new
   prefix (on `/` it doesn't).
 - **Cost.** Haiku 4.5 at $1/M input: a `/new` request costs about $0.0004 (EN) to $0.0011 (UK)
   more than a `/` request uncached, i.e. under one cent per conversation; output is unchanged.
@@ -214,21 +215,21 @@ compiles), with `contract.test.ts` / `agentTools.test.ts`. Then:
 - `server/chat/prompt/`: `llmTools.ts` (`LLM_TOOLS_BY_PAGE`), `buildLlmRequest.ts` (+ tests),
   `systemPrompt.ts` (`PROMPT_VERSION` only).
 - `server/chat/`: `validate.ts`, `validateV2.ts`, `validateParts.ts` (`page`, route per page,
-  sections per page), `handler.ts`, `deps.ts`, `log.ts` (`page`), their tests,
-  `server/chat/show/planShow.ts` (keeps CV knowledge), `server/test/helpers.ts`,
-  `server/dev/**` and `api/chat.ts` if the loader's wiring changes there.
+  sections per page), `handler.ts`, `deps.ts` (the loader's wiring), `log.ts` (`page`), their
+  tests, `server/chat/show/planShow.ts` (keeps CV knowledge), `server/test/helpers.ts`.
 - Package docs: `server/chat/**/AGENTS.md`, `src/data/chat/AGENTS.md`, `src/data/mock/AGENTS.md`
   (the chat now knows the profile).
 
 **Frontend (Development):**
 - `src/app/App.tsx` (pass `page` to the chat), `src/app/AppProviders.tsx` (pass `page` to
-  `AgentProvider`), `src/app/useLazyChat.ts` (the chat's props), app tests.
+  `AgentProvider`, from `pageFor` or a test prop), `src/app/useLazyChat.ts` (the chat's props), app tests.
 - `src/agent/AgentProvider.tsx` (catalogue for the page: `buildAgentToolSpecs` or
   `buildProfileToolSpecs`), `src/agent/AGENTS.md`, its tests.
-- `src/screens/chat/`: `ChatRoute.tsx`, `useChatState.ts`, `useChatConversation.ts` (`page`,
-  `route`), `SuggestedQuestions.tsx`, `MessageList.tsx`, `actionLabels.ts`, `actionText.ts`,
-  `runToolCalls.ts` (labels and confirmations from `Cv` or `Profile`), `strings.ts`, tests,
-  `AGENTS.md`.
+- `src/screens/chat/`: `ChatRoute.tsx` (`page` prop), `useChatConversation.ts` (`page`,
+  `route`), `useChatState.ts` + `ChatUiState.ts` (the page's suggestion and command texts in the
+  UI state, so the stateless components stay page-agnostic), `ChatPanel.tsx`, `MessageList.tsx`,
+  `SuggestedQuestions.tsx`, `actionLabels.ts`, `actionText.ts`, `runToolCalls.ts` (labels and
+  confirmations from `Cv` or `Profile`), `strings.ts`, tests, `AGENTS.md`.
 - `src/screens/profile/`: `useProfileAgentTools.ts` (new), `useProfileState.ts`,
   `ProfileUiState.ts`, `ProfileRoute.tsx`, `ProfileScreen.tsx`, `ProfileHeader.tsx`,
   `ProfileExperience.tsx`, `ProfileCards.tsx`, `ProfileRoute.agent.test.tsx` (new), `AGENTS.md`.
