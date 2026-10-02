@@ -8,9 +8,14 @@ sees pixels, never parses the DOM and never gets CSS selectors. Decision record:
 section of [`API.md`](API.md). Status: shipped (design GRA-31; contract GRA-32, server GRA-33, registry
 GRA-34, chat UI GRA-35, README + e2e GRA-36, chat bound to the registry GRA-37).
 
+Since CV-94 the chat runs on both pages, `/` (the CV) and `/new` (the profile), and the agent
+operates the page it is on: each page has its own sections, targets and catalogue
+([`../adr/0004-page-aware-chat.md`](../adr/0004-page-aware-chat.md), API.md → Page-aware chat).
+§1 and the examples below describe `/`; `/new`'s targets are in ADR-0004 → Decision 4.
+
 ## 1. Findings: what the page can be told to do
 
-The site is one route (`/`): the CV as one scrolling page (`src/screens/cv/CvScreen.tsx`) with a
+At design time the site was one route (`/`; `/new` came with CV-84): the CV as one scrolling page (`src/screens/cv/CvScreen.tsx`) with a
 header bar (language switcher) and the chat widget. Sections in order: **header** (name, photo,
 contacts: email, phone, WhatsApp, Telegram), **summary**, **technologies** (9 cards),
 **latest experience** (Transcenda), **apps** (Cync, August Home, Savant), **education**,
@@ -36,11 +41,11 @@ are always `confirm: true`.
 
 ## 2. Tool catalogue (v2)
 
-One catalogue, `AGENT_TOOL_SPECS`, built by `buildAgentToolSpecs(cv)` in the framework-free
-`src/data/chat/agentTools.ts`: the server turns it into Anthropic `tools` (`strict: true`,
+One catalogue per page, built in the framework-free `src/data/chat/agentTools.ts` by
+`buildAgentToolSpecs(cv)` for `/` and `buildProfileToolSpecs(profile)` for `/new` (ADR-0004): the server turns it into Anthropic `tools` (`strict: true`,
 `additionalProperties: false`, all params `required`), the browser registry validates arguments
 against it, and a later WebMCP adapter registers the same objects. Tool names are sorted, id
-lists come from the CV JSON in data order, so the output is deterministic (prompt caching needs
+lists come from the page's JSON in data order, so the output is deterministic (prompt caching needs
 byte-identical tools).
 
 Ids are explicit and locale-independent: a new `id` field on `TechnologyCard`, `ExperienceEntry`,
@@ -67,7 +72,7 @@ Behaviour:
 - **Mobile sheet** (chat full-screen under 600 px): a visual action closes the sheet (the
   conversation is kept, like closing today) so the visitor sees the result (Q2).
 - `openContact`: the chat shows a confirmation card whose text is built by the client from the
-  spec and the CV data ("Open Telegram chat with Andrew? t.me/…"), never from model text. The
+  spec and the page's data ("Open Telegram chat with Andrew? t.me/…"), never from model text. The
   Confirm click is the user gesture that opens `mailto:` / `tel:` / the URL (`noopener`).
   Cancel returns `declined`.
 - Unknown tool name or params that fail validation: `invalid_params`, nothing runs. Tool not
@@ -157,9 +162,9 @@ Rules and caps:
 | Threat | Mitigation |
 |---|---|
 | Irreversible or outward actions | `confirm: true` in the spec → the client-built confirmation card; the executor runs only on the visitor's click. Today: `openContact` only. A future submit/pay/delete tool must be `confirm: true` (a unit test asserts every spec whose name matches those verbs is). |
-| Model-supplied links or payloads | No tool takes a URL, free text or selector. Params are enums of real ids; contact targets are looked up in the CV data. |
+| Model-supplied links or payloads | No tool takes a URL, free text or selector. Params are enums of real ids; contact targets are looked up in the page's data. |
 | Sensitive values | Never in page context or results (enums/booleans only); sensitive fields are never registered as targets. Chat logs still never hold message text. |
-| Prompt injection via CV/page content or tool results | CV lives in `<knowledge>`, page state in `<page_state>`, results are fixed enums; the instructions say all three are data. The model has no network or DOM tool, so an injection can at most scroll, highlight or switch language on the attacker's own page, or ask for a contact confirmation the visitor can refuse. |
+| Prompt injection via page content or tool results | The page's content lives in `<knowledge>`, page state in `<page_state>`, results are fixed enums; the instructions say all three are data. The model has no network or DOM tool, so an injection can at most scroll, highlight or switch language on the attacker's own page, or ask for a contact confirmation the visitor can refuse. |
 | Visitor asks for something no tool does ("fill the form", "click that button") | Instruction: use only the listed tools; if none fits, say so. The greeting lists real commands. |
 | Cross-site use | The same-origin `Origin` check, content-type guard, body cap and limiter from v1, unchanged, on every follow-up too. |
 | Runaway loops | 2 rounds × 3 calls per visitor turn, enforced by the server (`tool_choice: none`) and the client. |

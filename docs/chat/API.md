@@ -1,20 +1,22 @@
-# AI CV chat: API contract (v1, v2, v3)
+# AI CV chat: API contract (v1, v2, v3, page-aware v2)
 
 The contract between the chat widget (`src/data/chat/**`, `src/screens/chat/**`) and the backend
 (`api/chat.ts` + `server/chat/**`). It is final for v1 and for v2 (page-agent tools,
-[below](#v2-page-agent-tools)): the backend and frontend tickets implement exactly this. Design
-context: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md); decisions:
-[`../adr/0001-ai-cv-chat.md`](../adr/0001-ai-cv-chat.md).
+[below](#v2-page-agent-tools)), including its page-aware form (`page`: `/` or `/new`,
+[below](#page-aware-chat-v2--page)): the backend and frontend tickets implement exactly this.
+Design context: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md); decisions:
+[`../adr/0001-ai-cv-chat.md`](../adr/0001-ai-cv-chat.md),
+[`../adr/0004-page-aware-chat.md`](../adr/0004-page-aware-chat.md) (page awareness).
 
 ## Summary
 
 | | |
 |---|---|
 | Endpoint | `POST /api/chat` (same origin as the site; no CORS) |
-| Request | JSON: `v`, `locale`, the whole conversation in `messages` (the server is stateless) |
+| Request | JSON: `v`, `locale`, the whole conversation in `messages` (the server is stateless); v2 adds the optional `page` (`cv` = `/`, `profile` = `/new`) |
 | Success | `200`, `text/event-stream`: `delta`\* then exactly one terminal event, `done` or `error` |
 | Failure before the stream | non-2xx with a JSON body `{ "error": ChatError }` |
-| Version | `v: 1` in the body; response header `X-Chat-Api-Version: 1` |
+| Version | `v` in the body (1, 2 or 3, see [Versioning](#versioning)); response header `X-Chat-Api-Version` with the same number |
 | Types | `src/data/chat/contract.ts` (shared by `src/` and `server/`; copy the block below verbatim) |
 
 ## Request
@@ -158,6 +160,12 @@ All `POST`s count, valid or not.
   codes to a generic "Something went wrong" and treat them as `retryable: false`).
 - **Breaking** changes bump `v`. The server then accepts the new and the previous version for at
   least one release and answers others with `400 unsupported_version`.
+
+| `v` | What | Served | Sent by |
+|---|---|---|---|
+| 1 | Answers, no tools; knowledge of `/` | yes | no current client |
+| 2 | Page-agent tools; optional `page` (`cv` = `/`, `profile` = `/new`; absent = `cv`) picks the knowledge and the catalogue | yes | the chat widget, with `page` |
+| 3 | The show dialect (`narrate`, `reply`) | yes | the Retro Rebuild show |
 
 ## TypeScript types
 
@@ -318,7 +326,9 @@ data: {"code":"upstream_error","message":"Upstream stream failed: overloaded","r
 > Final (GRA-32). Design: [`AGENT.md`](AGENT.md), decision:
 > [`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md). Everything above stays the
 > v1 contract. Types live in `src/data/chat/contract.ts` (wire) and `src/data/chat/agentTools.ts`
-> (tool catalogue); the blocks below are copies, the files win if they ever differ.
+> (tool catalogue); the blocks below are copies, the files win if they ever differ. The
+> [page-aware section](#page-aware-chat-v2--page) adds `page` and widens `AgentPageState`,
+> `AGENT_TARGET_KINDS` and `ChatRequestV2`; read the blocks below together with it.
 
 **Why a new version:** messages gain new shapes and a stream can now end with
 `stopReason: 'tool_use'`, which a v1 widget can't handle. Per Versioning, the server serves
@@ -766,3 +776,177 @@ Request 2, the visitor writes during step 2:
 ```
 
 Response 2: `delta` "It belongs to the 2002 layout. It goes in the cleanup step, with the hit counter." then `done` with `end_turn`.
+
+## Page-aware chat (v2 + `page`)
+
+> Final (CV-94). Decision: [`../adr/0004-page-aware-chat.md`](../adr/0004-page-aware-chat.md).
+> Amends the v2 contract above; types live in `src/data/chat/contract.ts` (wire) and
+> `src/data/chat/agentTools.ts` (catalogues); the blocks below are copies, the files win if they
+> ever differ.
+
+The chat runs on both pages: `/` (the CV, `Cv`) and `/new` (the profile, `Profile`). A request
+says which page it comes from; the server answers from that page's content, in the request's
+locale, with that page's tool catalogue.
+
+**Why no new version:** the change is additive (API.md → Versioning): one new optional request
+field and wider enums; responses, SSE, limits and errors don't change. The version stays `v: 2`
+(`X-Chat-Api-Version: 2`). A v2 request **without** `page` is a `/` request and gets today's
+behaviour byte for byte, so tabs opened before the release keep working. v1 is unchanged (CV only;
+`page` ignored like any unknown field). v3 (the show) is unchanged and keeps the CV knowledge.
+
+### What changes in v2
+
+| Area | Change |
+|---|---|
+| `page` (request) | Optional, `"cv"` or `"profile"`; absent = `"cv"`. Anything else: `400 invalid_request`. The widget always sends it. |
+| `messages[].page.route` | `"/"` for `cv`, `"/new"` for `profile` (`CHAT_PAGE_ROUTES`). Every question's `route` must match the request's page, else `400 invalid_request`. |
+| `messages[].page.activeSection` | One of the page's sections (`AGENT_PAGE_SECTIONS[page]`) or `null`. |
+| `messages[].page.highlighted` | `<kind>:<id>`; kinds add `impact` and `skill`. |
+| Knowledge | The page's content in the request's `locale`: `cv` → `cv.en.json` for both locales (no UK CV yet, as on the site); `profile` → `profile.<locale>.json`, as `<document id="profile" title="Profile">`. Only that page. |
+| Tools | The page's catalogue: `buildAgentToolSpecs(cv)` (unchanged) or `buildProfileToolSpecs(profile)` (below). |
+| System prompt | Unchanged blocks and text on both pages (`PROMPT_VERSION` bumped). |
+| Log line | Adds `page`. |
+
+### Types
+
+`src/data/chat/contract.ts`, added after the v2 block:
+
+```ts
+/** The pages the chat runs on; `pageFor` (src/app/routes.ts) returns the same ids. */
+export const CHAT_PAGES = ['cv', 'profile'] as const;
+export type ChatPage = (typeof CHAT_PAGES)[number];
+
+/** Each page's path, sent as `AgentPageState.route`. */
+export const CHAT_PAGE_ROUTES = { cv: '/', profile: '/new' } as const satisfies Record<
+  ChatPage,
+  string
+>;
+export type AgentRoute = (typeof CHAT_PAGE_ROUTES)[ChatPage];
+
+/** `/new` sections in page order; `data-agent-id="section:<id>"`. */
+export const PROFILE_SECTION_IDS = [
+  'header',
+  'impact',
+  'loop',
+  'experience',
+  'apps',
+  'skills',
+  'education',
+  'about',
+  'footer',
+] as const;
+export type ProfileSectionId = (typeof PROFILE_SECTION_IDS)[number];
+
+/** `/new` contact channels (`Profile.contacts` ids); the "Live AI CV" (`ai-chat`) row is not one. */
+export const PROFILE_CONTACT_CHANNELS = ['email', 'phone'] as const;
+export type ProfileContactChannel = (typeof PROFILE_CONTACT_CHANNELS)[number];
+
+/** Sections of each page (`AGENT_SECTION_IDS` stays the CV's list). */
+export const AGENT_PAGE_SECTIONS = {
+  cv: AGENT_SECTION_IDS,
+  profile: PROFILE_SECTION_IDS,
+} as const satisfies Record<ChatPage, readonly string[]>;
+
+/** Contact channels of each page (`AGENT_CONTACT_CHANNELS` stays the CV's list). */
+export const AGENT_PAGE_CONTACT_CHANNELS = {
+  cv: AGENT_CONTACT_CHANNELS,
+  profile: PROFILE_CONTACT_CHANNELS,
+} as const satisfies Record<ChatPage, readonly string[]>;
+```
+
+Changed in the v2 block (wider, so existing code still compiles):
+
+```ts
+/** Target kinds; item ids come from the page's JSON. `impact` and `skill` exist on `/new` only. */
+export const AGENT_TARGET_KINDS = [
+  'section',
+  'technology',
+  'experience',
+  'app',
+  'book',
+  'contact',
+  'impact',
+  'skill',
+] as const;
+
+export interface AgentPageState {
+  /** The page's path, `CHAT_PAGE_ROUTES[page]`. */
+  route: AgentRoute;
+  locale: ChatLocale;
+  viewport: (typeof AGENT_VIEWPORTS)[number];
+  chat: (typeof AGENT_CHAT_LAYOUTS)[number];
+  activeSection: AgentSectionId | ProfileSectionId | null;
+  highlighted: AgentTargetId | null;
+  /** Tools registered (mounted) right now, sorted. */
+  tools: AgentToolName[];
+}
+
+/** Roles alternate, start with a text `user` message and end with a `user` message. */
+export interface ChatRequestV2 {
+  v: typeof CHAT_API_VERSION_V2;
+  locale: ChatLocale;
+  /** The page the chat is on; absent = `'cv'` (clients before CV-94). */
+  page?: ChatPage;
+  messages: ChatMessageV2[];
+}
+```
+
+`src/data/chat/agentTools.ts`, added next to the CV functions (which don't change):
+
+```ts
+/**
+ * Every highlightable target of `/new`, `<kind>:<id>`: sections, then impact cards, jobs
+ * (`experience:`, jobs then earlier jobs), apps, skill groups, books, contacts, in data order.
+ */
+export declare function profileTargetIds(profile: Profile): AgentTargetId[];
+
+/** The `/new` catalogue: deterministic (sorted by name, ids in data order), the same in every locale. */
+export declare function buildProfileToolSpecs(profile: Profile): AgentToolSpec[];
+```
+
+Server side (informational): `LLM_TOOLS_BY_PAGE: Record<ChatPage, readonly LlmTool[]>`, built
+once from the English JSON of each page; the knowledge loader takes `(page, locale)`; the
+validated request carries the resolved `page`.
+
+### Tool catalogue per page
+
+`cv`: as in [v2 → Tool catalogue](#tool-catalogue), unchanged.
+
+`profile` (`buildProfileToolSpecs(profile)`), each with one required string parameter restricted
+to an enum:
+
+| Tool | Description (for the model) | Parameter | Enum | `confirm` |
+|---|---|---|---|---|
+| `highlightElement` | Scroll to a section or item of the page and briefly highlight it, e.g. an impact card, a job, an app, a skill group, a book or a contact. | `target` (The element to highlight.) | `section:<ProfileSectionId>` (9), then `impact:` (4), `experience:` (jobs 7, then earlier 2), `app:` (3), `skill:` (6), `book:` (3) with the `Profile` ids in data order, then `contact:email`, `contact:phone`: 36 today | `false` |
+| `openContact` | Open a contact channel of Andrew (email or phone). The visitor confirms first. | `channel` (The contact channel.) | `email`, `phone` | `true` |
+| `scrollToSection` | Scroll the profile page to a section. | `section` (The section to scroll to. impact = "Selected impact", loop = "How I build with agents", footer = the closing call to action.) | `PROFILE_SECTION_IDS` in page order | `false` |
+| `switchLanguage` | Switch the page language: en = English, uk = Ukrainian. | `locale` (The language to switch to.) | `en`, `uk` | `false` |
+
+Item ids are the `id` fields of `ImpactCard`, `Job`, `EarlierJob`, `ProfileApp`, `SkillGroup` and
+`Book` (`src/data/profile.ts`), equal in every locale's JSON (`profileIds.test.ts`), so the
+catalogue is byte-identical across locales. On the page, the targets are `data-agent-id`
+attributes the screen passes to the Forest components (ADR-0004 → Decision 4).
+
+### Example: a question on `/new`
+
+```json
+{ "v": 2, "locale": "uk", "page": "profile", "messages": [
+  { "role": "user", "content": "Покажи його вибрані результати",
+    "page": { "route": "/new", "locale": "uk", "viewport": "desktop", "chat": "card",
+              "activeSection": null, "highlighted": null,
+              "tools": ["highlightElement", "openContact", "scrollToSection", "switchLanguage"] } } ] }
+```
+
+Response: `delta` "Прокручую до вибраних результатів." then `tool_call`
+`{"id":"toolu_01B","name":"scrollToSection","input":{"section":"impact"}}` then `done` with
+`tool_use`; the follow-up carries the same `page: "profile"`, as in the v2 example.
+
+The same body without `"page"` (and with `"route": "/"`) is a `/` request: CV knowledge, the CV
+catalogue. With `"page": "profile"` and `"route": "/"`:
+
+```text
+HTTP/1.1 400 Bad Request
+X-Chat-Api-Version: 2
+
+{"error":{"code":"invalid_request","message":"messages[0].page.route must be \"/new\"","retryable":false,"requestId":"..."}}
+```
