@@ -7,7 +7,7 @@ Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + Rea
 | Path | What lives there |
 |---|---|
 | `src/main.tsx` | Entry point: global styles, providers, `App`. |
-| `src/app/` | App shell (`App.tsx`: header with the language switcher + page) and `AppProviders.tsx` (i18n + data binding). |
+| `src/app/` | App shell (`App.tsx`: header with the language switcher + page; `routes.ts`: `/new` → profile, anything else → CV) and `AppProviders.tsx` (i18n + data binding). |
 | `src/theme/` | Design tokens (`tokens.css`, CSS custom properties) and global styles. |
 | `src/i18n/` | In-house typed i18n: locale detection/persistence, `defineStrings`, `useStrings`, the shared `common` namespace. |
 | `src/data/` | CV models, the `CvRepository` interface and its context, `mock/` (JSON per locale + `StaticCvRepository`); `chat/contract.ts`: the `/api/chat` contract types shared with `server/`. |

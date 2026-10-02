@@ -34,6 +34,28 @@ for (const { locale, browserLocale, name } of cases) {
   });
 }
 
+const profileCases = [
+  { locale: 'en', browserLocale: 'en-US', name: 'Andrew Panasiuk' },
+  { locale: 'uk', browserLocale: 'uk-UA', name: 'Андрій Панасюк' },
+] as const;
+
+for (const { locale, browserLocale, name } of profileCases) {
+  test.describe(`profile /new (${locale})`, () => {
+    test.use({ locale: browserLocale });
+
+    test('loads directly and renders without errors', async ({ page }) => {
+      const errors = collectErrors(page);
+      await page.goto('./new');
+
+      await expect(page.getByTestId('profile-name')).toHaveText(name);
+      await expect(page.getByTestId('cv')).toHaveCount(0);
+      await expect(page.locator('html')).toHaveAttribute('lang', locale);
+      await page.screenshot({ path: `${SCREENSHOT_DIR}/new-${locale}.png`, fullPage: true });
+      expect(errors).toEqual([]);
+    });
+  });
+}
+
 test('language switcher changes the page language', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('./');
