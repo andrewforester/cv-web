@@ -1,5 +1,6 @@
 import {
   AGENT_TOOL_NAMES,
+  type AgentPageState,
   type AgentToolCall,
   type AgentToolExecutor,
   type AgentToolName,
@@ -19,14 +20,23 @@ export type AgentConfirm = (request: {
   input: Record<string, string>;
 }) => Promise<boolean>;
 
+/** What the visitor sees on the page right now: part of the snapshot sent with a question. */
+export type AgentPageView = Pick<AgentPageState, 'activeSection' | 'highlighted'>;
+
+/** Reads the mounted screen's view on demand (when a question is sent). */
+export type AgentViewSource = () => AgentPageView;
+
+const NO_VIEW: AgentPageView = { activeSection: null, highlighted: null };
+
 /**
- * Tools the page currently offers. Screens register handlers while mounted; the chat calls
+ * Tools the page currently offers, and what it shows (`view`). Screens register handlers while mounted; the chat calls
  * `execute`. Validation, availability and confirmation live here, not in the handlers.
  */
 export class AgentToolRegistry implements AgentToolExecutor {
   private catalogue = new Map<AgentToolName, AgentToolSpec>();
   private handlers = new Map<AgentToolName, AgentToolHandler>();
   private confirm: AgentConfirm | null = null;
+  private viewSource: AgentViewSource | null = null;
 
   constructor(specs: AgentToolSpec[] = []) {
     this.setCatalogue(specs);
@@ -50,6 +60,19 @@ export class AgentToolRegistry implements AgentToolExecutor {
     return () => {
       if (this.confirm === confirm) this.confirm = null;
     };
+  }
+
+  /** Sets the screen's view source; the returned function clears it (a newer source stays). */
+  setViewSource(source: AgentViewSource): () => void {
+    this.viewSource = source;
+    return () => {
+      if (this.viewSource === source) this.viewSource = null;
+    };
+  }
+
+  /** The section in view and the highlighted target; nothing while no screen is mounted. */
+  view(): AgentPageView {
+    return this.viewSource?.() ?? NO_VIEW;
   }
 
   specs(): AgentToolSpec[] {

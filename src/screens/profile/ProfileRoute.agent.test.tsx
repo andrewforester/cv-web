@@ -15,6 +15,15 @@ vi.mock('../../shared/agentTarget/pageActions', async (importOriginal) => ({
 const call = (name: AgentToolName, input: Record<string, unknown>) => ({ id: 'c1', name, input });
 const target = (id: string) => document.querySelector(`[data-agent-id="${id}"]`);
 
+/** Lays the page out for the reading line: `section:<above>` just above it, the rest below. */
+function stubSectionTops(above: string) {
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+    const id = this.getAttribute('data-agent-id');
+    const top = id === `section:${above}` ? 100 : id === 'section:header' ? -2000 : 2000;
+    return { top } as DOMRect;
+  });
+}
+
 async function renderProfile(locale: 'en' | 'uk' = 'en') {
   const profile = await new StaticCvRepository().getProfile('en');
   const registry = new AgentToolRegistry(buildProfileToolSpecs(profile));
@@ -36,7 +45,10 @@ describe('/new page agent tools', () => {
     vi.mocked(openLink).mockClear();
     Element.prototype.scrollIntoView = scrollIntoView;
   });
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
 
   it('registers the page tools once the profile is shown and unregisters them on unmount', async () => {
     const { registry, view } = await renderProfile();
@@ -132,5 +144,19 @@ describe('/new page agent tools', () => {
       ok: false,
       error: 'invalid_params',
     });
+  });
+
+  it("offers the section in view and the highlighted target to the chat's snapshot", async () => {
+    stubSectionTops('impact');
+    const { registry, view } = await renderProfile();
+    expect(registry.view()).toEqual({ activeSection: 'impact', highlighted: null });
+
+    await act(async () => {
+      await registry.execute(call('highlightElement', { target: 'impact:users' }));
+    });
+    expect(registry.view()).toEqual({ activeSection: 'impact', highlighted: 'impact:users' });
+
+    view.unmount();
+    expect(registry.view()).toEqual({ activeSection: null, highlighted: null });
   });
 });

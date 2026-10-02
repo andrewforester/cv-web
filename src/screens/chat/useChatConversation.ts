@@ -13,6 +13,7 @@ import {
   type ChatRequestV2,
 } from '../../data/chat';
 import { useCvRepository, useProfileRepository } from '../../data';
+import { useAgentRegistry } from '../../agent';
 import { useLocale, useStrings } from '../../i18n';
 import { useAgentExecutor } from './agentExecutor';
 import type { ChatAnnouncementInput, ChatTurn } from './ChatUiState';
@@ -79,6 +80,7 @@ export function useChatConversation({
   const cvRepository = useCvRepository();
   const profileRepository = useProfileRepository();
   const executor = useAgentExecutor();
+  const registry = useAgentRegistry();
   const { locale } = useLocale();
   const strings = useStrings(chatStrings);
   const [turns, dispatch] = useReducer(conversationReducer, []);
@@ -99,12 +101,10 @@ export function useChatConversation({
       locale,
       viewport: sheet ? 'mobile' : 'desktop',
       chat: sheet ? 'sheet' : 'card',
-      // TODO(GRA-34): the registry exposes the section in view and the highlighted target.
-      activeSection: null,
-      highlighted: null,
+      ...registry.view(),
       tools: executor.available(),
     }),
-    [page, locale, sheet, executor],
+    [page, locale, sheet, registry, executor],
   );
 
   const { waitForDecision, confirmAction, declineAction } = useConfirmationDecisions();

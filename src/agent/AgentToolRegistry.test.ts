@@ -98,4 +98,24 @@ describe('AgentToolRegistry', () => {
       expect.objectContaining({ input, spec: expect.objectContaining({ name: 'openContact' }) }),
     );
   });
+
+  it('reads the view from the screen when asked, and nothing once it is gone', async () => {
+    const registry = await makeRegistry();
+    expect(registry.view()).toEqual({ activeSection: null, highlighted: null });
+
+    let section: 'apps' | 'about' = 'apps';
+    const clear = registry.setViewSource(() => ({
+      activeSection: section,
+      highlighted: 'section:apps',
+    }));
+    expect(registry.view()).toEqual({ activeSection: 'apps', highlighted: 'section:apps' });
+    section = 'about';
+    expect(registry.view().activeSection).toBe('about');
+
+    const newer = registry.setViewSource(() => ({ activeSection: 'header', highlighted: null }));
+    clear();
+    expect(registry.view().activeSection).toBe('header');
+    newer();
+    expect(registry.view()).toEqual({ activeSection: null, highlighted: null });
+  });
 });

@@ -11,7 +11,10 @@ the data layer (`src/data/chat/agentTools.ts`), built from the CV on `/` or from
 `/new`, so the model can only name that page's sections and items. Screens register handlers for
 the tools they can perform while they are mounted (the CV and profile screens: scroll, highlight,
 contacts; the app shell: language); the chat (`src/screens/chat/`) executes the model's calls
-through it and provides the confirmation UI. It holds no page content of its own and has no UI.
+through it and provides the confirmation UI. The mounted screen also registers its **view** (the
+section in view and the highlighted target), which the chat reads into the page snapshot of each
+question, so the model knows what the visitor is looking at. It holds no page content of its own
+and has no UI.
 
 Guarantees: executing a call never throws; every outcome is a typed result the model can read
 (unknown tool, not available right now, invalid input, declined by the visitor, failed).

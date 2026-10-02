@@ -9,6 +9,15 @@ import { forestTestIds } from '../../shared/forest/testIds';
 const call = (name: AgentToolName, input: Record<string, unknown>) => ({ id: 'c1', name, input });
 const target = (id: string) => document.querySelector(`[data-agent-id="${id}"]`);
 
+/** Lays the page out for the reading line: `section:<above>` just above it, the rest below. */
+function stubSectionTops(above: string) {
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+    const id = this.getAttribute('data-agent-id');
+    const top = id === `section:${above}` ? 100 : id === 'section:header' ? -2000 : 2000;
+    return { top } as DOMRect;
+  });
+}
+
 async function renderCv() {
   const cv = await new StaticCvRepository().getCv('en');
   const registry = new AgentToolRegistry(buildAgentToolSpecs(cv));
@@ -32,6 +41,7 @@ describe('CV page agent tools', () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it('registers the CV tools once the CV is shown and unregisters them on unmount', async () => {
@@ -158,5 +168,19 @@ describe('CV page agent tools', () => {
       ok: true,
     });
     expect(open).toHaveBeenCalledWith(expect.stringContaining('t.me'), '_blank', 'noopener');
+  });
+
+  it("offers the section in view and the highlighted target to the chat's snapshot", async () => {
+    stubSectionTops('apps');
+    const { registry, view } = await renderCv();
+    expect(registry.view()).toEqual({ activeSection: 'apps', highlighted: null });
+
+    await act(async () => {
+      await registry.execute(call('highlightElement', { target: 'app:cync' }));
+    });
+    expect(registry.view()).toEqual({ activeSection: 'apps', highlighted: 'app:cync' });
+
+    view.unmount();
+    expect(registry.view()).toEqual({ activeSection: null, highlighted: null });
   });
 });

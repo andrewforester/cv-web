@@ -1,15 +1,17 @@
 import { useAgentTools, type AgentToolHandlers } from '../../agent';
-import type { Cv } from '../../data';
-import type { AgentContactChannel, AgentTargetId } from '../../data/chat';
-import { OK, openLink, targetToolHandlers } from '../../shared/agentTarget';
+import { AGENT_SECTION_IDS, type AgentContactChannel, type AgentTargetId } from '../../data/chat';
+import { OK, openLink, targetToolHandlers, useAgentPageView } from '../../shared/agentTarget';
 import { contactHref } from './contactLinks';
+import type { CvUiState } from './CvUiState';
 
 /**
- * Registers the CV page's tools while the CV is shown (`cv` set). Executors only dispatch: scroll
+ * Registers the CV page's tools while the CV is shown (`ready`). Executors only dispatch: scroll
  * through the `data-agent-id` element, highlight through state. `openContact` is `confirm: true`,
- * so the registry has already asked the visitor (chat-supplied callback) when it runs.
+ * so the registry has already asked the visitor (chat-supplied callback) when it runs. The page's
+ * view (section in view, highlighted target) goes into every question's snapshot.
  */
-export function useCvAgentTools(cv: Cv | null, highlight: (id: AgentTargetId) => void): void {
+export function useCvAgentTools(state: CvUiState, highlight: (id: AgentTargetId) => void): void {
+  const cv = state.status === 'ready' ? state.cv : null;
   const handlers: AgentToolHandlers = cv
     ? {
         ...targetToolHandlers(highlight),
@@ -20,4 +22,5 @@ export function useCvAgentTools(cv: Cv | null, highlight: (id: AgentTargetId) =>
       }
     : {};
   useAgentTools(handlers);
+  useAgentPageView(AGENT_SECTION_IDS, state.status === 'ready' ? state.highlightedId : null);
 }

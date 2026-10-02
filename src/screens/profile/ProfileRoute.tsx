@@ -11,6 +11,6 @@ interface ProfileRouteProps {
 /** Connects the profile state holder to the stateless screen and offers the page tools to the chat. */
 export function ProfileRoute({ metaBarEnd }: ProfileRouteProps) {
   const { state, highlight } = useProfileState();
-  useProfileAgentTools(state.status === 'ready' ? state.profile : null, highlight);
+  useProfileAgentTools(state, highlight);
   return <ProfileScreen state={state} metaBarEnd={metaBarEnd} />;
 }
