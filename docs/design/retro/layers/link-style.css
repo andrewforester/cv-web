@@ -1,8 +1,7 @@
-[data-retro-stage] address a {
+[data-retro-stage] :is([data-testid='forest-contact'], footer a) {
   color: #0000ee;
   text-decoration: underline;
 }
-
-[data-retro-stage] address img {
+[data-retro-stage] [data-testid='forest-contact'] [aria-hidden='true'] {
   display: none;
 }

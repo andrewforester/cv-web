@@ -448,7 +448,7 @@ Resolved: the defaults below stand; final answers are in section 9 → Decisions
 
 ## 9. As built and working rules
 
-Merged into `claude/retro-rebuild`: `main`'s Forest milestone 1 (GRA-89, see *Round 6* below); round 1 (POC) GRA-40 (tokens), GRA-41 (contract + manifest),
+Merged into `claude/retro-rebuild`: the broken page refitted to Forest (CV-90, *Round 7* below); `main`'s Forest milestone 1 (GRA-89, see *Round 6* below); round 1 (POC) GRA-40 (tokens), GRA-41 (contract + manifest),
 GRA-42 (server v3), GRA-43 (show screen), GRA-44 (shell + e2e); then GRA-46 (the 7-step show,
 `retro-2`, guard 4 for every step), GRA-47 (panel tokens), GRA-48 (the show as a lazy chunk). Round
 3, designed in GRA-49 and **built**: GRA-50 (R10: the 8-step, 36-chunk scenario and the per-chunk
@@ -765,9 +765,9 @@ re-composed, the chat restyle) was merged into this branch. What changed for the
   `type-family` → `--forest-font-{display,text,mono}` + the h1 letter spacing, `type-scale-*` →
   `--forest-type-<role>-size/line-height` (headings: name, h1, label; text: lead, body; cards:
   skills, period; details: title, role, meta bar). Guard 1 treats `--forest-font-*` as structural
-  (morph). The `docs/design/retro/layers/` copies still show the old CV's selectors until R23.
+  (morph). The `docs/design/retro/layers/` copies still showed the old CV's selectors until R23.
 
-**For R23** (mechanical refit only: these hit little or the wrong thing on Forest):
+**For R23** (done in CV-90, *Round 7*; mechanical refit only: these hit little or the wrong thing on Forest):
 - `experience-heads`: only `display: block` on the job head (Forest jobs have no logo to float);
   `squashed-logos` now squashes the app icons, its job-head grid is a no-op.
 - `header-layout`: centred text and inline contacts only (the old photo/intro grid areas are gone).
@@ -783,6 +783,36 @@ re-composed, the chat restyle) was merged into this branch. What changed for the
   (`--forest-card-sage/sand`), the app pills' stats, the footer CTA.
 - The token layers' mapping is by role, not by design; the type scale mixes clamp tokens with
   fixed retro sizes.
+
+### Round 7: the broken page refitted to Forest (CV-90)
+
+The 2002 homepage is drawn over the Forest `/` again: every layer changes something visible on
+Forest and every chunk moves the page toward it. What and why is SPEC → Damage layers → Forest
+refit, The fix list and Decisions 46–52; the mechanism is unchanged.
+
+- **Same shape:** 8 steps (`retro-3`, ids unchanged), 36 chunks, 32 layers, 3 decorations, 1
+  module. Renamed for what they hold: `squashed-logos` → `squashed-icons` (Forest has no company
+  logos), `about-spacing` → `card-padding` (Education/About as plain table areas),
+  `hide-header` → `hide-meta-bar` (the whole meta bar: handle, Show case button, switcher).
+- **New damage on Forest's own features:** the 84 px headline shrinks to the 2002 line
+  (`type-scale-headings`), gradient text goes flat (`heading-colors`), the sage/sand cards lose
+  fill and padding (`card-colors`, `card-padding`), section gaps shrink (`heading-rules`), Forest's
+  "—" bullets become square list items (`bullets`), the footer CTA becomes a small blue link
+  (`type-scale-details`, `link-style`), skills sit in 3 bevelled columns (`tech-grid`,
+  `tech-cells`).
+- **Dropped no-ops:** the job-head grid, the skills `::before`, shadows Forest doesn't have,
+  `--forest-gold` (nothing on the page reads it; the chat send button does, so it also yellowed the agent chat), the title line height, the meta-bar size.
+  `broken-icon` and `broken-cover` no longer set a radius (`squashed-icons` and `book-frames` do):
+  no two layers set one property on one element.
+- **Decorations:** the note follows `[data-testid='forest-photo']` once the layout is fixed (the
+  old `section:header > img` matched nothing on Forest, so the note stayed in the margin).
+- **Manifest texts:** intents and fallbacks of `fonts`, `colours`, `layout`, `images`, `cards`,
+  `chrome` and `links` name what Forest shows (app icons, rows and pills, the meta bar, the footer
+  link); the server fake script's `chrome` line follows. No contract change.
+- **Guard 1:** `flex-direction`, `flex-wrap` and `width` count as structural (part of the
+  `isStructural` debt below).
+- Show time on the fake clock: ≈ 90.9 s (Round 5: ≈ 91 s); the browser adds ≈ 5 s for the token
+  chunks' live `setProperty` lines, inside the e2e 60–110 s window.
 
 ### How to add or change a fix chunk
 
@@ -830,7 +860,10 @@ re-composed, the chat restyle) was merged into this branch. What changed for the
 - `--retro-highlight-flash: 100ms` is a screen-local custom property (`TODO(theme)` in
   `Highlight.module.css`): the token is missing in `tokens.css`.
 - Guard 1's `isStructural` heuristic (`scenario.test.ts`) doesn't cover every structural property
-  (e.g. `flex-direction`, `position`); widen it when a layer needs them (GRA-50 review note).
-- Analytics (Q1), the Show case / replay button (R24), mobile.
+  (e.g. `position`, `order`); widen it when a layer needs them (GRA-50 review note; CV-90 added
+  `flex-direction`, `flex-wrap`, `width`).
+- Analytics (Q1), mobile.
+- `docs/design/retro/mock.html` and renders 01–12 still show the pre-Forest CV (CV-90 keeps them
+  as history; the layer copies next to them are current).
 - The narrate request still asks the LLM for a `finale` line nobody sees since Round 5 (GRA-87);
   drop it with the next contract change.

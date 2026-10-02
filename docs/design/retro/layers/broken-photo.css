@@ -1,4 +1,4 @@
-[data-retro-stage] [data-agent-id='section:header'] > img {
+[data-retro-stage] [data-testid='forest-photo'] {
   object-position: -9999px 0;
   background: #ffffff var(--retro-broken-image) no-repeat 2px 2px;
   outline: 1px inset #c0c0c0;

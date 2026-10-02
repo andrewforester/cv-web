@@ -1,6 +1,6 @@
 :root {
-  --font-subsection-size: 15px;
-  --font-subsection-line-height: 18px;
-  --font-body-size: 11px;
-  --font-body-line-height: 15px;
+  --forest-type-lead-size: 12px;
+  --forest-type-lead-line-height: 16px;
+  --forest-type-body-size: 11px;
+  --forest-type-body-line-height: 15px;
 }

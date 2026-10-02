@@ -1,15 +1,15 @@
-[data-retro-stage] [data-agent-id='section:header'] {
-  grid-template-columns: auto 1fr;
-  grid-template-areas: 'photo intro' 'contacts contacts';
+[data-retro-stage] [data-testid='forest-hero'] {
+  flex-wrap: nowrap;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  gap: 16px;
   text-align: center;
 }
-
-[data-retro-stage] [data-agent-id='section:header'] address {
+[data-retro-stage] ul:has(> li > [data-testid='forest-contact']) {
   display: block;
-  justify-self: center;
+  text-align: center;
 }
-
-[data-retro-stage] [data-agent-id='section:header'] address p {
-  display: inline;
-  margin: 0 4px;
+[data-retro-stage] li:has(> [data-testid='forest-contact']) {
+  display: inline-block;
+  margin: 0 8px;
 }

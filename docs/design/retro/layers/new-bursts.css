@@ -1,6 +1,6 @@
 [data-retro-stage]
   :is(
-    [data-agent-id='section:latest-experience'] h2,
+    [data-agent-id='section:latest-experience'] h3,
     [data-agent-id='technology:ai-tools'] h3
   )::after {
   content: '';

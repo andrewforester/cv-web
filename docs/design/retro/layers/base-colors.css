@@ -1,6 +1,6 @@
 :root {
-  --color-bg: #ffffcc;
-  --color-text: #000000;
-  --color-text-secondary: #008000;
-  --color-text-muted: #808080;
+  --forest-bg: #ffffcc;
+  --forest-ink: #000000;
+  --forest-ink-2: #008000;
+  --forest-ink-3: #808080;
 }

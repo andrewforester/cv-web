@@ -1,10 +1,7 @@
-[data-retro-stage]
-  :is(h1, h2, [data-testid='cv-experience-entry'] h3, [data-agent-id='section:about'] h3) {
+[data-retro-stage] :is(h2, h3, [data-testid='forest-name']) {
   font-family: 'Times New Roman', Times, serif;
   font-weight: 700;
 }
-
-[data-retro-stage] :is([data-testid='cv-technology-card'], [data-testid='cv-app-card']) h3 {
+[data-retro-stage] [data-testid='forest-skill'] h3 {
   font-family: Arial, Helvetica, sans-serif;
-  font-weight: 700;
 }

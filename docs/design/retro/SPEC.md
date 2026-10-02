@@ -8,11 +8,13 @@ The look of the show. The mechanism (damage layers, decorations, runner, LLM, sh
 
 **Revision GRA-58 (1 Oct 2026)**: the show reads as a showcase of a developer's work, not a joke. Every agent line (greeting, hand-off, step narration, finale, scripted reply, notices, the LLM's voice) is reworded in a calm, professional tone that respects the 2002 build (Texts → Tone). Wording only: keys, structure and timing model unchanged; the old page's in-world texts stay.
 
+**Revision CV-90 (2 Oct 2026, R23)**: the site under the show is now the **Forest `/`** (`docs/design/forest/SPEC.md`), so the broken page is refitted to it: the same 2002 homepage (star tile, 640 px cream table, Verdana/Times/Comic, bevels, marquee, "NEW!", blue links, broken images, footer furniture), drawn over Forest's hooks and tokens, and every chunk moves it toward the Forest page. Still 8 steps, 36 chunks, 32 layers, 3 decorations; step ids unchanged (`retro-3`). Sections changed: Source, Screen layout (meta bar), Damage layers (Forest refit), Decorations (note anchor), Per section, The fix list, Chunk rhythm budget, Texts (intents, fallbacks, labels), Decisions 46–52. Where this file still names the pre-Forest CV (`cv-name`, Inter, navy, logos, renders 01–12), that is history.
+
 ## Source
 
 - Designed from the brief of Linear **GRA-38** and the project *Retro Rebuild* (30 Sep 2026); revised by **GRA-49**. **No screenshot or Figma frame exists.** The end state is today's design unchanged (`docs/design/cv/SPEC.md`, `src/theme/tokens.css`); the retro look comes from 1998–2006 references (below).
-- `layers/*.css`: the **damage layers, one per chunk** (32 files), ready to copy into `src/screens/retro/layers/` (they replace the 12 round-1 files there). They select only the architecture's hook contract (`[data-retro-stage]`, `data-testid`, `data-agent-id`, element types) and redefine only existing token names. They are the "old code" the console types, so they are written to read well, and they are Prettier-formatted as they will be in `src/`.
-- `mock.html`: a static mock. It renders today's CV with the **same element types and hooks** as `src/screens/cv` (styled by the real `src/theme/tokens.css` plus approximations of the CSS Modules), injects `layers/*.css` as `<link data-retro-layer>` at the end of `<head>`, draws the decorations and the target highlight in a portal, and generates the console commands from the layer files and the live `tokens.css` values, as the runner does. The round-4 tokens (Tokens below) are declared at the top of its `<style>` until the theme task lands them. Query params: `?state=broken|chat|console|step1-mid|step1|colours-mid|step2-mid|step2|rest-mid|finale|closing|end`, `&dock=0`, `&vh=<px>` (the viewport height the `body` plate prints; headless Chrome reports a shorter one). It reads files with XHR, so open it over http (`python3 -m http.server` in the repo root → `/docs/design/retro/mock.html`) or use `render.sh`. It shows moments, not motion: transitions are described below, not mocked (`closing` is one static frame of the close).
+- `layers/*.css`: the **damage layers, one per chunk** (32 files), a copy of `src/screens/retro/layers/` as refitted to Forest in CV-90 (the code is the source; keep the copy in step when a layer changes). They select only the architecture's hook contract (`[data-retro-stage]`, `data-testid`, `data-agent-id`, element types) and redefine only existing token names. They are the "old code" the console types, so they are written to read well, and they are Prettier-formatted as they will be in `src/`.
+- `mock.html`: a static mock of the **pre-Forest CV** (history since CV-90: its markup has the old hooks, so the refitted layers no longer hit it; the Forest show's reference renders are the web-check screenshots on CV-90: broken start, mid-show, end). It renders today's CV with the **same element types and hooks** as `src/screens/cv` (styled by the real `src/theme/tokens.css` plus approximations of the CSS Modules), injects `layers/*.css` as `<link data-retro-layer>` at the end of `<head>`, draws the decorations and the target highlight in a portal, and generates the console commands from the layer files and the live `tokens.css` values, as the runner does. The round-4 tokens (Tokens below) are declared at the top of its `<style>` until the theme task lands them. Query params: `?state=broken|chat|console|step1-mid|step1|colours-mid|step2-mid|step2|rest-mid|finale|closing|end`, `&dock=0`, `&vh=<px>` (the viewport height the `body` plate prints; headless Chrome reports a shorter one). It reads files with XHR, so open it over http (`python3 -m http.server` in the repo root → `/docs/design/retro/mock.html`) or use `render.sh`. It shows moments, not motion: transitions are described below, not mocked (`closing` is one static frame of the close).
 - `ref/`: the human's reference screenshots (GRA-54), 2× retina: `devtools-panel.png` (DevTools in a custom pink Chrome theme: tab strip, error/warning badges) and `devtools-elements-highlight.png` (a page with `body` selected in the Elements tab: blue overlay and the `body 971×735` plate). They show *what* it looks like; values come from the site's tokens or, where the site has no role, from Chrome's **default** light theme (blue accent), not the pink theme of the screenshot.
 - Renders are 1× (CSS px = image px), made by `render.sh` (headless Chrome, reduced motion, so marquee and carets hold still). **Render on macOS or Windows:** the retro faces (Verdana, Times New Roman, Comic Sans MS, Arial) are the "core fonts for the web", the console font is Menlo/Consolas, and Linux substitutes them.
 
@@ -84,7 +86,7 @@ x: 0                                              880                       1280
 - The page scrolls under the fixed dock. The show scrolls it to a chunk's target when the target is out of view (Show what changed → Scrolling).
 - **Highlight overlay**: show-owned, drawn in the portal over the page and under the dock; the **plate** sits on the first target's bottom-left corner (the page area's corner for a page-wide chunk).
 - **Shorter viewports** (desktop ≥ 1024 wide, any height): the chat card height is `min(var(--retro-chat-height), 100dvh - 280px)` so at least ≈ 200 px of console stays visible (e.g. 700 px tall → chat 392, console ≈ 220; 600 px tall → chat 320, console ≈ 192). Width is fixed; the show doesn't run below 1024 px (ARCHITECTURE Q2).
-- **During the show there's no AI chat button and no language switcher** (the switcher's app header is hidden by the `hide-header` layer). Both come back through fix chunks.
+- **During the show there's no AI chat button and no meta bar** (the Forest meta bar with `andrew.panasiuk / cv`, the Show case button and the language switcher is hidden by the `hide-meta-bar` layer; CV-90, was the app header's `hide-header`). Both come back through fix chunks.
 
 ## Timeline
 
@@ -130,7 +132,44 @@ Round 1 → GRA-49 split (old file → new files, same retro values unless noted
 
 With every layer on, the page is the round-1 broken page except for Transcenda's logo (squashed instead of broken). No two layers set the same property on the same element, so the cascade doesn't depend on the order layers are removed.
 
-Hooks used beyond the list in ARCHITECTURE → Hook contract: `address`, `figure`, `div` **only through `:has(…)` on a hook** (e.g. `div:has(> [data-testid='cv-technology-card'])` for the technology column), `:not()`, `::before`/`::after`. No Module classes, no `:nth-child`. The hook test (guard 2) covers them.
+**Forest refit (CV-90).** The table above is the GRA-49 history. On the Forest `/` the layers keep their ids and steps except three renames, and hit Forest's hooks (`forest-*` test ids, `cv-*` section test ids, `data-agent-id`, element types) and tokens (`--forest-*`):
+
+| Layer | Holds on Forest (retro → Forest) |
+|---|---|
+| `type-faces` | name, `h2`, `h3` in Times New Roman bold; skill titles in Arial |
+| `type-family` | `--forest-font-display`/`-text` Verdana, `-mono` Courier New, h1 letter spacing normal |
+| `type-scale-headings` | name 34, **hero headline 15/18** (Forest's 84 px h1 becomes the small 2002 headline), subtitle 13, section labels 24 |
+| `type-scale-text` | summary 12/16, body (bullets, card text) 11/15 |
+| `type-scale-cards` | skill title 12, items 11/14, periods 11 |
+| `type-scale-details` | company and education titles 13, roles 11, **footer CTA 13** |
+| `page-background` | `body` `#000033` + star tile, `main` `#FFFFCC` |
+| `base-colors` | `--forest-bg` `#FFFFCC`, ink `#000000`, ink-2 `#008000`, ink-3 `#808080` |
+| `heading-colors` | name `#800080`, `h2` `#CC0000`; **gradient text flat** (the headline's `.`, *AI Tools*, the CTA's ↗ take the text colour: 2002 had no gradient text) |
+| `tech-fills` | skill cells `#CCFFFF`, *Product mindset* `#FFFF00`, *AI Tools* `#FFCCFF` |
+| `page-frame` | stage padding 8, `main` 640 px with 6 px padding and `3px outset #C0C0C0`, the CV article without side padding |
+| `header-layout` | hero: photo left of the centred name, headline and tagline, no wrap; contacts in centred inline blocks |
+| `tech-grid` | skills in 3 equal columns 2 px apart, *Skills* title centred |
+| `experience-heads` | job rows as blocks: company, role, period stacked over the bullets |
+| `app-stack` | app pills stacked, indented 40 px, 4 px apart |
+| `broken-photo`, `broken-icon`, `broken-cover` | photo, Savant icon, Siddhartha cover "don't load" (white box, inset outline, broken-image icon) |
+| `squashed-icons` (was `squashed-logos`) | app icons 64 × 28, `object-fit: fill`, square (Forest has no company logos) |
+| `tech-cells` | skill rows as bevelled cells: `2px inset #C0C0C0`, padding 4, 2 px title gap |
+| `app-cells` | app pills as `#CCFFCC` boxes, `1px solid #000`, square, padding 4 |
+| `card-colors` | `--forest-line` `#808080`, `--forest-accent` `#0000FF` (rules, links, dashes, ring), `--forest-surface` `#C0C0C0`, Education/About fills (`--forest-card-sage/sand`) transparent |
+| `book-frames` | covers with `2px solid #000`, square |
+| `heading-rules` | sections 16 px apart (was Forest's 48–88), `h2` margins 16/8 and a `2px groove` rule |
+| `bullets` | summary lines as disc items, job bullets as square items (Forest's "—" hidden) |
+| `experience-rhythm` | job rows padded 8/12, bullets without gaps, 4 px under the head |
+| `card-padding` (was `about-spacing`) | Education and About without their 24 px card padding |
+| `new-bursts` | blinking "NEW!" after the latest job's company and after *AI Tools* |
+| `decor-room` | CV article 72 px top and 216 px bottom padding for the nav bar and footer |
+| `hide-meta-bar` (was `hide-header`) | the meta bar hidden |
+| `link-style` | contact rows and the footer CTA `#0000EE` underlined; the contact ↗ hidden |
+| `contact-labels` | bold `E-mail me:` and `Phone:` before the email and phone |
+
+Rules for every layer stay: one concern in one place, no two layers set the same property on the same element (so `broken-icon` and `broken-cover` no longer set a radius: `squashed-icons` and `book-frames` own it), only hooks, retro literals only here.
+
+Hooks used beyond the list in ARCHITECTURE → Hook contract: element types (`main`, `footer`, `h1`–`h3`, `ul`, `li`, `p`, `img`, `a`, `span`), `ul`/`li`/`div` **only through `:has(…)` on a hook** (e.g. `ul:has(> [data-testid='forest-skill'])` for the skills grid), direct children of a hook (`[data-testid='forest-job'] > div`), `[aria-hidden='true']` for Forest's decorative arrows and dashes, `:is()`, `::before`/`::after`. No Module classes, no `:nth-child`. The hook test (guard 2) covers them.
 
 Host variables (set by the layer host from bundled assets): `--retro-broken-image` → `assets/icon_broken_image.svg`, `--retro-tile-stars` → `assets/retro_tile_stars.svg`, `--retro-badge-new` → `assets/badge_new.svg`. The host also defines `@keyframes retro-blink { 50% { visibility: hidden; } }` unless reduced motion is on.
 
@@ -140,7 +179,7 @@ Host variables (set by the layer host from bundled assets): `--retro-broken-imag
 |---|---|---|---|
 | `top-bar` | top-left of `[data-testid='cv']`, its full width (inside the `decor-room` top padding) | **Nav**: `#000080` strip, 3 px padding, 8 px below; centred buttons `Home` `Resume` `My Apps` `Books` `Guestbook` `Links`: `#C0C0C0`, `2px outset #FFF`, padding 2 × 10, bold Verdana 11/14, black, underlined; not links. **Marquee**: black strip, 1 px `#FF0000` border, bold Comic Sans MS 13/20 `#FFFF00`, right to left, 18 s loop | chunk 29 |
 | `page-footer` | bottom of `[data-testid='cv']`, its full width, top edge 200 px above the bottom (inside the `decor-room` bottom padding) | 2 px groove rule on top, 8 px padding, centred, Verdana 11/16 black: `sign_under_construction.svg` (208 × 40) · "You are visitor number" + counter (6 digits, each a 12 px black cell, bold Courier New 14/18 `#33FF33`, 1 px gaps on `#404040`) · badges `badge_800x600.svg` and `badge_guestbook.svg` (88 × 31, 6 px apart) · webring line (underlined `#0000EE`, not links) · last-updated line | chunk 31 |
-| `oh-snap` | while `page-frame` is on: 28 px right of `main`, 40 px below the header top (x ≈ 676, y ≈ 128); after: over the photo's top-right corner (right edge 28 px past the photo, top 12 px above it), following the photo when `header-layout` moves it | 184 px wide, padding 10 × 12, `#FFFF99`, 1 px `#CC9900`, hard shadow `3px 3px 0 #000`, Comic Sans MS 13/17 black, rotated 2.5°; `Oh, snap!` 18/24 `#CC0000` on its own line. It sits in the margin, never over CV text, and leaves right after the photo loads | chunk 17 |
+| `oh-snap` | while `page-frame` is on: 28 px right of `main`, 40 px below the header top (x ≈ 676, y ≈ 128); after: over the photo's (`forest-photo`, CV-90) top-right corner (right edge 28 px past the photo, top 12 px above it), following the photo when `header-layout` moves it | 184 px wide, padding 10 × 12, `#FFFF99`, 1 px `#CC9900`, hard shadow `3px 3px 0 #000`, Comic Sans MS 13/17 black, rotated 2.5°; `Oh, snap!` 18/24 `#CC0000` on its own line. It sits in the margin, never over CV text, and leaves right after the photo loads | chunk 17 |
 
 **Leaving** (GRA-49): a removed decoration fades out and shrinks to 96 % over 250 ms (`--retro-leave-duration`, `--retro-close-easing`), then unmounts; reduced motion: at once.
 
@@ -148,18 +187,19 @@ The alt text of a broken image isn't shown (CSS can't read it; ARCHITECTURE → 
 
 ### Per section: what the visitor sees
 
+Forest `/` (CV-90):
+
 | Section | Broken (all layers) |
 |---|---|
-| Frame | star tile; a cream 640 px table with an outset grey border at x = 8, y = 8; nav bar and marquee at its top |
-| Header | broken photo box (120 × 120) on the left; purple Times name, Verdana headline and italic tagline centred beside it; `E-mail me: …  Phone: …` centred below in blue underlined links, no icons |
-| Summary | red Times title with a groove rule; six disc bullets, Verdana 11 |
-| Technologies | centred red title; 3 columns of bevelled cells (cyan, one yellow, one pink), 2 px apart; "NEW!" after *AI Tools* |
-| Latest relevant experience | "NEW!" after the title; Transcenda's logo squashed to 64 × 28 and floated left; company, role (green), dates (green) on their own lines; square bullets |
-| Apps | stacked green cards with black borders, indented 40 px; Savant icon broken |
-| Education | two Verdana 13 lines |
-| About me | books 12 px apart with black borders, Siddhartha broken; Interests |
-| Previous Experience | squashed 64 × 28 logos floated left; square bullets; entries 12 px apart |
-| Footer | construction sign, counter `004271`, two badges, webring, "Last updated: 14.03.2002" |
+| Frame | star tile; a cream 640 px table with an outset grey border at x = 8, y = 8; nav bar and marquee at its top; no meta bar |
+| Header | broken photo box (148 × 148) on the left; purple Times name, bold Verdana headline (15 px) and green tagline centred beside it; a blue 2 px rule |
+| Summary | six disc bullets, Verdana 12 |
+| Contacts | centred blocks: `E-mail me:` + address, `Phone:` + number, `WhatsApp`, `Telegram`, blue underlined links, no ↗ |
+| 01 — Skills | red Times title, centred, groove rule; 3 columns of bevelled cells (cyan, one yellow, one pink), 2 px apart; "NEW!" after *AI Tools* |
+| 02 — Experience | red Times title with a groove rule; each job as a block: company in Times, "NEW!" after the latest one, role and period in green/grey Verdana, square bullets; grey rules between jobs; app pills as stacked green boxes indented 40 px, icons squashed to 64 × 28, Savant's broken |
+| 03 — Education | plain (no card): red Times title, Times degree, green place line |
+| 04 — About me | plain: books with black borders, Siddhartha broken; interests in Verdana 11 |
+| Footer | blue 2 px rule; `Let's build something ↗` as a 13 px blue underlined link; then the construction sign, counter `004271`, two badges, webring, "Last updated: 14.03.2002" |
 | Margin | "Oh, snap!" note right of the table |
 
 ## Agent chat panel (GRA-54; was Terminal chat panel)
@@ -267,80 +307,82 @@ Round 1's 3 steps (`tokens`, `layout`, `rest`) and GRA-46's 7 steps are supersed
 
 Columns: **Chars** = characters the console types for the chunk, its `// → <label>` line included (GRA-54 commands; was **Lines**, the layer file's code lines); **Target** = the `// → <label>` line and what the highlight marks (selectors under `[data-retro-stage]`; `page` = page-wide); **Motion** = how the change lands (Transitions); **s** = the chunk's time at normal motion (typing + 1 s beat).
 
+Forest `/` (CV-90). Selectors are hooks under `[data-retro-stage]`; token values on the right are Forest's (`src/theme/tokens.css`), read live by the console.
+
 **Step 1 · `fonts` · title `fonts`** · narration: *Starting with typography: replacing the system fonts of the time with the current typeface and type scale.*
 
-| # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
 |---|---|---|---|---|---|---|
-| 1 | `type-faces` | 84 | headings in Times New Roman bold, card titles in Arial bold → the page font | headings: `[data-testid='cv-name']`, `h2` | morph | 1.8 |
-| 2 | `type-family` | 201 | `--font-family` Verdana, `--letter-spacing` normal → Inter, 0.02em | page | morph | 2.3 |
-| 3 | `type-scale-headings` | 260 | name 34/38, section titles 24/28 → 24/24, 21/22 | name & titles: `[data-testid='cv-name']`, `h2` | fade | 2.3 |
-| 4 | `type-scale-text` | 262 | subsection 15/18, body 11/15 → 17/17, 15/22 | body text: `[data-testid='cv-summary']` | fade | 2.3 |
-| 5 | `type-scale-cards` | 263 | card title 12, card body 11/14, meta 11 → 15, 14/20, 14 | cards & dates: `[data-agent-id='section:technologies']` | fade | 2.3 |
-| 6 | `type-scale-details` | 274 | education 13/16, book title 11, author 10 → 17/21, 15, 13 | education & books: `[data-agent-id='section:education']`, `[data-agent-id='section:about']` | fade | 2.3 |
+| 1 | `type-faces` | 84 | name, section labels and `h3`s in Times New Roman bold, skill titles in Arial → Onest / JetBrains Mono | headings: `[data-testid='forest-name']`, `h2` | morph | 1.8 |
+| 2 | `type-family` | 449 | `--forest-font-display`/`-text` Verdana, `-mono` Courier New, h1 letter spacing normal → Onest, IBM Plex Sans, JetBrains Mono, −0.045em | page | morph | 2.3 |
+| 3 | `type-scale-headings` | 388 | name 34, headline 15/18, subtitle 13, labels 24 → 19–21, 40–84 / 0.98, 19–24, 14 | name & headline: `[data-testid='forest-name']`, `[data-testid='forest-headline']`, `h2` | fade | 2.3 |
+| 4 | `type-scale-text` | 298 | summary 12/16, body 11/15 → 18–20 / 1.55, 16 / 1.55 | body text: `[data-testid='forest-lead']` | fade | 2.3 |
+| 5 | `type-scale-cards` | 302 | skill title 12, items 11/14, periods 11 → 16, 15 / 1.55, 13 | skills & dates: `[data-agent-id='section:technologies']` | fade | 2.3 |
+| 6 | `type-scale-details` | 243 | company 13, role 11, footer CTA 13 → 20, 15, 28–52 | experience & education: `[data-agent-id='section:latest-experience']`, `[data-agent-id='section:education']` | fade | 2.3 |
 
 **Step 2 · `colours` · title `colours`** · narration: *Colours: replacing the tiled background and the period palette with the current colour scheme, for readable contrast.*
 
-| # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
 |---|---|---|---|---|---|---|
 | 7 | `page-background` | 85 | `body` `#000033` + star tile, `main` `#FFFFCC` → plain page | page | morph | 1.9 |
-| 8 | `base-colors` | 255 | `--color-bg` `#FFFFCC`, text `#000000`, secondary `#008000`, muted `#808080` → white, navy, blue-grey, muted navy | page | fade | 2.3 |
-| 9 | `heading-colors` | 93 | name `#800080`, section titles `#CC0000` → navy | name & titles: `[data-testid='cv-name']`, `h2` | fade | 1.9 |
-| 10 | `tech-fills` | 88 | technology cells `#CCFFFF`, *Product mindset* `#FFFF00`, *AI Tools* `#FFCCFF` → white | technologies: `[data-testid='cv-technology-card']` | fade | 1.9 |
+| 8 | `base-colors` | 230 | `--forest-bg` `#FFFFCC`, ink `#000000`, ink-2 `#008000`, ink-3 `#808080` → white, forest inks | page | fade | 2.3 |
+| 9 | `heading-colors` | 93 | name `#800080`, labels `#CC0000`, gradient text flat → ink, accent green, the green-gold gradient back | name & titles: `[data-testid='forest-name']`, `h2` | fade | 1.9 |
+| 10 | `tech-fills` | 82 | skill cells `#CCFFFF`, *Product mindset* `#FFFF00`, *AI Tools* `#FFCCFF` → no fill | skills: `[data-testid='forest-skill']` | fade | 1.8 |
 
 **Step 3 · `layout` · title `layout`** · narration: *Layout: replacing the fixed-width table layout, standard practice at the time, with a centred column and grids.*
 
-| # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
 |---|---|---|---|---|---|---|
-| 11 | `page-frame` | 80 | shell without max-width, `margin: 0`, `padding: 8px`; `main` 640 px wide, `padding: 6px`, `3px outset #C0C0C0` → centred column | page | morph | 1.8 |
-| 12 | `header-layout` | 85 | photo left of the centred intro, contacts in one centred line → today's header grid, photo right, contacts under it | header: `[data-agent-id='section:header']` | morph | 1.9 |
-| 13 | `tech-grid` | 87 | *Technologies* title centred, grid gaps 2/2 → left title, gaps 30/18 | technologies: `[data-agent-id='section:technologies']` | morph | 1.9 |
-| 14 | `experience-heads` | 92 | heads as blocks, logo floated left → grid rows, dates right | experience: `[data-agent-id='section:latest-experience'] [data-testid='cv-experience-entry']` | morph | 1.9 |
-| 15 | `app-stack` | 79 | apps stacked and indented 40 px, 4 px apart → the apps row | apps: `[data-agent-id='section:apps']` | morph | 1.8 |
+| 11 | `page-frame` | 80 | stage padding 8, `main` 640 px with an outset border, no side padding → the centred 1080 px column | page | morph | 1.8 |
+| 12 | `header-layout` | 85 | photo left of the centred intro, contacts in centred blocks → hero with the photo right, contact rows | header: `[data-testid='forest-hero']` | morph | 1.9 |
+| 13 | `tech-grid` | 81 | 3 equal columns 2 px apart, title centred → the skills grid | skills: `[data-agent-id='section:technologies']` | morph | 1.8 |
+| 14 | `experience-heads` | 92 | job heads stacked over the bullets → company / role / period beside the bullets | experience: `[data-testid='forest-job']` | morph | 1.9 |
+| 15 | `app-stack` | 79 | app pills stacked, indented 40 px, 4 px apart → the pill row | apps: `[data-agent-id='section:apps']` | morph | 1.8 |
 
-**Step 4 · `images` · title `images`** · narration: *Images: correcting the asset paths and aspect ratios, so the photo, logos and covers display properly.*
+**Step 4 · `images` · title `images`** · narration: *Images: correcting the asset paths and aspect ratios, so the photo, app icons and covers display properly.*
 
-| # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
 |---|---|---|---|---|---|---|
-| 16 | `broken-photo` | 83 | photo "doesn't load": bitmap pushed out, white box, 1 px inset outline, broken-image icon, radius 0 → the round photo | photo: `[data-agent-id='section:header'] > img` | morph | 1.8 |
+| 16 | `broken-photo` | 83 | photo "doesn't load": white box, inset outline, broken-image icon, square → the round photo with its green ring | photo: `[data-testid='forest-photo']` | morph | 1.8 |
 | 17 | `oh-snap` (decoration) | 52 | the note → gone | note: `#oh-snap` | leave | 1.6 |
-| 18 | `squashed-logos` | 85 | every experience logo 64 × 28 `object-fit: fill`, radius 0; logo column widened → today's logos | logos: `[data-testid='cv-experience-entry'] img` | morph | 1.9 |
+| 18 | `squashed-icons` | 89 | app icons 64 × 28 `object-fit: fill`, square → 36 px round icons | app icons: `[data-testid='forest-app'] img` | morph | 1.9 |
 | 19 | `broken-icon` | 88 | Savant icon broken → loads | Savant icon: `[data-agent-id='app:savant'] img` | morph | 1.9 |
 | 20 | `broken-cover` | 88 | Siddhartha cover broken → loads | book cover: `[data-agent-id='book:siddhartha'] img` | morph | 1.9 |
 
-**Step 5 · `cards` · title `cards`** · narration: *Cards: converting the bevelled table cells into cards, which group related content more clearly.*
+**Step 5 · `cards` · title `cards`** · narration: *Cards: converting the bevelled table cells into rows, pills and cards, which group related content more clearly.*
 
-| # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
 |---|---|---|---|---|---|---|
-| 21 | `tech-cells` | 88 | cells: `2px inset #C0C0C0`, radius 0, no shadow, padding 4, 2 px title gap; star and AI gradient hidden → cards with radius 12, shadow, star, gradient | technologies: `[data-testid='cv-technology-card']` | morph | 1.9 |
-| 22 | `app-cells` | 79 | app cards `#CCFFCC`, `1px solid #000`, radius 0, no shadow, padding 4; square icons → app cards | apps: `[data-testid='cv-app-card']` | fade | 1.8 |
-| 23 | `card-colors` | 287 | `--color-card-border` `#808080`, `--color-highlight` `#FFFF00`, `--color-app-accent` `#0000FF`, `--color-app-border` `#000000` → green borders, gold highlight, green accent | card borders: `[data-testid='cv-technology-card']`, `[data-testid='cv-app-card']` | fade | 2.3 |
-| 24 | `book-frames` | 82 | covers with `2px solid #000`, no shadow → shadows | books: `[data-testid='cv-book'] img` | fade | 1.8 |
+| 21 | `tech-cells` | 82 | skill cells: `2px inset #C0C0C0`, padding 4, 2 px title gap → rows under a 1 px line | skills: `[data-testid='forest-skill']` | fade | 1.8 |
+| 22 | `app-cells` | 79 | app pills as `#CCFFCC` boxes, `1px solid #000`, square, padding 4 → round pills | apps: `[data-testid='forest-app']` | fade | 1.8 |
+| 23 | `card-colors` | 292 | `--forest-line` `#808080`, `--forest-accent` `#0000FF`, `--forest-surface` `#C0C0C0`, Education/About fills transparent → forest line, green accent, surface, sage and sand cards | cards: `[data-testid='forest-app']`, `[data-agent-id='section:education']`, `[data-agent-id='section:about']` | fade | 2.3 |
+| 24 | `book-frames` | 82 | covers with `2px solid #000`, square → 1 px line border, radius 6 | books: `[data-testid='forest-book'] img` | fade | 1.8 |
 
 **Step 6 · `spacing` · title `spacing & lists`** · narration: *Spacing: replacing the horizontal rules and bullet lists with consistent section spacing, so the page is easier to scan.*
 
-| # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
 |---|---|---|---|---|---|---|
-| 25 | `heading-rules` | 93 | `h2` margins 16/8 and a `2px groove` rule → 36/12, no rule | section titles: `h2` | fade | 1.9 |
-| 26 | `bullets` | 80 | summary lines and experience bullets as list items (disc / square, 28 px indent) → today's lines | bullets: `[data-testid='cv-summary']`, `[data-agent-id='section:latest-experience']` | morph | 1.8 |
-| 27 | `experience-rhythm` | 93 | entries 12 px apart, bullets 2 px under the head → 30 and 9 | experience: `[data-agent-id='section:latest-experience']` | fade | 1.9 |
-| 28 | `about-spacing` | 87 | About subtitles 12/4, books 12 px apart → today's | about me: `[data-agent-id='section:about']` | fade | 1.9 |
+| 25 | `heading-rules` | 93 | sections 16 px apart, `h2` margins 16/8 and a `2px groove` rule → 48–88 px apart, no rule | section titles: `h2` | fade | 1.9 |
+| 26 | `bullets` | 80 | summary lines as disc items, job bullets as square items → plain lines, "—" bullets | bullets: `[data-testid='forest-lead']`, `[data-agent-id='section:latest-experience']` | morph | 1.8 |
+| 27 | `experience-rhythm` | 93 | job rows padded 8/12, bullets without gaps → 20 px rows, 8 px between bullets | experience: `[data-testid='forest-job']` | fade | 1.9 |
+| 28 | `card-padding` | 95 | Education and About without padding → 24 px cards | education & about: `[data-agent-id='section:education']`, `[data-agent-id='section:about']` | fade | 1.9 |
 
-**Step 7 · `chrome` · title `2002 chrome`** · narration: *Removing the navigation bar, marquee and footer badges of the original build, and restoring the language switcher.*
+**Step 7 · `chrome` · title `2002 chrome`** · narration: *Removing the navigation bar, marquee and footer badges of the original build, and restoring the meta bar.*
 
-| # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
 |---|---|---|---|---|---|---|
 | 29 | `top-bar` (decoration) | 55 | nav bar and marquee → gone | nav bar: `#top-bar` | leave | 1.6 |
-| 30 | `new-bursts` | 87 | blinking "NEW!" bursts after *Latest relevant experience* and *AI Tools* → gone | NEW! badges: `[data-agent-id='technology:ai-tools']`, `[data-agent-id='section:latest-experience'] h2` | morph | 1.9 |
+| 30 | `new-bursts` | 87 | blinking "NEW!" after the latest company and *AI Tools* → gone | NEW! badges: `[data-agent-id='section:latest-experience'] h3`, `[data-agent-id='technology:ai-tools'] h3` | morph | 1.9 |
 | 31 | `page-footer` (decoration) | 58 | construction sign, counter, badges, webring → gone | footer: `#page-footer` | leave | 1.6 |
-| 32 | `decor-room` | 80 | `[data-testid='cv']` 72 px top and 216 px bottom padding → none | page | fade | 1.8 |
-| 33 | `hide-header` | 94 | app header (language switcher) hidden → back | language switcher: `[data-testid='app-header']` | morph | 1.9 |
+| 32 | `decor-room` | 80 | CV article 72 px top and 216 px bottom padding → Forest's | page | fade | 1.8 |
+| 33 | `hide-meta-bar` | 87 | meta bar (`andrew.panasiuk / cv`, Show case, language switcher) hidden → back | meta bar: `[data-testid='forest-meta-bar']` | morph | 1.9 |
 
-**Step 8 · `links` · title `links & contacts`** · narration: *Finally, contacts: restoring the contact links and icons, and loading the AI chat assistant.*
+**Step 8 · `links` · title `links & contacts`** · narration: *Finally, links: restoring the contact rows and the footer link, and loading the AI chat assistant.*
 
-| # | Chunk | Chars | Holds (retro) → today | Target | Motion | s |
+| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
 |---|---|---|---|---|---|---|
-| 34 | `link-style` | 84 | contact links `#0000EE` underlined, contact icons hidden → text-colour links with icons | contacts: `[data-agent-id='section:header'] address` | morph | 1.8 |
-| 35 | `contact-labels` | 88 | bold `E-mail me:` and `Phone:` labels → gone | contacts: `[data-agent-id='section:header'] address` | morph | 1.9 |
+| 34 | `link-style` | 81 | contacts and the footer CTA `#0000EE` underlined, contact ↗ hidden → ink rows with green ↗, the ink CTA | links: `ul:has(> li > [data-testid='forest-contact'])`, `footer a` | morph | 1.8 |
+| 35 | `contact-labels` | 88 | bold `E-mail me:` and `Phone:` labels → gone | contacts: `ul:has(> li > [data-testid='forest-contact'])` | morph | 1.9 |
 | 36 | `ai-chat` (module) | 44 | the AI chat button loads (it sits under the chat card until the end of the show) | none | none | 1.6 |
 
 Finale (fallback): `All changes are applied. The site is up to date; the chat button in the bottom right corner answers questions about Andrew.`
@@ -367,18 +409,18 @@ Budget (Round 5, GRA-87): measured on the runner's fake clock (`showTiming.test.
 | Part | Time |
 |---|---:|
 | Intro: 1 s alone · `That's how this CV would look like in 2001.` (≈ 1.1 s) · 1 s · `Now let's fix it.` (≈ 0.4 s) · 0.8 s · DevTools open 0.8 s | 5.1 s |
-| 1 fonts (6 chunks) | 11.9 s |
-| 2 colours (4) | 9.4 s |
+| 1 fonts (6 chunks) | 12.0 s |
+| 2 colours (4) | 9.3 s |
 | 3 layout (5) | 11.3 s |
-| 4 images (5) | 11.0 s |
-| 5 cards (4) | 9.0 s |
-| 6 spacing & lists (4) | 9.7 s |
-| 7 2002 chrome (5) | 10.9 s |
+| 4 images (5) | 11.1 s |
+| 5 cards (4) | 9.1 s |
+| 6 spacing & lists (4) | 9.8 s |
+| 7 2002 chrome (5) | 10.8 s |
 | 8 links & contacts (3) | 7.2 s |
 | Close: `✓ All fixes applied.` 1 s · DevTools collapses 0.4 s · 1 s · `All good now.` (≈ 0.3 s) · 2 s · the chat collapses 0.5 s | 5.2 s |
 | **Total** | **≈ 91 s** |
 
-Each step now includes its narration comment (≈ 1–1.3 s of typing for the fallbacks) and the 0.6 s read pause. When every targeted chunk waits the 0.8 s camera cap the show takes ≈ 92 s; with reduced motion ≈ 78 s. The intro (−4.2 s) and the close (−0.7 s) are shorter than in GRA-54, which pays for the comments, so the total stays ≈ 91 s. **The e2e motion-on timing smoke keeps its budget**: it fails past 110 s of show time (≈ 20 % over the total for the real chat chunk and the camera) or under 60 s.
+CV-90 (Forest refit) re-measured the same way: ≈ 90.9 s, the steps within 0.1 s of Round 5. The fake clock reads no live token values, so its token chunks type only their first two lines; in the browser the 7 token chunks print their `setProperty` lines and hit the 1.3 s cap (≈ +5 s, ≈ 96 s), which the e2e motion-on run measures inside its 60–110 s window. Each step now includes its narration comment (≈ 1–1.3 s of typing for the fallbacks) and the 0.6 s read pause. When every targeted chunk waits the 0.8 s camera cap the show takes ≈ 92 s; with reduced motion ≈ 78 s. The intro (−4.2 s) and the close (−0.7 s) are shorter than in GRA-54, which pays for the comments, so the total stays ≈ 91 s. **The e2e motion-on timing smoke keeps its budget**: it fails past 110 s of show time (≈ 20 % over the total for the real chat chunk and the camera) or under 60 s.
 
 Visitor holds (typing ≤ 15 s, reply streaming ≤ 12 s) come on top; they happen only between chunks. Before GRA-49 the 7-step show took ≈ 71 s with 5 s of typing per step; the new show is ≈ 20 s longer because each of its 36 changes gets its own beat. The close delay after the finale drops from 4 s to 3 s to stay near 90 s.
 
@@ -567,16 +609,16 @@ Retro values of the **page** are not tokens: they live in the layer files and di
 - Example exchange in the renders (not scripted, written in the new tone): `wow, a marquee! haven't seen one in 20 years` → `It belongs to the 2002 layout. It goes in the cleanup step, with the hit counter.` · `much better already` → `Thank you. The layout is next: a centred column and grids.`
 
 **Steps** (manifest, scenario data): titles `fonts` · `colours` · `layout` · `images` · `cards` · `spacing & lists` · `2002 chrome` · `links & contacts`; narration fallbacks in the fix list. LLM intents (one English line each, for the narrate prompt):
-- `fonts`: Replace the 2002 system fonts (Verdana, Times New Roman, Arial) and small text sizes with today's typeface and type scale.
-- `colours`: Replace the star-field background and the cream, black, red, purple and cyan colours with today's palette.
-- `layout`: Move the page from the fixed-width, left-aligned table layout into the centred column and grids.
-- `images`: Correct the image paths and the logo aspect ratios, and remove the "Oh, snap!" note.
-- `cards`: Turn the bevelled table cells into today's cards with borders, radius and shadows.
+- `fonts`: Replace the 2002 system fonts (Verdana, Times New Roman, Arial, Courier New) and small text sizes with today's typeface and type scale.
+- `colours`: Replace the star-field background and the cream, black, red, purple and cyan colours with today's palette and gradient accents.
+- `layout`: Move the page from the fixed-width, left-aligned table layout into the centred column, rows and grids.
+- `images`: Correct the image paths and the aspect ratios of the app icons, and remove the "Oh, snap!" note.
+- `cards`: Turn the bevelled table cells into today's skill rows, app pills and cards, with their borders, radius and colours.
 - `spacing`: Remove the horizontal rules and bullet lists and restore today's section spacing.
-- `chrome`: Remove the nav bar, marquee, "NEW!" bursts, hit counter, badges and webring, and bring back the language switcher.
-- `links`: Restore the contact links and icons, and load the real AI chat button.
+- `chrome`: Remove the nav bar, marquee, "NEW!" bursts, hit counter, badges and webring, and bring back the meta bar with the language switcher.
+- `links`: Restore the contact rows with their arrows and the footer link, and load the real AI chat button.
 
-**Target labels** (scenario data, after `// → `): `headings` · `page` · `name & titles` · `body text` · `cards & dates` · `education & books` · `technologies` · `header` · `experience` · `apps` · `photo` · `note` · `logos` · `Savant icon` · `book cover` · `card borders` · `books` · `section titles` · `bullets` · `about me` · `nav bar` · `NEW! badges` · `footer` · `language switcher` · `contacts`.
+**Target labels** (scenario data, after `// → `; CV-90): `headings` · `page` · `name & headline` · `body text` · `skills & dates` · `experience & education` · `name & titles` · `skills` · `header` · `experience` · `apps` · `photo` · `note` · `app icons` · `Savant icon` · `book cover` · `cards` · `books` · `section titles` · `bullets` · `education & about` · `nav bar` · `NEW! badges` · `footer` · `meta bar` · `links` · `contacts`.
 
 **DevTools console** (strings and generated text):
 - Chrome (decoration, `aria-hidden`): tabs `Elements` · `Console` · `Sources`; filter bar `top` · `Filter` · `Default levels`. Panel label (visually hidden, on the section) `Developer tools: live fix console`; log label `Live fix console`.
@@ -634,7 +676,7 @@ Fonts: Inter (shipped). The console font is the system monospace (`--devtools-co
 
 - CV content: unchanged, from `CvRepository`.
 - Scenario: step ids, titles, intents, narration fallbacks and finale (manifest, `src/data/retro/scenario.ts`); per step its chunks in order (`src/screens/retro/scenario.ts`): the effect, the target (label + selectors, or `page`, or none) and the motion (`fade` / `morph`; decorations always leave, modules have none). The fix list above is that data.
-- Which images break and which squash is layer content (`broken-photo`, `squashed-logos`, `broken-icon`, `broken-cover`). The counter number is fixed text.
+- Which images break and which squash is layer content (`broken-photo`, `squashed-icons`, `broken-icon`, `broken-cover`). The counter number is fixed text.
 
 ## Shared components (GRA-54)
 
@@ -693,7 +735,7 @@ The visitor starts the show with a **"Show case"** text control in the Forest me
 7. **No alt text on broken images** (icon + box only), following the architecture.
 8. **Decorations anchor to hooks** and never cover CV text; the note moves from the margin to the photo corner when the page frame is fixed.
 9. **Minimise** is the only window control; no close (no skip in scope). **Superseded by GRA-54** (see 23–40).
-10. **Broken images**: 3 (photo, Savant, Siddhartha); every experience logo squashed (GRA-49; was 4 with Transcenda broken).
+10. **Broken images**: 3 (photo, Savant, Siddhartha); every experience logo squashed (GRA-49; was 4 with Transcenda broken). On Forest (CV-90) the app icons are squashed instead: Forest shows no company logos.
 11. **Jokes stay in the furniture**; CV text is never altered or mocked.
 12. **Atomic chunks** (GRA-49): one layer, decoration or module per chunk; one concern, one place; ≤ 8 code lines where possible, 9–13 for a few one-place concerns (header layout, technology cells, the bursts). 32 layer files replace the 12.
 13. **Chunk rhythm**: type at 240 chars/s clamped to 0.4–1.3 s, apply at the last character, 1 s beat; narration 0.6 s ahead of a step's first chunk.
@@ -729,3 +771,10 @@ The visitor starts the show with a **"Show case"** text control in the Forest me
 43. **Silent chat while fixing:** the step narration (LLM line or fallback, contract unchanged) is typed into DevTools as `// …` comments wrapped at 52 characters, at the code rate (100 chars/s, clamped 0.6–2 s), then 0.6 s to read; the first chunk continues in the same prompt, so the comment is part of its echo. Comments change nothing, so code shown = code applied holds. Visitor replies still appear in the chat.
 44. **Close sequence:** `✓ All fixes applied.` → 1 s → DevTools collapses (300 ms slide, the page re-centres over 400 ms) → 1 s → `All good now.` → 2 s → the chat collapses into the launcher (500 ms; was 650 ms with DevTools). Reduced motion: same order and pauses, no motion. The finale line goes; the LLM's `finale` narration is still requested but not shown (dropping it is a contract change for a later task).
 45. **Show case button (CV-91):** a meta bar text control on `/` (en, ≥ 1024 px), before the language switcher, calls the shell's `start`; hidden otherwise, not on `/new`. No hover prefetch of the show chunk (R20 exposes none).
+46. **Forest refit (CV-90):** the broken page is the same 2002 homepage drawn over the Forest `/`: 32 layers on Forest hooks and `--forest-*` tokens, same steps, chunk count and step ids (`retro-3`), three layers renamed for what they now hold (`squashed-icons`, `card-padding`, `hide-meta-bar`). Every layer changes something visible on Forest; no-op rules from R22 (the job-head grid, the skills `::before`, shadows Forest doesn't have, `--forest-gold` (read only by the chat send button, which it turned yellow), the title line height) are gone.
+47. **Headline:** Forest's 84 px hero h1 is the 2002 page's small bold Verdana line under the purple name (`type-scale-headings`), so the fonts step grows it back; the purple Times name keeps the 2002 hierarchy.
+48. **Gradient text** (the headline's `.`, *AI Tools*, the CTA's ↗) is flat in the text colour while `heading-colors` is on: gradient text did not exist in 2002. It returns in the colours step.
+49. **Education and About** are plain table areas (transparent fills from `card-colors`, no padding from `card-padding`); the sage and sand cards come back in the cards and spacing steps.
+50. **Meta bar:** `hide-meta-bar` hides the whole Forest meta bar (handle, Show case button, language switcher) until the chrome step; a Show case click after it returns is a no-op while the show runs (`useShowCase.start`).
+51. **Contacts** sit in centred inline blocks while `header-layout` is on (one 2002 line where it fits, two at 640 px), blue and labelled until the links step; Forest's contact rows come back in steps 3 and 8.
+52. **Guard 1:** `flex-direction`, `flex-wrap` and `width` count as structural (they can't interpolate to Forest's layout), so `page-frame` and `header-layout` morph.
