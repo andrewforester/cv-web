@@ -1,6 +1,7 @@
 import type { ShowScenarioId } from '../../data/retro';
 import type { ShowSource } from './engine/consolePlan';
 import { CV_ANCHORS, CV_COPY, RETRO_SHOW } from './scenario';
+import { PROFILE_ANCHORS, PROFILE_COPY, RETRO_NEW_SHOW } from './scenarioNew';
 import type { RetroStrings } from './strings';
 
 /** Stable hooks of the page under the show the decorations anchor on (unprefixed selectors). */
@@ -34,6 +35,12 @@ export interface RetroShowSource {
  */
 export const SHOW_SOURCES: Partial<Record<ShowScenarioId, RetroShowSource>> = {
   'retro-3': { show: RETRO_SHOW, page: 'cv', anchors: CV_ANCHORS, copy: CV_COPY },
+  'retro-new-1': {
+    show: RETRO_NEW_SHOW,
+    page: 'profile',
+    anchors: PROFILE_ANCHORS,
+    copy: PROFILE_COPY,
+  },
 };
 
 /** Every registered source with its scenario id (the guards run over each). */

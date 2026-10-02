@@ -2,7 +2,7 @@
 
 Why it exists: the shell that turns the pieces into the site: the page for the URL with the
 Show case button and the language switcher in its meta bar, and the floating AI chat over it. On a
-page with a show (today `/`) it starts the Retro Rebuild show (the page turns into a broken 2002
+page with a show (`/` and `/new`) it starts the Retro Rebuild show (the page turns into a broken 2002
 site and an "agent" fixes it live) when asked, and otherwise shows today's site. It is also the single place where the app decides which data
 sources it uses.
 
@@ -10,8 +10,9 @@ Domain terms:
 - **Mode:** `show` or `normal` at page load (docs/retro/ARCHITECTURE.md §9 → Round 5): `?retro=1`
   on a page with a show opens with it, anything else is today's site. Nothing starts on its own.
 - **Scenario per page** (`showScenarios.ts`, ARCHITECTURE §10): which show a page runs (`/` →
-  `retro-3`; `/new` has none yet, so `?retro=1` there is today's profile). Adding a page's show is
-  one line here, landing together with its source in `src/screens/retro/scenarios.ts`.
+  `retro-3`, `/new` → `retro-new-1`). Adding a page's show is one line here, landing together
+  with its source in `src/screens/retro/scenarios.ts`; a page without one gets today's page at
+  `?retro=1` and no Show case button.
 - **Show case / start seam** (`useShowCase`): `start()` for the Show case button (R24) and
   replays; today's site stays until the show's chunk has loaded, then the page scrolls to the top
   and turns broken in one commit. The AI chat is off the page while the show runs (its open

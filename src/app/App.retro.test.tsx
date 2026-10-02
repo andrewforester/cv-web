@@ -31,19 +31,6 @@ describe('App modes', () => {
     expect(screen.getByTestId('language-switcher')).toBeVisible();
   });
 
-  it('show mode on /new: the profile as is, no stage, the AI chat loads', async () => {
-    window.history.replaceState(null, '', '/new');
-    try {
-      renderApp('show');
-      expect(await screen.findByTestId(chatTestIds.fab)).toBeInTheDocument();
-      expect(screen.getByTestId(profileTestIds.root)).toBeInTheDocument();
-      expect(stage()).toBeNull();
-      expect(layers()).toHaveLength(0);
-    } finally {
-      window.history.replaceState(null, '', '/');
-    }
-  });
-
   // Plays the whole ~91 s show frame by frame: CPU-bound (10x slower when other test runs share the machine), so far above the 5 s default.
   describe('show mode', { timeout: 60_000 }, () => {
     beforeEach(() => {
@@ -81,6 +68,24 @@ describe('App modes', () => {
       expect(screen.getByTestId(chatTestIds.fab)).toBeInTheDocument();
       expect(screen.getByTestId(forestTestIds.name)).toBe(name);
       expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'instant' });
+    });
+
+    it("starts /new's own show over the profile", async () => {
+      await import('../screens/retro/RetroShowRoute');
+      window.history.replaceState(null, '', '/new');
+      try {
+        renderApp('show');
+        await advance(50);
+        expect(screen.getByTestId(profileTestIds.root)).toBeInTheDocument();
+        expect(stage()).not.toBeNull();
+        // A layer only `/new`'s scenario has: the profile's dark panel in 2001 colours.
+        expect(
+          document.head.querySelector('style[data-retro-layer="panel-colors"]'),
+        ).not.toBeNull();
+        expect(screen.queryByTestId(chatTestIds.fab)).toBeNull();
+      } finally {
+        window.history.replaceState(null, '', '/');
+      }
     });
   });
 });

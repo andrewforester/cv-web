@@ -6,8 +6,8 @@ describe('showScenarioFor', () => {
     expect(showScenarioFor('cv')).toBe('retro-3');
   });
 
-  it('has no show on /new yet', () => {
-    expect(showScenarioFor('profile')).toBeUndefined();
+  it('runs retro-new-1 on /new', () => {
+    expect(showScenarioFor('profile')).toBe('retro-new-1');
   });
 
   it('maps pages only to known scenarios', () => {

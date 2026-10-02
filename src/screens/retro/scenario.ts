@@ -39,7 +39,8 @@ import typeScaleTextCss from './layers/type-scale-text.css?raw';
 import type { DecorationAnchors, DecorationCopy } from './scenarios';
 import { RETRO_CHUNKS } from './scenarioSteps';
 
-const layer = (id: string, css: string, display: DamageLayer['display']): DamageLayer => ({
+/** A damage layer of a scenario's registry (`/`'s here, `/new`'s in `scenarioNew.ts`). */
+export const layer = (id: string, css: string, display: DamageLayer['display']): DamageLayer => ({
   id,
   css,
   display,

@@ -1,30 +1,12 @@
-import type { ChunkTarget, LayerMotion, RetroChunk, RetroStep } from './engine/showTypes';
-import type { DamageLayerId, DecorationId, ShowModuleId } from './scenario';
+import { layerChunks, leave, load, on, PAGE } from './chunkBuilders';
+import type { RetroStep } from './engine/showTypes';
+import type { DamageLayerId } from './scenario';
 
 // The fix list as data (docs/design/retro/SPEC.md → The fix list): per step its chunks in show
 // order, each one visible change with its target (the `// → <label>` line and what the highlight
 // marks) and how it lands.
 
-const PAGE: ChunkTarget = { label: 'page', selectors: 'page' };
-const on = (label: string, ...selectors: string[]): ChunkTarget => ({ label, selectors });
-
-const layer =
-  (motion: LayerMotion) =>
-  (id: DamageLayerId, target: ChunkTarget): RetroChunk => ({
-    effect: { kind: 'removeLayer', layer: id },
-    target,
-    motion,
-  });
-const fade = layer('fade');
-const morph = layer('morph');
-const leave = (id: DecorationId, label: string): RetroChunk => ({
-  effect: { kind: 'removeDecoration', decoration: id },
-  target: on(label, `#${id}`),
-});
-const load = (id: ShowModuleId): RetroChunk => ({
-  effect: { kind: 'loadModule', module: id },
-  target: null,
-});
+const { fade, morph } = layerChunks<DamageLayerId>();
 
 const NAME = "[data-testid='forest-name']";
 const HEADLINE = "[data-testid='forest-headline']";

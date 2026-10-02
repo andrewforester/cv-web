@@ -1,0 +1,13 @@
+[data-retro-stage] {
+  padding: 8px;
+}
+
+[data-retro-stage] main {
+  width: 640px;
+  padding: 6px;
+  border: 3px outset #c0c0c0;
+}
+
+[data-retro-stage] [data-testid='profile'] {
+  padding-inline: 0;
+}

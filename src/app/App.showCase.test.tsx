@@ -85,9 +85,13 @@ describe('App: the Show case button', () => {
     expect(metaBar.queryByTestId(forestTestIds.showCase)).not.toBeInTheDocument();
   });
 
-  it('is hidden on /new, which has no scenario yet', async () => {
+  it("is in /new's meta bar before the switcher and starts /new's scenario", async () => {
     const metaBar = await renderApp({ path: '/new' });
-    expect(metaBar.queryByTestId(forestTestIds.showCase)).not.toBeInTheDocument();
-    expect(metaBar.getByTestId('language-switcher')).toBeInTheDocument();
+    const button = metaBar.getByTestId(forestTestIds.showCase);
+    expect(button.nextElementSibling).toBe(metaBar.getByTestId('language-switcher'));
+
+    await userEvent.click(button);
+
+    expect(await screen.findByTestId(SHOW_STUB)).toHaveAttribute('data-scenario', 'retro-new-1');
   });
 });
