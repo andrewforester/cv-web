@@ -476,8 +476,8 @@ is *Round 3* below. Everything in this section is built.
 
 ### Decisions (final)
 
-- **Branch:** the show lives in `main` (CV-92, R25; it overrides the earlier rule "never merged
-  into `main`"). New show work branches from `main` and its PR targets `main` like any task; the
+- **Branch:** the show lives in `main` (CV-92, R25, replacing the earlier rule that kept it out
+  of `main`). New show work branches from `main` and its PR targets `main` like any task; the
   integration branch `claude/retro-rebuild` is retired. Until CV-92 every task of this epic
   branched from `claude/retro-rebuild` and targeted it. The brief of a show task still says "read
   `docs/retro/AGENTS.md` first".
