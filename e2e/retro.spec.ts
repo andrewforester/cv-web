@@ -159,7 +159,7 @@ test.describe('with reduced motion', () => {
     await expect(chat.getByText('Fixing this site live')).toBeVisible();
     await expect(chat).not.toContainText('***');
     // The site's chat tokens, shielded from the damage layers that restyle `:root`.
-    await expect(chat).toHaveCSS('font-family', /Inter/);
+    await expect(chat).toHaveCSS('font-family', /Onest/);
     await expect(page.locator('body')).toHaveCSS('padding-right', '400px');
 
     const plate = page.getByTestId('retro-highlight-plate');
