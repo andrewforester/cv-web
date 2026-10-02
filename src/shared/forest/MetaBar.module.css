@@ -1,0 +1,36 @@
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--forest-type-meta-bar-family);
+  font-size: var(--forest-type-meta-bar-size);
+  font-weight: var(--forest-type-meta-bar-weight);
+  color: var(--forest-ink-2);
+}
+
+.right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.item {
+  white-space: nowrap;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--forest-status);
+}
+
+.dot {
+  width: var(--forest-status-dot-size);
+  height: var(--forest-status-dot-size);
+  border-radius: 50%;
+  background: var(--forest-status-dot);
+}

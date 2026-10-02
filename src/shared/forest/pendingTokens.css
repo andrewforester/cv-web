@@ -1,0 +1,30 @@
+/*
+ * TODO(theme): Forest values the theme has no token for yet (docs/design/forest/SPEC.md). Move them
+ * into src/theme/tokens.css (Theme zone) and delete this file.
+ */
+:root {
+  --forest-rule-width: 2px;
+  --forest-line-width: 1px;
+  --forest-photo-size: clamp(96px, 14vw, 148px);
+  --forest-status-dot-size: 7px;
+  --forest-app-icon-size: 36px;
+  --forest-book-width: 72px;
+  --forest-impact-min-height: 200px;
+  --forest-dark-lead-max-width: 720px;
+  --forest-focus-ring: 2px solid var(--forest-accent);
+  --forest-focus-offset: 2px;
+  --forest-transition: color 150ms ease;
+  --forest-header-gap: clamp(28px, 4vw, 44px);
+  --forest-row-gap: clamp(20px, 4vw, 48px);
+  --forest-contact-size: 16px;
+  --forest-step-number-size: 12.5px;
+  --forest-app-meta-size: 14px;
+}
+
+@media (max-width: 600px) {
+  :root {
+    --forest-contact-size: 15px;
+    --forest-step-number-size: 11.5px;
+    --forest-app-meta-size: 13px;
+  }
+}

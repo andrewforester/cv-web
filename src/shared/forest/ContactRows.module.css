@@ -1,0 +1,34 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--forest-contact-size);
+}
+
+/* `.root .row` beats the page's link colour: contact rows keep ink text; only ↗ is accent. */
+.root .row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: var(--forest-line-width) solid var(--forest-line);
+  color: var(--forest-ink);
+}
+
+.root .row:hover .arrow {
+  color: var(--forest-accent-hover);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arrow {
+  color: var(--forest-accent);
+  transition: var(--forest-transition);
+}

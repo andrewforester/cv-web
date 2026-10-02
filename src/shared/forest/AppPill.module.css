@@ -1,0 +1,29 @@
+.root {
+  display: flex;
+  flex: 1 1 220px;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-5) var(--space-2) var(--space-2);
+  background: var(--forest-surface);
+  border-radius: var(--forest-radius-pill);
+}
+
+.icon {
+  flex: none;
+  width: var(--forest-app-icon-size);
+  height: var(--forest-app-icon-size);
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.name {
+  flex: 1;
+  font-size: var(--forest-type-skills-title-size);
+  font-weight: var(--forest-type-skills-title-weight);
+}
+
+.meta {
+  font-family: var(--forest-font-mono);
+  font-size: var(--forest-app-meta-size);
+  font-weight: var(--forest-type-label-weight);
+}

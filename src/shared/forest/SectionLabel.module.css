@@ -1,0 +1,7 @@
+.root {
+  font-family: var(--forest-type-label-family);
+  font-size: var(--forest-type-label-size);
+  font-weight: var(--forest-type-label-weight);
+  letter-spacing: var(--forest-type-label-letter-spacing);
+  color: var(--forest-accent);
+}
