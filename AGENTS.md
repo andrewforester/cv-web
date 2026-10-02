@@ -78,7 +78,7 @@ The design reference and the rules for screenshots are in `docs/COORDINATION.md`
 
 ## Process
 
-The tracker is **Linear** (team Grandtorino, one project per epic, one ticket `GRA-N` per task; GitHub Issues are not used). It holds the whole working process: status, Role/Type labels, dependencies (blocked-by relations), session names/ids, scope changes, questions and decisions, plans and reports, web screenshots of results (uploaded straight to the ticket, never committed), and at the top of each finished ticket and of each project a usage table in tokens. One source of truth: sessions get only the ticket id and read and write the task there; the PR holds only the code and its review. The repository holds only the product and the standing rules; PR bodies are short (`Closes GRA-N` + what changed). Details: `docs/COORDINATION.md` → Tracker.
+The tracker is **Linear** (team CV web, one project per epic, one ticket `CV-N` per task; GitHub Issues are not used). It holds the whole working process: status, Role/Type labels, dependencies (blocked-by relations), session names/ids, scope changes, questions and decisions, plans and reports, web screenshots of results (uploaded straight to the ticket, never committed), and at the top of each finished ticket and of each project a usage table in tokens. One source of truth: sessions get only the ticket id and read and write the task there; the PR holds only the code and its review. The repository holds only the product and the standing rules; PR bodies are short (`Closes CV-N` + what changed). Details: `docs/COORDINATION.md` → Tracker.
 
 ## Git & CI
 
