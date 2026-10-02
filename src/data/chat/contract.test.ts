@@ -1,5 +1,13 @@
 import {
+  AGENT_CONTACT_CHANNELS,
+  AGENT_PAGE_CONTACT_CHANNELS,
+  AGENT_PAGE_SECTIONS,
+  AGENT_SECTION_IDS,
   AGENT_TOOL_NAMES,
+  CHAT_PAGE_ROUTES,
+  CHAT_PAGES,
+  PROFILE_CONTACT_CHANNELS,
+  PROFILE_SECTION_IDS,
   CHAT_LIMITS,
   CHAT_LIMITS_V2,
   type AgentPageState,
@@ -62,5 +70,37 @@ describe('chat contract v2', () => {
     expect(request.messages).toHaveLength(3);
     expect(events.map((event) => event.type)).toEqual(['tool_call', 'done']);
     expect(JSON.stringify(page).length).toBeLessThanOrEqual(CHAT_LIMITS_V2.maxPageStateChars);
+  });
+});
+
+describe('page-aware chat contract', () => {
+  it('names a route, sections and contacts for every page', () => {
+    expect(CHAT_PAGES).toEqual(['cv', 'profile']);
+    expect(CHAT_PAGE_ROUTES).toEqual({ cv: '/', profile: '/new' });
+    expect(AGENT_PAGE_SECTIONS.cv).toBe(AGENT_SECTION_IDS);
+    expect(AGENT_PAGE_SECTIONS.profile).toBe(PROFILE_SECTION_IDS);
+    expect(AGENT_PAGE_CONTACT_CHANNELS.cv).toBe(AGENT_CONTACT_CHANNELS);
+    expect(AGENT_PAGE_CONTACT_CHANNELS.profile).toEqual(['email', 'phone']);
+    expect(PROFILE_CONTACT_CHANNELS).not.toContain('ai-chat');
+  });
+
+  it('types the API.md question on /new and fits the page-state cap', () => {
+    const profilePage: AgentPageState = {
+      ...page,
+      route: CHAT_PAGE_ROUTES.profile,
+      locale: 'uk',
+      activeSection: 'impact',
+      highlighted: 'skill:ai',
+    };
+    const request: ChatRequestV2 = {
+      v: 2,
+      locale: 'uk',
+      page: 'profile',
+      messages: [{ role: 'user', content: 'Покажи його вибрані результати', page: profilePage }],
+    };
+    expect(request.page).toBe('profile');
+    expect(JSON.stringify(profilePage).length).toBeLessThanOrEqual(
+      CHAT_LIMITS_V2.maxPageStateChars,
+    );
   });
 });

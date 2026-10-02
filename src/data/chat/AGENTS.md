@@ -10,9 +10,11 @@ state holder) and the wire partner of `server/chat/`. The binding is set in
 `src/app/AppProviders.tsx`; tests use the scripted fake repository instead.
 
 Shared with the server (framework-free, `.js` import specifiers):
-- `contract.ts`: request/response types, limits and error codes, v1 and v2.
-- `agentTools.ts`: the page-agent tool catalogue, built from the CV so its targets match the page
-  in every locale; the browser registry (`src/agent/`) executes it.
+- `contract.ts`: request/response types, limits and error codes, v1 and v2, and the pages the
+  chat runs on (`cv` = `/`, `profile` = `/new`) with each page's sections and contact channels.
+- `agentTools.ts`: the page-agent tool catalogue per page, built from that page's data (`Cv` or
+  `Profile`) so its targets match the page in every locale; the browser registry (`src/agent/`)
+  executes it, the server sends the same specs to the model.
 Change either only through the backend ticket that owns the contract; breaking changes bump `v`.
 
 Guarantees: the repository never throws; network failures, bad responses and streams that end
