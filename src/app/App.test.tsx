@@ -1,10 +1,11 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AgentToolRegistry } from '../agent';
 import { StaticCvRepository } from '../data';
 import { buildAgentToolSpecs } from '../data/chat';
 import { cvTestIds } from '../screens/cv/testIds';
 import { profileTestIds } from '../screens/profile/testIds';
+import { forestTestIds } from '../shared/forest/testIds';
 import { languageSwitcherTestIds } from '../shared/LanguageSwitcher/testIds';
 import { App } from './App';
 import { AppProviders } from './AppProviders';
@@ -64,12 +65,13 @@ describe('App', () => {
       );
     }
 
-    it('renders the profile on /new, with the shared language switcher', async () => {
+    it('renders the profile on /new, with the language switcher in its meta bar', async () => {
       renderAt('/new');
 
-      expect(await screen.findByTestId(profileTestIds.name)).toHaveTextContent('Andrew Panasiuk');
+      expect(await screen.findByTestId(forestTestIds.name)).toHaveTextContent('Andrew Panasiuk');
       expect(screen.queryByTestId(cvTestIds.root)).not.toBeInTheDocument();
-      expect(screen.getByTestId(languageSwitcherTestIds.option('uk'))).toBeInTheDocument();
+      const metaBar = screen.getByTestId(forestTestIds.metaBar);
+      expect(within(metaBar).getByTestId(languageSwitcherTestIds.option('uk'))).toBeInTheDocument();
     });
 
     it('still renders the CV on /', async () => {

@@ -8,7 +8,8 @@ and the `web-smoke` job in CI.
 What it guarantees today:
 - The CV page renders in English and Ukrainian browsers, the language switch works and survives a
   reload, and there are no page or console errors. `/new` (the profile page) loads directly in
-  both languages.
+  both languages and fits a phone screen without horizontal scrolling (desktop and 390 px
+  screenshots).
 - The chat answers a question with a streamed reply, and rate limiting shows its notice. A `#ask`
   link opens it; its Forest look is screenshotted empty and answered, desktop and phone, EN + UK.
 - The page agent: asking the chat to show a section scrolls and highlights it; opening a contact

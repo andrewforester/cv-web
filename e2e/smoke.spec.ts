@@ -47,10 +47,27 @@ for (const { locale, browserLocale, name } of profileCases) {
       const errors = collectErrors(page);
       await page.goto('./new');
 
-      await expect(page.getByTestId('profile-name')).toHaveText(name);
+      await expect(page.getByTestId('forest-name')).toHaveText(name);
       await expect(page.getByTestId('cv')).toHaveCount(0);
       await expect(page.locator('html')).toHaveAttribute('lang', locale);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/new-${locale}.png`, fullPage: true });
+      expect(errors).toEqual([]);
+    });
+
+    test('fits a phone screen', async ({ page }) => {
+      const errors = collectErrors(page);
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto('./new');
+
+      await expect(page.getByTestId('forest-name')).toHaveText(name);
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow).toBe(0);
+      await page.screenshot({
+        path: `${SCREENSHOT_DIR}/new-${locale}-mobile.png`,
+        fullPage: true,
+      });
       expect(errors).toEqual([]);
     });
   });
