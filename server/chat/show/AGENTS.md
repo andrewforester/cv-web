@@ -18,7 +18,7 @@ Domain terms (contract: `docs/chat/API.md` → v3; design: `docs/retro/ARCHITECT
 Place in the architecture: a branch of the chat pipeline (`../handler.ts`). Guards, rate limits,
 daily budget, kill switch, model choice, SSE framing and the log line are the chat's; this folder
 adds validation, prompts, the line parser and the dev-mode fake scripts. Reply knowledge comes from
-`../knowledge/`. The browser side is `src/data/retro/HttpShowRepository.ts`.
+`../knowledge/` (the CV's: the show runs on `/`). The browser side is `src/data/retro/HttpShowRepository.ts`.
 
 Rules and limits:
 - EN only. No tools. Narration never sees the CV; replies use only `<knowledge>`.

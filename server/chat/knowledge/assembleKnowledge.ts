@@ -1,4 +1,4 @@
-import type { ChatLocale } from '../../../src/data/chat/contract.js';
+import { CHAT_PAGES, type ChatLocale, type ChatPage } from '../../../src/data/chat/contract.js';
 import type { KnowledgeDocument, KnowledgeSource } from './KnowledgeSource.js';
 
 /** Above this estimate the prompt gets slow and costly; time to revisit RAG (SYSTEM_DESIGN §5). */
@@ -44,4 +44,20 @@ export function createKnowledgeLoader(
     cache.set(locale, loading);
     return loading;
   };
+}
+
+export type PageKnowledgeLoader = (page: ChatPage, locale: ChatLocale) => Promise<string>;
+
+/** One memoized loader per page (`createKnowledgeLoader`), picked by the request's page. */
+export function createPageKnowledgeLoader(
+  sourcesByPage: Readonly<Record<ChatPage, readonly KnowledgeSource[]>>,
+  warn: (message: string) => void = console.warn,
+): PageKnowledgeLoader {
+  const loaders = Object.fromEntries(
+    CHAT_PAGES.map((page) => [
+      page,
+      createKnowledgeLoader(sourcesByPage[page], (message) => warn(`${page}: ${message}`)),
+    ]),
+  ) as Record<ChatPage, KnowledgeLoader>;
+  return (page, locale) => loaders[page](locale);
 }

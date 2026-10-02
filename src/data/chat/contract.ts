@@ -1,5 +1,5 @@
 /**
- * AI CV chat API contract, v1 and v2 (docs/chat/API.md). Shared by the widget (`src/data/chat/**`) and the
+ * AI CV chat API contract, v1 and v2 with its page-aware fields (docs/chat/API.md). Shared by the widget (`src/data/chat/**`) and the
  * backend (`server/chat/**`). Keep it framework-free: no React, DOM, Vite or Node imports.
  */
 
@@ -132,7 +132,7 @@ export type AgentSectionId = (typeof AGENT_SECTION_IDS)[number];
 export const AGENT_CONTACT_CHANNELS = ['email', 'phone', 'whatsapp', 'telegram'] as const;
 export type AgentContactChannel = (typeof AGENT_CONTACT_CHANNELS)[number];
 
-/** Target kinds; item ids (`technology`, `experience`, `app`, `book`) come from the CV JSON. */
+/** Target kinds; item ids come from the page's JSON. `impact` and `skill` exist on `/new` only. */
 export const AGENT_TARGET_KINDS = [
   'section',
   'technology',
@@ -140,6 +140,8 @@ export const AGENT_TARGET_KINDS = [
   'app',
   'book',
   'contact',
+  'impact',
+  'skill',
 ] as const;
 export type AgentTargetKind = (typeof AGENT_TARGET_KINDS)[number];
 
@@ -152,11 +154,12 @@ export const AGENT_CHAT_LAYOUTS = ['card', 'sheet'] as const;
 
 /** Page snapshot sent with each question: enums and booleans only, never text or values. */
 export interface AgentPageState {
-  route: '/';
+  /** The page's path, `CHAT_PAGE_ROUTES[page]`. */
+  route: AgentRoute;
   locale: ChatLocale;
   viewport: (typeof AGENT_VIEWPORTS)[number];
   chat: (typeof AGENT_CHAT_LAYOUTS)[number];
-  activeSection: AgentSectionId | null;
+  activeSection: AgentSectionId | ProfileSectionId | null;
   highlighted: AgentTargetId | null;
   /** Tools registered (mounted) right now, sorted. */
   tools: AgentToolName[];
@@ -218,6 +221,8 @@ export type ChatMessageV2 = ChatUserMessageV2 | ChatToolResultsMessageV2 | ChatA
 export interface ChatRequestV2 {
   v: typeof CHAT_API_VERSION_V2;
   locale: ChatLocale;
+  /** The page the chat is on; absent = `'cv'` (clients before CV-94). */
+  page?: ChatPage;
   messages: ChatMessageV2[];
 }
 
@@ -238,3 +243,48 @@ export type ChatStreamEventV2 =
   | ({ type: 'tool_call' } & AgentToolCall)
   | { type: 'done'; stopReason: ChatStopReasonV2; usage: ChatUsage; providerState?: string }
   | { type: 'error'; error: ChatError };
+
+// ---------------------------------------------------------------------------------------------
+// Page-aware chat (docs/chat/API.md → Page-aware chat, ADR-0004): v2 plus an optional `page`.
+// ---------------------------------------------------------------------------------------------
+
+/** The pages the chat runs on; `pageFor` (src/app/routes.ts) returns the same ids. */
+export const CHAT_PAGES = ['cv', 'profile'] as const;
+export type ChatPage = (typeof CHAT_PAGES)[number];
+
+/** Each page's path, sent as `AgentPageState.route`. */
+export const CHAT_PAGE_ROUTES = { cv: '/', profile: '/new' } as const satisfies Record<
+  ChatPage,
+  string
+>;
+export type AgentRoute = (typeof CHAT_PAGE_ROUTES)[ChatPage];
+
+/** `/new` sections in page order; `data-agent-id="section:<id>"`. */
+export const PROFILE_SECTION_IDS = [
+  'header',
+  'impact',
+  'loop',
+  'experience',
+  'apps',
+  'skills',
+  'education',
+  'about',
+  'footer',
+] as const;
+export type ProfileSectionId = (typeof PROFILE_SECTION_IDS)[number];
+
+/** `/new` contact channels (`Profile.contacts` ids); the "Live AI CV" (`ai-chat`) row is not one. */
+export const PROFILE_CONTACT_CHANNELS = ['email', 'phone'] as const;
+export type ProfileContactChannel = (typeof PROFILE_CONTACT_CHANNELS)[number];
+
+/** Sections of each page (`AGENT_SECTION_IDS` stays the CV's list). */
+export const AGENT_PAGE_SECTIONS = {
+  cv: AGENT_SECTION_IDS,
+  profile: PROFILE_SECTION_IDS,
+} as const satisfies Record<ChatPage, readonly string[]>;
+
+/** Contact channels of each page (`AGENT_CONTACT_CHANNELS` stays the CV's list). */
+export const AGENT_PAGE_CONTACT_CHANNELS = {
+  cv: AGENT_CONTACT_CHANNELS,
+  profile: PROFILE_CONTACT_CHANNELS,
+} as const satisfies Record<ChatPage, readonly string[]>;

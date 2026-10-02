@@ -1,23 +1,33 @@
 import {
   AGENT_CHAT_LAYOUTS,
-  AGENT_SECTION_IDS,
+  AGENT_PAGE_SECTIONS,
   AGENT_TARGET_KINDS,
   AGENT_TOOL_ERRORS,
   AGENT_TOOL_NAMES,
   AGENT_VIEWPORTS,
   CHAT_LIMITS_V2,
   CHAT_LOCALES,
+  CHAT_PAGE_ROUTES,
   type AgentPageState,
   type AgentToolCall,
   type AgentToolResultItem,
   type ChatError,
+  type ChatPage,
   type ChatRequest,
   type ChatRequestV2,
 } from '../../src/data/chat/contract.js';
 import { chatError } from './errors.js';
 
-/** A v2 request after validation, with the tool round it starts (0 = answering a question). */
+/**
+ * A v2 request after validation, with the tool round it starts (0 = answering a question). `page`
+ * is kept as sent; read it with `chatPageOf`.
+ */
 export type ValidatedChatV2 = ChatRequestV2 & { toolRound: number };
+
+/** The page a validated request comes from: v1 and a v2 without `page` are the CV (`/`). */
+export function chatPageOf(request: ChatRequest | ValidatedChatV2): ChatPage {
+  return request.v === 2 ? (request.page ?? 'cv') : 'cv';
+}
 
 export type ValidationResult =
   { ok: true; request: ChatRequest | ValidatedChatV2 } | { ok: false; error: ChatError };
@@ -45,20 +55,21 @@ const TOOL_USE_ID = /^[A-Za-z0-9_-]{1,128}$/;
 const TARGET_ID = new RegExp(`^(${AGENT_TARGET_KINDS.join('|')}):[a-z0-9][a-z0-9-]{0,63}$`);
 
 /**
- * The page snapshot, rebuilt from known fields only (enums, never free text), or an error text.
- * Size is checked on the JSON as sent.
+ * The page snapshot of a question on `page`, rebuilt from known fields only (enums, never free
+ * text), or an error text. Size is checked on the JSON as sent.
  */
-export function checkPage(raw: unknown, where: string): AgentPageState | string {
+export function checkPage(raw: unknown, where: string, page: ChatPage): AgentPageState | string {
   if (!isRecord(raw)) return `${where}.page must be an object`;
   if (JSON.stringify(raw).length > CHAT_LIMITS_V2.maxPageStateChars) {
     return `${where}.page exceeds ${CHAT_LIMITS_V2.maxPageStateChars} characters`;
   }
   const { route, locale, viewport, chat, activeSection, highlighted, tools } = raw;
-  if (route !== '/') return `${where}.page.route must be "/"`;
+  const expectedRoute = CHAT_PAGE_ROUTES[page];
+  if (route !== expectedRoute) return `${where}.page.route must be "${expectedRoute}"`;
   if (!isOneOf(CHAT_LOCALES, locale)) return `${where}.page.locale is invalid`;
   if (!isOneOf(AGENT_VIEWPORTS, viewport)) return `${where}.page.viewport is invalid`;
   if (!isOneOf(AGENT_CHAT_LAYOUTS, chat)) return `${where}.page.chat is invalid`;
-  if (activeSection !== null && !isOneOf(AGENT_SECTION_IDS, activeSection)) {
+  if (activeSection !== null && !isOneOf<string>(AGENT_PAGE_SECTIONS[page], activeSection)) {
     return `${where}.page.activeSection is invalid`;
   }
   if (highlighted !== null && !(typeof highlighted === 'string' && TARGET_ID.test(highlighted))) {
@@ -69,11 +80,11 @@ export function checkPage(raw: unknown, where: string): AgentPageState | string 
   }
   const unique = [...new Set(tools)].sort();
   return {
-    route,
+    route: expectedRoute,
     locale,
     viewport,
     chat,
-    activeSection,
+    activeSection: activeSection as AgentPageState['activeSection'],
     highlighted: highlighted as AgentPageState['highlighted'],
     tools: unique,
   };

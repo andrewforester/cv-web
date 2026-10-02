@@ -1,7 +1,7 @@
 import type { ChatLocale } from '../../../src/data/chat/contract.js';
 
 /** Bump on every change of the instructions (logged with each request). */
-export const PROMPT_VERSION = '2026-09-30.1';
+export const PROMPT_VERSION = '2026-10-02.1';
 
 /**
  * The instructions block (docs/chat/SYSTEM_DESIGN.md §6, tuned by the GRA-7 decisions): grounding,

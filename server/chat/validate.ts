@@ -3,6 +3,7 @@ import {
   CHAT_API_VERSION_V2,
   CHAT_LIMITS,
   CHAT_LOCALES,
+  CHAT_PAGES,
   type ChatMessage,
 } from '../../src/data/chat/contract.js';
 import { chatError } from './errors.js';
@@ -65,7 +66,12 @@ export function validateChatRequest(body: unknown): ValidationResult {
   }
   if (!Array.isArray(body.messages)) return invalid('messages must be an array');
   if (body.messages.length === 0) return invalid('messages must not be empty');
-  if (body.v === CHAT_API_VERSION_V2) return validateV2(body.locale, body.messages);
+  if (body.v === CHAT_API_VERSION_V2) {
+    if (body.page !== undefined && !isOneOf(CHAT_PAGES, body.page)) {
+      return invalid(`page must be one of ${CHAT_PAGES.join(', ')}`);
+    }
+    return validateV2(body.locale, body.messages, body.page);
+  }
   if (body.messages.length > CHAT_LIMITS.maxMessages) {
     return {
       ok: false,
