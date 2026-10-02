@@ -734,8 +734,12 @@ Screen side (`RetroShowScreen.module.css`): `undocked` puts the slide-out animat
 (`forwards`, ending `visibility: hidden`, so it leaves the accessibility tree) and drops the
 `docked` body class, so the stage's `padding-right` transition re-centres the page; `closing`
 shrinks the chat alone (no stagger), its contents fade over `--retro-close-stagger`. With reduced
-motion DevTools is `display: none` in `undocked` and the chat goes at `done`. Timing on the fake
-clock: see `showTiming.test.ts` and SPEC → Chunk rhythm (budget).
+motion DevTools is `display: none` in `undocked` and the chat goes at `done`.
+
+Show time on the fake clock (`showTiming.test.ts`, SPEC → Chunk rhythm budget): ≈ 91 s with an
+instantly settling camera, ≈ 92 s when every targeted chunk waits the cap, ≈ 78 s with reduced
+motion. The shorter intro and close pay for the narration comments, so the e2e timing smoke keeps
+its 60–110 s window.
 
 ### How to add or change a fix chunk
 

@@ -4,7 +4,7 @@ import { chatTestIds } from '../screens/chat/testIds';
 import { cvTestIds } from '../screens/cv/testIds';
 import { App } from './App';
 import { AppProviders } from './AppProviders';
-import { RETRO_DONE_KEY, type RetroMode } from './retroMode';
+import type { RetroMode } from './retroMode';
 
 function renderApp(retroMode: RetroMode) {
   return render(
@@ -21,7 +21,6 @@ describe('App modes', () => {
   // Both modes load the chat as a lazy chunk: imported once up front, a cold import (Vite
   // transforming the chat on demand) can't outlast `findBy`'s 1 s when the machine is busy.
   beforeAll(() => import('../screens/chat/ChatRoute'));
-  afterEach(() => sessionStorage.clear());
 
   it('normal mode: no stage, and the AI chat loads at start', async () => {
     renderApp('normal');
@@ -31,10 +30,17 @@ describe('App modes', () => {
     expect(screen.getByTestId('app-header')).toBeVisible();
   });
 
-  // Plays the whole ~95 s show frame by frame: CPU-bound (10x slower when other test runs share the machine), so far above the 5 s default.
+  // Plays the whole ~91 s show frame by frame: CPU-bound (10x slower when other test runs share the machine), so far above the 5 s default.
   describe('show mode', { timeout: 60_000 }, () => {
-    beforeEach(() => vi.useFakeTimers());
-    afterEach(() => vi.useRealTimers());
+    beforeEach(() => {
+      vi.useFakeTimers();
+      // jsdom doesn't scroll; the shell scrolls to the top when the show starts.
+      vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    });
 
     /** Moves the fake clock in frames so the runner re-arms its timer after every render. */
     async function advance(ms: number, frame = 50) {
@@ -54,13 +60,13 @@ describe('App modes', () => {
       expect(screen.queryByTestId(chatTestIds.fab)).toBeNull();
 
       // Nobody looks at the frames in between, so they are long: fewer renders on a busy machine.
-      await advance(100_000, 250);
+      await advance(110_000, 250);
 
       expect(stage()).toBeNull();
       expect(layers()).toHaveLength(0);
       expect(screen.getByTestId(chatTestIds.fab)).toBeInTheDocument();
       expect(screen.getByTestId(cvTestIds.name)).toBe(name);
-      expect(sessionStorage.getItem(RETRO_DONE_KEY)).toBe('1');
+      expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'instant' });
     });
   });
 });

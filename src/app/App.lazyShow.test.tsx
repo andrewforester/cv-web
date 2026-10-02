@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { FakeShowRepository } from '../data/retro';
 import { chatTestIds } from '../screens/chat/testIds';
 import { cvTestIds } from '../screens/cv/testIds';
-import { RETRO_DONE_KEY, type RetroMode } from './retroMode';
+import type { RetroMode } from './retroMode';
 
 // The show's chunk, replaced per test (vi.doMock + a fresh module registry) so each test controls
 // whether and when the shell's `import()` of it resolves.
@@ -41,9 +41,13 @@ describe('App: the show as a lazy chunk', () => {
   // The chat is a lazy chunk too: imported once up front, a cold import (Vite transforming it on
   // demand) can't outlast `findBy`'s 1 s when the machine is busy.
   beforeAll(() => import('../screens/chat/ChatRoute'));
+  beforeEach(() => {
+    // jsdom doesn't scroll; the shell scrolls to the top when the show starts.
+    vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+  });
   afterEach(() => {
-    sessionStorage.clear();
     vi.doUnmock(SHOW_MODULE);
+    vi.restoreAllMocks();
   });
 
   it('normal mode never requests the show', async () => {
@@ -60,8 +64,9 @@ describe('App: the show as a lazy chunk', () => {
       return { RetroShowRoute: StubShow };
     });
     await waitFor(() => expect(importShow).toHaveBeenCalledOnce());
-    expect(stage()).toBe(shell());
+    expect(stage()).toBeNull();
     expect(shell()).toHaveClass('pending');
+    expect(screen.queryByTestId(chatTestIds.fab)).toBeNull();
     expect(screen.getByTestId(cvTestIds.name)).toBeInTheDocument();
 
     chunk.resolve();
@@ -72,7 +77,7 @@ describe('App: the show as a lazy chunk', () => {
     expect(screen.queryByTestId(chatTestIds.fab)).toBeNull();
   });
 
-  it('a show that fails to load falls back to the normal site for the session', async () => {
+  it('a show that fails to load falls back to the normal site', async () => {
     await renderApp('show', () =>
       Promise.reject(new Error('Failed to fetch dynamically imported module')),
     );
@@ -81,6 +86,5 @@ describe('App: the show as a lazy chunk', () => {
     expect(stage()).toBeNull();
     expect(shell()).not.toHaveClass('pending');
     expect(screen.queryByTestId(SHOW_STUB)).toBeNull();
-    expect(sessionStorage.getItem(RETRO_DONE_KEY)).toBe('1');
   });
 });

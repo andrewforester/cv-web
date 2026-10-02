@@ -108,7 +108,7 @@ describe('show timing: one chunk', () => {
 });
 
 describe('show timing: the whole show', () => {
-  it('runs in about 92 s with the real copy and a camera that settles at once', () => {
+  it('runs in about 91 s with the real copy and a camera that settles at once (Round 5)', () => {
     const run = new ShowTestRun(RETRO_SHOW, { copy: retroStrings.en });
     const total = runWithInstantCamera(run);
     expect(total).toBeGreaterThan(85_000);

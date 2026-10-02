@@ -100,11 +100,11 @@ Round 5 (GRA-87) flow. Timings are the runner's (`timing.ts`); the design values
 | then | **8 steps of atomic chunks** (The fix list), with a **silent chat**: no narration in the chat. Each step: its console group opens and the step's **narration is typed into the prompt as a code comment** (`// …`, wrapped to the console width, 100 chars/s, 0.6–2 s), 0.6 s to read it → **chunk** → **chunk** → … → 0.3 s → the group collapses to `✓ n/8 <title>`, ⚠ − 1. The first chunk types on under the comment in the same prompt (one multi-line input). Each chunk: **target** (highlight + plate appear, scroll if needed) → **type** `// → <label>` and the command into the prompt row (≤ 1.3 s) → **apply** at its last character (the row becomes the echo, `<· undefined` and `✓ …` print under it, ✖ − 1, the change transitions in) → **beat** 1 s. The visitor can still write in the chat; replies appear there as before. |
 | end | The console shows every group ✓, `✓ All fixes applied.`, ✖ 0 ⚠ 0. **1 s later DevTools collapses** (slides out to the right, 300 ms) while the page re-centres (400 ms). **1 s later** the chat streams **"All good now."**; **2 s later the chat collapses into the site's AI chat launcher** (500 ms). The page is the real site, AI chat button included (End of the show). |
 
-**Total at normal motion ≈ 91 s** (Chunk rhythm and timing budget).
+**Total at normal motion ≈ 91 s** (Round 5, measured on the fake clock; Chunk rhythm and timing budget).
 
 **Progress** (GRA-54): the **counters replace the Win98 progress row**. ✖ = chunks not done yet (36 → 0, −1 at each `✓`); ⚠ = steps not done yet (8 → 0, −1 when a step's group collapses). The step label lives in the console as the open group's title; the percentage is gone (Decision 27).
 
-**`prefers-reduced-motion`** (ARCHITECTURE Q4): the same order and pauses without motion: each step's narration comment appears at once and the step reads it for 0.6 s; each chunk's command appears at once and applies 0.6 s later, then the 1 s beat; no transitions, no view transitions, no smooth scroll (jumps), the highlight appears and disappears without fading; the chat card appears without motion; at the end DevTools disappears at once, the page re-centres at once, and after "All good now." the chat disappears at once; marquee static (text starts at the left); no blinking (bursts and carets stay visible); chat lines appear whole. ≈ 73 s.
+**`prefers-reduced-motion`** (ARCHITECTURE Q4): the same order and pauses without motion: each step's narration comment appears at once and the step reads it for 0.6 s; each chunk's command appears at once and applies 0.6 s later, then the 1 s beat; no transitions, no view transitions, no smooth scroll (jumps), the highlight appears and disappears without fading; the chat card appears without motion; at the end DevTools disappears at once, the page re-centres at once, and after "All good now." the chat disappears at once; marquee static (text starts at the left); no blinking (bursts and carets stay visible); chat lines appear whole. ≈ 78 s (Round 5).
 
 ## The broken page
 
@@ -362,21 +362,23 @@ Step overhead (Round 5): the narration comment types at 100 chars/s (clamped 0.6
 
 **Why the typing rate changes (GRA-54):** a command is 44–95 characters where the layer files were 80–290, so at 240 chars/s most chunks would hit the 0.4 s floor and the show would shrink to ≈ 77 s with code flashing past. At 100 chars/s a typical command takes ≈ 0.85 s (readable as typing) and the multi-token chunks still cap at 1.3 s, which keeps the ≈ 90 s budget.
 
-Budget (typing times from the GRA-54 commands with today's token values, column *Chars*; a module's time assumes its chunk has loaded):
+Budget (Round 5, GRA-87): measured on the runner's fake clock (`showTiming.test.ts`) with the real copy, the fallback narration, a camera that settles at once and the chat chunk loading at once:
 
 | Part | Time |
 |---|---:|
-| Intro: 3 s alone · greeting (≈ 2.7 s) · 2 s · console hand-off (≈ 1.7 s) | 9.3 s |
-| 1 fonts (6 chunks) | 14.2 s |
-| 2 colours (4) | 8.9 s |
-| 3 layout (5) | 10.1 s |
-| 4 images (5) | 9.9 s |
-| 5 cards (4) | 8.7 s |
-| 6 spacing & lists (4) | 8.4 s |
-| 7 2002 chrome (5) | 9.7 s |
-| 8 links & contacts (3) | 6.2 s |
-| Finale line (≈ 2.2 s) · 3 s · panels close 0.65 s | 5.9 s |
+| Intro: 1 s alone · `That's how this CV would look like in 2001.` (≈ 1.1 s) · 1 s · `Now let's fix it.` (≈ 0.4 s) · 0.8 s · DevTools open 0.8 s | 5.1 s |
+| 1 fonts (6 chunks) | 11.9 s |
+| 2 colours (4) | 9.4 s |
+| 3 layout (5) | 11.3 s |
+| 4 images (5) | 11.0 s |
+| 5 cards (4) | 9.0 s |
+| 6 spacing & lists (4) | 9.7 s |
+| 7 2002 chrome (5) | 10.9 s |
+| 8 links & contacts (3) | 7.2 s |
+| Close: `✓ All fixes applied.` 1 s · DevTools collapses 0.4 s · 1 s · `All good now.` (≈ 0.3 s) · 2 s · the chat collapses 0.5 s | 5.2 s |
 | **Total** | **≈ 91 s** |
+
+Each step now includes its narration comment (≈ 1–1.3 s of typing for the fallbacks) and the 0.6 s read pause. When every targeted chunk waits the 0.8 s camera cap the show takes ≈ 92 s; with reduced motion ≈ 78 s. The intro (−4.2 s) and the close (−0.7 s) are shorter than in GRA-54, which pays for the comments, so the total stays ≈ 91 s. **The e2e motion-on timing smoke keeps its budget**: it fails past 110 s of show time (≈ 20 % over the total for the real chat chunk and the camera) or under 60 s.
 
 Visitor holds (typing ≤ 15 s, reply streaming ≤ 12 s) come on top; they happen only between chunks. Before GRA-49 the 7-step show took ≈ 71 s with 5 s of typing per step; the new show is ≈ 20 s longer because each of its 36 changes gets its own beat. The close delay after the finale drops from 4 s to 3 s to stay near 90 s.
 

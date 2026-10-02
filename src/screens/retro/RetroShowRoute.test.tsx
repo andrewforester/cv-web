@@ -87,7 +87,7 @@ const motionClasses = () => [
 const layers = () => document.head.querySelectorAll('style[data-retro-layer]');
 const chatText = () => screen.getByTestId(retroTestIds.chatLog).textContent ?? '';
 
-// Each test plays up to the whole ~95 s show frame by frame: ~2 s of CPU alone, 10x that when
+// Each test plays up to the whole ~91 s show frame by frame: ~2 s of CPU alone, 10x that when
 // other test runs share the machine, so far above the 5 s default.
 describe('retro show screen', { timeout: 60_000 }, () => {
   beforeEach(() => {
@@ -114,24 +114,29 @@ describe('retro show screen', { timeout: 60_000 }, () => {
     expect(screen.queryByTestId(retroTestIds.dock)).not.toBeInTheDocument();
     expect(document.title).toBe(strings.pageTitle);
 
-    await advance(3_000);
+    // 1 s of the broken page alone, then our chat with the two intro lines, then DevTools.
+    await advance(1_000);
     const chat = screen.getByTestId(retroTestIds.chat);
     expect(within(chat).getByRole('heading', { name: strings.chatTitle })).toBeInTheDocument();
     expect(within(chat).getByText(strings.chatSubtitle)).toBeInTheDocument();
-    expect(chatText()).not.toContain(strings.systemJoin);
+    await advance(2_500);
+    expect(chatText()).toContain(strings.introLine);
     expect(screen.queryByTestId(retroTestIds.console)).not.toBeInTheDocument();
 
-    await advance(8_000);
+    await advance(1_000);
+    expect(chatText()).toContain(strings.fixLine);
     const liveConsole = screen.getByTestId(retroTestIds.console);
     const log = within(liveConsole).getByRole('log', { name: strings.consoleLabel });
     expect(log).toHaveTextContent('Agent connected to andrew-cv: 36 changes in 8 steps.');
     expect(screen.getByTestId(retroTestIds.consoleErrors)).toHaveTextContent('36');
     expect(screen.getByTestId(retroTestIds.consoleWarnings)).toHaveTextContent('8');
-    expect(chatText()).toContain(strings.handoff);
 
     await advance(4_000);
     expect(log).toHaveTextContent('1/8 fonts');
+    // The narration is a code comment in DevTools; the chat stays silent while fixing.
+    expect(log).toHaveTextContent('// Starting with typography:');
     expect(log).toHaveTextContent('✓ type-faces removed');
+    expect(chatText()).not.toContain('typography');
     expect(screen.getByTestId(retroTestIds.consoleErrors)).not.toHaveTextContent('36');
 
     await advanceUntil(() => inlineBg() !== '', 40_000);
@@ -268,19 +273,26 @@ describe('retro show screen', { timeout: 60_000 }, () => {
     expect(motionClasses()).toEqual([false, false]);
   });
 
-  it('closes the windows with the page taking the room back, then unmounts them', async () => {
+  it('collapses DevTools first, then says "All good now.", then collapses the chat', async () => {
     const { onDone } = renderShow();
-    let closing = false;
+    const order: string[] = [];
+    const note = (moment: string) => order.at(-1) !== moment && order.push(moment);
     await advance(110_000, () => {
       const dock = screen.queryByTestId(retroTestIds.dock);
-      if (!dock?.classList.contains('closing') || closing) return;
-      closing = true;
-      expect(document.body).not.toHaveClass('docked');
-      expect(screen.getByTestId(retroTestIds.console)).toBeInTheDocument();
-      expect(screen.getByRole('textbox', { name: strings.inputLabel })).toBeDisabled();
-      expect(onDone).not.toHaveBeenCalled();
+      if (dock?.classList.contains('closing')) {
+        note('closing');
+        expect(screen.getByRole('textbox', { name: strings.inputLabel })).toBeDisabled();
+        expect(onDone).not.toHaveBeenCalled();
+      } else if (dock?.classList.contains('undocked')) {
+        // DevTools slides out (still mounted, hidden at the end of its animation); the page
+        // takes the room back; the chat still works.
+        note(chatText().includes(strings.closingLine) ? 'closingLine' : 'undocked');
+        expect(document.body).not.toHaveClass('docked');
+        expect(screen.getByTestId(retroTestIds.console)).toBeInTheDocument();
+        expect(screen.getByRole('textbox', { name: strings.inputLabel })).toBeEnabled();
+      }
     });
-    expect(closing).toBe(true);
+    expect(order).toEqual(['undocked', 'closingLine', 'closing']);
     expect(screen.queryByTestId(retroTestIds.dock)).not.toBeInTheDocument();
     expect(onDone).toHaveBeenCalledTimes(1);
   });
