@@ -1,6 +1,7 @@
 import type {
   AgentPageState,
   AgentToolCall,
+  ChatLocale,
   ChatMessageV2,
   ChatRequest,
   ChatRequestV2,
@@ -61,6 +62,19 @@ export const v2Body = (...messages: ChatMessageV2[]): ChatRequestV2 => ({
   v: 2,
   locale: 'en',
   messages: messages.length > 0 ? messages : [question('Show the apps')],
+});
+
+/** The `/new` snapshot, and a question asked there (`page: 'profile'`) in a locale. */
+export const PROFILE_PAGE: AgentPageState = { ...PAGE, route: '/new' };
+
+export const profileBody = (
+  locale: ChatLocale = 'en',
+  content = 'What impact has he had?',
+): ChatRequestV2 => ({
+  v: 2,
+  locale,
+  page: 'profile',
+  messages: [{ role: 'user', content, page: { ...PROFILE_PAGE, locale } }],
 });
 
 /** v3 bodies: the show's narration request and a visitor message during step 2. */

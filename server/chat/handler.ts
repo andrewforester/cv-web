@@ -1,4 +1,5 @@
 import {
+  CHAT_API_VERSION_V2,
   CHAT_LIMITS,
   type ChatError,
   type ChatMessageV2,
@@ -195,7 +196,9 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
   }
 
   const validation = validateChatRequest(json.value);
-  if (!validation.ok) return fail(validation.error);
+  if (!validation.ok) {
+    return fail(validation.error, entry.v === CHAT_API_VERSION_V2 ? entry.v : undefined);
+  }
 
   const chat = validation.request;
   const page = chatPageOf(chat);
