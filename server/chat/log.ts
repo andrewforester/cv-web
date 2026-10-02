@@ -1,4 +1,4 @@
-import type { ChatErrorCode, ChatStopReasonV2 } from '../../src/data/chat/contract.js';
+import type { ChatErrorCode, ChatPage, ChatStopReasonV2 } from '../../src/data/chat/contract.js';
 import type { ShowKind } from '../../src/data/retro/contract.js';
 import type { RetroStepId } from '../../src/data/retro/scenario.js';
 
@@ -16,6 +16,8 @@ export interface ChatLogEntry {
   stopReason: ChatStopReasonV2 | null;
   errorCode: ChatErrorCode | null;
   locale: string | null;
+  /** v1/v2: the page the chat answered for (`cv` when the client sent none). */
+  page: ChatPage | null;
   model: string;
   promptVersion: string;
   messages: number | null;

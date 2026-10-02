@@ -1,5 +1,5 @@
 import type { ShowRequest } from '../../../src/data/retro/contract.js';
-import type { KnowledgeLoader } from '../knowledge/assembleKnowledge.js';
+import type { PageKnowledgeLoader } from '../knowledge/assembleKnowledge.js';
 import type { LlmRequest } from '../llm/LlmClient.js';
 import type { ModelOptions } from '../llm/modelOptions.js';
 import type { ChatLogEntry } from '../log.js';
@@ -32,10 +32,13 @@ export function narrationStreamer(): TextStreamer {
   };
 }
 
-/** The model request, streaming and log fields of a v3 request (docs/chat/API.md → v3). */
+/**
+ * The model request, streaming and log fields of a v3 request (docs/chat/API.md → v3). Replies
+ * answer from the CV's knowledge (the show runs on `/`; ADR-0004 → Decision 2).
+ */
 export async function planShow(
   request: ShowRequest,
-  knowledge: KnowledgeLoader,
+  knowledge: PageKnowledgeLoader,
   model: ModelOptions,
   deadlineMs: number,
 ): Promise<ShowPlan> {
@@ -48,7 +51,7 @@ export async function planShow(
     };
   }
   return {
-    llmRequest: buildReplyRequest(request, await knowledge(request.locale), model),
+    llmRequest: buildReplyRequest(request, await knowledge('cv', request.locale), model),
     deadlineMs,
     logFields: {
       locale: request.locale,
