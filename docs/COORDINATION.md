@@ -71,14 +71,14 @@ Session spend is counted in **tokens**, not dollars; dollars are only a rough co
 - **Ticket:** when the ticket is Done, the orchestrator puts the table **at the top of the ticket description** (one row per session: developer, reviewer, follow-ups; plus a total row):
   ```
   ## Usage
-  | Session | Model | In, k (cache, k) | Out, k | Total, k | ≈ $ |
+  | Session | Model | ≈ $ | In, k (cache, k) | Out, k | Total, k |
   |---|---|---|---|---|---|
-  | develop CV-N | opus | 3,210 (2,950) | 48 | 3,258 | 0.06 |
-  | review CV-N | sonnet | 610 (540) | 9 | 619 | 0.01 |
-  | **Total** | | 3,820 (3,490) | 57 | 3,877 | 0.07 |
+  | develop CV-N | opus | 0.06 | 3,210 (2,950) | 48 | 3,258 |
+  | review CV-N | sonnet | 0.01 | 610 (540) | 9 | 619 |
+  | **Total** | | 0.07 | 3,820 (3,490) | 57 | 3,877 |
   ```
 - **Project (epic):** the same table **at the top of the project description**, one row per ticket (its totals) plus a row for the orchestrator and a total row, updated as each ticket closes, not only at the end.
-- Reports to the human use the same columns.
+- Column order everywhere (tickets, project, reports): **≈ $ first, then tokens** (the human's request, 2026-10-02).
 
 ## Tooling
 
