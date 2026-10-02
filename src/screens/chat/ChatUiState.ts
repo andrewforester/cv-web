@@ -19,7 +19,7 @@ export interface ChatConfirmation {
  */
 export interface ChatActionCall {
   readonly call: AgentToolCall;
-  /** The CV's own name of a highlighted item ("Kotlin"), resolved when the call arrived. */
+  /** The page's own name of a highlighted item ("Kotlin"), resolved when the call arrived. */
   readonly label?: string | undefined;
   readonly status: 'running' | 'awaiting' | 'finished';
   readonly result?: AgentToolResult;
@@ -78,8 +78,10 @@ export interface ChatUiState {
   /** The next question would break the conversation limits: offer a new chat. */
   readonly conversationFull: boolean;
   readonly announcement: ChatAnnouncement | null;
-  /** Page tools are mounted: the greeting offers example commands. */
-  readonly commandsAvailable: boolean;
+  /** The page's first questions, offered under the greeting. */
+  readonly suggestions: readonly string[];
+  /** The page's example commands; empty while its tools aren't mounted. */
+  readonly commands: readonly string[];
 }
 
 export interface ChatActions {

@@ -16,7 +16,8 @@ interface MessageListProps {
   className?: string;
   turns: readonly ChatTurn[];
   conversationFull: boolean;
-  commandsAvailable: boolean;
+  suggestions: readonly string[];
+  commands: readonly string[];
   maxInputLength: number;
   onAsk: (question: string) => void;
   onRetry: () => void;
@@ -30,7 +31,8 @@ export function MessageList({
   className,
   turns,
   conversationFull,
-  commandsAvailable,
+  suggestions,
+  commands,
   maxInputLength,
   onAsk,
   onRetry,
@@ -79,7 +81,7 @@ export function MessageList({
       </MessageRow>
       {turns.length === 0 && (
         <li>
-          <SuggestedQuestions commands={commandsAvailable} onAsk={onAsk} />
+          <SuggestedQuestions suggestions={suggestions} commands={commands} onAsk={onAsk} />
         </li>
       )}
       {turns.map((turn, index) => (
