@@ -12,7 +12,8 @@ Rules and limits:
   `cv.<locale>.json` with the same structure.
 - `profile.<locale>.json` is the content of `/new` (`ProfileRepository`, same class), in EN and UK.
   EN is the Forest design's text verbatim; UK is a translation that keeps company/product names,
-  numbers and tech terms. The chat doesn't know this content yet; it answers from `cv.*.json`.
+  numbers and tech terms. The chat on `/new` answers from it (`profile.<locale>.json`, ADR-0004);
+  on `/` it answers from `cv.*.json`.
 - Item ids (technology cards, experience entries, apps, books, every profile list item) are
   addressed by the AI page agent, so they must be identical in every locale file and never
   translated; tests check it.
