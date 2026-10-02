@@ -871,7 +871,14 @@ refit, The fix list and Decisions 46–52; the mechanism is unchanged.
 - The narrate request still asks the LLM for a `finale` line nobody sees since Round 5 (GRA-87);
   drop it with the next contract change.
 
-## 10. Per-page scenarios (designed in CV-95)
+## 10. Per-page scenarios (designed in CV-95, built in CV-98, CV-99, CV-100)
+
+> **As built:** the plan below is what shipped. `/` runs `retro-3`, `/new` runs `retro-new-1`;
+> adding a page's show is a manifest in `src/data/retro/scenarios.ts`, a source in
+> `src/screens/retro/scenarios.ts` and one line in `src/app/showScenarios.ts`. Shared chunk
+> helpers live in `src/screens/retro/chunkBuilders.ts`; the e2e guards take a page's URLs
+> (`e2e/retroShow.ts`, `CV_SHOW_URLS` / `PROFILE_SHOW_URLS`). §9 is `/`'s record; this section
+> is the per-page one.
 
 The Show case also runs on **`/new`** (the Forest profile) as well as on `/` (today's CV): a
 "Show case" button in `/new`'s meta bar, the same flow (2001 page, intro lines, DevTools fixing
