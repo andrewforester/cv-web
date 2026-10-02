@@ -13,7 +13,7 @@ import { useChatConversation } from './useChatConversation';
 import { useChatHint } from './useChatHint';
 import { CHAT_SHEET_QUERY, useMediaQuery } from './useMediaQuery';
 import { useOnlineStatus } from './useOnlineStatus';
-import { pageCommands, pageSuggestions } from './pageContent';
+import { pageCommands, pageCopy, pageSuggestions } from './pageContent';
 import { chatStrings } from './strings';
 
 /** The counter appears from 80 % of the limit (SPEC O1: from 800 of 1,000). */
@@ -88,6 +88,7 @@ export function useChatState(page: ChatPage): { state: ChatUiState; actions: Cha
     canSend,
     conversationFull,
     announcement,
+    ...pageCopy(page, strings),
     suggestions: pageSuggestions(page, strings),
     commands: conversation.commandsAvailable ? pageCommands(page, strings) : [],
   };

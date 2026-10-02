@@ -20,6 +20,12 @@ export function loadPageContent(
 
 type Key = keyof ChatStrings;
 
+/** What the chat says it answers from: the CV on `/`, the page itself on `/new`. */
+const COPY_KEYS: Record<ChatPage, { subtitle: Key; greeting: Key }> = {
+  cv: { subtitle: 'subtitle', greeting: 'greeting' },
+  profile: { subtitle: 'profileSubtitle', greeting: 'profileGreeting' },
+};
+
 const SUGGESTION_KEYS: Record<ChatPage, Key[]> = {
   cv: ['suggestion1', 'suggestion2', 'suggestion3', 'suggestion4'],
   profile: ['profileSuggestion1', 'profileSuggestion2', 'profileSuggestion3', 'profileSuggestion4'],
@@ -30,6 +36,15 @@ const COMMAND_KEYS: Record<ChatPage, Key[]> = {
   cv: ['command1', 'command2', 'command3'],
   profile: ['profileCommand1', 'command2', 'command3'],
 };
+
+/** The header's subtitle and the greeting on the page. */
+export function pageCopy(
+  page: ChatPage,
+  strings: ChatStrings,
+): { subtitle: string; greeting: string } {
+  const keys = COPY_KEYS[page];
+  return { subtitle: strings[keys.subtitle], greeting: strings[keys.greeting] };
+}
 
 /** The first questions offered on the page. */
 export function pageSuggestions(page: ChatPage, strings: ChatStrings): string[] {

@@ -8,12 +8,15 @@ export const chatStrings = defineStrings({
     hintDismiss: 'Dismiss',
     title: 'Ask about Andrew',
     subtitle: 'AI assistant · answers from this CV',
+    profileSubtitle: 'AI assistant · answers from this page',
     close: 'Close chat',
     listLabel: 'Conversation',
     you: 'You:',
     assistant: 'Assistant:',
     greeting:
       'Hi! I’m an AI assistant. Ask me about Andrew’s experience, skills and projects — I answer from his CV.',
+    profileGreeting:
+      'Hi! I’m an AI assistant. Ask me about Andrew’s experience, skills and projects — I answer from this page.',
     tryAsking: 'Try asking',
     suggestion1: 'What is his experience with Android?',
     suggestion2: 'Which AI tools does he use?',
@@ -93,12 +96,15 @@ export const chatStrings = defineStrings({
     hintDismiss: 'Закрити підказку',
     title: 'Запитайте про Андрія',
     subtitle: 'ШІ-асистент · відповідає за резюме',
+    profileSubtitle: 'ШІ-асистент · відповідає за цією сторінкою',
     close: 'Закрити чат',
     listLabel: 'Розмова',
     you: 'Ви:',
     assistant: 'Асистент:',
     greeting:
       'Привіт! Я ШІ-асистент. Запитайте мене про досвід, навички та проєкти Андрія — я відповідаю на основі його резюме.',
+    profileGreeting:
+      'Привіт! Я ШІ-асистент. Запитайте мене про досвід, навички та проєкти Андрія — я відповідаю на основі цієї сторінки.',
     tryAsking: 'Спробуйте запитати',
     suggestion1: 'Який у нього досвід з Android?',
     suggestion2: 'Якими ШІ-інструментами він користується?',

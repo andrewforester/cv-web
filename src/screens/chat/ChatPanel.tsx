@@ -62,9 +62,15 @@ export function ChatPanel({ className, state, actions, closing, onKeyboardClose 
       data-testid={chatTestIds.panel}
       onKeyDown={onKeyDown}
     >
-      <ChatHeader titleId={titleId} subtitleId={subtitleId} onClose={onKeyboardClose} />
+      <ChatHeader
+        titleId={titleId}
+        subtitleId={subtitleId}
+        subtitle={state.subtitle}
+        onClose={onKeyboardClose}
+      />
       {!state.online && <OfflineNotice />}
       <MessageList
+        greeting={state.greeting}
         turns={state.turns}
         conversationFull={state.conversationFull}
         suggestions={state.suggestions}

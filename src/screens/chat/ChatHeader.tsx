@@ -9,11 +9,13 @@ interface ChatHeaderProps {
   className?: string;
   titleId: string;
   subtitleId: string;
+  /** What the assistant answers from on this page. */
+  subtitle: string;
   onClose: () => void;
 }
 
 /** Panel header: the shared card header with the site's texts and a close button. */
-export function ChatHeader({ className, titleId, subtitleId, onClose }: ChatHeaderProps) {
+export function ChatHeader({ className, titleId, subtitleId, subtitle, onClose }: ChatHeaderProps) {
   const strings = useStrings(chatStrings);
 
   return (
@@ -22,7 +24,7 @@ export function ChatHeader({ className, titleId, subtitleId, onClose }: ChatHead
       titleId={titleId}
       subtitleId={subtitleId}
       title={strings.title}
-      subtitle={strings.subtitle}
+      subtitle={subtitle}
       action={
         <button
           type="button"

@@ -21,10 +21,13 @@ What the visitor can rely on:
   Markdown subset, never HTML.
 
 Per page (ADR-0004): the app shell tells the chat which page it is on (`/` the CV, `/new` the
-profile). Every request says so, so the server answers from that page's content; the four first
-questions and the example commands are that page's; chips and confirmation cards name that page's
-items. A conversation lives in memory only, so moving between the pages (a full page load) starts
-a new chat. Title, greeting and disclaimer are the same on both pages.
+profile). Every request says so, so the server answers from that page's content; each question
+carries a snapshot of the page (section in view, highlighted target, mounted tools) from the
+agent registry. The subtitle and greeting say what the assistant answers from (the CV on `/`,
+"this page" on `/new`); the four first questions and the example commands are that page's; chips
+and confirmation cards name that page's items. A conversation lives in memory only, so moving
+between the pages (a full page load) starts a new chat. Title and disclaimer are the same on both
+pages.
 
 Place in the architecture: the screen pattern (state holder → UI state → stateless components)
 over `src/data/chat/` (the conversation stream) and `src/agent/` (running page tools). The
