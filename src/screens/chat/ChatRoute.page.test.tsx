@@ -87,7 +87,7 @@ describe('chat on each page', () => {
     [
       'profile',
       'uk',
-      'ШІ-асистент · відповідає за цією сторінкою',
+      'ШІ-асистент · відповідає за сторінкою',
       'я відповідаю на основі цієї сторінки.',
     ],
   ])('says what it answers from on the %s page (%s)', async (page, locale, subtitle, greeting) => {

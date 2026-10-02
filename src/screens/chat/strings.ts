@@ -96,7 +96,7 @@ export const chatStrings = defineStrings({
     hintDismiss: 'Закрити підказку',
     title: 'Запитайте про Андрія',
     subtitle: 'ШІ-асистент · відповідає за резюме',
-    profileSubtitle: 'ШІ-асистент · відповідає за цією сторінкою',
+    profileSubtitle: 'ШІ-асистент · відповідає за сторінкою',
     close: 'Закрити чат',
     listLabel: 'Розмова',
     you: 'Ви:',

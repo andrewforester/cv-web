@@ -9,7 +9,7 @@ Domain terms: a **target** is an element with `data-agent-id="<kind>:<id>"` (`se
 `experience:transcenda`); ids come from the page's data and are the same in every locale, so one
 command works in both languages. The **highlight** is a short fading outline on the target the
 agent points at (`data-agent-highlighted`), owned by the screen's state holder. The **section in
-view** is the page section at the reading line (a third of the way down the viewport), read from
+view** is the page section at the reading line (a quarter of the way down the viewport), read from
 the page when the visitor sends a question; it and the highlight go into the chat's page snapshot.
 
 Place in the architecture: below the screens, above `src/data/chat` (target id types). Screens

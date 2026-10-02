@@ -13,7 +13,8 @@ What it guarantees today:
   link opens it; its Forest look is screenshotted empty and answered, desktop and phone, EN + UK.
   On `/new` the chat offers `/new`'s own four questions in both languages (`chat-new-{en,uk}.png`)
   and sends `page: "profile"` with the `/new` route; `/` keeps today's questions.
-- The page agent: asking the chat to show a section scrolls and highlights it; opening a contact
+- The page agent: asking the chat to show a section scrolls and highlights it, and the next
+  question's page snapshot names that section in view and the highlighted target; opening a contact
   asks for confirmation and does nothing on Cancel.
   On `/new` the same tools work over `/new`'s sections (a scripted scroll to "Selected impact").
 - The Retro Rebuild show on `/` (`retro.spec.ts`, docs/retro/ARCHITECTURE.md §1 guards 3 and 4;
