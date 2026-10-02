@@ -13,7 +13,7 @@ needs a value.
 
 Rules and limits:
 - Owner: Theme. A screen that needs a value adds a token here (through the Theme task), not a
-  literal; screen-local values are marked `TODO(theme)`.
+  literal.
 - The `--retro-*` block ("Retro Rebuild show panels", from `docs/design/retro/SPEC.md`) styles only
   the terminal chat and console windows of the live-fix show (Win98 face, bevel light/inner
   light/shadow/dark, window shadow, terminal and code colours) and the round-3 motion: highlight look,

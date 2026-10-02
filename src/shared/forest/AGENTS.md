@@ -19,8 +19,3 @@ both pages use for their page-agent targets (`data-agent-id`); the components do
 order and numbering, the strings and the images. Styles use only `--forest-*` tokens and the
 spacing scale from `src/theme/tokens.css`. Item test ids are in `testIds.ts`; screens give the
 sections theirs.
-
-Stubs and limits:
-- `pendingTokens.css` holds Forest values the theme has no token for yet (rule width, photo,
-  icon and book sizes, focus ring, a few stepped sizes), marked `TODO(theme)`; moving them into
-  `src/theme/tokens.css` is a Theme task.

@@ -36,6 +36,6 @@ icons, shared CSS) live in `src/shared/chat/`, also used by the show's agent cha
 wrappers bind them to this screen's strings. Strings in `strings.ts` (EN + UK); tokens in the
 theme: `--forest-*` and `--forest-chat-*` for the look, `--chat-*` for geometry and motion.
 
-Stubs and limits: a few sizes are screen-local custom properties marked `TODO(theme)`; the sheet
+Stubs and limits: the sheet
 media query is repeated in the CSS modules; the composer reserves a slot for a future voice
 button.

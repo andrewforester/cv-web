@@ -1,5 +1,4 @@
 import { commonStrings, LOCALES, useStrings, type Locale } from '../../i18n';
-import '../forest/pendingTokens.css';
 import styles from './LanguageSwitcher.module.css';
 import { languageSwitcherTestIds } from './testIds';
 
