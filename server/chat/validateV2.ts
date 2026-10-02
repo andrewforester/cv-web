@@ -113,16 +113,20 @@ export function toolRoundOf(messages: ChatMessageV2[]): number {
 
 /**
  * Validates a v2 body (docs/chat/API.md → v2); `v`, `locale`, `page` and the array are checked.
- * `page` absent = the CV; it is kept in the result only when sent.
+ * `page` absent = the CV; the result always carries the resolved page.
  */
-export function validateV2(locale: ChatLocale, raw: unknown[], page?: ChatPage): ValidationResult {
+export function validateV2(
+  locale: ChatLocale,
+  raw: unknown[],
+  page: ChatPage = 'cv',
+): ValidationResult {
   if (raw.length > CHAT_LIMITS_V2.maxMessages) {
     return {
       ok: false,
       error: chatError('conversation_limit', `More than ${CHAT_LIMITS_V2.maxMessages} messages`),
     };
   }
-  const messages = checkSequence(raw, page ?? 'cv');
+  const messages = checkSequence(raw, page);
   if (typeof messages === 'string') return invalid(messages);
   const questions = messages.filter((m) => m.role === 'user' && 'content' in m).length;
   if (questions > CHAT_LIMITS_V2.maxUserQuestions) {
@@ -144,7 +148,7 @@ export function validateV2(locale: ChatLocale, raw: unknown[], page?: ChatPage):
       request: {
         v: CHAT_API_VERSION_V2,
         locale,
-        ...(page !== undefined ? { page } : {}),
+        page,
         messages,
         toolRound,
       },

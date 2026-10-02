@@ -19,14 +19,14 @@ import {
 import { chatError } from './errors.js';
 
 /**
- * A v2 request after validation, with the tool round it starts (0 = answering a question). `page`
- * is kept as sent; read it with `chatPageOf`.
+ * A v2 request after validation, with the resolved `page` (absent = `'cv'`) and the tool round it
+ * starts (0 = answering a question).
  */
-export type ValidatedChatV2 = ChatRequestV2 & { toolRound: number };
+export type ValidatedChatV2 = ChatRequestV2 & { page: ChatPage; toolRound: number };
 
-/** The page a validated request comes from: v1 and a v2 without `page` are the CV (`/`). */
+/** The page a validated request comes from: v1 is the CV (`/`). */
 export function chatPageOf(request: ChatRequest | ValidatedChatV2): ChatPage {
-  return request.v === 2 ? (request.page ?? 'cv') : 'cv';
+  return request.v === 2 ? request.page : 'cv';
 }
 
 export type ValidationResult =
