@@ -149,7 +149,7 @@ Scaffold first, then theme, then screens (in parallel, any order). A screen can 
 
 ## Scaffold decisions (reference)
 
-- **Stack:** Vite 8 + React 19 + TypeScript 6 (strict, `noUncheckedIndexedAccess`), npm with a committed `package-lock.json`, Node 22 (`.nvmrc`). Static SPA, no router yet (add one with the second page).
+- **Stack:** Vite 8 + React 19 + TypeScript 6 (strict, `noUncheckedIndexedAccess`), npm with a committed `package-lock.json`, Node 22 (`.nvmrc`). Static SPA, two routes without a router library (`src/app/routes.ts`: `/` CV, `/new` profile; `vercel.json` rewrites `/new`).
 - **Hosting:** Vercel (Hobby, Git integration: production = `main`, a preview per PR), Vite `base: '/'`. Reference public files as `/favicon.svg` in `index.html` and use `import.meta.env.BASE_URL` in code, never a bare `/`, so the base can change again.
 - **Layout:** `src/app` (shell, providers), `src/theme`, `src/i18n`, `src/data` (`models.ts`, `CvRepository.ts`, `mock/`), `src/shared/<Component>/`, `src/screens/<screen>/`, `e2e/`. Every code folder has an `AGENTS.md` and a `CLAUDE.md` with `@AGENTS.md` (root `AGENTS.md` → Package docs).
 - **Tokens:** CSS custom properties in `src/theme/tokens.css` (CV design tokens, names fixed in the Theme task; see `src/theme/AGENTS.md`), fonts in `src/theme/fonts.css`, used from CSS Modules. No TS mirror yet.
