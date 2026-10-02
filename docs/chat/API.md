@@ -796,7 +796,7 @@ locale, with that page's tool catalogue.
 field and wider enums; responses, SSE, limits and errors don't change. The version stays `v: 2`
 (`X-Chat-Api-Version: 2`). A v2 request **without** `page` is a `/` request and gets today's
 behaviour byte for byte, so tabs opened before the release keep working. v1 is unchanged (CV only;
-`page` ignored like any unknown field). v3 (the show) is unchanged and keeps the CV knowledge.
+`page` ignored like any unknown field). v3 (the show) is unchanged on the wire; since CV-99 its `reply` grounds in the knowledge of the scenario's page (`retro-3` → the CV, `retro-new-1` → the profile).
 
 ### What changes in v2
 

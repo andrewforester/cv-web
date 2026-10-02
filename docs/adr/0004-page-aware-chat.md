@@ -157,6 +157,8 @@ assumed for Cyrillic), because no API key was available for `count_tokens`.
 | **Static prefix, ≈ tokens** | **≈ 3,180** | **≈ 3,560** | **≈ 4,300 (4,000–4,800)** |
 | Highlight targets in the enum | 36 | 36 | 36 |
 
+**As built (CV-96, `buildLlmRequest` output on the real JSON):** knowledge `/new` EN 5,223 chars (≈ 1,490 tokens), `/new` UK 5,580 chars (≈ 2,240 tokens), `/` unchanged at 4,009; tools JSON 2,137 chars for `/new`; static prefix ≈ 3,180 (`/`), ≈ 3,530 (`/new` EN), ≈ 4,280 (`/new` UK) tokens. About 100 chars under the draft; the caching conclusions below hold. Real `count_tokens` still waits for CV-45.
+
 - **Caching.** Tools render first, so each page has its own cached prefix, and `/new` has two
   (its knowledge differs per locale): three cache entries per model instead of one. On Haiku 4.5
   (minimum cacheable prefix 4,096 tokens) `/` and `/new` EN don't cache on the first request (as
