@@ -5,8 +5,8 @@ import { ContactRows } from '../../shared/forest/ContactRows';
 import { Hero } from '../../shared/forest/Hero';
 import { LeadRow } from '../../shared/forest/LeadRow';
 import { MetaBar } from '../../shared/forest/MetaBar';
+import { PageHeader } from '../../shared/forest/PageHeader';
 import { profileImageUrl } from './images';
-import styles from './ProfileHeader.module.css';
 import { profileStrings } from './strings';
 import { profileTestIds } from './testIds';
 
@@ -22,10 +22,7 @@ interface ProfileHeaderProps {
 export function ProfileHeader({ className, profile, metaBarEnd }: ProfileHeaderProps) {
   const strings = useStrings(profileStrings);
   return (
-    <header
-      className={[styles.root, className].filter(Boolean).join(' ')}
-      data-testid={profileTestIds.header}
-    >
+    <PageHeader className={className} testId={profileTestIds.header}>
       <MetaBar
         handle={strings.handle}
         facts={profile && [profile.meta.location, profile.meta.workMode]}
@@ -47,6 +44,6 @@ export function ProfileHeader({ className, profile, metaBarEnd }: ProfileHeaderP
           />
         </>
       )}
-    </header>
+    </PageHeader>
   );
 }

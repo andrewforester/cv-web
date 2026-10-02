@@ -21,6 +21,10 @@
   font-weight: var(--forest-type-skills-title-weight);
 }
 
+.accent {
+  color: var(--forest-accent);
+}
+
 .items {
   font-family: var(--forest-type-skills-items-family);
   font-size: var(--forest-type-skills-items-size);
