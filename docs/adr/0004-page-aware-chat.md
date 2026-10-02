@@ -121,7 +121,8 @@ The four first questions (and the three example commands) are UI copy, so they s
 `src/screens/chat/strings.ts` (`defineStrings`, a missing UK key fails `tsc`), chosen by the
 chat's `page`. `/` keeps today's keys and texts. `/new` adds `profileSuggestion1…4` and
 `profileCommand1`; `command2`/`command3` (switch language, scroll to the apps) fit both pages and
-are shared:
+are shared. The texts below are the starting point; per the project's scope (d) CV-97 lists the
+final ones on its ticket for the human to adjust:
 
 | Key | EN | UK |
 |---|---|---|
@@ -207,7 +208,7 @@ Frontend (Vitest `web` project, Testing Library; Playwright with a mocked `/api/
 Two tasks in parallel; no file is in both zones. The frontend task starts on the backend's branch
 once its first commit (the contract files) exists, and merges after it.
 
-**Backend (Development):** first commit = the contract: `src/data/chat/contract.ts` and
+**Backend (CV-96):** first commit = the contract: `src/data/chat/contract.ts` and
 `src/data/chat/agentTools.ts` exactly as API.md → Page-aware chat (additive: the frontend still
 compiles), with `contract.test.ts` / `agentTools.test.ts`. Then:
 - `server/chat/knowledge/`: `renderProfile.ts`, `ProfileKnowledgeSource.ts`, `sources.ts` (per
@@ -220,7 +221,7 @@ compiles), with `contract.test.ts` / `agentTools.test.ts`. Then:
 - Package docs: `server/chat/**/AGENTS.md`, `src/data/chat/AGENTS.md`, `src/data/mock/AGENTS.md`
   (the chat now knows the profile).
 
-**Frontend (Development):**
+**Frontend (CV-97):**
 - `src/app/App.tsx` (pass `page` to the chat), `src/app/AppProviders.tsx` (pass `page` to
   `AgentProvider`, from `pageFor` or a test prop), `src/app/useLazyChat.ts` (the chat's props), app tests.
 - `src/agent/AgentProvider.tsx` (catalogue for the page: `buildAgentToolSpecs` or
@@ -252,5 +253,5 @@ compiles), with `contract.test.ts` / `agentTools.test.ts`. Then:
 
 ## Action items
 
-1. [ ] Backend task (Build split), then the frontend task on its branch.
+1. [ ] CV-96 (backend), then CV-97 (frontend) on its branch, per the Build split.
 2. [ ] Golden check of `/new` (EN, UK) with the real model and the measured prefix tokens, with CV-45.
