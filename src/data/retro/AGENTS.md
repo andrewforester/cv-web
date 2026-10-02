@@ -14,9 +14,10 @@ Domain terms:
   fallback per step. What a step *does* to the page (its chunks: damage layers, decorations,
   modules) lives in the retro screen.
 - **Scenario registry** (`scenarios.ts`, ARCHITECTURE §10): every known scenario by its wire id
-  with its manifest and the page whose content grounds the replies. Today only `/`'s `retro-3`
-  (`scenario.ts`); `/new`'s lands here with its own manifest file. The browser and the server
-  both read it, so a registered id is known on both sides.
+  with its manifest and the page whose content grounds the replies: `/`'s `retro-3`
+  (`scenario.ts`, grounded in the CV) and `/new`'s `retro-new-1` (`scenarioNew.ts`, grounded in
+  the profile; same step ids and titles, its own intents and fallbacks). The browser and the
+  server both read it, so a registered id is known on both sides.
 - **Narration:** one commentary line per step plus the `finale`, fetched once per show
   (`narrate`); a missing line falls back to the manifest text, so the show never waits on the LLM.
 - **Reply:** the LLM's answer to a visitor message, with the step on screen as context.
