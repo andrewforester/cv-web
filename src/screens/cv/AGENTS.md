@@ -23,7 +23,6 @@ same command works in every language. Latest experience, previous experience and
 separate agent sections inside the one "Experience" section.
 
 Stubs and limits:
-- The emphasis weight (600) is a screen-local custom property marked `TODO(theme)`.
 - Company logos (`ExperienceEntry.logo`), the technology cards' `column` and the book authors'
   captions aren't shown (SPEC Decision 5); authors stay in the cover's alt text.
 - The agent highlight colour is the previous look's navy (`--agent-highlight-color`, theme).

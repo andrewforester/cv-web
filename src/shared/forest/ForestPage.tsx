@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { classNames } from './classNames';
 import styles from './ForestPage.module.css';
-import './pendingTokens.css';
 
 interface ForestPageProps {
   className?: string;

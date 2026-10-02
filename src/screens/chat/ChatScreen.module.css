@@ -1,17 +1,5 @@
-/*
- * Chat widget root (its children are fixed-positioned). Sizes the SPEC gives without a theme
- * token are screen-local here. TODO(theme): move them to tokens.css if another screen needs them.
- */
+/* Chat widget root (its children are fixed-positioned). */
 .root {
-  --chat-hint-dismiss-size: 24px;
-  --chat-hint-icon-size: 16px;
-  --chat-action-icon-size: 14px;
-  --chat-fab-ring-width: 2px;
-  --chat-focus-ring-width: 2px;
-  --chat-motion-exit-duration: 150ms;
-  /* `**bold**` in answers: Plex 500 (the theme loads Plex 400/500 only). */
-  --chat-bold-weight: 500;
-
   /* UI text in Onest; bubbles and the textarea switch to Plex, meta to Mono. */
   font-family: var(--forest-font-display);
   font-size: var(--forest-chat-ui-size);

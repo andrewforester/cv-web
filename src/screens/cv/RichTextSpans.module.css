@@ -1,6 +1,3 @@
-/* TODO(theme): no Forest token for the emphasis weight; SPEC → Mapping `/` sets it to 600. */
 .strong {
-  --cv-emphasis-weight: 600;
-
-  font-weight: var(--cv-emphasis-weight);
+  font-weight: var(--forest-type-emphasis-weight);
 }

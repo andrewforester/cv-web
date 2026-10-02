@@ -170,6 +170,25 @@
   --forest-chat-caption-size: 11.5px;
   --forest-chat-caption-line-height: 16px;
 
+  /* Forest values the SPEC has no named token for (docs/design/forest/SPEC.md) */
+  --forest-rule-width: 2px;
+  --forest-line-width: 1px;
+  --forest-photo-size: clamp(96px, 14vw, 148px);
+  --forest-status-dot-size: 7px;
+  --forest-app-icon-size: 36px;
+  --forest-book-width: 72px;
+  --forest-impact-min-height: 200px;
+  --forest-dark-lead-max-width: 720px;
+  --forest-focus-ring: 2px solid var(--forest-accent);
+  --forest-focus-offset: 2px;
+  --forest-transition: color 150ms ease;
+  --forest-header-gap: clamp(28px, 4vw, 44px);
+  --forest-row-gap: clamp(20px, 4vw, 48px);
+  --forest-contact-size: 16px;
+  --forest-step-number-size: 12.5px;
+  --forest-app-meta-size: 14px;
+  --forest-type-emphasis-weight: 600;
+
   /* Chat (docs/design/chat/SPEC.md, New tokens) */
   --chat-fab-size: 56px;
   --chat-fab-icon-size: 24px;
@@ -186,6 +205,14 @@
   --chat-z-index: 1000;
   --chat-motion-duration: 200ms;
   --chat-motion-easing: cubic-bezier(0.2, 0, 0, 1);
+  --chat-motion-exit-duration: 150ms;
+  --chat-hint-dismiss-size: 24px;
+  --chat-hint-icon-size: 16px;
+  --chat-action-icon-size: 14px;
+  --chat-fab-ring-width: 2px;
+  --chat-focus-ring-width: 2px;
+  /* `**bold**` in answers: Plex 500 (the theme loads Plex 400/500 only). */
+  --chat-bold-weight: 500;
 
   /* Page agent: highlight of a targeted section or item, and where a scroll lands */
   --agent-highlight-color: var(--color-text-secondary);
@@ -258,5 +285,8 @@
     --forest-type-skills-title-size: 15px;
     --forest-type-skills-items-size: 14px;
     --forest-type-meta-bar-size: 13.5px;
+    --forest-contact-size: 15px;
+    --forest-step-number-size: 11.5px;
+    --forest-app-meta-size: 13px;
   }
 }
