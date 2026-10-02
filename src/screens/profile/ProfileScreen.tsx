@@ -1,15 +1,16 @@
 import type { ReactNode } from 'react';
 import { commonStrings, useStrings } from '../../i18n';
+import { agentTargetProps } from '../../shared/agentTarget';
 import { FooterCta } from '../../shared/forest/FooterCta';
 import { ForestPage } from '../../shared/forest/ForestPage';
 import { PageStatus } from '../../shared/forest/PageStatus';
-import { ImpactCards } from '../../shared/forest/ImpactCards';
 import { LoopPanel } from '../../shared/forest/LoopPanel';
 import { Section } from '../../shared/forest/Section';
-import { SkillsGrid } from '../../shared/forest/SkillsGrid';
 import { ProfileCards } from './ProfileCards';
 import { ProfileExperience } from './ProfileExperience';
 import { ProfileHeader } from './ProfileHeader';
+import { ProfileImpact } from './ProfileImpact';
+import { ProfileSkills } from './ProfileSkills';
 import type { ProfileUiState } from './ProfileUiState';
 import { profileStrings } from './strings';
 import { profileTestIds } from './testIds';
@@ -38,22 +39,27 @@ export function ProfileScreen({ className, state, metaBarEnd }: ProfileScreenPro
     );
   }
 
-  const { profile } = state;
+  const { profile, highlightedId } = state;
   return (
     <ForestPage className={className} testId={profileTestIds.root}>
-      <ProfileHeader profile={profile} metaBarEnd={metaBarEnd} />
-      <Section index={1} title={strings.impactTitle} testId={profileTestIds.impact}>
-        <ImpactCards items={profile.impact} />
-      </Section>
-      <Section index={2} title={strings.loopTitle} testId={profileTestIds.loop}>
+      <ProfileHeader profile={profile} metaBarEnd={metaBarEnd} highlightedId={highlightedId} />
+      <ProfileImpact index={1} impact={profile.impact} highlightedId={highlightedId} />
+      <Section
+        index={2}
+        title={strings.loopTitle}
+        testId={profileTestIds.loop}
+        attributes={agentTargetProps('section', 'loop', highlightedId)}
+      >
         <LoopPanel {...profile.loop} />
       </Section>
-      <ProfileExperience index={3} profile={profile} />
-      <Section index={4} title={strings.skillsTitle} testId={profileTestIds.skills}>
-        <SkillsGrid groups={profile.skills} />
-      </Section>
-      <ProfileCards index={5} profile={profile} />
-      <FooterCta {...profile.footer} note={strings.footerNote} />
+      <ProfileExperience index={3} profile={profile} highlightedId={highlightedId} />
+      <ProfileSkills index={4} skills={profile.skills} highlightedId={highlightedId} />
+      <ProfileCards index={5} profile={profile} highlightedId={highlightedId} />
+      <FooterCta
+        {...profile.footer}
+        note={strings.footerNote}
+        attributes={agentTargetProps('section', 'footer', highlightedId)}
+      />
     </ForestPage>
   );
 }
