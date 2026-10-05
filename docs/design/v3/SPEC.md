@@ -99,3 +99,25 @@ separate layout.
    styled as small mono pills in this palette.
 8. Contact links: phone numbers and URLs exactly as in the design (`wa.me/380938977110`,
    `t.me/+380938977110`, LinkedIn `in/andriipanasiuk`).
+
+## Architecture notes
+
+From CV-107 ([ADR-0006](../../adr/0006-one-page-v3.md); it wins where this list is short).
+
+- **English only** (the human, 2026-10-05). This overrides Orchestrator decisions 2 and 3 and the
+  language-switcher part of 7: no UK translation, no Cyrillic font, no switcher. Figtree and
+  JetBrains Mono are latin only. The meta bar's end holds only the Show case button.
+- **Data:** a new `CvPage` model (`src/data/cvPage.ts`, `src/data/mock/cvPage.json`) with the
+  texts of this design. Section headings and fixed words ("Email me", the handle, ©) are the
+  screen's strings. Card tones are set by position in the screen, not by data.
+- **Screen:** `src/screens/home/`, with the components in the screen folder. Test ids use the
+  `home-` prefix (the list is in ADR-0006 → Decision 2; the show's layers depend on it). Assets
+  are copied to `src/screens/home/assets/home_*`.
+- **URL:** `/`. `/new` is a 307 redirect to `/` in `vercel.json`.
+- **Tokens:** role names without a look prefix (`--color-*`, `--gradient-*`, `--shadow-*`,
+  `--font-sans`/`--font-mono`, `--type-<role>-*`, `--radius-*`, `--page-*`). The table is in
+  ADR-0006 → Decision 5.
+- **Chat:** `/api/chat` `v: 4` (`docs/chat/API.md` → v4). The page's sections are `header`,
+  `craft`, `loop`, `impact`, `experience`, `skills`, `education`, `about`, `contacts`. There are
+  three tools. The "Ask my AI" pill is the chat's launcher.
+- **Show case:** one scenario, `retro-4` (`docs/retro/ARCHITECTURE.md` §11).

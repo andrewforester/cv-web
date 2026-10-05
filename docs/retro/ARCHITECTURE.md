@@ -1150,3 +1150,120 @@ loader, so it is blocked by CV-96 too (already true through A). CV-97 adds `data
   shot and the end state against `/new`.
 - Done when: the `/new` show runs end to end from the button and from `?retro=1`, ends on the
   real `/new`, and every guard passes on both pages.
+
+## 11. One page v3: one scenario, `retro-4` (designed in CV-107)
+
+> **Design, not built yet.** The site becomes one page with the v3 design, English only
+> ([ADR-0006](../adr/0006-one-page-v3.md)). `/new` redirects to `/`, so there is one page left to
+> run the show on. Decision 4 of the ADR picks the scenario: **`retro-4`, a port of `/new`'s
+> `retro-new-1`** onto the v3 page. §10 (per-page scenarios) and §9 stay the record of what is
+> built until CV-107's Show task (T6) lands; it then updates this section to "as built".
+
+### What stays
+
+The engine, the panels, the highlight and plate, the camera, the close sequence, the lazy chunk
+and its seam (`useShowCase`, `useLazyShow`, `?retro=1`), the eight step ids (`fonts`, `colours`,
+`layout`, `images`, `cards`, `spacing`, `chrome`, `links`), the v3 wire (`locale: "en"`,
+`narrate`/`reply`), the flow and timings (≈ 90 s), guards 1–4 and the timing smoke, the rules in
+§9 → How to add or change a fix chunk, the retro look (`docs/design/retro/SPEC.md` → 2001 `/new`:
+its values, decorations and copy).
+
+### What changes
+
+- **One scenario.** `src/data/retro/scenario.ts` becomes the `retro-4` manifest: step titles as
+  today, intents and fallbacks from `scenarioNew.ts`, reworded where they name content the v3
+  page doesn't have or adds:
+  - `fonts`: the "Senior Software Product Engineer" headline, the stats, the impact figures.
+  - `cards`: stat tiles, craft cards, impact cards, the process panel, the project tree, skill
+    rows, the education and about cards.
+  - `chrome`: the meta bar with location and availability, without a language switcher.
+  - `links`: the contact buttons (Email me, WhatsApp, Telegram, LinkedIn) and the footer's
+    "Let's build something", then the "Ask my AI" chat.
+
+  Fallbacks stay ≤ 200 chars. `scenarioNew.ts` is deleted.
+- **Registry without pages.** `SHOW_SCENARIOS` keeps one entry, `retro-4`; the manifest loses
+  `page` (one page, one knowledge). `isShowScenarioId` stays: `retro-3` and `retro-new-1` become
+  unknown, so old show tabs get `unsupported_version` and run scripted (API.md → v3).
+  `src/app/showScenarios.ts` becomes the constant `SHOW_SCENARIO: ShowScenarioId = 'retro-4'`
+  (T3 sets it to `undefined` while the show is off; T6 sets `retro-4`). `useShowCaseAvailable`
+  is the desktop check only (T1 drops the locale).
+- **Server.** `planShow` grounds `reply` in the `CvPage` knowledge (T2's v4 loader, English). The
+  outline renders from the `retro-4` manifest. `SHOW_PROMPT_VERSION` is bumped. `showFakeScript`
+  gets `retro-4`-worded lines. The log keeps `showScenario`.
+- **One source, flat layers.** `src/screens/retro/scenario.ts` is the `retro-4` source:
+  - **Layers:** `/new`'s registry, 32 ids in show order (`type-faces` … `contact-labels`).
+    `layers/` holds exactly those 32 files:
+    - the 17 shared files are re-targeted;
+    - `layers/new/`'s 15 move up and replace the `/` files of the same name;
+    - `/`'s 15 other files go;
+    - `layers/new/` goes.
+  - **Chunks:** `scenarioSteps.ts` is `scenarioNewSteps.ts`'s fix list on the new hooks.
+    `scenarioNew.ts` and `scenarioNewSteps.ts` are deleted.
+  - **The rest:** `scenarios.ts` (`SHOW_SOURCES`, `RetroShowSource.page`) collapses into the one
+    source. `RetroStageTestHarness` renders the home route.
+  - **Docs:** `docs/design/retro/SPEC.md` gets a short "v3 refit" note listing every selector
+    that moved and any new chunk.
+- **Hooks.** Every `forest-*` / `profile-*` test id in a layer or chunk target maps to the v3 page's
+  `home-*` hook, fixed by the ADR (Decision 2) and delivered by T3:
+
+  | `/new` hook | v3 hook |
+  |---|---|
+  | `profile` (root) | `home` |
+  | `profile-header`, `forest-meta-bar`, `forest-hero` | `home-header`, `home-meta-bar`, `home-header` |
+  | `forest-photo`, `forest-name`, `forest-headline`, `forest-lead` | `home-photo`, `home-name`, `home-headline`, `home-summary` |
+  | `forest-contact` (rows) | `home-contact` (header buttons); the footer's `home-footer-link` pills |
+  | `forest-impact-card`, `profile-impact` | `home-impact-card`, `home-impact` |
+  | `forest-loop-step`, `profile-loop` | `home-loop-step`, `home-loop` |
+  | `forest-job`, `profile-experience` | `home-job`, `home-experience` |
+  | `forest-app` (pills) | `home-project` (the Transcenda tree) |
+  | `forest-skill`, `profile-skills` | `home-skill`, `home-skills` |
+  | `profile-education`, `profile-about`, `forest-book` | `home-education`, `home-about`, `home-book` |
+  | (new) | `home-stat`, `home-craft`, `home-craft-card`, `home-footer` |
+
+  New blocks (stats, craft cards, the project tree's dotted lines, the footer pills) are broken
+  by the concern layers that already cover their kind (surfaces and radii in `card-colors` /
+  `impact-cells`, type in the type layers). A block that would still look modern on the 2001
+  page gets one rule in the matching layer, or one new chunk in its step. Guard 1 then counts the
+  new total.
+- **Tokens.** Token layers redefine the v3 names (ADR-0006 → Decision 5) instead of `--forest-*`,
+  value for value. For example, `base-colors` sets `--color-page`, `--color-ink`, `--color-ink-2`
+  and `--color-ink-3`, and `type-family` sets `--font-sans` and `--font-mono`. `isStructural`
+  treats `--gradient-*` like `--forest-gradient-*` today.
+- **Decorations.** Anchors: `root: "[data-testid='home']"`, `header: "[data-testid='home-header']"`.
+  The copy is `/new`'s (nav, marquee, webring).
+- **The chat at the end.** The `links` step still loads the AI chat through the `ai-chat` loader;
+  what appears is the v3 "Ask my AI" pill (T5). No layer targets the chat.
+
+### Guards
+
+Same four, over the one source:
+- Guard 1 (`scenario.test.ts`): steps = the manifest's; every registered layer removed once;
+  every file in `layers/*.css` registered.
+- Guard 2 (`layers.test.tsx`): renders `RetroStageTestHarness` with the home route and checks
+  every selector and token.
+- Guards 3, 4 and the timing smoke: one `e2e/retro.spec.ts` on `/` (`?retro=1` vs `?retro=0`).
+  T3 deletes `e2e/retro.spec.ts` and `e2e/retroNew.spec.ts` while the show is off; T6 writes the
+  new one from `retroNew.spec.ts`.
+- The Show case click on `/` (`show-case` in the meta bar).
+- `retroLazy.spec.ts` stays (normal mode never loads the chunk); it moves to the new button test id.
+
+### Build split (show part)
+
+T6 **Show case on v3** (Development, Opus), blocked by T3 and T4 (merged), parallel with T5:
+- `src/data/retro/**`: `scenario.ts`, `scenarios.ts`, `scenarioNew.ts` (deleted), their tests,
+  `contract.ts`, `ShowRepository`/`HttpShowRepository`/`FakeShowRepository` (scenario argument
+  stays), `AGENTS.md`.
+- `server/chat/show/**` and their tests, `AGENTS.md`.
+- `src/screens/retro/**`: sources, layers, chunks, `scenarios.ts`, harnesses, tests, `AGENTS.md`
+  files.
+- `src/app/showScenarios.ts` (+ test).
+- `e2e/retro.spec.ts` (new), `e2e/retroShow.ts`, `e2e/support.ts`, `e2e/retroLazy.spec.ts`,
+  `e2e/AGENTS.md`.
+- `docs/design/retro/SPEC.md` (v3 refit note), `docs/retro/**` (§11 as built).
+- **Done when:**
+  - the show runs end to end from the Show case button and from `?retro=1`, ends on the real v3
+    page with zero layers, and guards 1–4 pass;
+  - with `CHAT_FAKE_LLM=1`, `narrate` on `retro-4` streams 8 lines and `reply` carries the v3
+    page's knowledge;
+  - the web check shows `/?retro=1` at t = 0 next to `docs/design/retro/new/screenshot.png` (the
+    same 2001 look on the v3 structure), a mid-show shot and the end state.

@@ -1,12 +1,16 @@
-# AI CV chat: API contract (v1, v2, v3, page-aware v2)
+# AI CV chat: API contract (v1, v2, v3, page-aware v2, v4)
 
 The contract between the chat widget (`src/data/chat/**`, `src/screens/chat/**`) and the backend
 (`api/chat.ts` + `server/chat/**`). It is final for v1 and for v2 (page-agent tools,
 [below](#v2-page-agent-tools)), including its page-aware form (`page`: `/` or `/new`,
 [below](#page-aware-chat-v2--page)): the backend and frontend tickets implement exactly this.
+**v4** ([below](#v4-the-one-page-chat), ADR-0006) is the chat of the one v3 page, English only: it
+replaces v2 in the widget, and v1/v2 are retired when the old pages are removed (CV-107's Cleanup
+task).
 Design context: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md); decisions:
 [`../adr/0001-ai-cv-chat.md`](../adr/0001-ai-cv-chat.md),
-[`../adr/0004-page-aware-chat.md`](../adr/0004-page-aware-chat.md) (page awareness).
+[`../adr/0004-page-aware-chat.md`](../adr/0004-page-aware-chat.md) (page awareness, superseded),
+[`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md) (one page, English only, v4).
 
 ## Summary
 
@@ -16,7 +20,7 @@ Design context: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md); decisions:
 | Request | JSON: `v`, `locale`, the whole conversation in `messages` (the server is stateless); v2 adds the optional `page` (`cv` = `/`, `profile` = `/new`) |
 | Success | `200`, `text/event-stream`: `delta`\* then exactly one terminal event, `done` or `error` |
 | Failure before the stream | non-2xx with a JSON body `{ "error": ChatError }` |
-| Version | `v` in the body (1, 2 or 3, see [Versioning](#versioning)); response header `X-Chat-Api-Version` with the same number |
+| Version | `v` in the body (1, 2, 3 or 4, see [Versioning](#versioning)); response header `X-Chat-Api-Version` with the same number |
 | Types | `src/data/chat/contract.ts` (shared by `src/` and `server/`; copy the block below verbatim) |
 
 ## Request
@@ -166,6 +170,13 @@ All `POST`s count, valid or not.
 | 1 | Answers, no tools; knowledge of `/` | yes | no current client |
 | 2 | Page-agent tools; optional `page` (`cv` = `/`, `profile` = `/new`; absent = `cv`) picks the knowledge and the catalogue | yes | the chat widget, with `page` |
 | 3 | The show dialect (`narrate`, `reply`) | yes | the Retro Rebuild show |
+| 4 | The one-page chat (ADR-0006): v2's tools and stream, no `page`, no `locale`, the v3 page's catalogue | from CV-107's Data + backend task | the chat widget, from CV-107's Chat task |
+
+v1 and v2 stay served until CV-107's Cleanup task removes the old pages; after that the server
+serves v3 and v4 only, and a stale v1/v2 tab gets `400 unsupported_version` ("The chat has been
+updated. Please reload the page."). Retiring v2 without a release in which v4 and v2 are both
+sent is fine here: from the Chat task on, the widget sends only v4, and v2 is still served for
+tabs opened before it until Cleanup.
 
 ## TypeScript types
 
@@ -640,7 +651,7 @@ the error body and codes, SSE framing and stream guarantees. The response header
 | `v` | `3` |
 | `locale` | Must be `"en"` (the show is English only); anything else: `400 invalid_request`. |
 | `kind` | `"narrate"` or `"reply"`; anything else or missing: `400 invalid_request`. |
-| `scenario` | A known scenario id, the one the page was built with: `retro-3` (`/`) or `retro-new-1` (`/new`) (`ShowScenarioId`, the keys of `SHOW_SCENARIOS` in `src/data/retro/scenarios.ts`). A string the server doesn't know (a tab opened before a deploy that changed the steps): `400 unsupported_version`. Not a string: `400 invalid_request`. |
+| `scenario` | A known scenario id, the one the page was built with: `retro-3` (`/`) or `retro-new-1` (`/new`); from CV-107's Show task only `retro-4` (the one v3 page, ADR-0006 → Decision 4) (`ShowScenarioId`, the keys of `SHOW_SCENARIOS` in `src/data/retro/scenarios.ts`). A string the server doesn't know (a tab opened before a deploy that changed the steps): `400 unsupported_version`. Not a string: `400 invalid_request`. |
 | `narrate` body | `v`, `locale`, `kind`, `scenario` only; other fields ignored. No conversation, no CV knowledge. |
 | `reply` body | Adds `step` (the step on screen when the message was sent: a step id of the scenario, or `null` before the first step and after the last), `stepsDone` (integer, `0` to the number of steps) and `messages` (v1 shape and rules: roles alternate, start and end with `user`). A bad `step` or `stepsDone`: `400 invalid_request`. |
 | Limits (`reply`) | `messages` 1 to **20** (10 visitor messages; more: `422 conversation_limit`); a `user` message at most **1,000** chars, an `assistant` message at most **1,000** chars (`413 too_long`); v1's total and body limits still apply. |
@@ -782,6 +793,9 @@ Request 2, the visitor writes during step 2:
 Response 2: `delta` "It belongs to the 2002 layout. It goes in the cleanup step, with the hit counter." then `done` with `end_turn`.
 
 ## Page-aware chat (v2 + `page`)
+
+> **Superseded by [v4](#v4-the-one-page-chat)** (ADR-0006): served until CV-107's Cleanup task,
+> then removed with v2.
 
 > Final (CV-94). Decision: [`../adr/0004-page-aware-chat.md`](../adr/0004-page-aware-chat.md).
 > Amends the v2 contract above; types live in `src/data/chat/contract.ts` (wire) and
@@ -954,3 +968,168 @@ X-Chat-Api-Version: 2
 
 {"error":{"code":"invalid_request","message":"messages[0].page.route must be \"/new\"","retryable":false,"requestId":"..."}}
 ```
+
+## v4: the one-page chat
+
+> Final (CV-107). Decision: [`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md) →
+> Decision 3. Built by CV-107's Data + backend task (server, contract, catalogue; its first commit
+> is the contract) and Chat task (widget). Types live in `src/data/chat/contract.ts` (wire) and
+> `src/data/chat/agentTools.ts` (catalogue); the blocks below are copies, the files win if they
+> ever differ.
+
+The site has one page (`/`; `/new` redirects to it) and one language (English). v4 is v2's tool
+dialect for that page: the same messages, tool loop, stream, limits and errors, without the page
+id and without the locale, with the v3 page's catalogue and knowledge.
+
+**Why a new version:** the enums an old client sends (sections, target kinds, contact channels,
+`switchLanguage`) no longer exist, and the request loses `page` and `locale`: breaking by
+[Versioning](#versioning). An old tab keeps getting v2 until the Cleanup task, then
+`unsupported_version` and the widget's "reload" notice.
+
+### What changes from v2
+
+| Area | v4 |
+|---|---|
+| `v` | `4`; response header `X-Chat-Api-Version: 4`. |
+| `locale` (request) | Removed (ignored if sent, like any unknown field). The knowledge is English; the model still replies in the language of the visitor's latest message (`INSTRUCTIONS`), with the fixed line `Site language: English (en).` as its fallback. |
+| `page` (request) | Removed (ignored if sent). |
+| `messages[].page` (snapshot) | `AgentPageStateV4`: v2's snapshot without `route` and `locale`. `activeSection` is one of `CV_SECTION_IDS` or `null`; `highlighted` one of the catalogue's targets or `null`; `tools` a sorted subset of the catalogue's names. Still at most 1,000 chars. |
+| Messages, tool loop, limits | As v2 (`CHAT_LIMITS_V2`: 40 messages, 10 questions, 3 calls per message, 2 tool rounds per turn, `providerState` echoed verbatim). |
+| Knowledge | `src/data/mock/cvPage.json` rendered by `renderCvPage` as `<document id="cv" title="CV">`; one block, so one cached prefix. |
+| Tools | `buildCvPageToolSpecs(page)`: three tools, below. No `switchLanguage`. |
+| System prompt | `INSTRUCTIONS` (text unchanged), `PAGE_TOOL_INSTRUCTIONS` (without "switch the language" and the `locale` in `<page_state>`), knowledge (cache marker), `Site language: English (en).`. `PROMPT_VERSION` bumped. |
+| SSE, errors | As v2. |
+| Log line | As v2 without `page` and `locale`; `v: 4`. |
+
+### Types
+
+`src/data/chat/contract.ts`, added after the page-aware block (Cleanup later deletes the v1/v2-only
+parts, ADR-0006 → Decision 7):
+
+```ts
+export const CHAT_API_VERSION_V4 = 4;
+
+/** The page's sections in page order; `data-agent-id="section:<id>"`. */
+export const CV_SECTION_IDS = [
+  'header',
+  'craft',
+  'loop',
+  'impact',
+  'experience',
+  'skills',
+  'education',
+  'about',
+  'contacts',
+] as const;
+export type CvSectionId = (typeof CV_SECTION_IDS)[number];
+
+/** `CvPage.contacts` ids, in the header's order; `data-agent-id="contact:<channel>"`. */
+export const CV_CONTACT_CHANNELS = ['email', 'whatsapp', 'telegram', 'linkedin'] as const;
+export type CvContactChannel = (typeof CV_CONTACT_CHANNELS)[number];
+
+/** Target kinds on the page (a subset of `AGENT_TARGET_KINDS`); `app` = a Transcenda project. */
+export const CV_TARGET_KINDS = [
+  'section',
+  'impact',
+  'experience',
+  'app',
+  'skill',
+  'book',
+  'contact',
+] as const;
+
+/** Page snapshot sent with each question: enums and booleans only, never text or values. */
+export interface AgentPageStateV4 {
+  viewport: (typeof AGENT_VIEWPORTS)[number];
+  chat: (typeof AGENT_CHAT_LAYOUTS)[number];
+  activeSection: CvSectionId | null;
+  highlighted: AgentTargetId | null;
+  /** Tools registered (mounted) right now, sorted. */
+  tools: AgentToolName[];
+}
+
+export interface ChatUserMessageV4 {
+  role: 'user';
+  /** Plain text, non-empty after trimming. */
+  content: string;
+  page: AgentPageStateV4;
+}
+
+/** Tool results and assistant messages are v2's. */
+export type ChatMessageV4 = ChatUserMessageV4 | ChatToolResultsMessageV2 | ChatAssistantMessageV2;
+
+/** Roles alternate, start with a text `user` message and end with a `user` message. */
+export interface ChatRequestV4 {
+  v: typeof CHAT_API_VERSION_V4;
+  messages: ChatMessageV4[];
+}
+```
+
+The stream types are v2's (`ChatSsePayloadsV2`, `ChatStreamEventV2`); the names stay (they name
+the tool dialect). In Cleanup `AGENT_TOOL_NAMES` loses `switchLanguage` and
+`AGENT_TARGET_KINDS` loses `technology`; the `V4` names stay.
+
+`src/data/chat/agentTools.ts`:
+
+```ts
+import type { CvPage } from '../cvPage.js';
+
+/**
+ * Every highlightable target, `<kind>:<id>`: sections, then impact cards, jobs, Transcenda's
+ * projects (`app:`), skill groups, books, contacts (header buttons), in data order. 38 today.
+ */
+export declare function cvPageTargetIds(page: CvPage): AgentTargetId[];
+
+/** The page's catalogue: deterministic (sorted by name, ids in data order). */
+export declare function buildCvPageToolSpecs(page: CvPage): AgentToolSpec[];
+```
+
+Server side (informational): `LLM_TOOLS_V4`, built once from `cvPage.json`; the knowledge loader
+for v4 takes no arguments; `validateV4` checks the snapshot against `CV_SECTION_IDS` and the
+catalogue's targets and names. The show (v3) grounds its replies in the same knowledge from the
+Show task on.
+
+### Tool catalogue
+
+`buildCvPageToolSpecs(page)`, each with one required string parameter restricted to an enum:
+
+| Tool | Description (for the model) | Parameter | Enum | `confirm` |
+|---|---|---|---|---|
+| `highlightElement` | Scroll to a section or item of the page and briefly highlight it, e.g. an impact card, a job, an app, a skill group, a book or a contact. | `target` (The element to highlight.) | `section:<CvSectionId>` (9), then `impact:` (3), `experience:` (9), `app:` (3, Transcenda's projects), `skill:` (6), `book:` (4) with the `CvPage` ids in data order, then `contact:<channel>` (4): 38 | `false` |
+| `openContact` | Open a contact channel of Andrew (email, WhatsApp, Telegram or LinkedIn). The visitor confirms first. | `channel` (The contact channel.) | `CV_CONTACT_CHANNELS` | `true` |
+| `scrollToSection` | Scroll the page to a section. | `section` (The section to scroll to. craft = "Code craft × agentic process", loop = "How I build with agents", impact = "Selected impact", contacts = the closing call to action with every contact.) | `CV_SECTION_IDS` in page order | `false` |
+
+Item ids are the `id` fields of `ImpactCard`, `CvJob`, `CvProject`, `SkillGroup`, `Book` and
+`CvContact` (`src/data/cvPage.ts`, ADR-0006 → Decision 1), checked by `cvPageIds.test.ts`. On the
+page they are `data-agent-id` attributes the home screen sets (`agentTargetProps`); the
+`contact:` targets are the header's buttons, the footer's pills carry none.
+
+### Example: one question
+
+```json
+{ "v": 4, "messages": [
+  { "role": "user", "content": "Show his selected impact",
+    "page": { "viewport": "desktop", "chat": "card", "activeSection": "header",
+              "highlighted": null,
+              "tools": ["highlightElement", "openContact", "scrollToSection"] } } ] }
+```
+
+Response: `delta` "Scrolling to his selected impact." then `tool_call`
+`{"id":"toolu_01C","name":"scrollToSection","input":{"section":"impact"}}` then `done` with
+`tool_use`; the follow-up carries the tool result as in the v2 example, with `"v": 4`.
+
+A v2 body after the Cleanup task:
+
+```text
+HTTP/1.1 400 Bad Request
+X-Chat-Api-Version: 4
+
+{"error":{"code":"unsupported_version","message":"Unsupported version v=2","retryable":false,"requestId":"..."}}
+```
+
+### Size (estimate; the Data + backend task replaces it with the built numbers)
+
+Knowledge ≈ 7,000 chars (≈ 2,000 tokens), tools JSON ≈ 1,900 chars (≈ 550 tokens), shared
+blocks ≈ 1,420 tokens: a static prefix of **≈ 4,000 tokens**, one per model (today: three). On
+Haiku 4.5 it is just under the 4,096-token cache minimum; the automatic marker caches it once the
+history passes that. About $0.004 per uncached request on Haiku.

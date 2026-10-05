@@ -13,6 +13,10 @@ operates the page it is on: each page has its own sections, targets and catalogu
 ([`../adr/0004-page-aware-chat.md`](../adr/0004-page-aware-chat.md), API.md → Page-aware chat).
 §1 and the examples below describe `/`; `/new`'s targets are in ADR-0004 → Decision 4.
 
+Since CV-107 (ADR-0006) the site is **one page, English only**: the agent works on the v3 page
+through `v: 4`, with three tools (no `switchLanguage`) and the targets in §12. Sections 1–11 are
+the record of v2; §12 says what changes.
+
 ## 1. Findings: what the page can be told to do
 
 At design time the site was one route (`/`; `/new` came with CV-84): the CV as one scrolling page (`src/screens/cv/CvScreen.tsx`) with a
@@ -303,3 +307,27 @@ uncached; the ADR-0001 abuse math is unchanged in shape.
   nothing about real cost.
 - **Not built:** `GET /api/chat-usage`, a global exact budget, the WebMCP wiring
   (`src/agent/webmcp.ts` only converts).
+
+## 12. One page v3 (`v: 4`, CV-107)
+
+Decision: [`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md); contract: API.md → v4.
+
+- **Tools:** `highlightElement`, `openContact` (`confirm`), `scrollToSection`. `switchLanguage`
+  is gone with the Ukrainian locale; "перемкни на українську" now gets "I can't do that" from the
+  model (no tool fits), as any unsupported request does. The model still answers in the visitor's
+  language.
+- **Sections** (`CV_SECTION_IDS`, page order): `header`, `craft`, `loop`, `impact`, `experience`,
+  `skills`, `education`, `about`, `contacts`.
+- **Targets** (38): the 9 sections, `impact:` (3), `experience:` (9 jobs; Transcenda's article
+  includes its project tree), `app:` (Transcenda's 3 projects: `spoton`, `cync`, `august-home`),
+  `skill:` (6), `book:` (4), `contact:` (4, the header buttons: `email`, `whatsapp`, `telegram`,
+  `linkedin`). Not targets: stats, craft cards, loop steps, the meta bar, the footer pills.
+- **`openContact`** opens `mailto:` in place and `https://` links (WhatsApp, Telegram, LinkedIn) in
+  a new tab, after the visitor confirms; the confirmation names the contact's label from the data.
+- **Snapshot:** v2's without `route` and `locale`; `activeSection` from `useAgentPageView` over
+  `CV_SECTION_IDS`.
+- **Unchanged:** the protocol (client-executed tools, stateless server, `providerState`), the
+  safety rules (§5), the limits, the cost model (§6; one cached prefix instead of three).
+- **Example commands** offered in the chat: "Show his selected impact" (`scrollToSection`
+  `impact`), "Highlight his work at Transcenda" (`highlightElement` `experience:transcenda`),
+  "Scroll to his contacts" (`scrollToSection` `contacts`).
