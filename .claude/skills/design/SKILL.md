@@ -7,7 +7,7 @@ description: Turn a screenshot (or photo/mock) of an app screen into a CV Andrew
 
 Output: `docs/design/<screen>/` in the same shape as the packages already in `docs/design/` (the first one is your reference for format and depth). A developer session will build the screen **only** from this package, so anything you leave out gets guessed.
 
-**Never call design-tool MCPs** (Figma etc.): they are rationed and only the orchestrator uses them. Your zone is `docs/design/<screen>/**` and nothing else. A local session works in its own worktree, never in the main checkout (`docs/COORDINATION.md` → General rules).
+**Never call design-tool MCPs** (Figma etc.): they are rationed and only the orchestrator uses them. Your zone is `docs/design/<screen>/**` and nothing else. A local session works in its own worktree, never in the main checkout (root `AGENTS.md` → Process, rule 5).
 
 ## 1. Get the image into the repo
 - Find the screenshot:
@@ -17,10 +17,10 @@ Output: `docs/design/<screen>/` in the same shape as the packages already in `do
 
   If you can only *see* it in the chat and have no file, ask the human to attach it as a file or commit it, and stop.
 - Save it as `docs/design/<screen>/screenshot.png`, keeping the original resolution.
-- Record the pixel size and the scale: CSS px (or dp) = image px ÷ (image width ÷ logical width). Take the logical width from `docs/COORDINATION.md` → Scaffold decisions (target viewport) unless the image says otherwise.
+- Record the pixel size and the scale: CSS px (or dp) = image px ÷ (image width ÷ logical width). Target viewports: desktop 1280 (the *web check*, root `AGENTS.md` → Commands) and phone 390, unless the image says otherwise.
 
 ## 2. The reference is the style, the screenshot is the content
-The style reference (`docs/COORDINATION.md` → Design source of truth) sets sizes, colours, type, radii and spacing. So:
+The style reference (root `AGENTS.md` → Design) sets sizes, colours, type, radii and spacing. So:
 - Take from the screenshot *what* is there: blocks, order, content, texts, icons, illustrations, behaviour.
 - Specify *how it looks* in the reference language: read the theme/tokens code and the existing design packages, then give every block the matching treatment (card fill/border/radius/padding/shadow, type styles, spacing grid, text colours).
 - Sample screenshot colours (Python/PIL, flat areas only) to identify the *role* of each colour, then map the role to an existing token. A new token is justified only when the reference has no colour for that role; list it in **"New tokens needed"** with a suggested name. The theme owner adds it in a separate theme task.
@@ -52,5 +52,5 @@ Write `SPEC.md` with these sections:
 - Re-read the brief and all comments first: scope may have changed while you worked.
 - Commit only `docs/design/<screen>/**`.
 - **Comment** on the ticket with the open questions (each with the default you put in Decisions), the new tokens, and anything you're unsure of. Never stop to wait for an answer: nobody is watching.
-- Push to the draft PR the orchestrator opened (never open another), add a short summary to its body next to the ticket reference, and mark it **Ready for review** as your last step (`docs/COORDINATION.md` → Tooling): that starts CI and signals the orchestrator.
+- Push to the draft PR the orchestrator opened (never open another), add a short summary to its body next to the ticket reference, and mark it **Ready for review** as your last step (`.claude/skills/develop/tooling.md` → Code host): that starts CI and signals the orchestrator, who reviews and merges design packages itself.
 - Don't merge; the orchestrator merges and then files the theme and screen tasks from your package.

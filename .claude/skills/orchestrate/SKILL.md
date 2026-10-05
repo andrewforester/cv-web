@@ -5,18 +5,28 @@ description: Coordinate work on CV Andrew Panasiuk as the orchestrator session �
 
 # Orchestrate
 
-You plan, launch, watch and audit. You do **not** write feature code, and you don't review or merge code PRs: the developer session does, after its own reviewer subagent passes the PR. You may edit only `docs/**`, the root `AGENTS.md` / `CLAUDE.md`, `.claude/skills/**`, `.claude/settings.json`, `.github/pull_request_template.md` (via your own PRs, each from its own worktree: the main checkout stays on `main`, `COORDINATION.md` → General rules), and a design package on its design branch before merging it. Read `AGENTS.md` and `docs/COORDINATION.md` first: **Tracker** (where tasks live, statuses, labels, the brief format) and **Tooling** (the concrete commands for every step below).
+You plan, launch, watch and audit. You do **not** write feature code, and you don't review or merge code PRs: the developer session does, after its own reviewer subagent passes the PR. You may edit only `docs/**`, the root `AGENTS.md` / `CLAUDE.md`, `.claude/skills/**`, `.claude/agents/**`, `.claude/settings.json`, `.github/pull_request_template.md` (via your own PRs, each from its own worktree: the main checkout stays on `main`, root `AGENTS.md` → Process, rule 5), and a design package on its design branch before merging it. Read the root `AGENTS.md` first (Process, Hot spots, Design); the concrete commands for every step below are in `tooling.md` next to this file.
 
 ## First run: the Scaffold task
-While `AGENTS.md` or `docs/COORDINATION.md` still contain `TODO(scaffold)`, the project has no stack yet. Before any other task:
+While `AGENTS.md` or a skill's `tooling.md` still contain `TODO(scaffold)`, the project has no stack yet. Before any other task:
 1. Agree the stack with the human (frontend, backend, hosting, test tools). Record the choice and why in the task, not in chat only. Before launching Scaffold, make sure the hosting project and every third-party account the stack needs exist and their connectors are connected (`docs/SETUP.md` → 3), or file them as **Needs human**: briefs must carry the real URLs and ids, otherwise sessions guess (e.g. CORS for a domain that isn't ours).
 2. File one Scaffold task (Role DevOps): create the apps/packages, fill every `TODO(scaffold)` (Layout, Commands, Conventions, Hot spots with real paths, Scaffold decisions, Design source of truth), the session-start hook, CI jobs (lint, test, e2e with screenshots, deploy, a smoke test against production after each deploy), a hello-world screen with one UI test, and package docs (`AGENTS.md` + `CLAUDE.md`). Zone: everything. Done when: no `TODO(scaffold)` is left and CI is green on the PR.
 3. Nothing else runs in parallel with it.
 
 ## State lives in the tracker
 - One task = one ticket = one session = one branch `claude/<short>` = one PR that closes the ticket. **You** open the branch and the draft PR before launching the session; the session pushes to it, has it reviewed, merges it and sets the ticket Done.
-- Every ticket gets a **Role** and a **Type** label; move its status as it changes (Backlog → Todo → In Progress → In Review → Done). **Needs human** when you wait for the human.
-- Everything about the process is on the ticket: launch (session name/id), scope changes, answers, decisions, your verification result with the screenshot. Sessions write their plan, questions and report there too, so there is nothing to mirror (`COORDINATION.md` → Tracker → Single source of truth). Never keep task tables or status in the repo.
+- Every ticket gets a **Role** label (who runs it: Research → a written answer, no code; Architecture → system design, ADR, API contract, docs only; Design → a design package; Development → screens, theme, features, backend; QA → verification, reverts; DevOps → CI, build, hosting, environment; Docs → process rules, skills, the root `AGENTS.md`) and a **Type** label (Feature · Improvement · Bug · Chore; a Bug with Role Development is a quick fix). Statuses as in the root `AGENTS.md` → Process: you set Todo/Backlog and In Progress, the developer In Review and Done. **Needs human** when you wait for the human.
+- **Dependencies** are tracker relations, not text: `blocked by` for hard ones (must be merged first); a soft one ("may start once CV-N's branch exists and merge it") is `Starts on branch of: CV-N` in the brief plus a `related` relation.
+- **Brief** (the ticket description), self-contained because the session never sees the chat:
+  ```
+  ## What needs to be done
+  ## Design package        (docs/design/<name>/, or "none")
+  ## Zone                  (may change / must not change; see Hot spots)
+  ## Out of scope
+  ## Dependencies          (blocked by / starts on branch of; mirrors the relations)
+  ## Done when
+  ```
+- Everything about the process is on the ticket: launch (session name/id), scope changes, answers, decisions, your audit. Sessions write their plan, questions and report there too, so there is nothing to mirror. Never keep task tables or status in the repo.
 
 ## Before filing: settle the scope
 Ask the human, in one message, what is **out of scope** when the request doesn't say so (e.g. "the header and the nav bar visible in the screenshot: include or not?"). A running session doesn't reliably see later edits, so scope must be final before launch. If it does change later, comment on the ticket and the PR **and** check the result for it before merging.
@@ -26,25 +36,26 @@ When you work on your own (no answer, or "take defaults"), every exclusion you d
 ## Turn a request into tasks
 Small bugs and polish items: follow `.claude/skills/quick-fix` instead of the steps below.
 
-1. Split into tasks with non-overlapping zones (Hot spots in `COORDINATION.md`). Hot spots (theme, build files, routing/app shell, API contract, CI config) are separate tasks with one owner. Big features get their own tracker project (epic).
+1. Split into tasks with non-overlapping zones (root `AGENTS.md` → Hot spots). Hot spots (theme, build files, routing/app shell, API contract, CI config) are separate tasks with one owner. Big features get their own tracker project (epic).
 2. **Research / architecture first** when the feature needs a decision (backend, data model, third-party service): a docs-only task (Role Research or Architecture) that fixes the API contract before backend and frontend start. The backend's **first commit** is the shared contract file; the frontend session merges the backend branch to get it instead of copying it. Build tickets filed before it is merged name their zone as "the architecture's Build split, task X" plus the expected files; the architecture's file list wins, and you post a scope-update comment on each when it merges (Oct 2026: guessed zones conflicted with the real split on all five build tickets).
 3. **Design first** for anything visible. A screen (or a new part of a screen) needs `docs/design/<name>/` (`SPEC.md`, `screenshot.png`, `assets/`) in `main` before its developer starts.
    - From a **screenshot**: sessions never see the chat, so put the image in the repo yourself: create `claude/design-<name>` from `main`, commit it as `docs/design/<name>/screenshot.png`, push, then file a Design task that points to it, and launch the session on that branch.
-   - From a **design tool** (Figma etc.): only you call it, within the budget in `COORDINATION.md` → Design source of truth. One design-context call per frame. Download the assets right away (their URLs expire), write the package yourself, and merge it.
+   - From a **design tool** (Figma etc.): only you call it, within the budget in `tooling.md` → Design reference. One design-context call per frame. Download the assets right away (their URLs expire), write the package yourself, and merge it.
    - From a **description** only: a package with a mock page over the real tokens and rendered PNGs. Before merging, reconcile it with the API contract (limits, error codes, formatting) and append an **Orchestrator decisions** section to its `SPEC.md` that overrides conflicting items.
-   - A screenshot-based package must restyle every block in the reference language (`COORDINATION.md` → Design source of truth).
+   - A screenshot-based package must restyle every block in the reference language (root `AGENTS.md` → Design).
 4. Review the design PR: scope matches the task, questions are in comments. For each open question pick a default, write it into `SPEC.md` → **Decisions** (you may edit the package on its branch), and list them on the ticket. Then merge.
-5. Write each implementation ticket in the brief format (`COORDINATION.md` → Tracker): what to build, design package, zone (may change / must not change), **out of scope**, dependencies, done-when. It must be self-contained: the session never sees your conversation.
-6. Theme and screen, or backend and frontend, run in parallel only if the task that owns the contract (token names, endpoints and shapes) fixes it in its brief, and the other task says to merge that branch as soon as it exists.
+5. Write each implementation ticket in the brief format (above): what to build, design package, zone (may change / must not change), **out of scope**, dependencies, done-when. It must be self-contained: the session never sees your conversation.
+6. Merge order: Scaffold first, then theme, then screens (in parallel, any order). Theme and screen, or backend and frontend, run in parallel only if the task that owns the contract (token names, endpoints and shapes) fixes it in its brief, and the other task says to merge that branch as soon as it exists.
 
 ## Launch a session
-Launch every task as a **new agent in a new background session**, with the launch command from `COORDINATION.md` → Tooling → Sessions (which kind of session, the exact command and flags, models and limits are all there).
+Launch every task as a **new agent in a new background session**, with the launch command from `tooling.md` → Sessions (which kind of session, the exact command and flags, models and limits are all there).
 
-1. Open the branch and the draft PR (Tooling → Code host) and start following the PR right away.
-2. Write the prompt: only the ticket id, the branch, the draft PR number, the skill and the standing rules. The brief lives on the ticket; never paste it into the prompt (a copy goes stale and costs context):
+1. Open the branch and the draft PR (`tooling.md` → Code host) and start following the PR right away.
+2. Write the prompt: only the ticket id, the branch, the draft PR number, the skill, the merge permission and the standing rules. The brief lives on the ticket; never paste it into the prompt (a copy goes stale and costs context):
    ```
    You are a working session on CV Andrew Panasiuk. No human is watching; work until the PR is ready.
    Ticket: CV-N (read the brief and all comments there). Branch: claude/<short>. Draft PR: #P (already open; don't open another).
+   Merge: allowed.
    Use the `<skill>` skill. Plan, questions and the report go on the ticket; the PR holds only code and review.
    Use Anthropic's design / system-design / architecture skills when available, after the project skills.
    Start with `git fetch origin && git merge origin/main`. Commit and push early and often.
@@ -53,10 +64,11 @@ Launch every task as a **new agent in a new background session**, with the launc
    When done, mark PR #P Ready for review, then run the review rounds with the `reviewer` subagent
    (it sees only the ticket and the PR), merge once it passes and set the ticket Done. Don't schedule check-ins.
    ```
-3. Pick the model by task size (Tooling → Sessions). The model is not the main cost driver: long exploration and repeated heavy checks are. Keep briefs on the ticket precise (likely cause, exact files, how much verification is enough).
-4. Set the ticket to In Progress and comment with the session name and id and "Merge: autonomous merge allowed / not allowed" (the developer reads it before merging). Schedule one fallback check-in for when it should be done.
+   `Merge: allowed` unless the human said otherwise for this task or epic; then write `Merge: not allowed` and merge it yourself after the review passes. Design and docs tasks get no merge line: you merge those.
+3. Pick the model by task size (`tooling.md` → Sessions). The model is not the main cost driver: long exploration and repeated heavy checks are. Keep briefs on the ticket precise (likely cause, exact files, how much verification is enough).
+4. Set the ticket to In Progress and comment with the session name and id. Schedule one fallback check-in for its expected finish (`tooling.md` → Sessions).
 
-**Screenshots from the human** (bug reports from a device): upload them to the ticket (`COORDINATION.md` → Tracker → Screenshots); the session never sees the chat.
+**Screenshots from the human** (bug reports from a device): upload them to the ticket (skill `linear-screenshot`); the session never sees the chat.
 
 ## Queue with dependencies (intake → dispatch)
 The human sends tasks one after another. File each one as soon as it arrives; don't wait for the batch.
@@ -75,30 +87,29 @@ The human sends tasks one after another. File each one as soon as it arrives; do
 
 ## Follow by events, not polling
 - **No recurring check-ins.** Every wake-up re-reads your whole context and burns the usage limit.
-- Follow each task's PR from the moment you open it, but act only on its **merge** (or close): that is the signal the ticket went Done. Ready, CI and review events are the developer's, not yours. A session that stops without merging (blocked, **Needs human** after 3 review rounds, a denied merge, a usage-limit stop) sends no merge: keep one fallback check-in per running task and, when it fires, look at **all** open task PRs and their tickets. Cancel it when the merge arrives.
-- Steer a running session through a comment it reads, or a message if your kind of session can reach it. If it's idle and needs more, launch a follow-up session on the same branch with a precise prompt.
+- Follow each task's PR from the moment you open it. For code tasks act only on its **merge** (or close): that is the signal the ticket went Done; Ready, CI and review events are the developer's, not yours. For design and docs tasks act on **Ready**: you review and merge those.
+- A session that stops without merging (blocked, **Needs human** after 3 review rounds, `Merge: not allowed`, a denied merge, a usage-limit stop) sends no merge. Your PR monitor flags a session that went idle while its PR is open (`tooling.md` → Code host); keep one fallback check-in per running task as well and, when either fires, look at **all** open task PRs and their tickets (`get_issue` shows the status history). Cancel the check-in when the merge arrives.
+- Steer a running session through a comment it reads plus a message (`tooling.md` → Sessions). If it's idle and needs more, launch a follow-up session on the same branch with a precise prompt.
 
 ## Audit and close
 Code tasks (Role Development or DevOps, including quick fixes) are reviewed by the developer's own `reviewer` subagent (`.claude/agents/reviewer.md`, it sees only the ticket and the PR) and merged by the developer session, which then sets the ticket Done. You don't check them before the merge. Docs-only and design-package PRs you still check and merge yourself (only if the human has allowed autonomous merging; otherwise ask).
 
-**Audit**, when a task PR is merged (the developer is the author, the reviewer and the merger, so this is the separation of duties):
-1. The ticket is Done and links the merged PR (Linear's GitHub integration does it via `Closes CV-N`; otherwise attach it).
-2. The PR's last reviewer comment is `Review passed (round K, <SHA>)` and that SHA is the PR's last head before the merge; every earlier `Changes needed` finding has a reply. CI was green on that head.
-3. The diff stayed inside the zone (`--stat`), and for UI the ticket has the web screenshot; look at one against the design package.
-4. Anything off (merged without a passing review on the last head, a red CI, a scope breach, a broken page): set the ticket back to In Progress with **Needs human**, say exactly what, and tell the human; if it broke `main`, file the revert for `qa-release`. Don't fix it yourself.
-5. Post the audit result on the ticket in one line.
+**Audit**, when a task PR is merged. The developer is the author and the merger, and the reviewer subagent already judged the code, the zone and the done-when; you check that the process held:
+1. `scripts/audit-pr.sh <P>` (`tooling.md` → Code host): merged with `Closes CV-N`, the last verdict is `Review passed` on the merged head, CI green on it.
+2. The ticket is Done and carries the developer's report and closing comment.
+3. Anything off: set the ticket back to In Progress with **Needs human**, say exactly what, and tell the human; if it broke `main`, file the revert for `qa-release`. Don't fix it yourself.
+4. Post the audit result on the ticket in one line.
 
-A developer that posted **Needs human** (3 review rounds without passing, or a denied merge): look at the PR, then answer, merge it yourself if only the merge was denied and the review passed on the current head, or raise it with the human.
+A developer that posted **Needs human** (3 review rounds without passing, `Merge: not allowed`, or a denied merge): look at the PR, then answer, merge it yourself if only the merge was denied and the review passed on the current head, or raise it with the human.
 
 After the audit:
-- The backend deploy check (Tooling → Notifications and deploy checks) right away.
-- **Close out the developer session right away:** read its token usage, its reviewer subagents included, then archive or remove it (Tooling → Sessions).
+- **Close out the developer session right away:** read its token usage, its reviewer subagents included, then archive or remove it (`tooling.md` → Sessions).
 - The developer already posted the closing comment (merged PR, review rounds); you add only the audit line and the usage table.
 - **Follow-ups never pile up silently.** Every follow-up, "not done", "out of zone" or "should later" item in a session's report or a reviewer's non-blocking notes becomes either a ticket (Backlog, with the report linked) or a line under **Open gaps** in the report to the human, with your judgement: product gap (what the user gets is wrong or missing) or tech debt. A product gap goes to the top of the report. Don't file them only as "debt" in a closing comment.
-- **Usage tables** (`COORDINATION.md` → Tracker → Usage): put the ticket's table (a row per session: ≈ $, then in / cache / out / total tokens) at the top of the ticket description, and add the ticket's row to the table at the top of the project description, with the total updated. Tokens are the measure; dollars only by the rough formula there.
+- **Usage tables** (`tooling.md` → Usage): put the ticket's table (a row per session: ≈ $, then in / cache / out / total tokens) at the top of the ticket description, and add the ticket's row to the table at the top of the project description, with the total updated. Tokens are the measure; dollars only by the rough formula there.
 - Then run **Dispatch**.
 - Don't watch CI on `main`: the `qa-release` session does and reverts or files a fix when it goes red. Before each merge, check that the latest CI run on `main` isn't red (the workflow run, not the commit's status icon: a hosting status like a rate-limited deploy can be red while CI is green); if it is, merge only the fix or revert.
-- Report to the human with links (Tooling → Notifications):
+- Report to the human with links (`tooling.md` → Notifications):
   - the deliverables from `AGENTS.md` → Git & CI;
   - **Excluded by me**: the scope decisions you took yourself (see Before filing);
   - **Open gaps**: product gaps first, then tech debt, each with its ticket or "not filed";
@@ -108,7 +119,12 @@ After the audit:
 - A red `main` is the top priority: pick up the QA fix task first.
 
 ## Hand off
-When your context passes ≈250k tokens, the human asks, or a round ends. You can't see an exact counter: estimate from the conversation (tool outputs dominate) and hand off early rather than late. First write a short **process retrospective** (what cost time, what broke, what worked) and turn it into a PR on the process docs (`.claude/skills/**`, `docs/COORDINATION.md`, `docs/SETUP.md`); merge it. For a mistake sessions made more than once (a wrong layer, a copied component, a hardcoded value, a made-up API), prefer an **automatic check** over one more line of docs: a lint rule, a test or a hook. File it as a DevOps task (those files are Scaffold hot spots). Then add your own session's row to the project's usage table and write a handoff comment in the tracker (the epic's project or main ticket): open tickets and their state, running sessions (name, id, branch, PR), decisions not yet in docs, pending human actions. Then launch a new orchestrator the same way as a task session (`COORDINATION.md` → Tooling → Sessions) with "Use the orchestrate skill. Continue <epic>; the handoff is in <link>.", give the human its id, and stop your watchers and check-ins.
+When your context passes ≈250k tokens, the human asks, or a round ends. You can't see an exact counter: estimate from the conversation (tool outputs dominate) and hand off early rather than late. First write a short **process retrospective** (what cost time, what broke, what worked) and turn it into a PR on the process docs (`.claude/skills/**`, `.claude/agents/**`, the root `AGENTS.md`, `docs/SETUP.md`); merge it (then see Changing the process). For a mistake sessions made more than once (a wrong layer, a copied component, a hardcoded value, a made-up API), prefer an **automatic check** over one more line of docs: a lint rule, a test or a hook. File it as a DevOps task (those files are Scaffold hot spots). Then add your own session's row to the project's usage table and write a handoff comment in the tracker (the epic's project or main ticket): open tickets and their state, running sessions (name, id, branch, PR), decisions not yet in docs, pending human actions. Then launch a new orchestrator the same way as a task session (`tooling.md` → Sessions) with "Use the orchestrate skill. Continue <epic>; the handoff is in <link>.", give the human its id, and stop your watchers and check-ins.
+
+## Changing the process
+A running session never re-reads its skills: it keeps the version it started with (Oct 2026: CV-124 was launched four minutes after the reviewer-subagent change merged, with the old prompt, and its developer waited 36 min for a review session that no longer existed). After a PR that changes `.claude/skills/**`, `.claude/agents/**` or the root `AGENTS.md` → Process merges:
+- tell every other running orchestrator of the project to re-read the changed files (`SendMessage` / `send_message`), or hand off to a fresh one;
+- check the prompts of task sessions launched before the merge; if the change affects them (who merges, what to post), comment on their tickets and message them.
 
 ## Keep the orchestrator cheap
 The orchestrator is usually the most expensive session: every wake-up re-reads the whole conversation. So:
