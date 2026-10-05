@@ -87,8 +87,8 @@ separate layout.
 3. **Fonts:** Figtree + JetBrains Mono, latin subsets only.
 4. **Logos.** Samsung: the classic blue ellipse logo, `assets/cv_logo_samsung.svg` (the human's
    pick, 2026-10-05; Wikimedia Commons `Samsung_Logo.svg`); it replaces `cv_logo_samsung_hq2.png`,
-   shown plain (no tile) as in the design. SpotOn (`cv_app_spoton.png` is not in the package): the
-   design's own fallback, the gradient initials tile "S", until the human picks an icon.
+   shown plain (no tile) as in the design. SpotOn: `assets/cv_app_spoton.png`, the App Store icon
+   of SpotOn Restaurant Reports (the human's pick, 2026-10-05), shown like the other app icons.
 5. **Dropped from the design file:** headline variant B, the "TnAir" alternative palette and the
    unused `apps` list (Savant). They are not part of the page.
 6. **Chat.** The "Ask my AI" pill replaces the round launcher; the chat panel keeps its behaviour
