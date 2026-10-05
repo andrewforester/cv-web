@@ -5,6 +5,7 @@ import styles from './HomeJob.module.css';
 import { HomePoints } from './HomePoints';
 import { HomeProjects } from './HomeProjects';
 import { HomeStoreMeta } from './HomeStoreMeta';
+import { HomeTagLine } from './HomeTagLine';
 import { homeImageUrl } from './images';
 import { homeTestIds } from './testIds';
 
@@ -13,7 +14,10 @@ interface HomeJobProps {
   highlightedId: AgentTargetId | null;
 }
 
-/** One job (agent target `experience:<id>`): logo, company and period, role, product, points. */
+/**
+ * One job (agent target `experience:<id>`): logo, company and period, role; then, from the logo's
+ * left edge, the tag line and the points; then its client projects, if any.
+ */
 export function HomeJob({ job, highlightedId }: HomeJobProps) {
   return (
     <article
@@ -36,17 +40,8 @@ export function HomeJob({ job, highlightedId }: HomeJobProps) {
           {job.meta && <HomeStoreMeta className={styles.meta} text={job.meta} />}
         </div>
       </div>
-      {job.about && (
-        <div className={styles.about}>
-          {job.tag && <span className={styles.tag}>{job.tag}</span>}
-          <span>{job.about}</span>
-        </div>
-      )}
-      {job.points.length > 0 && (
-        <div className={styles.points}>
-          <HomePoints points={job.points} />
-        </div>
-      )}
+      {job.about && <HomeTagLine tag={job.tag} text={job.about} />}
+      {job.points.length > 0 && <HomePoints points={job.points} />}
       {job.projects && <HomeProjects projects={job.projects} highlightedId={highlightedId} />}
     </article>
   );

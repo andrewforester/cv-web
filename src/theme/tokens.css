@@ -15,6 +15,7 @@
   --space-8: 36px;
   --space-9: 48px;
   /* Half steps the design uses between the 4 px grid points */
+  --space-0-75: 3px;
   --space-1-5: 6px;
   --space-2-5: 10px;
   --space-3-5: 14px;
@@ -165,6 +166,7 @@
   /* v3 radii and layout */
   --radius-page: clamp(24px, 3vw, 36px);
   --radius-card: 24px;
+  --radius-cta: 28px;
   --radius-tile: 20px;
   --radius-pill: 999px;
   --radius-logo: 12px;
@@ -184,7 +186,11 @@
   --panel-padding: clamp(20px, 3vw, 36px);
   --cta-padding: clamp(22px, 3vw, 36px);
   --cta-title-gap: clamp(10px, 1.5vw, 16px);
-  --cta-links-max-width: 420px;
+  --cta-gap-x: clamp(24px, 4vw, 56px);
+  --cta-links-max-width: 460px;
+  --cta-arrow-shift: 2px;
+  /* The © sits closer to the footer CTA than the section gap. */
+  --copyright-pull-up: clamp(24px, 4vw, 56px);
   --impact-min-height: 190px;
   --photo-size: clamp(72px, 9vw, 96px);
   --logo-size: 44px;
@@ -193,9 +199,9 @@
   --pill-height: var(--space-9);
   --arrow-size: 40px;
   --tag-padding: 2px 7px;
-  --domain-padding: 3px 9px;
+  --bullet-size: 4.2px;
+  --bullet-offset: 0.68em;
   --bullet-opacity: 0.6;
-  --job-indent: 56px;
   --border-rule: var(--border-card) solid var(--color-line);
   --border-dark-rule: var(--border-card) solid var(--color-dark-line);
 
@@ -205,7 +211,6 @@
   --tree-branch-indent: clamp(18px, 3vw, 30px);
   --tree-branch-width: clamp(12px, 2.4vw, 24px);
   --tree-branch-top: 21px;
-  --tree-gap: clamp(16px, 3vw, 32px);
   --tree-gap-y: 22px;
   --tree-last-stem: 45px;
 

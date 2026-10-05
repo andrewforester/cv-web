@@ -2,7 +2,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--tree-gap-y);
-  margin-top: var(--space-3);
+  /* With the job's 12 px gap: the tree sits 28 px under the job's head, as in the design. */
+  margin-top: var(--space-4);
   padding-left: var(--tree-indent);
 }
 
@@ -37,18 +38,15 @@
 .body {
   display: flex;
   flex: 1;
-  flex-wrap: wrap;
-  gap: var(--space-3) var(--tree-gap);
+  flex-direction: column;
+  gap: var(--space-3);
   min-width: 0;
 }
 
-.card {
+.head {
   display: flex;
-  flex: 1 1 190px;
   align-items: flex-start;
   gap: var(--space-3);
-  max-width: 240px;
-  min-width: 0;
 }
 
 .icon {
@@ -71,6 +69,7 @@
 
 .names {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: var(--space-1-5);
   min-width: 0;
@@ -80,39 +79,4 @@
   font-size: var(--type-body-size);
   font-weight: var(--type-company-weight);
   line-height: var(--type-company-line-height);
-}
-
-.domain {
-  align-self: flex-start;
-  padding: var(--domain-padding);
-  font-family: var(--font-mono);
-  font-size: var(--type-tag-size);
-  line-height: var(--type-tag-line-height);
-  color: var(--color-accent);
-  background: var(--color-surface-lilac);
-  border-radius: var(--radius-pill);
-}
-
-.meta {
-  margin-top: var(--space-1);
-}
-
-.details {
-  display: flex;
-  flex: 3 1 380px;
-  flex-direction: column;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-.about {
-  font-size: var(--type-about-size);
-  line-height: var(--type-about-line-height);
-  color: var(--color-ink-3);
-  text-wrap: pretty;
-}
-
-/* The projects' bullets sit tighter than a job's (HomePoints sets the job's gap). */
-.details > ul {
-  gap: var(--space-1-5);
 }

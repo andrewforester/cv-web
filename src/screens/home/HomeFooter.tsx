@@ -6,7 +6,7 @@ import { contactFor, linkProps } from './homeTargets';
 import { homeTestIds } from './testIds';
 
 /** The footer's messenger pills, in the design's order (the email has its own pill above). */
-const PILL_CHANNELS = ['telegram', 'whatsapp', 'linkedin'] as const;
+const PILL_CHANNELS = ['whatsapp', 'linkedin'] as const;
 
 interface HomeFooterProps {
   footer: FooterCta;
@@ -15,8 +15,9 @@ interface HomeFooterProps {
 }
 
 /**
- * The closing call to action, the agent's `contacts` section: "Let's build something", the email
- * pill and the messenger pills. The header's buttons are the contact targets, so these carry none.
+ * The closing call to action, the agent's `contacts` section, in two columns: "Let's build
+ * something" left; the email pill and the messenger pills right. The header's buttons are the
+ * contact targets, so these carry none.
  */
 export function HomeFooter({ footer, contacts, highlightedId }: HomeFooterProps) {
   const email = contactFor(contacts, 'email');

@@ -9,7 +9,7 @@
 }
 
 .copyright {
-  padding-bottom: var(--space-9);
+  margin-top: calc(-1 * var(--copyright-pull-up));
   font-size: var(--type-period-size);
   line-height: var(--type-period-line-height);
   color: var(--color-ink-4);
