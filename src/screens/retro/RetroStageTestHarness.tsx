@@ -1,6 +1,4 @@
 import type { ReactNode } from 'react';
-import { useLocale } from '../../i18n';
-import { LanguageSwitcher } from '../../shared/LanguageSwitcher/LanguageSwitcher';
 import { CvRoute } from '../cv/CvRoute';
 import { ProfileRoute } from '../profile/ProfileRoute';
 import type { RetroShowSource } from './scenarios';
@@ -20,18 +18,10 @@ export function RetroStageTestHarness({
   staged?: boolean;
   children?: ReactNode;
 }) {
-  const { locale, setLocale } = useLocale();
-  const switcher = <LanguageSwitcher locale={locale} onChange={setLocale} />;
   return (
     <>
       <div data-retro-stage={staged ? '' : undefined}>
-        <main>
-          {page === 'profile' ? (
-            <ProfileRoute metaBarEnd={switcher} />
-          ) : (
-            <CvRoute metaBarEnd={switcher} />
-          )}
-        </main>
+        <main>{page === 'profile' ? <ProfileRoute /> : <CvRoute />}</main>
       </div>
       {children}
     </>
