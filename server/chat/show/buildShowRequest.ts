@@ -13,7 +13,7 @@ import {
 export const NARRATE_MAX_TOKENS = 800;
 export const REPLY_MAX_TOKENS = 300;
 
-/** The show state in front of the latest message, as data (like v2's `<page_state>`). */
+/** The show state in front of the latest message, as data (like the chat's `<page_state>`). */
 export function showStateBlock(
   { step, stepsDone }: ShowReplyRequest,
   { steps }: ShowScenarioManifest,

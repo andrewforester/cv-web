@@ -159,7 +159,7 @@ export interface ChatSsePayloadsV2 {
 }
 export type ChatSseEventNameV2 = keyof ChatSsePayloadsV2;
 
-/** v2 stream events for the app; tool calls run only after `done` with `stopReason: 'tool_use'`. */
+/** Stream events for the app; tool calls run only after `done` with `stopReason: 'tool_use'`. */
 export type ChatStreamEventV2 =
   | { type: 'delta'; text: string }
   | ({ type: 'tool_call' } & AgentToolCall)
@@ -208,7 +208,7 @@ export interface ChatUserMessageV4 {
   page: AgentPageStateV4;
 }
 
-/** Tool results and assistant messages are v2's. */
+/** Tool results and assistant messages are the tool dialect's (`V2` names). */
 export type ChatMessageV4 = ChatUserMessageV4 | ChatToolResultsMessageV2 | ChatAssistantMessageV2;
 
 /** Roles alternate, start with a text `user` message and end with a `user` message. */

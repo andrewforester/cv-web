@@ -10,7 +10,7 @@ import {
 import { RETRO_SCENARIO_ID } from './scenario';
 
 describe('show contract v3', () => {
-  it('fits inside the v1 limits the shared guards enforce', () => {
+  it('fits inside the shared char limits', () => {
     expect(CHAT_API_VERSION_V3).toBe(3);
     expect(RETRO_LIMITS.maxMessages).toBeLessThanOrEqual(CHAT_LIMITS.maxMessages);
     expect(RETRO_LIMITS.maxVisitorMessageChars).toBeLessThanOrEqual(

@@ -1,7 +1,8 @@
 /**
  * `/api/chat` `v: 3`, the live-fix show dialect (docs/chat/API.md → v3). Shared by the browser
  * (`src/data/retro/**`) and the backend (`server/chat/show/**`). Framework-free; `.js` specifiers
- * because `server/**` runs this file on Node. Errors, stop reasons and usage are v1's.
+ * because `server/**` runs this file on Node. Errors, stop reasons and usage are the chat's shared
+ * ones (`src/data/chat/contract.ts`), without tool calls.
  */
 import type { ChatError, ChatMessage, ChatStopReason, ChatUsage } from '../chat/contract.js';
 import type { RetroNarrationKey, RetroStepId } from './scenario.js';
@@ -9,7 +10,7 @@ import type { ShowScenarioId } from './scenarios.js';
 
 export const CHAT_API_VERSION_V3 = 3;
 
-/** Lengths are `String.length`. Exceeding one is `too_long` (or `conversation_limit`), as v1. */
+/** Lengths are `String.length`. Exceeding one is `too_long` (or `conversation_limit`). */
 export const RETRO_LIMITS = {
   /** 10 visitor messages. */
   maxMessages: 20,
@@ -27,7 +28,7 @@ export interface ShowNarrateRequest {
   scenario: ShowScenarioId;
 }
 
-/** `reply`: answer the visitor; `messages` alternate, start and end with `user` (v1 rules). */
+/** `reply`: answer the visitor; plain `messages` alternate, start and end with `user`. */
 export interface ShowReplyRequest {
   v: typeof CHAT_API_VERSION_V3;
   locale: 'en';
