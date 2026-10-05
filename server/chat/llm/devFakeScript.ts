@@ -22,7 +22,7 @@ const DEV_COMMANDS: { pattern: RegExp; name: AgentToolCall['name']; value: strin
   { pattern: /(show|scroll|go to).*contacts/i, name: 'scrollToSection', value: 'contacts' },
   { pattern: /(show|scroll|go to).*apps/i, name: 'scrollToSection', value: 'apps' },
   { pattern: /highlight.*transcenda/i, name: 'highlightElement', value: 'experience:transcenda' },
-  { pattern: /(open|write|message).*telegram/i, name: 'openContact', value: 'telegram' },
+  { pattern: /(open|write|message).*whatsapp/i, name: 'openContact', value: 'whatsapp' },
   { pattern: /(open|write|message).*linkedin/i, name: 'openContact', value: 'linkedin' },
 ];
 

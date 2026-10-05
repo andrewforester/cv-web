@@ -64,7 +64,7 @@ Page: card max-width 1120, padding `0 clamp(14px,3vw,42px)`, section gap `clamp(
 2. **Header**: photo 72–96 px (radius 24) + name + "Android since 2012 · Agentic engineering";
    h1 "Senior Software **Product** Engineer" (variant A; variant B is not used); summary (5
    lines, `<br>`-separated); 2×2 stat tiles (12+, 1M+, 2, AI — the last on the gradient); contact
-   buttons: Email me ↗ (gradient), WhatsApp, Telegram, LinkedIn.
+   buttons: Email me ↗ (gradient), WhatsApp, LinkedIn (no Telegram, see Architecture notes).
 3. **Code craft × agentic process**: two cards (before AI / with agents).
 4. **How I build with agents** (+ mono "system with feedback"): dark panel, lead sentence, 6 loop
    steps 01–06, footnote "↺ every retro lands as a PR to the rules…".
@@ -106,12 +106,15 @@ separate layout.
 7. **Show case button** goes at the end of the meta bar (as today in Forest), styled as a small
    mono pill in this palette.
 8. Contact links: phone numbers and URLs exactly as in the design (`wa.me/380938977110`,
-   `t.me/+380938977110`, LinkedIn `in/andriipanasiuk`).
+   LinkedIn `in/andriipanasiuk`).
 
 ## Architecture notes
 
 From CV-107 ([ADR-0006](../../adr/0006-one-page-v3.md); it wins where this list is short).
 
+- **Telegram removed as a channel** (2026-10-05, the human, CV-124): no header button, no
+  footer pill, no `telegram` contact in the data or the chat contract. `design.dc.html` and the
+  handoff still show it; this note wins.
 - **English only** (the human, 2026-10-05). This overrides Orchestrator decisions 2 and 3 and the
   language-switcher part of 7: no UK translation, no Cyrillic font, no switcher. Figtree and
   JetBrains Mono are latin only. The meta bar's end holds only the Show case button.

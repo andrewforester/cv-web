@@ -318,11 +318,12 @@ Decision: [`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md); contract: 
   language.
 - **Sections** (`CV_SECTION_IDS`, page order): `header`, `craft`, `loop`, `impact`, `experience`,
   `skills`, `education`, `about`, `contacts`.
-- **Targets** (38): the 9 sections, `impact:` (3), `experience:` (9 jobs; Transcenda's article
+- **Targets** (37): the 9 sections, `impact:` (3), `experience:` (9 jobs; Transcenda's article
   includes its project tree), `app:` (Transcenda's 3 projects: `spoton`, `cync`, `august-home`),
-  `skill:` (6), `book:` (4), `contact:` (4, the header buttons: `email`, `whatsapp`, `telegram`,
-  `linkedin`). Not targets: stats, craft cards, loop steps, the meta bar, the footer pills.
-- **`openContact`** opens `mailto:` in place and `https://` links (WhatsApp, Telegram, LinkedIn) in
+  `skill:` (6), `book:` (4), `contact:` (3, the header buttons: `email`, `whatsapp`, `linkedin`;
+  Telegram removed by CV-124, 2026-10-05). Not targets: stats, craft cards, loop steps, the meta
+  bar, the footer pills.
+- **`openContact`** opens `mailto:` in place and `https://` links (WhatsApp, LinkedIn) in
   a new tab, after the visitor confirms; the confirmation names the contact's label from the data.
 - **Snapshot:** v2's without `route` and `locale`; `activeSection` from `useAgentPageView` over
   `CV_SECTION_IDS`.

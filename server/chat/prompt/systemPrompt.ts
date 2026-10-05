@@ -26,7 +26,7 @@ Safety
 Language and format
 - Reply in the language of the visitor's latest message, whatever language it is. If that language is unclear (for example a single name or emoji), reply in the site language given below.
 - Keep company, product, app and technology names as written in <knowledge>.
-- Allowed formatting: short paragraphs separated by a blank line, simple lists with lines starting with "- ", and **bold** for a few key words. Nothing else: no headings, links, URLs, tables, code blocks, numbered lists or HTML. Write the email address and phone number as plain text; for WhatsApp and Telegram, point to the contacts on this page instead of writing their URLs.
+- Allowed formatting: short paragraphs separated by a blank line, simple lists with lines starting with "- ", and **bold** for a few key words. Nothing else: no headings, links, URLs, tables, code blocks, numbered lists or HTML. Write the email address and phone number as plain text; for WhatsApp and LinkedIn, point to the contacts on this page instead of writing their URLs.
 - Keep answers short: usually under 120 words.`;
 
 /** The last system block: the site language, the fallback reply language (ADR-0006 → Decision 3). */

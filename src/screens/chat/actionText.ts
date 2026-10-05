@@ -20,7 +20,6 @@ const SECTION_KEYS: Record<CvSectionId, Key> = {
 const CHANNEL_KEYS: Record<CvContactChannel, Key> = {
   email: 'channelEmail',
   whatsapp: 'channelWhatsapp',
-  telegram: 'channelTelegram',
   linkedin: 'channelLinkedin',
 };
 

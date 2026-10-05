@@ -22,7 +22,7 @@ Domain terms:
   `data-agent-id`. Sections `header` (meta bar + header), `craft`, `loop`, `impact`, `experience`,
   `skills`, `education`, `about`, `contacts` (the closing call to action); items `impact:`,
   `experience:` (with Transcenda's tree), `app:` (its projects), `skill:`, `book:`, and
-  `contact:<channel>` on the header buttons. Each id appears once (`cvPageTargetIds`, 38). While
+  `contact:<channel>` on the header buttons. Each id appears once (`cvPageTargetIds`, 37). While
   the page is shown it offers scroll, highlight (fades after a few seconds) and open contact
   (after the visitor confirms in the chat).
 

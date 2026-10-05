@@ -54,7 +54,7 @@ export interface CvPage {
   headline: HeadlinePart[];   // `accent` part = "Product" in the gradient
   summary: string[];          // one entry per line (the design's <br>s)
   stats: Stat[];              // { id, value, label, accent? } ×4; accent = the gradient tile
-  contacts: CvContact[];      // { id, label, href }: email, whatsapp, telegram, linkedin
+  contacts: CvContact[];      // { id, label, href }: email, whatsapp, linkedin (telegram removed, CV-124, 2026-10-05)
   craft: CraftCard[];         // { id, label, title, text } ×2
   loop: AgentLoop;            // { lead, steps: LoopStep[], footnote }, as Profile
   impact: ImpactCard[];       // { id, value, text } ×3, as Profile
@@ -99,7 +99,7 @@ export interface CvProject {
   - skills: `agentic-development`, `android`, `architecture`, `ios`, `product`,
     `ai-engineering`
   - books: `the-goal`, `a-pattern-language`, `antifragile`, `siddhartha`
-  - contacts: `email`, `whatsapp`, `telegram`, `linkedin`
+  - contacts: `email`, `whatsapp`, `linkedin` (`telegram` removed by CV-124, 2026-10-05)
 
   `cvPageIds.test.ts` checks that ids are unique per list and that the contact ids equal
   `CV_CONTACT_CHANNELS`.

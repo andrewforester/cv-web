@@ -101,7 +101,7 @@ export function buildCvPageToolSpecs(page: CvPage): AgentToolSpec[] {
     {
       name: 'openContact',
       description:
-        'Open a contact channel of Andrew (email, WhatsApp, Telegram or LinkedIn). The visitor confirms first.',
+        'Open a contact channel of Andrew (email, WhatsApp or LinkedIn). The visitor confirms first.',
       inputSchema: oneEnumParam('channel', 'The contact channel.', CV_CONTACT_CHANNELS),
       confirm: true,
     },

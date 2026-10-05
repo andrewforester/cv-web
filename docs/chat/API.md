@@ -1024,7 +1024,7 @@ export const CV_SECTION_IDS = [
 export type CvSectionId = (typeof CV_SECTION_IDS)[number];
 
 /** `CvPage.contacts` ids, in the header's order; `data-agent-id="contact:<channel>"`. */
-export const CV_CONTACT_CHANNELS = ['email', 'whatsapp', 'telegram', 'linkedin'] as const;
+export const CV_CONTACT_CHANNELS = ['email', 'whatsapp', 'linkedin'] as const;
 export type CvContactChannel = (typeof CV_CONTACT_CHANNELS)[number];
 
 /** Target kinds on the page (a subset of `AGENT_TARGET_KINDS`); `app` = a Transcenda project. */
@@ -1076,7 +1076,7 @@ import type { CvPage } from '../cvPage.js';
 
 /**
  * Every highlightable target, `<kind>:<id>`: sections, then impact cards, jobs, Transcenda's
- * projects (`app:`), skill groups, books, contacts (header buttons), in data order. 38 today.
+ * projects (`app:`), skill groups, books, contacts (header buttons), in data order. 37 today.
  */
 export declare function cvPageTargetIds(page: CvPage): AgentTargetId[];
 
@@ -1095,14 +1095,20 @@ Show task on.
 
 | Tool | Description (for the model) | Parameter | Enum | `confirm` |
 |---|---|---|---|---|
-| `highlightElement` | Scroll to a section or item of the page and briefly highlight it, e.g. an impact card, a job, an app, a skill group, a book or a contact. | `target` (The element to highlight.) | `section:<CvSectionId>` (9), then `impact:` (3), `experience:` (9), `app:` (3, Transcenda's projects), `skill:` (6), `book:` (4) with the `CvPage` ids in data order, then `contact:<channel>` (4): 38 | `false` |
-| `openContact` | Open a contact channel of Andrew (email, WhatsApp, Telegram or LinkedIn). The visitor confirms first. | `channel` (The contact channel.) | `CV_CONTACT_CHANNELS` | `true` |
+| `highlightElement` | Scroll to a section or item of the page and briefly highlight it, e.g. an impact card, a job, an app, a skill group, a book or a contact. | `target` (The element to highlight.) | `section:<CvSectionId>` (9), then `impact:` (3), `experience:` (9), `app:` (3, Transcenda's projects), `skill:` (6), `book:` (4) with the `CvPage` ids in data order, then `contact:<channel>` (3): 37 | `false` |
+| `openContact` | Open a contact channel of Andrew (email, WhatsApp or LinkedIn). The visitor confirms first. | `channel` (The contact channel.) | `CV_CONTACT_CHANNELS` | `true` |
 | `scrollToSection` | Scroll the page to a section. | `section` (The section to scroll to. craft = "Code craft × agentic process", loop = "How I build with agents", impact = "Selected impact", contacts = the closing call to action with every contact.) | `CV_SECTION_IDS` in page order | `false` |
 
 Item ids are the `id` fields of `ImpactCard`, `CvJob`, `CvProject`, `SkillGroup`, `Book` and
 `CvContact` (`src/data/cvPage.ts`, ADR-0006 → Decision 1), checked by `cvPageIds.test.ts`. On the
 page they are `data-agent-id` attributes the home screen sets (`agentTargetProps`); the
 `contact:` targets are the header's buttons, the footer's pills carry none.
+
+**Telegram removed** (CV-124, the human, 2026-10-05): `telegram` left `CV_CONTACT_CHANNELS`, the
+CV data and the `openContact` description; `contact:` went from 4 targets to 3 (38 → 37). Client
+and server deploy together, so `v` stays `4`: a tab opened before the deploy that still asks for
+`openContact` `telegram` or `highlightElement` `contact:telegram` (or gets such a call from the
+model, which no longer offers it) gets the normal enum handling, `invalid_params`, and nothing opens.
 
 ### Example: one question
 

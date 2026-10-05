@@ -1187,7 +1187,7 @@ its values, decorations and copy).
   - `cards`: stat tiles, craft cards, impact cards, the process panel, the project tree, skill
     rows, the education and about cards.
   - `chrome`: the meta bar with location and availability, without a language switcher.
-  - `links`: the contact buttons (Email me, WhatsApp, Telegram, LinkedIn) and the footer's
+  - `links`: the contact buttons (Email me, WhatsApp, LinkedIn) and the footer's
     "Let's build something", then the "Ask my AI" chat.
 
   Fallbacks stay ≤ 200 chars. `scenarioNew.ts` is deleted.

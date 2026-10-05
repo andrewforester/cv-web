@@ -56,7 +56,6 @@ export const chatStrings = defineStrings({
     actionFailed: 'The action didn’t work.',
     confirmEmail: 'Write an email to Andrew?',
     confirmWhatsapp: 'Open a WhatsApp chat with Andrew?',
-    confirmTelegram: 'Open a Telegram chat with Andrew?',
     confirmLinkedin: 'Open Andrew’s LinkedIn profile?',
     confirmGeneric: 'Run this action on the page?',
     confirm: 'Confirm',
@@ -72,7 +71,6 @@ export const chatStrings = defineStrings({
     sectionContacts: 'Contacts',
     channelEmail: 'Email',
     channelWhatsapp: 'WhatsApp',
-    channelTelegram: 'Telegram',
     channelLinkedin: 'LinkedIn',
   },
 });
