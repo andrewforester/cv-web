@@ -1,44 +1,44 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: var(--home-tree-gap-y);
+  gap: var(--tree-gap-y);
   margin-top: var(--space-3);
-  padding-left: var(--home-tree-indent);
+  padding-left: var(--tree-indent);
 }
 
 .project {
   position: relative;
   display: flex;
   align-items: flex-start;
-  padding-left: var(--home-tree-branch-indent);
+  padding-left: var(--tree-branch-indent);
 }
 
 /* The vertical dotted line: from the item above (or the logo) down to this item's branch. */
 .stem {
   position: absolute;
-  top: calc(-1 * var(--home-tree-gap-y));
+  top: calc(-1 * var(--tree-gap-y));
   left: 0;
-  height: calc(100% + var(--home-tree-gap-y));
-  border-left: var(--home-tree-line);
+  height: calc(100% + var(--tree-gap-y));
+  border-left: var(--tree-line);
 }
 
 .project:last-child .stem {
-  height: var(--home-tree-last-stem);
+  height: var(--tree-last-stem);
 }
 
 .branch {
   position: absolute;
-  top: var(--home-tree-branch-top);
+  top: var(--tree-branch-top);
   left: 0;
-  width: var(--home-tree-branch-width);
-  border-top: var(--home-tree-line);
+  width: var(--tree-branch-width);
+  border-top: var(--tree-line);
 }
 
 .body {
   display: flex;
   flex: 1;
   flex-wrap: wrap;
-  gap: var(--space-3) var(--home-tree-gap);
+  gap: var(--space-3) var(--tree-gap);
   min-width: 0;
 }
 
@@ -53,8 +53,8 @@
 
 .icon {
   flex: none;
-  width: var(--home-logo-size);
-  height: var(--home-logo-size);
+  width: var(--logo-size);
+  height: var(--logo-size);
   object-fit: cover;
   border-radius: var(--radius-logo);
 }
@@ -63,7 +63,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--home-initials-size);
+  font-size: var(--type-initials-size);
   font-weight: var(--type-name-weight);
   color: var(--color-on-accent);
   background: var(--gradient-brand-tile);
@@ -72,20 +72,22 @@
 .names {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1-5);
   min-width: 0;
 }
 
 .name {
   font-size: var(--type-body-size);
   font-weight: var(--type-company-weight);
+  line-height: var(--type-company-line-height);
 }
 
 .domain {
   align-self: flex-start;
-  padding: var(--home-domain-padding);
+  padding: var(--domain-padding);
   font-family: var(--font-mono);
   font-size: var(--type-tag-size);
+  line-height: var(--type-tag-line-height);
   color: var(--color-accent);
   background: var(--color-surface-lilac);
   border-radius: var(--radius-pill);
@@ -104,8 +106,13 @@
 }
 
 .about {
-  font-size: var(--type-role-size);
-  line-height: var(--type-body-line-height);
+  font-size: var(--type-about-size);
+  line-height: var(--type-about-line-height);
   color: var(--color-ink-3);
   text-wrap: pretty;
+}
+
+/* The projects' bullets sit tighter than a job's (HomePoints sets the job's gap). */
+.details > ul {
+  gap: var(--space-1-5);
 }

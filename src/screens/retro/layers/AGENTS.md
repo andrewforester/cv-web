@@ -11,8 +11,9 @@ so it is written to read well, kept short (≤ ~8 lines, a few up to 16) and for
 Rules: token layers only redefine names from `src/theme/tokens.css`; rule layers start every
 selector with `[data-retro-stage]` (or `body:has([data-retro-stage])`) and select only the hook
 contract (`data-testid`, element types, `:has()` on a hook, a hook's direct child), never Module
-classes or `:nth-child`. The page's `--home-*` metrics are local to its root, so a layer breaks
-them with a rule, not a token. Retro literals are allowed here and only here (see `../AGENTS.md`).
+classes or `:nth-child`. The page's layout metrics (`--page-*`, `--card-*`, `--tree-*`, ...) are
+theme tokens, so a layer may redefine them like any other token. Retro literals are allowed here
+and only here (see `../AGENTS.md`).
 No `@keyframes` here: the layer host defines `retro-blink`. A new file must be registered in
 `../scenario.ts` and removed by one chunk in `../scenarioSteps.ts`, with `morph` motion if it
 changes something that can't interpolate (font family, `display`, grid templates, `width`,

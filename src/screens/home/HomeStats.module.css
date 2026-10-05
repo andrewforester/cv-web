@@ -25,6 +25,7 @@
 .label {
   margin-top: var(--space-1);
   font-size: var(--type-meta-size);
+  line-height: var(--type-meta-line-height);
   color: var(--color-ink-3);
 }
 

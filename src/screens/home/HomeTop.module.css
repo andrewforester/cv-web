@@ -2,5 +2,5 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--page-section-gap) - var(--home-header-pull-up));
+  gap: calc(var(--page-section-gap) - var(--page-header-pull-up));
 }

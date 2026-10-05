@@ -1,7 +1,7 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: var(--home-header-gap);
+  gap: var(--page-header-gap);
 }
 
 .identity {
@@ -12,7 +12,7 @@
 
 .photo {
   flex: none;
-  width: var(--home-photo-size);
+  width: var(--photo-size);
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: var(--radius-card);
@@ -40,7 +40,7 @@
 }
 
 .headline {
-  max-width: var(--home-headline-max-width);
+  max-width: var(--page-headline-max-width);
   font-size: var(--type-h1-size);
   font-weight: var(--type-h1-weight);
   line-height: var(--type-h1-line-height);
@@ -58,7 +58,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: var(--home-wide-gap);
+  gap: var(--page-wide-gap);
 }
 
 .summary {

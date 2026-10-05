@@ -10,4 +10,4 @@ callback in, the label from the shared `common` strings, the look from the v3 to
 shows it only while the page has a scenario, on desktop viewports (`src/app/useShowCaseAvailable`).
 Test id `show-case` (`testIds.ts`) is what e2e and the shell's tests find it by.
 
-Limits: no v3 focus-ring token yet (`TODO(theme)` in the CSS).
+Focus ring: the page's `--focus-ring` / `--focus-ring-offset` tokens.

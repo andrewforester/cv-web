@@ -10,9 +10,10 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  min-height: var(--home-button-height);
+  min-height: var(--button-height);
   font-size: var(--type-button-size);
   font-weight: var(--type-button-weight);
+  line-height: var(--type-button-line-height);
   color: var(--color-ink);
   text-decoration: none;
   background: var(--color-surface);
@@ -24,8 +25,8 @@
 }
 
 .button:focus-visible {
-  outline: var(--home-focus-ring);
-  outline-offset: var(--home-focus-offset);
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .primary {
