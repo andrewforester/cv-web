@@ -10,7 +10,10 @@ success without a result.
 Place in the architecture: between the validated request and the model client (`../llm/`). It
 combines the instructions, the knowledge (`../knowledge/`), the page-tool catalogue shared with
 the browser (`src/data/chat/agentTools.ts`, one per page) and the conversation. The instruction
-blocks are the same on every page; the page's knowledge and tools carry the difference.
+blocks are the same on every page; the page's knowledge and tools carry the difference. v4 (the
+one page, ADR-0006) uses its own catalogue (three tools, no language switch) and a fixed
+`Site language: English (en).` line; the page-tool rules are shared with v2, so they name no
+tool or field only one version has.
 
 Rules and limits:
 - Every prompt change bumps `PROMPT_VERSION` (it is logged) and needs the golden-question check
