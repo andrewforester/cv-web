@@ -7,10 +7,6 @@ on:
   deployment_status:
   workflow_dispatch:
 
-concurrency:
-  group: prod-smoke
-  cancel-in-progress: true
-
 permissions:
   contents: read
 
@@ -23,6 +19,11 @@ jobs:
   prod-smoke:
     name: prod-smoke
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production') }}
+    # Job level, so deployment_status events that fail the `if` (previews, queued statuses)
+    # never join the group and cancel a real production run.
+    concurrency:
+      group: prod-smoke
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
