@@ -126,7 +126,7 @@ no longer needs a page id.
 
 | Option | Assessment |
 |---|---|
-| **A. Redirect in `vercel.json` (chosen)** | One canonical URL, so search engines don't see duplicates. No route logic in the app. Old links work. `#ask` and query strings survive the redirect: browsers keep the fragment, and Vercel forwards the query. |
+| **A. Redirect in `vercel.json` (chosen)** | One canonical URL, so search engines don't see duplicates. No route logic in the app. Old links work. `#ask` survives the redirect (browsers keep the fragment). Query strings (`?retro=1`) should pass through; the orchestrator checks with `curl -I '<prod>/new?retro=1'` after T3 merges, and if the query is dropped, T3's follow-up adds `/new?:query*`-style rules. |
 | B. Alias in `routes.ts` (`/new` renders the same page) | Also works, but the site has two URLs for one page and keeps a routing function with one answer. |
 
 - `permanent: false` (307): browsers don't cache it, so `/new` stays free for later use. Locally,
