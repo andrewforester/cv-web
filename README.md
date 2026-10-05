@@ -1,6 +1,6 @@
 # CV Andrew Panasiuk
 
-Built with parallel Claude Code sessions coordinated through Linear (team Grandtorino). Start with `AGENTS.md` and `docs/COORDINATION.md`.
+Built with parallel Claude Code sessions coordinated through Linear (team CV web). Start with `AGENTS.md` (its Process section) and `.claude/skills/`.
 
 New repository from this template: `docs/SETUP.md`.
 

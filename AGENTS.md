@@ -1,6 +1,6 @@
 # CV Andrew Panasiuk
 
-Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + React + TypeScript) on Vercel, one page in English (ADR-0006; `/new` redirects to `/`). CV data comes from a `CvPageRepository` (today a mock over bundled JSON in `src/data/mock/`); a backend for editing the CV will replace the mock later by swapping one binding in `src/app/AppProviders.tsx`. Visual style comes from the v3 design package `docs/design/v3/` (see `docs/COORDINATION.md`).
+Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + React + TypeScript) on Vercel, one page in English (ADR-0006; `/new` redirects to `/`). CV data comes from a `CvPageRepository` (today a mock over bundled JSON in `src/data/mock/`); a backend for editing the CV will replace the mock later by swapping one binding in `src/app/AppProviders.tsx`. Visual style comes from the v3 design package `docs/design/v3/` (see **Design**).
 
 ## Layout
 
@@ -20,7 +20,8 @@ Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + Rea
 | `src/data/retro/` | The show's scenario data: step manifest, LLM intents, scripted fallback lines. Pure data, no React. |
 | `e2e/` | Playwright e2e (page, chat, page agent, Show case) and the `@prod` subset run against production. |
 | `public/` | Static files copied as is (favicon). |
-| `docs/COORDINATION.md` | Standing rules for parallel Claude sessions: file ownership, design source of truth, the tracker (Linear: statuses, labels, brief format) and **Tooling** (the concrete commands the skills' general steps map to). Read it before touching files. |
+| `.claude/` | The working process: roles as skills (`skills/<role>/SKILL.md`, general; `tooling.md` next to it, this project's commands), the `reviewer` subagent (`agents/`), hooks. Rules every session follows are in **Process** below. |
+| `scripts/` | Repo helpers: Vercel's ignore step, `audit-pr.sh` (the orchestrator's audit), `session-usage.sh` (token counts). |
 | `docs/retro/` | The show's design record: `AGENTS.md` (read first), `ARCHITECTURE.md` (what is built, rules, how to add a fix chunk); the look is `docs/design/retro/`. |
 | `docs/chat/`, `docs/adr/` | AI chat system design, API contract (`API.md`) and decisions. |
 | `docs/design/<name>/` | Design packages (`SPEC.md`, `screenshot.png`, `assets/`). Build from them; don't call design-tool MCPs. |
@@ -42,7 +43,7 @@ Before every push: *lint* and *test* must pass. In Claude Code sessions (local a
 
 Chat env (server-side only; Vercel Project Settings for Production + Preview, `.env.local` for dev): `ANTHROPIC_API_KEY` (missing: `/api/chat` answers `503`), `CHAT_MODEL` (`claude-haiku-4-5` default, or `claude-sonnet-5-5`), `CHAT_ENABLED` (`false` = kill switch), `CHAT_FAKE_LLM` (`1` = scripted answers; dev/tests only, ignored on Vercel). No test or CI job calls a real model. Try the endpoint with `curl -N -X POST http://localhost:5173/api/chat -H 'Content-Type: application/json' -H 'Origin: http://localhost:5173' -d '{"v":4,"messages":[{"role":"user","content":"Hi","page":{"viewport":"desktop","chat":"card","activeSection":null,"highlighted":null,"tools":[]}}]}'`.
 
-Local sessions (launched by a local orchestrator, see `docs/COORDINATION.md` → Tooling → Sessions): install what you need yourself: Node 22 (`nvm install 22` or `brew install node@22`), `npm ci`, and for the *web check* Playwright's Chromium (`npx playwright install chromium`). The session-start hook does not run locally.
+Local sessions (launched by a local orchestrator, see `.claude/skills/orchestrate/tooling.md` → Sessions): install what you need yourself: Node 22 (`nvm install 22` or `brew install node@22`), `npm ci`, and for the *web check* Playwright's Chromium (`npx playwright install chromium`). The session-start hook does not run locally.
 
 Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `npm ci` when `node_modules` is missing or older than `package-lock.json`, and warns when `registry.npmjs.org` (the only domain the environment must allow) is unreachable. Playwright uses the preinstalled Chromium in `/opt/pw-browsers`.
 
@@ -54,8 +55,10 @@ Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `n
 - Never hardcode colours, text sizes or user-visible strings in screens: use design tokens and the strings/i18n mechanism.
 - One screen = one folder (`<screen>/`: screen, its components, test ids): `src/screens/<screen>/` with `<Screen>UiState.ts`, `use<Screen>State.ts`, `<Screen>Screen.tsx`, `<Screen>Route.tsx`, `strings.ts`, `testIds.ts`, tests next to the code (see `src/screens/AGENTS.md`).
 - Every screen gets at least one UI test.
-- **Building a screen or UI component:** work only from its design package `docs/design/<screen>/` (`SPEC.md`, `screenshot.png`, `assets/`) and never call design-tool MCPs; with only an image, take the style from the reference (`docs/COORDINATION.md` → Design source of truth). Write down the component tree before coding. Tokens first: a new colour, text style, radius or spacing goes into `src/theme/tokens.css`; reuse an existing token when the value matches within ≈2 px or the colour is near-identical. Icons are single-colour vectors tinted in code; screen images and strings live in the screen folder under the `<screen>` prefix/namespace. Key elements get stable test ids. Finish with the *web check*: compare its screenshot side by side with the design and fix visible differences.
+- **Building a screen or UI component:** work only from its design package `docs/design/<screen>/` (`SPEC.md`, `screenshot.png`, `assets/`) and never call design-tool MCPs; with only an image, take the style from the reference (**Design** below). Write down the component tree before coding. Tokens first: a new colour, text style, radius or spacing goes into `src/theme/tokens.css`; reuse an existing token when the value matches within ≈2 px or the colour is near-identical. Icons are single-colour vectors tinted in code; screen images and strings live in the screen folder under the `<screen>` prefix/namespace. Key elements get stable test ids. Finish with the *web check*: compare its screenshot side by side with the design and fix visible differences.
 - Mock data lives behind a small interface in the data layer, so a real backend can replace it later.
+- Public files are referenced as `/favicon.svg` in `index.html` and through `import.meta.env.BASE_URL` in code, never a bare `/`, so the base path can change.
+- No stylelint yet: "tokens only in CSS" is checked by review (the `#000` in `mask` gradients is the only allowed literal).
 
 ## Architecture & code quality
 
@@ -64,24 +67,53 @@ Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `n
 - **Reference implementation:** `src/screens/home/` is the model screen (state holder → UI state → stateless screen → route, strings, test ids, tests). Follow its shape and naming rather than inventing a new one; for a new piece, find the closest existing one and match it.
 - **Unidirectional data flow:** immutable UI state, events as callbacks, no business logic in components.
 - **Small files:** one component per file; split a file when it grows past ≈200 lines or does two jobs (*lint* fails at 250). Components past ≈60 lines get split into named sub-components.
-- **Don't duplicate (DRY):** before writing a component, look in the shared components folder and other screens. If a second screen needs the same piece, move it to shared components (a Theme-zone PR, see `docs/COORDINATION.md`) instead of copying it. Same for dimensions and styles: reuse tokens, add a token rather than repeat a literal.
+- **Don't duplicate (DRY):** before writing a component, look in the shared components folder and other screens. If a second screen needs the same piece, move it to shared components (a Theme-zone PR, see **Hot spots**) instead of copying it. Same for dimensions and styles: reuse tokens, add a token rather than repeat a literal.
 - **Single responsibility, clear names, no dead code**, no speculative abstractions (YAGNI): build what the task asks, in a shape a real backend can plug into.
 - **Package docs:** every code folder you create or change has an `AGENTS.md` (upper case: the name coding agents look for) and next to it a `CLAUDE.md` whose only line is `@AGENTS.md` (Claude Code loads it when it works in that folder). `AGENTS.md` says **why** the package exists, not how it works: the user or business problem it solves and the result it delivers (which screen or feature, what the user gets), the domain terms it uses, how it fits the architecture (layer, who uses it, what it depends on, where its data comes from), and known stubs and limits. Leave implementation details (functions, props, control flow, file-by-file tours) to the code: good code shows them. Keep it under ≈40 lines, write it for the next agent, update it in the same PR as the code. The repository root works the same way: this file is the root `AGENTS.md`, and the root `CLAUDE.md` only imports it.
 
-## Skills (roles)
+## Process
 
-`.claude/skills/`: `orchestrate` (coordinator: tracker tasks, sessions, audit of Done tickets, reports), `develop` (a session working one task: builds it, has it reviewed by the `reviewer` subagent in `.claude/agents/`, merges it), `design` (design package from a screenshot), `quick-fix` (small fixes: filing, launching, working them), `qa-release` (watches `main` after merges via the CI-watch PR, reverts or files fixes). Skills describe roles in general terms; project-specific tools and commands live in `docs/COORDINATION.md` → Tooling and in this file. They cover the process (roles, tracker, PRs, zones); engineering technique comes from Anthropic's global skills when the environment has them (`docs/COORDINATION.md` → Tooling → Global skills).
+Roles are skills in `.claude/skills/`: `orchestrate` (coordinator: tracker tasks, sessions, audit of Done tickets, reports), `develop` (a session working one task: builds it, has it reviewed by the `reviewer` subagent in `.claude/agents/`, merges it), `design` (design package from a screenshot), `quick-fix` (small fixes: filing, launching, working them), `qa-release` (watches `main` after merges via the CI-watch PR, reverts or files fixes), `linear-screenshot` (put an image on a ticket). The task's **Role** label says which skill runs it. Each `SKILL.md` describes the role in general terms; its `tooling.md` holds this project's concrete commands. Engineering technique comes from Anthropic's global skills when the environment has them (`engineering:debug`, `engineering:testing-strategy`, `engineering:code-review`, `engineering:system-design`, `engineering:architecture`); a session without them works from the project skills alone.
+
+Rules for every session:
+
+1. **One session, one zone.** A zone is the set of paths a session may change; the ticket's brief sets it, everything else is read-only. Need something outside it: don't change it, say exactly what and why in a ticket comment, continue on a local stub (`TODO(<owner>)`) and list it in the report.
+2. **Single source of truth.** The task (brief, plan, questions, decisions, report, screenshots, usage) lives in the Linear ticket (team CV web, `CV-N`, one project per epic; GitHub Issues are not used); the code and its review in the PR; standing rules in the repo. Launch prompts carry only the ticket id, never a copy of the brief; nobody mirrors comments between PR and ticket. The PR body is `Closes CV-N` + a short summary (`.github/pull_request_template.md`). Screenshots go to the ticket (skill `linear-screenshot`), never into git. If Linear is unreachable: say so in one PR comment, keep notes and PNGs in `/tmp/CV-<N>/`, post them when it is back.
+3. **Role tag.** Every ticket and PR comment starts with its author's role: `[orchestrate]`, `[develop]`, `[design]`, `[review]`, `[qa]`. All sessions and the human share one Linear and one GitHub account, so the tag is the only way to tell who wrote what. The human writes without a tag. The `linear-code` / Linear bot and `vercel` comments are not requests.
+4. **Questions never block.** Nobody is watching a session: post the question, take the most conservative option, note it, continue.
+5. **Local sessions work in their own worktree**, never in the main checkout (`~/workspace/cv-web`), which belongs to the orchestrator and stays on `main`. `git worktree add .claude/worktrees/<short> claude/<short>` (or `-b claude/<short> … origin/main`), `npm ci` there, `git worktree remove` after the merge. A session that finds itself in the main checkout creates its worktree before the first edit. Cloud sessions have their own container.
+6. **Small PRs, frequent `git merge origin/main`** (before starting and before Ready). Never rebase or force-push.
+7. **Red `main` is the top priority.** Red = a failed CI workflow run (`gh run list --branch main`) or a failed `Production smoke`, not the commit's status icon (Vercel's own status, e.g. `Deployment rate limited`, turned it red on five commits while CI was green, Oct 2026). Before any merge, check the latest run isn't red; if it is, merge only the fix or revert.
+8. **Only the orchestrator calls design-tool MCPs** (rationed). Sessions work from `docs/design/<name>/`.
+
+**Ticket statuses:** Backlog (blocked by a dependency or a decision) → Todo (can be launched) → In Progress (the orchestrator, at launch) → In Review (the developer, when it marks the PR ready: review rounds, CI, merge) → Done (the merge; Linear's GitHub integration sets it from `Closes CV-N`). **Needs human** label: waiting for the human; the question is in a comment.
+
+### Hot spots
+
+Each has one owner: a role, not a particular session. Two tasks touching the same file never run in parallel.
+
+| What | Owner | Others |
+|---|---|---|
+| `package.json`, `package-lock.json`, `.nvmrc`, `vite.config.ts`, `tsconfig*.json`, `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `playwright.config.ts`, `e2e/**`, `.github/workflows/**`, `.github/dependabot.yml`, `.claude/hooks/**` | Scaffold (DevOps) | ask in a comment |
+| `index.html`, `src/main.tsx`, `src/app/**` (app shell, `AppProviders`) | Scaffold | a screen may only register its own route in `src/app/App.tsx` |
+| `src/theme/**` (`tokens.css`, `global.css`), fonts | Theme (Development) | the theme merges **before** screens that depend on it |
+| `src/shared/**` | Theme | a component lives in its screen folder first; when a second screen needs it, a separate PR moves it |
+| Strings | each screen has its own `src/screens/<screen>/strings.ts` (namespace `<screen>`) | `src/i18n/common.ts` and the `src/i18n/` mechanism belong to Theme |
+| Images, icons | `src/screens/<screen>/assets/<screen>_*`; shared icons in `src/shared/icons/` belong to Theme | never rename other screens' resources |
+| `src/data/**` (`cvPage.ts`, `CvPageRepository.ts`, the frontend/backend contract) | the first screen that needs them, then Scaffold until a backend owner exists | a screen's mocks live in `src/data/mock/` under its own file names; contract changes go through their own task |
+| `api/**`, `server/**`, `src/data/chat/contract.ts` (the `/api/chat` contract, `docs/chat/API.md`), `vercel.json` `functions` | Backend (Development) | contract changes go through their own task and a PR comment; breaking ones bump `v` |
+| `docs/**`, `AGENTS.md`/`CLAUDE.md` at the root, `.claude/skills/**`, `.claude/agents/**`, `.claude/settings.json`, `.github/pull_request_template.md` | coordinator or human | others propose changes in a PR |
 
 ## Design
 
-The design reference and the rules for screenshots are in `docs/COORDINATION.md` → Design source of truth.
+Style reference: `docs/design/v3/` (the one CV page and the look of the whole site, chat included; ADR-0006). Where it comes from and its call budget: `.claude/skills/orchestrate/tooling.md` → Design reference.
 
-## Process
-
-The tracker is **Linear** (team CV web, one project per epic, one ticket `CV-N` per task; GitHub Issues are not used). It holds the whole working process: status, Role/Type labels, dependencies (blocked-by relations), session names/ids, scope changes, questions and decisions, plans and reports, web screenshots of results (uploaded straight to the ticket, never committed), and at the top of each finished ticket and of each project a usage table in tokens. One source of truth: sessions get only the ticket id and read and write the task there; the PR holds only the code and its review. The repository holds only the product and the standing rules; PR bodies are short (`Closes CV-N` + what changed). Details: `docs/COORDINATION.md` → Tracker.
+1. **The style reference** sets sizes, colours, type, radii, spacing and component style.
+2. **Screenshots** (of an existing app, a competitor, a sketch) show *what* is on a screen: blocks, content, texts, icons, behaviour. They don't set the style. A design package from a screenshot restyles every block in the reference language: existing tokens, fonts, card style, spacing grid. Screenshot colours, fonts and sizes are used only when the reference has no equivalent role, and then they become new tokens.
+3. When a screenshot and the reference disagree, the reference wins. Record the difference in the package, don't copy the screenshot.
 
 ## Git & CI
 
-- Work in feature branches; `main` is updated only via PRs. Local sessions work in their own git worktree under `.claude/worktrees/`, never in the main checkout, which stays on `main` (`docs/COORDINATION.md` → General rules).
+- Work in feature branches; `main` is updated only via PRs. Local sessions work in their own git worktree under `.claude/worktrees/`, never in the main checkout, which stays on `main` (**Process** → rule 5). No `[skip ci]` in any commit message: a squash merge copies every commit message into the squash body, so it once skipped CI on `main` for five merges (Oct 2026).
 - CI (`.github/workflows/ci.yml`): non-draft PRs and pushes to `main` run *lint* and *test* (job `Lint & tests`) plus `e2e`: *build* and the Playwright e2e, screenshots uploaded as the `e2e-screenshots` artifact. After each Vercel production deploy, the `Production smoke` workflow (`.github/workflows/prod-smoke.yml`, on `deployment_status`) runs the `@prod` tests and `GET /api/chat` → `405` against production. Pushes to feature branches and draft PRs trigger no CI; a PR's CI starts when it is marked Ready for review.
 - Deliverables: the web on Vercel (Hobby), deployed by Vercel's GitHub App, not by CI. Production = `main`: https://cv-web-inky-five.vercel.app/ (Vercel project `cv-web`); other branches get a preview deployment (URL in the PR's Vercel check/comment), but `claude/*` session branches and docs-only pushes do not (`scripts/vercel-ignore.sh`). Previews may be behind Vercel Authentication (Deployment Protection) by default, so they can require a Vercel login. Build config is in `vercel.json`. Pushes to `main` run `Lint & tests` and `e2e` so the QA role sees main's health; production does not wait for them yet (CV-121). "`main` is red" means a failed CI or `Production smoke` run, not the commit's status icon: Vercel posts its own commit status (e.g. `Deployment rate limited`), which can be red while CI is green.

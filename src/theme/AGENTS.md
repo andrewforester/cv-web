@@ -1,7 +1,7 @@
 # theme
 
 Why it exists: the site's visual language in one place, so every screen looks like the design
-reference (`docs/COORDINATION.md` → Design source of truth: `docs/design/v3/`) and a style change
+reference (root `AGENTS.md` → Design: `docs/design/v3/`) and a style change
 is a token change, not a hunt through components.
 
 Place in the architecture: global CSS custom properties, fonts and base styles, imported once by

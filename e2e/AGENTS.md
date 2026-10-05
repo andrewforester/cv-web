@@ -35,3 +35,7 @@ exist, so every chat scenario mocks the endpoint with scripted SSE, and the show
 `NORMAL_SITE` (`?retro=0`, `support.ts`; the default since the show stopped starting on its own).
 Screenshots land in `web-check/` (git-ignored); CI uploads them as an artifact and sessions attach
 them to the ticket.
+
+Known limit: Playwright is pinned to `~1.56.0` because the cloud container's preinstalled Chromium
+is revision 1194; bumping it needs `executablePath: '/opt/pw-browsers/chromium'` or a new container
+image.
