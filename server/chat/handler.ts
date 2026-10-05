@@ -1,11 +1,8 @@
 import {
-  CHAT_API_VERSION_V2,
   CHAT_API_VERSION_V4,
   CHAT_LIMITS,
   type ChatError,
-  type ChatMessageV2,
   type ChatMessageV4,
-  type ChatRequest,
 } from '../../src/data/chat/contract.js';
 import { CHAT_API_VERSION_V3 } from '../../src/data/retro/contract.js';
 import { clientIp } from './clientIp.js';
@@ -13,7 +10,7 @@ import type { ChatConfig } from './config.js';
 import type { DayCostMeter } from './dayCost.js';
 import { chatError, errorResponse, HTTP_STATUS_BY_CODE } from './errors.js';
 import { checkContentType, checkMethod, checkOrigin, readBody } from './guards.js';
-import type { CvPageKnowledgeLoader, PageKnowledgeLoader } from './knowledge/assembleKnowledge.js';
+import type { CvPageKnowledgeLoader } from './knowledge/assembleKnowledge.js';
 import type { LlmClient, LlmRequest } from './llm/LlmClient.js';
 import type { ChatLogEntry, ChatLogger } from './log.js';
 import { buildLlmRequest } from './prompt/buildLlmRequest.js';
@@ -24,7 +21,6 @@ import { SHOW_PROMPT_VERSION } from './show/showPrompt.js';
 import { validateShowRequest } from './show/validateShow.js';
 import { streamAnswer, type TextStreamer } from './streamAnswer.js';
 import { validateChatRequest } from './validate.js';
-import { chatPageOf } from './validateParts.js';
 
 export interface ChatDeps {
   config: ChatConfig;
@@ -33,9 +29,7 @@ export interface ChatDeps {
   limiter: RateLimiter;
   /** This instance's spend today: logged, and checked against `config.dailyBudgetUsd`. */
   dayCost: DayCostMeter;
-  /** The page's knowledge in a locale (ADR-0004: only the page the chat is on). */
-  knowledge: PageKnowledgeLoader;
-  /** v4: the one page's knowledge (ADR-0006), English, the same for every request. */
+  /** The one page's knowledge (ADR-0006), English, the same for every request (v4 and v3). */
   cvPageKnowledge: CvPageKnowledgeLoader;
   log: ChatLogger;
   now?: () => number;
@@ -62,7 +56,6 @@ function newEntry(requestId: string, deps: ChatDeps, request: Request): ChatLogE
     stopReason: null,
     errorCode: null,
     locale: null,
-    page: null,
     model: deps.config.model.id,
     promptVersion: PROMPT_VERSION,
     messages: null,
@@ -92,7 +85,7 @@ function newEntry(requestId: string, deps: ChatDeps, request: Request): ChatLogE
 }
 
 /** Characters of text the visitor and the model wrote (never the text itself). */
-function inputChars(messages: ChatRequest['messages'] | ChatMessageV2[] | ChatMessageV4[]): number {
+function inputChars(messages: ChatMessageV4[]): number {
   return messages.reduce(
     (sum, message) => sum + ('content' in message ? message.content.length : 0),
     0,
@@ -108,10 +101,10 @@ function parseJson(text: string): { ok: true; value: unknown } | { ok: false } {
 }
 
 /**
- * `POST /api/chat` (docs/chat/API.md): guards, rate limit, body and validation, the page's
- * knowledge (v4: the one page's), prompt, then the SSE answer. `v: 3` (the show dialect) shares
- * everything up to the body, then takes its own validation and prompts (`show/`). Every outcome
- * writes exactly one log line.
+ * `POST /api/chat` (docs/chat/API.md): guards, rate limit, body and validation (v4), the page's
+ * knowledge, prompt, then the SSE answer. `v: 3` (the show dialect) shares everything up to the
+ * body, then takes its own validation and prompts (`show/`). Any other `v` is
+ * `unsupported_version`. Every outcome writes exactly one log line.
  */
 export async function handleChat(request: Request, deps: ChatDeps): Promise<Response> {
   const now = deps.now ?? Date.now;
@@ -203,30 +196,20 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
 
   const validation = validateChatRequest(json.value);
   if (!validation.ok) {
-    const { v } = entry;
     return fail(
       validation.error,
-      v === CHAT_API_VERSION_V2 || v === CHAT_API_VERSION_V4 ? v : undefined,
+      entry.v === CHAT_API_VERSION_V4 ? CHAT_API_VERSION_V4 : undefined,
     );
   }
 
   const chat = validation.request;
-  // v4 has neither: the one page, in English.
-  entry.locale = chat.v === 4 ? null : chat.locale;
-  entry.page = chatPageOf(chat);
   entry.messages = chat.messages.length;
   entry.inputChars = inputChars(chat.messages);
+  entry.toolRound = chat.toolRound;
 
   try {
-    const knowledge =
-      chat.v === 4
-        ? await deps.cvPageKnowledge()
-        : await deps.knowledge(chatPageOf(chat), chat.locale);
-    const llmRequest = buildLlmRequest(chat, knowledge, deps.config.model);
-    if (chat.v !== 1) {
-      entry.toolRound = chat.toolRound;
-      entry.toolChoice = llmRequest.tool_choice?.type ?? null;
-    }
+    const llmRequest = buildLlmRequest(chat, await deps.cvPageKnowledge(), deps.config.model);
+    entry.toolChoice = llmRequest.tool_choice?.type ?? null;
     return await stream(deps.llm, llmRequest, chat.v);
   } catch {
     return fail(chatError('internal_error', 'Unexpected server error'), chat.v);

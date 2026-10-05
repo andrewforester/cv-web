@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { question, toolResults, toolTurn, v2Body } from '../../test/helpers.js';
+import { questionV4, toolResults, toolTurn, v4Body } from '../../test/helpers.js';
 import { buildLlmRequest } from '../prompt/buildLlmRequest.js';
 import { validateChatRequest } from '../validate.js';
 import { devFakeScript } from './devFakeScript.js';
@@ -11,33 +11,33 @@ function scriptFor(body: unknown) {
   return devFakeScript(buildLlmRequest(result.request, 'K', HAIKU_4_5));
 }
 
-describe('devFakeScript: v2 tool rounds', () => {
+describe('devFakeScript: tool rounds', () => {
   it('turns a page command into a tool call after one sentence', () => {
-    expect(scriptFor(v2Body(question('Show me his apps')))).toMatchObject({
+    expect(scriptFor(v4Body(questionV4('Show me his impact')))).toMatchObject({
       deltas: ['Sure, ', 'doing ', 'it ', 'now.'],
-      toolCalls: [{ id: 'toolu_fake_1_0', name: 'scrollToSection', input: { section: 'apps' } }],
+      toolCalls: [{ id: 'toolu_fake_1_0', name: 'scrollToSection', input: { section: 'impact' } }],
     });
-    expect(scriptFor(v2Body(question('Перемкни на українську')))).toMatchObject({
-      toolCalls: [{ name: 'switchLanguage', input: { locale: 'uk' } }],
+    expect(scriptFor(v4Body(questionV4('Open his LinkedIn')))).toMatchObject({
+      toolCalls: [{ name: 'openContact', input: { channel: 'linkedin' } }],
     });
   });
 
   it('parses /tool commands, dropping unknown tools', () => {
     const script = scriptFor(
-      v2Body(question('/tool switchLanguage=uk nope=1 highlightElement=app:cync')),
+      v4Body(questionV4('/tool openContact=email nope=1 highlightElement=app:cync')),
     );
     expect(script.toolCalls).toEqual([
-      { id: 'toolu_fake_1_0', name: 'switchLanguage', input: { locale: 'uk' } },
+      { id: 'toolu_fake_1_0', name: 'openContact', input: { channel: 'email' } },
       { id: 'toolu_fake_1_2', name: 'highlightElement', input: { target: 'app:cync' } },
     ]);
   });
 
   it('answers the results in text, and a failure as such', () => {
-    const ok = scriptFor(v2Body(question('Show me his apps'), toolTurn(), toolResults()));
+    const ok = scriptFor(v4Body(questionV4('Show me his impact'), toolTurn(), toolResults()));
     expect(ok).toMatchObject({ deltas: ['Done.'] });
     expect(ok.toolCalls).toBeUndefined();
     const failed = scriptFor(
-      v2Body(question('Show me his apps'), toolTurn(), {
+      v4Body(questionV4('Show me his impact'), toolTurn(), {
         role: 'user',
         toolResults: [{ callId: 'toolu_1', result: { ok: false, error: 'not_available' } }],
       }),
@@ -45,11 +45,7 @@ describe('devFakeScript: v2 tool rounds', () => {
     expect(failed.deltas.join('')).toBe("That didn't work on this page.");
   });
 
-  it('answers ordinary questions and v1 as before', () => {
-    expect(scriptFor(v2Body(question('What does he do?'))).toolCalls).toBeUndefined();
-    expect(
-      scriptFor({ v: 1, locale: 'en', messages: [{ role: 'user', content: 'Show me his apps' }] })
-        .toolCalls,
-    ).toBeUndefined();
+  it('answers ordinary questions in text', () => {
+    expect(scriptFor(v4Body(questionV4('What does he do?'))).toolCalls).toBeUndefined();
   });
 });

@@ -1,16 +1,14 @@
 import type {
-  AgentPageState,
   AgentPageStateV4,
   AgentToolResult,
   AgentToolResultItem,
-  ChatMessageV2,
   ChatMessageV4,
 } from '../../../src/data/chat/contract.js';
 import type { LlmAssistantBlock, LlmContentBlock, LlmMessage } from '../llm/LlmClient.js';
 import { rebuildAssistantTurn } from '../providerState.js';
 
 /** The page snapshot as a data block in front of the question (docs/chat/AGENT.md §3). */
-export function pageStateBlock(page: AgentPageState | AgentPageStateV4): string {
+export function pageStateBlock(page: AgentPageStateV4): string {
   return `<page_state>${JSON.stringify(page)}</page_state>`;
 }
 
@@ -38,11 +36,11 @@ function toolResultBlocks(
 }
 
 /**
- * Validated v2 or v4 messages as model messages: questions carry `<page_state>` + text, tool-use turns
+ * Validated v4 messages (the tool dialect) as model messages: questions carry `<page_state>` + text, tool-use turns
  * are rebuilt from `providerState`, results become `tool_result` blocks. Append-only: an earlier
  * message always renders the same, so the conversation prefix stays cacheable.
  */
-export function renderMessagesV2(messages: (ChatMessageV2 | ChatMessageV4)[]): LlmMessage[] {
+export function renderMessagesV2(messages: ChatMessageV4[]): LlmMessage[] {
   let lastAssistant: LlmAssistantBlock[] = [];
   return messages.map((message): LlmMessage => {
     if (message.role === 'assistant') {

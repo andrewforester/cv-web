@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { ChatErrorBody } from '../../src/data/chat/contract.js';
-import { chatRequest, testDeps, VALID_BODY } from '../test/helpers.js';
+import type { ChatErrorBody, ChatMessageV4 } from '../../src/data/chat/contract.js';
+import { chatRequest, questionV4, testDeps, v4Body, VALID_BODY } from '../test/helpers.js';
 import { readChatConfig } from './config.js';
 import { DayCostMeter } from './dayCost.js';
 import { handleChat } from './handler.js';
@@ -26,25 +26,37 @@ describe('handleChat: errors before the stream', () => {
       415,
       'unsupported_media_type',
     ],
-    ['malformed JSON', chatRequest('{"v":1,'), 400, 'invalid_request'],
-    ['a schema violation', chatRequest({ ...VALID_BODY, locale: 'fr' }), 400, 'invalid_request'],
+    ['malformed JSON', chatRequest('{"v":4,'), 400, 'invalid_request'],
+    [
+      'a schema violation',
+      chatRequest({ ...VALID_BODY, messages: [{ role: 'user', content: 'hi' }] }),
+      400,
+      'invalid_request',
+    ],
     ['another version', chatRequest({ ...VALID_BODY, v: 5 }), 400, 'unsupported_version'],
     [
-      'a too long question',
-      chatRequest({ ...VALID_BODY, messages: [{ role: 'user', content: 'a'.repeat(1_001) }] }),
-      413,
-      'too_long',
+      'a retired v1 body',
+      chatRequest({ v: 1, locale: 'en', messages: [{ role: 'user', content: 'Hi' }] }),
+      400,
+      'unsupported_version',
     ],
+    [
+      'a retired v2 body',
+      chatRequest({ v: 2, locale: 'en', page: 'cv', messages: VALID_BODY.messages }),
+      400,
+      'unsupported_version',
+    ],
+    ['a too long question', chatRequest(v4Body(questionV4('a'.repeat(1_001)))), 413, 'too_long'],
     ['a body over 128 KiB', chatRequest('x'.repeat(131_073)), 413, 'too_long'],
     [
-      'more than 20 messages',
-      chatRequest({
-        ...VALID_BODY,
-        messages: Array.from({ length: 21 }, (_, i) => ({
-          role: i % 2 ? 'assistant' : 'user',
-          content: 'hi',
-        })),
-      }),
+      'more than 40 messages',
+      chatRequest(
+        v4Body(
+          ...Array.from({ length: 41 }, (_, i): ChatMessageV4 =>
+            i % 2 ? { role: 'assistant', content: 'hi' } : questionV4('hi'),
+          ),
+        ),
+      ),
       422,
       'conversation_limit',
     ],
@@ -54,7 +66,7 @@ describe('handleChat: errors before the stream', () => {
     expect(response.status).toBe(status);
     const error = await errorOf(response);
     expect(error).toMatchObject({ code, retryable: false, requestId: 'req-1' });
-    expect(response.headers.get('x-chat-api-version')).toBe('1');
+    expect(response.headers.get('x-chat-api-version')).toBe('4');
     expect(response.headers.get('x-request-id')).toBe('req-1');
     expect(response.headers.get('cache-control')).toBe('no-store');
     expect(deps.llm.requests).toHaveLength(0);
@@ -135,7 +147,7 @@ describe('handleChat: errors before the stream', () => {
   });
 
   it('maps an unexpected failure to 500 internal_error', async () => {
-    const deps = testDeps(undefined, { knowledge: () => Promise.reject(new Error('boom')) });
+    const deps = testDeps(undefined, { cvPageKnowledge: () => Promise.reject(new Error('boom')) });
     const response = await handleChat(chatRequest(), deps);
     expect(response.status).toBe(500);
     expect(await errorOf(response)).toMatchObject({ code: 'internal_error', retryable: true });

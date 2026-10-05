@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chatRequest, readSse, testDeps, VALID_BODY } from '../test/helpers.js';
+import { chatRequest, questionV4, readSse, testDeps, v4Body, VALID_BODY } from '../test/helpers.js';
 import { handleChat } from './handler.js';
 import { LlmError } from './llm/LlmClient.js';
 
@@ -18,7 +18,7 @@ describe('handleChat: the SSE stream', () => {
     expect(response.headers.get('content-type')).toBe('text/event-stream; charset=utf-8');
     expect(response.headers.get('cache-control')).toBe('no-cache, no-transform');
     expect(response.headers.get('x-accel-buffering')).toBe('no');
-    expect(response.headers.get('x-chat-api-version')).toBe('1');
+    expect(response.headers.get('x-chat-api-version')).toBe('4');
     expect(response.headers.get('x-request-id')).toBe('req-1');
     const { raw } = await readSse(response);
     expect(raw).toBe(
@@ -28,15 +28,16 @@ describe('handleChat: the SSE stream', () => {
     );
   });
 
-  it('sends the knowledge, the locale and the validated messages to the model', async () => {
+  it('sends the knowledge, the site language and the validated messages to the model', async () => {
     const deps = testDeps();
-    const body = { ...VALID_BODY, locale: 'uk', extra: 'ignored' };
+    const body = { ...VALID_BODY, extra: 'ignored' };
     await (await handleChat(chatRequest(body), deps)).text();
     const request = deps.llm.requests[0];
     expect(request?.model).toBe('claude-haiku-4-5');
-    expect(request?.system[1]?.text).toContain('<document id="cv" title="CV">');
-    expect(request?.system[2]?.text).toBe('Site language: Ukrainian (uk).');
-    expect(request?.messages).toEqual(VALID_BODY.messages);
+    expect(request?.system[2]?.text).toContain('<document id="cv" title="CV">');
+    expect(request?.system[3]?.text).toBe('Site language: English (en).');
+    expect(request?.messages).toHaveLength(1);
+    expect(JSON.stringify(request?.messages[0])).toContain('What does Andrew do?');
   });
 
   it.each(['max_tokens', 'refusal'] as const)(
@@ -117,20 +118,19 @@ describe('handleChat: the SSE stream', () => {
   it('writes one log line with usage and cost, and no visitor text', async () => {
     const secret = 'My phone is +380 99 SECRET';
     const deps = testDeps({ deltas: ['ok'], usage: USAGE });
-    const request = chatRequest(
-      { ...VALID_BODY, messages: [{ role: 'user', content: secret }] },
-      { headers: { 'x-vercel-ip-country': 'UA', 'user-agent': 'UA-STRING' } },
-    );
+    const request = chatRequest(v4Body(questionV4(secret)), {
+      headers: { 'x-vercel-ip-country': 'UA', 'user-agent': 'UA-STRING' },
+    });
     await (await handleChat(request, deps)).text();
     expect(deps.logs).toHaveLength(1);
     expect(deps.logs[0]).toMatchObject({
       evt: 'chat',
       requestId: 'req-1',
-      v: 1,
+      v: 4,
       status: 200,
       outcome: 'done',
       stopReason: 'end_turn',
-      locale: 'en',
+      locale: null,
       messages: 1,
       inputChars: secret.length,
       inputTokens: 2014,

@@ -51,6 +51,8 @@ describe('showFakeScript (CHAT_FAKE_LLM=1)', () => {
   });
 
   it('leaves chat requests to the chat script', () => {
-    expect(showFakeScript(buildLlmRequest(VALID_BODY, 'K', HAIKU_4_5))).toBeUndefined();
+    expect(
+      showFakeScript(buildLlmRequest({ ...VALID_BODY, toolRound: 0 }, 'K', HAIKU_4_5)),
+    ).toBeUndefined();
   });
 });

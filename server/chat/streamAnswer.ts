@@ -1,5 +1,4 @@
 import {
-  CHAT_API_VERSION_V2,
   CHAT_API_VERSION_V4,
   CHAT_LIMITS_V2,
   type ChatError,
@@ -29,7 +28,7 @@ export interface TextStreamer {
 export interface StreamContext {
   llm: LlmClient;
   llmRequest: LlmRequest;
-  /** The request's API version: 2 and 4 (the tool dialect) stream `tool_call` events. */
+  /** The request's API version: 4 (the tool dialect) streams `tool_call` events; 3 does not. */
   version: number;
   /** Default: each piece of text is a `delta` event. */
   streamer?: TextStreamer;
@@ -139,8 +138,7 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
       }, ctx.pingIntervalMs);
 
       const toolNames: string[] = [];
-      const toolDialect =
-        ctx.version === CHAT_API_VERSION_V2 || ctx.version === CHAT_API_VERSION_V4;
+      const toolDialect = ctx.version === CHAT_API_VERSION_V4;
       const toolFields = (): Partial<ChatLogEntry> =>
         toolDialect ? { toolCalls: toolNames.length, toolNames: [...toolNames] } : {};
 

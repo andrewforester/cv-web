@@ -1,4 +1,4 @@
-import type { ChatErrorCode, ChatPage, ChatStopReasonV2 } from '../../src/data/chat/contract.js';
+import type { ChatErrorCode, ChatStopReasonV2 } from '../../src/data/chat/contract.js';
 import type { ShowKind } from '../../src/data/retro/contract.js';
 import type { RetroStepId } from '../../src/data/retro/scenario.js';
 import type { ShowScenarioId } from '../../src/data/retro/scenarios.js';
@@ -16,9 +16,8 @@ export interface ChatLogEntry {
   outcome: 'done' | 'error' | 'aborted';
   stopReason: ChatStopReasonV2 | null;
   errorCode: ChatErrorCode | null;
+  /** v3: the show's locale (`en`); `null` for v4, which has none. */
   locale: string | null;
-  /** v1/v2: the page the chat answered for (`cv` when the client sent none). */
-  page: ChatPage | null;
   model: string;
   promptVersion: string;
   messages: number | null;
@@ -35,13 +34,13 @@ export interface ChatLogEntry {
   upstreamError: string | null;
   country: string | null;
   limiter: 'ok' | 'ip' | 'instance' | null;
-  /** v2: `tool_call` events streamed in this response (at most 3) and their tool names. */
+  /** v4: `tool_call` events streamed in this response (at most 3) and their tool names. */
   toolCalls: number | null;
   toolNames: string[] | null;
-  /** v2: tool rounds already in this visitor turn (0 = answering a question). */
+  /** v4: tool rounds already in this visitor turn (0 = answering a question). */
   toolRound: number | null;
   toolChoice: 'auto' | 'none' | null;
-  /** v2: length of the `providerState` sent with `done`. */
+  /** v4: length of the `providerState` sent with `done`. */
   providerStateBytes: number | null;
   /** v3: the show request's kind. */
   showKind: ShowKind | null;

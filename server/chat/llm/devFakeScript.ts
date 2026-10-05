@@ -2,59 +2,27 @@ import type { AgentToolCall } from '../../../src/data/chat/contract.js';
 import type { FakeScript } from './FakeLlmClient.js';
 import { LlmError, type LlmMessage, type LlmRequest } from './LlmClient.js';
 
-const DEV_ANSWERS = {
-  en: 'This is a scripted answer from the fake model (CHAT_FAKE_LLM=1). Andrew is a **Senior Android Engineer** with iOS experience.\n\n- Kotlin, Jetpack Compose\n- Cync and August Home apps',
-  uk: 'Це заготовлена відповідь фейкової моделі (CHAT_FAKE_LLM=1). Андрій — **Senior Android Engineer** з досвідом iOS.\n\n- Kotlin, Jetpack Compose\n- застосунки Cync і August Home',
-};
+const DEV_ANSWER =
+  'This is a scripted answer from the fake model (CHAT_FAKE_LLM=1). Andrew is a **Senior Android Engineer** with iOS experience.\n\n- Kotlin, Jetpack Compose\n- Cync and August Home apps';
 
-/** v2 tool rounds: the sentence before the calls and the answers after the results. */
+/** Tool rounds: the sentence before the calls and the answers after the results. */
 const DEV_TOOL_TEXT = {
-  en: { before: 'Sure, doing it now.', ok: 'Done.', failed: "That didn't work on this page." },
-  uk: { before: 'Зараз зроблю.', ok: 'Готово.', failed: 'На цій сторінці це не вийшло.' },
+  before: 'Sure, doing it now.',
+  ok: 'Done.',
+  failed: "That didn't work on this page.",
 };
 
 /**
- * Natural commands the fake model turns into tool calls (EN/UK), for trying the widget. A value the
- * page's catalogue lacks shows the widget's `invalid_params` path.
+ * Natural commands the fake model turns into tool calls, for trying the widget: the page's example
+ * commands, and `apps`, a section the catalogue lacks, which shows the widget's `invalid_params`
+ * path.
  */
 const DEV_COMMANDS: { pattern: RegExp; name: AgentToolCall['name']; value: string }[] = [
-  {
-    pattern: /(show|scroll|go to|покажи|перейди|прокрути).*(apps|застосунк)/i,
-    name: 'scrollToSection',
-    value: 'apps',
-  },
-  {
-    pattern: /(show|scroll|go to|покажи|перейди|прокрути).*(impact|результат)/i,
-    name: 'scrollToSection',
-    value: 'impact',
-  },
-  {
-    pattern: /(switch|перемкни|переключи).*(ukrainian|українськ)/i,
-    name: 'switchLanguage',
-    value: 'uk',
-  },
-  {
-    pattern: /(switch|перемкни|переключи).*(english|англійськ)/i,
-    name: 'switchLanguage',
-    value: 'en',
-  },
-  {
-    pattern: /(highlight|підсвіти).*kotlin/i,
-    name: 'highlightElement',
-    value: 'technology:kotlin',
-  },
-  {
-    pattern: /(open|write|message|відкрий|напиши).*(telegram|телеграм)/i,
-    name: 'openContact',
-    value: 'telegram',
-  },
-  // v4 (the one page): its example commands.
-  {
-    pattern: /highlight.*transcenda/i,
-    name: 'highlightElement',
-    value: 'experience:transcenda',
-  },
+  { pattern: /(show|scroll|go to).*impact/i, name: 'scrollToSection', value: 'impact' },
   { pattern: /(show|scroll|go to).*contacts/i, name: 'scrollToSection', value: 'contacts' },
+  { pattern: /(show|scroll|go to).*apps/i, name: 'scrollToSection', value: 'apps' },
+  { pattern: /highlight.*transcenda/i, name: 'highlightElement', value: 'experience:transcenda' },
+  { pattern: /(open|write|message).*telegram/i, name: 'openContact', value: 'telegram' },
   { pattern: /(open|write|message).*linkedin/i, name: 'openContact', value: 'linkedin' },
 ];
 
@@ -63,7 +31,6 @@ const PARAM_BY_TOOL: Record<AgentToolCall['name'], string> = {
   highlightElement: 'target',
   openContact: 'channel',
   scrollToSection: 'section',
-  switchLanguage: 'locale',
 };
 
 /** Splits text into word-sized deltas, like a real stream. */
@@ -71,7 +38,7 @@ export function words(text: string): string[] {
   return text.match(/\S+\s*/g) ?? [];
 }
 
-/** The visitor's text of a message (v2 questions carry `<page_state>` first). */
+/** The visitor's text of a message (questions carry `<page_state>` first). */
 export function textOf(message: LlmMessage | undefined): string {
   if (!message) return '';
   if (typeof message.content === 'string') return message.content.trim();
@@ -80,8 +47,8 @@ export function textOf(message: LlmMessage | undefined): string {
 }
 
 /**
- * Tool calls for a question: `/tool name=value …` (e.g. `/tool scrollToSection=apps
- * switchLanguage=uk`; unknown tool names are dropped, values are not checked, so a wrong value
+ * Tool calls for a question: `/tool name=value …` (e.g. `/tool scrollToSection=impact
+ * openContact=email`; unknown tool names are dropped, values are not checked, so a wrong value
  * shows the widget's `invalid_params` path) or one of `DEV_COMMANDS`.
  */
 function toolNamesFor(question: string): { name: string; value: string }[] {
@@ -109,9 +76,9 @@ function toolCallsFor(request: LlmRequest, question: string): AgentToolCall[] {
   });
 }
 
-/** A v2 turn when tools are on: calls for a command, a short answer after the results. */
-function toolScript(request: LlmRequest, ukrainian: boolean): FakeScript | undefined {
-  const text = DEV_TOOL_TEXT[ukrainian ? 'uk' : 'en'];
+/** A turn when tools are on: calls for a command, a short answer after the results. */
+function toolScript(request: LlmRequest): FakeScript | undefined {
+  const text = DEV_TOOL_TEXT;
   const last = request.messages.at(-1);
   if (last && typeof last.content !== 'string' && last.content[0]?.type === 'tool_result') {
     const failed = last.content.some((block) => block.type === 'tool_result' && block.is_error);
@@ -125,17 +92,14 @@ function toolScript(request: LlmRequest, ukrainian: boolean): FakeScript | undef
 /**
  * Dev-mode script. The last visitor message may start with a command to exercise the widget:
  * `/error` (mid-stream upstream error), `/fail` (upstream error before the stream),
- * `/refusal`, `/long` (`max_tokens`), `/slow` (keeps the stream open, for Stop). In v2, `/tool`
- * and the `DEV_COMMANDS` phrases answer with a tool round.
+ * `/refusal`, `/long` (`max_tokens`), `/slow` (keeps the stream open, for Stop). `/tool` and the
+ * `DEV_COMMANDS` phrases answer with a tool round.
  */
 export function devFakeScript(request: LlmRequest): FakeScript {
   const last = textOf(request.messages.at(-1));
-  // Like the real rule: the language of the latest message, else the site language.
-  const siteUk = request.system.at(-1)?.text.includes('(uk)') ?? false;
-  const ukrainian = /[Ѐ-ӿ]/.test(last) || (!/[a-z]/i.test(last) && siteUk);
-  const tools = toolScript(request, ukrainian);
+  const tools = toolScript(request);
   if (tools) return tools;
-  const deltas = words(ukrainian ? DEV_ANSWERS.uk : DEV_ANSWERS.en);
+  const deltas = words(DEV_ANSWER);
   const upstream = new LlmError('Upstream overloaded_error (fake)', {
     retryable: true,
     errorType: 'overloaded_error',

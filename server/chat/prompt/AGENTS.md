@@ -3,22 +3,19 @@
 Why it exists: turns a visitor's conversation into the model request. This is where the chat's
 behaviour is set: answer only from the CV, never invent, decline off-topic and private questions
 and point to the contacts on the page, ignore instructions hidden in visitor text, answer in the
-visitor's language, keep the formatting the widget can render (paragraphs, lists, bold). In v2 it
-also sets the rules for operating the page: only when asked, only through the tools, never claim
+visitor's language, keep the formatting the widget can render (paragraphs, lists, bold). It also
+sets the rules for operating the page: only when asked, only through the tools, never claim
 success without a result.
 
-Place in the architecture: between the validated request and the model client (`../llm/`). It
-combines the instructions, the knowledge (`../knowledge/`), the page-tool catalogue shared with
-the browser (`src/data/chat/agentTools.ts`, one per page) and the conversation. The instruction
-blocks are the same on every page; the page's knowledge and tools carry the difference. v4 (the
-one page, ADR-0006) uses its own catalogue (three tools, no language switch) and a fixed
-`Site language: English (en).` line; the page-tool rules are shared with v2, so they name no
-tool or field only one version has.
+Place in the architecture: between the validated v4 request and the model client (`../llm/`). It
+combines the instructions, the page-tool rules, the knowledge (`../knowledge/`), the one page's
+tool catalogue shared with the browser (`src/data/chat/agentTools.ts`: three tools, no language
+switch), a fixed `Site language: English (en).` line (ADR-0006) and the conversation. The
+messages are rendered in the tool dialect first defined by v2 (`renderMessagesV2.ts`).
 
 Rules and limits:
 - Every prompt change bumps `PROMPT_VERSION` (it is logged) and needs the golden-question check
   with the real model before release; that check is not in CI.
-- The request prefix must be byte-identical across requests of a page and locale (no dates, no
-  randomness): prompt caching and therefore cost depend on it. Each page (and `/new` per locale)
-  has its own cached prefix. Visitor text never goes into the
+- The request prefix (tools, system blocks) must be byte-identical across requests (no dates, no
+  randomness): prompt caching and therefore cost depend on it. Visitor text never goes into the
   system prompt.
