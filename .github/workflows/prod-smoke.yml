@@ -1,0 +1,56 @@
+name: Production smoke
+
+# Runs after every Vercel production deploy (Vercel's GitHub App creates a GitHub Deployment with
+# environment Production). deployment_status workflows run only from the default branch.
+# A failure is a red run, which the QA session follows. No rollback here (needs a Vercel token).
+on:
+  deployment_status:
+  workflow_dispatch:
+
+concurrency:
+  group: prod-smoke
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # The production domain, not deployment_status.target_url: per-deployment URLs may sit behind
+  # Vercel Authentication.
+  PW_BASE_URL: https://cv-web-inky-five.vercel.app
+
+jobs:
+  prod-smoke:
+    name: prod-smoke
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Playwright @prod subset
+        run: npm run web-check:prod
+      - name: /api/chat rejects GET with 405 JSON
+        run: |
+          set -euo pipefail
+          out=$(mktemp)
+          code=$(curl -sS -o "$out" -w '%{http_code}' "$PW_BASE_URL/api/chat")
+          cat "$out"
+          test "$code" = 405
+          jq -e . "$out" > /dev/null
+      - name: Upload screenshots
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-smoke-screenshots
+          path: |
+            web-check/
+            test-results/
+          if-no-files-found: ignore

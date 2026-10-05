@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-/** Screenshots land here; CI uploads the folder as the `web-smoke-screenshots` artifact. */
+/** Screenshots land here; CI uploads the folder as the `e2e-screenshots` artifact. */
 export const SCREENSHOT_DIR = 'web-check';
 
 /** Today's site (the default since Round 5; `?retro=0` kept explicit) and the show (src/app/retroMode). */
