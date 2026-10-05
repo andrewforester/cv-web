@@ -54,5 +54,5 @@ Forest ones, which go in Cleanup; the page screen uses them from T3):
 - Chat look (T5): the chat uses the v3 tokens (panel = the loop panel's `--gradient-dark` and
   `--color-dark-*`); its own `--chat-*` block next to them holds only what v3 has no value for
   (muted ink on dark, fills, error/notice, panel shadow, chat type sizes, the launcher's padding).
-  `--forest-chat-*` and `--chat-fab-*` are no longer read by the chat and go in Cleanup.
+  `--forest-chat-*` and `--chat-fab-*` are no longer read by the chat; they go in Cleanup once the show stops reading them.
 - `--agent-highlight-color` is `--color-accent`. The site is English only, so no Cyrillic is added.
