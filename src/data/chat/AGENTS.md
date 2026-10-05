@@ -12,9 +12,11 @@ state holder) and the wire partner of `server/chat/`. The binding is set in
 Shared with the server (framework-free, `.js` import specifiers):
 - `contract.ts`: request/response types, limits and error codes, v1 and v2, and the pages the
   chat runs on (`cv` = `/`, `profile` = `/new`) with each page's sections and contact channels.
-- `agentTools.ts`: the page-agent tool catalogue per page, built from that page's data (`Cv` or
-  `Profile`) so its targets match the page in every locale; the browser registry (`src/agent/`)
-  executes it, the server sends the same specs to the model.
+  v4 (ADR-0006) is the one-page chat: no page id, no locale, `CV_SECTION_IDS` and
+  `CV_CONTACT_CHANNELS`. v1/v2 go in the Cleanup task.
+- `agentTools.ts`: the page-agent tool catalogue per page, built from that page's data (`Cv`,
+  `Profile` or, for v4, `CvPage`: three tools, no `switchLanguage`) so its targets match the page;
+  the browser registry (`src/agent/`) executes it, the server sends the same specs to the model.
 Change either only through the backend ticket that owns the contract; breaking changes bump `v`.
 
 Guarantees: the repository never throws; network failures, bad responses and streams that end

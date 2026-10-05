@@ -1,6 +1,8 @@
 /**
- * AI CV chat API contract, v1 and v2 with its page-aware fields (docs/chat/API.md). Shared by the widget (`src/data/chat/**`) and the
- * backend (`server/chat/**`). Keep it framework-free: no React, DOM, Vite or Node imports.
+ * AI CV chat API contract (docs/chat/API.md): v1, v2 with its page-aware fields, and v4 (the one
+ * page). v3 (the show) lives in `src/data/retro/contract.ts`. Shared by the widget
+ * (`src/data/chat/**`) and the backend (`server/chat/**`). Keep it framework-free: no React, DOM,
+ * Vite or Node imports.
  */
 
 export const CHAT_API_PATH = '/api/chat';
@@ -288,3 +290,65 @@ export const AGENT_PAGE_CONTACT_CHANNELS = {
   cv: AGENT_CONTACT_CHANNELS,
   profile: PROFILE_CONTACT_CHANNELS,
 } as const satisfies Record<ChatPage, readonly string[]>;
+
+// ---------------------------------------------------------------------------------------------
+// v4: the one-page chat (docs/chat/API.md → v4, ADR-0006 → Decision 3). v2's tool dialect without
+// `page` and `locale`, with the v3 page's sections, contacts and targets. v1–v3 stay valid as is.
+// ---------------------------------------------------------------------------------------------
+
+export const CHAT_API_VERSION_V4 = 4;
+
+/** The page's sections in page order; `data-agent-id="section:<id>"`. */
+export const CV_SECTION_IDS = [
+  'header',
+  'craft',
+  'loop',
+  'impact',
+  'experience',
+  'skills',
+  'education',
+  'about',
+  'contacts',
+] as const;
+export type CvSectionId = (typeof CV_SECTION_IDS)[number];
+
+/** `CvPage.contacts` ids, in the header's order; `data-agent-id="contact:<channel>"`. */
+export const CV_CONTACT_CHANNELS = ['email', 'whatsapp', 'telegram', 'linkedin'] as const;
+export type CvContactChannel = (typeof CV_CONTACT_CHANNELS)[number];
+
+/** Target kinds on the page (a subset of `AGENT_TARGET_KINDS`); `app` = a Transcenda project. */
+export const CV_TARGET_KINDS = [
+  'section',
+  'impact',
+  'experience',
+  'app',
+  'skill',
+  'book',
+  'contact',
+] as const satisfies readonly AgentTargetKind[];
+
+/** Page snapshot sent with each question: enums and booleans only, never text or values. */
+export interface AgentPageStateV4 {
+  viewport: (typeof AGENT_VIEWPORTS)[number];
+  chat: (typeof AGENT_CHAT_LAYOUTS)[number];
+  activeSection: CvSectionId | null;
+  highlighted: AgentTargetId | null;
+  /** Tools registered (mounted) right now, sorted. */
+  tools: AgentToolName[];
+}
+
+export interface ChatUserMessageV4 {
+  role: 'user';
+  /** Plain text, non-empty after trimming. */
+  content: string;
+  page: AgentPageStateV4;
+}
+
+/** Tool results and assistant messages are v2's. */
+export type ChatMessageV4 = ChatUserMessageV4 | ChatToolResultsMessageV2 | ChatAssistantMessageV2;
+
+/** Roles alternate, start with a text `user` message and end with a `user` message. */
+export interface ChatRequestV4 {
+  v: typeof CHAT_API_VERSION_V4;
+  messages: ChatMessageV4[];
+}

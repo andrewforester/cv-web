@@ -61,3 +61,17 @@ export function createPageKnowledgeLoader(
   ) as Record<ChatPage, KnowledgeLoader>;
   return (page, locale) => loaders[page](locale);
 }
+
+export type CvPageKnowledgeLoader = () => Promise<string>;
+
+/**
+ * The one page's knowledge (v4): English, so one memoized text for every request, whatever
+ * language the visitor writes in.
+ */
+export function createCvPageKnowledgeLoader(
+  sources: readonly KnowledgeSource[],
+  warn: (message: string) => void = console.warn,
+): CvPageKnowledgeLoader {
+  const load = createKnowledgeLoader(sources, warn);
+  return () => load('en');
+}
