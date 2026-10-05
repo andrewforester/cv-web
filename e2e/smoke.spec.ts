@@ -39,16 +39,3 @@ test('/new shows the same page', async ({ page }) => {
   await expect(page.getByTestId('home')).toHaveCount(1);
   expect(errors).toEqual([]);
 });
-
-test.describe('a Ukrainian browser', () => {
-  test.use({ locale: 'uk-UA' });
-
-  test('gets the English page', async ({ page }) => {
-    const errors = collectErrors(page);
-    await page.goto('./');
-
-    await expect(page.getByTestId('home-name')).toHaveText('Andrew Panasiuk');
-    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-    expect(errors).toEqual([]);
-  });
-});

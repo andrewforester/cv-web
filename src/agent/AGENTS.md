@@ -17,6 +17,5 @@ is looking at. It holds no page content of its own and has no UI.
 Guarantees: executing a call never throws; every outcome is a typed result the model can read
 (unknown tool, not available right now, invalid input, declined by the visitor, failed).
 
-Limits: until the Cleanup task deletes the old CV and profile screens, a view may still name their
-sections (the chat narrows it to the page's). Stub: the WebMCP export (exposing the same tools to
+Stub: the WebMCP export (exposing the same tools to
 browser agents) exists as a type and adapter but is not wired to `navigator`.

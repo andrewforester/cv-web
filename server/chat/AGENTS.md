@@ -1,23 +1,22 @@
 # server/chat
 
 Why it exists: lets a visitor talk to Andrew's CV. A question typed in the floating chat widget
-gets a streamed answer from Claude that uses only facts from the page it was asked on (`/`: the
-CV; `/new`: the profile; the request's `page`, ADR-0004), in the visitor's language, and refuses
-off-topic or private questions. In v2 the model can also operate
-the page (scroll, highlight, switch language, open a contact) through tools the browser runs; the
-server stays stateless and the browser sends the results back in a follow-up request. `v: 4`
-(ADR-0006) is the same tool dialect for the one page v3: no page id, no locale, English knowledge
-from `cvPage.json` and its three tools; v1/v2 are served until the Cleanup task removes them. The same
-endpoint also serves the Retro Rebuild show (`v: 3`, `show/`): the live commentary on each fix step
-and short answers to the visitor's messages in the show's terminal chat.
+gets a streamed answer from Claude that uses only facts from the one CV page (ADR-0006), in the
+visitor's language, and refuses off-topic or private questions. The model can also operate the
+page (scroll, highlight, open a contact) through tools the browser runs; the server stays
+stateless and the browser sends the results back in a follow-up request. That is `v: 4`: no page
+id, no locale, English knowledge from `cvPage.json` and its three tools. The same endpoint also
+serves the Retro Rebuild show (`v: 3`, `show/`): the live commentary on each fix step and short
+answers to the visitor's messages in the show's agent chat. Any other `v` (the retired v1 and v2
+included) gets `400 unsupported_version`, so a stale tab asks the visitor to reload.
 
 Place in the architecture: behind `api/chat.ts`. One request flows through a pipeline: protect
 (origin, size, kill switch, rate limits, daily budget) → validate the conversation → load the
-page's knowledge (`knowledge/`) → build the model request with the page's tools (`prompt/`) → call the model (`llm/`) → stream
-SSE back to the widget (`src/data/chat/` on the other side). `v: 3` gets the same protection,
-then its own validation and prompts in `show/` (`src/data/retro/` on the other side). Contract:
-`docs/chat/API.md`; design: `docs/chat/SYSTEM_DESIGN.md`, `docs/chat/AGENT.md`,
-`docs/retro/ARCHITECTURE.md`.
+page's knowledge (`knowledge/`) → build the model request with the page's tools (`prompt/`) →
+call the model (`llm/`) → stream SSE back to the widget (`src/data/chat/` on the other side).
+`v: 3` gets the same protection, then its own validation and prompts in `show/`
+(`src/data/retro/` on the other side). Contract: `docs/chat/API.md`; design:
+`docs/chat/SYSTEM_DESIGN.md`, `docs/chat/AGENT.md`, `docs/retro/ARCHITECTURE.md`.
 
 What it protects against and why:
 - Cost and abuse: per-IP and per-instance limits, a soft daily budget, a hard response deadline
@@ -29,11 +28,9 @@ What it protects against and why:
 Rules and limits:
 - Tests use only the fake model; no network. The golden-question check against the real model
   runs by hand before a release or any prompt/model change.
-- A v2 request without `page` is a `/` request, byte for byte as before it existed; v1 and the
-  show (`v: 3`) always use the CV. v4 always uses the one page (`cvPageData.ts`, the same JSON
-  the site renders) and logs `page` and `locale` as `null`.
-- v2 and v4 share the tool-dialect rules (`validateToolTurns.ts`: limits, alternation, tool
-  rounds); each version only brings its snapshot check and catalogue.
+- v4 and the show use the one page (`cvPageData.ts`, the same JSON the site renders); v4 logs
+  `locale` as `null`. The tool dialect's rules (limits, alternation, tool rounds, the snapshot
+  and catalogue checks) live in `validateV4.ts`.
 - Env (`ANTHROPIC_API_KEY`, `CHAT_MODEL`, `CHAT_ENABLED`, `CHAT_FAKE_LLM`, `CHAT_DAILY_BUDGET_USD`)
   is read in one place; `CHAT_FAKE_LLM` is ignored on Vercel.
 - Manual setup outside the code: the key in Vercel env, the Firewall rule, the spend limit.
