@@ -1,25 +1,25 @@
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  gap: var(--space-3);
+  gap: var(--space-2-5);
 }
 
 .card {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--home-card-padding);
+  padding: var(--card-padding);
   border-radius: var(--radius-card);
 }
 
 .neutral {
-  --home-craft-label: var(--color-accent);
+  --craft-label: var(--color-accent);
 
   background: var(--color-surface);
 }
 
 .pink {
-  --home-craft-label: var(--color-accent-pink);
+  --craft-label: var(--color-accent-pink);
 
   background: var(--color-surface-pink);
 }
@@ -27,7 +27,8 @@
 .label {
   font-family: var(--font-mono);
   font-size: var(--type-label-size);
-  color: var(--home-craft-label);
+  line-height: var(--type-label-line-height);
+  color: var(--craft-label);
 }
 
 .title {

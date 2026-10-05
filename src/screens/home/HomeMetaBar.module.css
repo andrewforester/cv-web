@@ -3,10 +3,11 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2) var(--space-4);
-  padding-top: var(--home-meta-padding-top);
+  gap: var(--space-2-5) var(--space-4);
+  padding-top: var(--page-meta-padding-top);
   font-family: var(--font-mono);
   font-size: var(--type-meta-size);
+  line-height: var(--type-meta-line-height);
   color: var(--color-ink-3);
 }
 
@@ -33,14 +34,14 @@
 .status {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-1-5);
   color: var(--color-status);
   white-space: nowrap;
 }
 
 .dot {
-  width: var(--home-status-dot-size);
-  height: var(--home-status-dot-size);
+  width: var(--space-2);
+  height: var(--space-2);
   border-radius: 50%;
   background: var(--color-status-dot);
 }

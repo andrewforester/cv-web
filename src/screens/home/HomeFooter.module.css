@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-5);
-  padding: var(--home-cta-padding);
+  padding: var(--cta-padding);
   background: var(--gradient-footer);
   border-radius: var(--radius-card);
 }
@@ -18,7 +18,7 @@
 .titleLink {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--cta-title-gap);
   color: var(--color-ink);
   text-decoration: none;
 }
@@ -42,7 +42,7 @@
   flex-direction: column;
   gap: var(--space-2);
   width: 100%;
-  max-width: var(--home-cta-links-max-width);
+  max-width: var(--cta-links-max-width);
   min-width: 0;
 }
 
@@ -51,7 +51,7 @@
   display: flex;
   align-items: center;
   font-size: var(--type-body-size);
-  font-weight: var(--type-label-weight);
+  font-weight: var(--type-medium-weight);
   color: var(--color-ink);
   text-decoration: none;
   background: var(--color-card);
@@ -66,15 +66,15 @@
 .titleLink:focus-visible,
 .email:focus-visible,
 .pill:focus-visible {
-  outline: var(--home-focus-ring);
-  outline-offset: var(--home-focus-offset);
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }
 
 .email {
   justify-content: space-between;
   gap: var(--space-3);
-  min-height: var(--home-button-height);
-  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-5);
+  min-height: var(--button-height);
+  padding: var(--space-1-5) var(--space-1-5) var(--space-1-5) var(--space-5);
 }
 
 .address {
@@ -88,8 +88,8 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  width: var(--home-arrow-size);
-  height: var(--home-arrow-size);
+  width: var(--arrow-size);
+  height: var(--arrow-size);
   color: var(--color-on-accent);
   background: var(--gradient-brand-tile);
   border-radius: 50%;
@@ -103,5 +103,5 @@
 
 .pill {
   justify-content: center;
-  min-height: var(--home-pill-height);
+  min-height: var(--pill-height);
 }

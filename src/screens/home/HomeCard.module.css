@@ -8,16 +8,23 @@
 }
 
 .violet {
+  gap: var(--space-2);
   background: var(--color-surface-violet);
 }
 
+.violet .text {
+  margin-top: var(--space-1-5);
+}
+
 .neutral {
+  gap: var(--space-3-5);
   background: var(--color-surface);
 }
 
 .label {
   font-family: var(--font-mono);
   font-size: var(--type-label-size);
+  line-height: var(--type-label-line-height);
   color: var(--color-accent);
 }
 
@@ -40,7 +47,7 @@
 
 .books {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, var(--home-book-width)));
+  grid-template-columns: repeat(4, minmax(0, var(--book-width)));
   gap: var(--space-2);
 }
 

@@ -21,9 +21,15 @@ Tokens (`docs/design/v3/SPEC.md`, ADR-0006 Decision 5; look-neutral role names):
   `--shadow-{card,dark,cta,launcher}`.
 - Fonts `--font-sans`, `--font-mono`; type `--type-<role>-{size,weight,line-height,letter-spacing}`
   for `h1`, `h2`, `name`, `tagline`, `summary`, `stat`, `card-title`, `body`, `label`, `meta`,
-  `tag`, `company`, `role`, `period`, `impact`, `loop-lead`, `footer-title`, `button`; radii
-  `--radius-{page,card,tile,pill,logo,book}`; layout `--page-{max-width,padding-x,section-gap}`;
-  the `--space-*` scale and `--border-card`.
+  `tag`, `company`, `role`, `period`, `impact`, `loop-lead`, `footer-title`, `button`, plus
+  `--type-{about,initials,star,medium-weight}` and `--type-impact-text-line-height`. Values are
+  those of `design.dc.html`; line-height is `normal` where the design sets none, because the body's
+  1.55 would otherwise leak in. Radii `--radius-{page,card,tile,pill,logo,book}`.
+- Layout of the page: `--page-*` (margin, padding, gaps, max widths), `--card-padding`,
+  `--panel-padding`, `--cta-*`, sizes (`--photo-size`, `--logo-size`, `--button-height`, ...),
+  `--border-{rule,dark-rule}`, the experience tree `--tree-*`, `--focus-ring` and
+  `--focus-ring-offset` (the page's links and buttons, the Show case pill). The `--space-*` scale
+  has half steps (`1-5`, `2-5`, `3-5`, `5-5`) for the design's 6/10/14/22 px, and `--border-card`.
 - Chat: sizes and motion from `docs/design/chat/SPEC.md` (`--chat-*` controls, panel, motion), and
   the look on the v3 palette (panel = the loop panel's `--gradient-dark` and `--color-dark-*`); its
   own `--chat-*` colours hold only what v3 has no value for (muted ink on dark, fills,

@@ -21,5 +21,6 @@
 .note {
   font-family: var(--font-mono);
   font-size: var(--type-label-size);
+  line-height: var(--type-label-line-height);
   color: var(--color-accent);
 }

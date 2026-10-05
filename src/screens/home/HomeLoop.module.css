@@ -1,8 +1,8 @@
 .panel {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
-  padding: var(--home-panel-padding);
+  gap: var(--space-5-5);
+  padding: var(--panel-padding);
   color: var(--color-dark-ink);
   background: var(--gradient-dark);
   border-radius: var(--radius-card);
@@ -10,7 +10,7 @@
 }
 
 .lead {
-  max-width: var(--home-lead-max-width);
+  max-width: var(--page-lead-max-width);
   font-size: var(--type-loop-lead-size);
   font-weight: var(--type-loop-lead-weight);
   line-height: var(--type-loop-lead-line-height);
@@ -31,22 +31,24 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-3);
+  padding: var(--space-3-5);
   font-size: var(--type-body-size);
   line-height: var(--type-loop-lead-line-height);
-  border: var(--home-dark-rule);
+  border: var(--border-dark-rule);
   border-radius: var(--radius-tile);
 }
 
 .number {
   font-family: var(--font-mono);
   font-size: var(--type-label-size);
+  line-height: var(--type-label-line-height);
   color: var(--color-dark-number);
 }
 
 .footnote {
   font-family: var(--font-mono);
   font-size: var(--type-meta-size);
-  font-weight: var(--type-label-weight);
+  font-weight: var(--type-medium-weight);
+  line-height: var(--type-meta-line-height);
   color: var(--color-dark-note);
 }

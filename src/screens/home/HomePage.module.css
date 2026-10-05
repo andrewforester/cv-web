@@ -1,49 +1,7 @@
-/*
- * The page card (docs/design/v3/design.dc.html). TODO(theme): the `--home-*` values below have no
- * v3 token yet; they move to src/theme/tokens.css in a Theme follow-up (CV-110 report).
- */
+/* The page card (docs/design/v3/design.dc.html). */
 .root {
-  --home-page-margin: clamp(8px, 2vw, 24px);
-  --home-page-padding-bottom: clamp(24px, 4vw, 48px);
-  --home-meta-padding-top: clamp(18px, 3vw, 28px);
-  --home-header-pull-up: clamp(16px, 3vw, 40px);
-  --home-header-gap: clamp(22px, 3vw, 32px);
-  --home-wide-gap: clamp(20px, 4vw, 48px);
-  --home-card-padding: clamp(20px, 2.5vw, 28px);
-  --home-panel-padding: clamp(20px, 3vw, 36px);
-  --home-cta-padding: clamp(22px, 3vw, 36px);
-  --home-photo-size: clamp(72px, 9vw, 96px);
-  --home-headline-max-width: 960px;
-  --home-lead-max-width: 720px;
-  --home-status-dot-size: 7px;
-  --home-button-height: 52px;
-  --home-pill-height: 48px;
-  --home-arrow-size: 40px;
-  --home-cta-links-max-width: 420px;
-  --home-logo-size: 44px;
-  --home-initials-size: 20px;
-  --home-job-indent: 56px;
-  --home-tree-indent: 21px;
-  --home-tree-branch-indent: clamp(18px, 3vw, 30px);
-  --home-tree-branch-width: clamp(12px, 2.4vw, 24px);
-  --home-tree-gap: clamp(16px, 3vw, 32px);
-  --home-tree-gap-y: 22px;
-  --home-tree-branch-top: 21px;
-  --home-tree-last-stem: 45px;
-  --home-tree-line: 2px dotted var(--color-tree-line);
-  --home-rule: 1px solid var(--color-line);
-  --home-dark-rule: 1px solid var(--color-dark-line);
-  --home-impact-min-height: 190px;
-  --home-book-width: 64px;
-  --home-star-size: 10.5px;
-  --home-tag-padding: 2px 7px;
-  --home-domain-padding: 3px 9px;
-  --home-bullet-opacity: 0.6;
-  --home-focus-ring: 2px solid var(--color-accent);
-  --home-focus-offset: 2px;
-
   min-height: 100vh;
-  padding: var(--home-page-margin);
+  padding: var(--page-margin);
 }
 
 .card {
@@ -52,7 +10,7 @@
   gap: var(--page-section-gap);
   max-width: var(--page-max-width);
   margin: 0 auto;
-  padding: 0 var(--page-padding-x) var(--home-page-padding-bottom);
+  padding: 0 var(--page-padding-x) var(--page-padding-bottom);
   background: var(--color-card);
   border-radius: var(--radius-page);
   box-shadow: var(--shadow-card);

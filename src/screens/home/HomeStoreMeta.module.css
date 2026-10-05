@@ -3,12 +3,13 @@
   align-items: center;
   gap: var(--space-1);
   font-size: var(--type-meta-size);
-  font-weight: var(--type-label-weight);
+  font-weight: var(--type-medium-weight);
+  line-height: var(--type-meta-line-height);
   color: var(--color-ink-3);
 }
 
 .star {
-  font-size: var(--home-star-size);
+  font-size: var(--type-star-size);
   line-height: 1;
 }
 

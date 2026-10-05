@@ -2,7 +2,8 @@
 .root {
   padding: var(--space-1) var(--space-3);
   font-family: var(--font-mono);
-  font-size: var(--type-tag-size);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line-height);
   color: var(--color-accent);
   white-space: nowrap;
   background: var(--color-surface-lilac);
@@ -15,8 +16,7 @@
   color: var(--color-accent-hover);
 }
 
-/* TODO(theme): a v3 focus-ring token. */
 .root:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
 }

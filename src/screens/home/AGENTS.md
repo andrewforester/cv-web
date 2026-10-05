@@ -27,6 +27,8 @@ Domain terms:
   (after the visitor confirms in the chat).
 
 Stubs and limits:
-- Layout values the v3 tokens don't cover yet are private `--home-*` properties on the page root
-  (`HomePage.module.css`, `TODO(theme)`).
+- Type and layout values are theme tokens (`src/theme/tokens.css`, checked against
+  `docs/design/v3/design.dc.html`): the page's height matches the design within ≈1 % at 1280 px.
+  At phone width it is ≈3 % shorter on purpose: the tag row and bullets start at the logo's left
+  edge (≤ 600 px), the design indents them.
 - The "Ask my AI" launcher belongs to the chat screen, not this page.
