@@ -6,8 +6,7 @@ import '../../../theme/global.css';
 import { RetroShowTestHarness } from './RetroShowTestHarness';
 
 // Dev-only harness (not a Vite build entry, never shipped): the show over the real page with the
-// scripted repository. `npm run dev`, then /src/screens/retro/harness/index.html
-// (`?scenario=<id>` for another page's show).
+// scripted repository. `npm run dev`, then /src/screens/retro/harness/index.html.
 const root = document.getElementById('root');
 if (!root) throw new Error('#root element is missing');
 createRoot(root).render(

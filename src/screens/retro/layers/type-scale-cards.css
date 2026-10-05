@@ -1,6 +1,7 @@
 :root {
-  --forest-type-skills-title-size: 12px;
-  --forest-type-skills-items-size: 11px;
-  --forest-type-skills-items-line-height: 14px;
-  --forest-type-period-size: 11px;
+  --type-stat-size: 22px;
+  --type-stat-letter-spacing: normal;
+  --type-card-title-size: 13px;
+  --type-label-size: 11px;
+  --type-meta-size: 11px;
 }

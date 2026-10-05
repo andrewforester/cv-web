@@ -1,13 +1,11 @@
-import { SHOW_SCENARIOS } from '../../data/retro';
+import { RETRO_SCENARIO_ID, SHOW_SCENARIOS } from '../../data/retro';
 import { effectKey } from './engine/consolePlan';
-import { DECORATION_IDS, SHOW_MODULES } from './scenario';
-import { registeredSources, type RetroShowSource } from './scenarios';
+import { DECORATION_IDS, RETRO_SOURCE as source, SHOW_MODULES } from './scenario';
 
-// Guard 1 (docs/retro/ARCHITECTURE.md §1, §9 → Guards after the split, §10): per page, the
-// scenario removes exactly what its show starts with, every chunk says where it lands, and its
-// motion fits its CSS.
-const sources = registeredSources();
-const chunksOf = ({ show }: RetroShowSource) => show.steps.flatMap((step) => step.chunks);
+// Guard 1 (docs/retro/ARCHITECTURE.md §1, §9 → Guards after the split, §11): the scenario removes
+// exactly what its show starts with, every chunk says where it lands, and its motion fits its CSS.
+const chunks = source.show.steps.flatMap((step) => step.chunks);
+const scenario = RETRO_SCENARIO_ID;
 /** Every layer file by its path under `layers/` (subfolders too) with its CSS. */
 const layerFiles = Object.entries(
   import.meta.glob<string>('./layers/**/*.css', { query: '?raw', import: 'default', eager: true }),
@@ -25,12 +23,12 @@ function declarations(css: string): [property: string, value: string][] {
 }
 
 /**
- * A change that can't interpolate, so it must morph (§9: font family, layout, `display` …; §10: a
- * gradient token, whose value is a gradient).
+ * A change that can't interpolate, so it must morph (§9: font family, layout, `display` …; §10,
+ * §11: a gradient token, whose value is a gradient).
  */
 function isStructural([property, value]: [string, string]): boolean {
   return (
-    /^(font-family|--forest-font-\w+|--forest-gradient-[\w-]+|display|float|text-align|content|object-position|object-fit|flex-direction|flex-wrap|width)$/.test(
+    /^(font-family|--font-\w+|--gradient-[\w-]+|display|float|text-align|content|object-position|object-fit|flex-direction|flex-wrap|width)$/.test(
       property,
     ) ||
     /^(grid-template-|list-style)/.test(property) ||
@@ -39,28 +37,13 @@ function isStructural([property, value]: [string, string]): boolean {
   );
 }
 
-it('registers every layer file under layers/ by its path, and nothing else', () => {
-  // Ids repeat across pages (`/new` has its own `heading-colors`), so a file is matched by its path
-  // (`<id>.css`, `new/<id>.css`) and its CSS: an orphan, a stale copy or a wrongly named file fails.
-  const registered = new Map(
-    sources.flatMap(([, { show }]) => Object.values(show.layers)).map((l) => [l.css, l.id]),
-  );
-  const matched = [...registered].map(([css, id]) =>
-    layerFiles
-      .filter(
-        (file) =>
-          file.css === css &&
-          /^(new\/)?[^/]+\.css$/.test(file.path) &&
-          file.path.replace(/^new\//, '') === `${id}.css`,
-      )
-      .map((file) => file.path),
-  );
-  expect(matched.filter((paths) => paths.length !== 1)).toEqual([]);
-  expect(layerFiles.map((file) => file.path).sort()).toEqual(matched.flat().sort());
+it('registers every file under layers/ by its id, and nothing else', () => {
+  const files = layerFiles.map(({ path, css }) => [path, css]).sort();
+  const registered = Object.values(source.show.layers).map(({ id, css }) => [`${id}.css`, css]);
+  expect(registered.sort()).toEqual(files);
 });
 
-describe.each(sources)('%s scenario (guard 1: completeness)', (scenario, source) => {
-  const chunks = chunksOf(source);
+describe('scenario (guard 1: completeness)', () => {
   const effects = chunks.map(({ effect }) => effect);
   const { layers } = source.show;
 
@@ -98,8 +81,7 @@ describe.each(sources)('%s scenario (guard 1: completeness)', (scenario, source)
   });
 });
 
-describe.each(sources)('%s scenario (guard 1: targets and motion)', (_, source) => {
-  const chunks = chunksOf(source);
+describe('scenario (guard 1: targets and motion)', () => {
   const { layers } = source.show;
 
   it('gives every layer and decoration chunk a labelled target; only the module has none', () => {

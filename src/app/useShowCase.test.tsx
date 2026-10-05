@@ -19,7 +19,7 @@ function deferred() {
 async function renderShowCase(
   atLoad: boolean,
   chunk: Promise<void> = Promise.resolve(),
-  page: { scenario?: ShowScenarioId } = { scenario: 'retro-3' },
+  page: { scenario?: ShowScenarioId } = { scenario: 'retro-4' },
 ) {
   vi.resetModules();
   const importShow = vi.fn(async () => {

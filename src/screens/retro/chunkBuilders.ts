@@ -1,9 +1,8 @@
 import type { ChunkTarget, LayerMotion, RetroChunk } from './engine/showTypes';
 import type { DecorationId, ShowModuleId } from './scenario';
 
-// The words every page's fix list is written in (`scenarioSteps.ts` for `/`,
-// `scenarioNewSteps.ts` for `/new`): a target, a layer chunk with its motion, a decoration that
-// leaves, a module that loads.
+// The words the fix list (`scenarioSteps.ts`) is written in: a target, a layer chunk with its
+// motion, a decoration that leaves, a module that loads.
 
 /** A page-wide chunk: the highlight tints the page area, the plate sits at its corner. */
 export const PAGE: ChunkTarget = { label: 'page', selectors: 'page' };

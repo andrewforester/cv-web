@@ -1,6 +1,7 @@
 :root {
-  --forest-type-lead-size: 12px;
-  --forest-type-lead-line-height: 16px;
-  --forest-type-body-size: 11px;
-  --forest-type-body-line-height: 15px;
+  --type-summary-size: 12px;
+  --type-summary-line-height: 16px;
+  --type-body-size: 11px;
+  --type-body-line-height: 15px;
+  --type-button-size: 12px;
 }

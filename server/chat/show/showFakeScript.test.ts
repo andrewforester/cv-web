@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { RETRO_NARRATION_KEYS, RETRO_SCENARIO_ID } from '../../../src/data/retro/scenario.js';
-import { RETRO_NEW_SCENARIO_ID } from '../../../src/data/retro/scenarioNew.js';
 import { SHOW_SCENARIOS, type ShowScenarioManifest } from '../../../src/data/retro/scenarios.js';
 import { replyBody, VALID_BODY } from '../../test/helpers.js';
 import { HAIKU_4_5 } from '../llm/modelOptions.js';
@@ -10,7 +9,6 @@ import { NarrationParser } from './narrationParser.js';
 import { showFakeScript } from './showFakeScript.js';
 
 const CV_SHOW = SHOW_SCENARIOS[RETRO_SCENARIO_ID];
-const NEW_SHOW = SHOW_SCENARIOS[RETRO_NEW_SCENARIO_ID];
 const reply = (content: string) =>
   buildReplyRequest(replyBody({ messages: [{ role: 'user', content }] }), CV_SHOW, 'K', HAIKU_4_5);
 
@@ -31,22 +29,13 @@ describe('showFakeScript (CHAT_FAKE_LLM=1)', () => {
     );
   });
 
-  it("narrates `/new` in `/new`'s words, picked by the outline", () => {
-    const cv = narrate(CV_SHOW).lines;
-    const lines = narrate(NEW_SHOW).lines;
-    expect(lines.map((line) => line.key)).toEqual([...RETRO_NARRATION_KEYS]);
+  it("narrates in the page's words, picked by the outline", () => {
+    const { lines } = narrate(CV_SHOW);
     expect(lines.find((line) => line.key === 'images')?.text).toContain('book covers');
-    expect(lines).not.toEqual(cv);
   });
 
   it('names the scenario in a reply', () => {
-    const request = buildReplyRequest(
-      replyBody({ scenario: RETRO_NEW_SCENARIO_ID }),
-      NEW_SHOW,
-      'K',
-      HAIKU_4_5,
-    );
-    expect(showFakeScript(request)?.deltas.join('')).toContain('Scenario: retro-new-1.');
+    expect(showFakeScript(reply('hello'))?.deltas.join('')).toContain('Scenario: retro-4.');
   });
 
   it('replies with the show state it received', () => {

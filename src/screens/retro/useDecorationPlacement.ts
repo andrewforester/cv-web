@@ -1,7 +1,6 @@
 import { useLayoutEffect } from 'react';
 import type { DecorationBox } from './RetroShowUiState';
-import type { DecorationId } from './scenario';
-import type { DecorationAnchors } from './scenarios';
+import type { DecorationAnchors, DecorationId } from './scenario';
 import { useFollowFrames } from './useFollowFrames';
 import { useMeasuredState } from './useMeasuredState';
 
@@ -13,11 +12,8 @@ const NOTE = { width: 184, marginRight: 28, belowHeader: 40, abovePhoto: 12 };
 const FOOTER_HEIGHT = 200;
 
 const STAGE = '[data-retro-stage]';
-/** Anchors every page shares: the page's `main` and the Forest photo. */
-const SHARED_ANCHORS = {
-  main: `${STAGE} main`,
-  photo: `${STAGE} [data-testid='forest-photo']`,
-};
+/** The shell's `main` around the page: the note sits right of it while the layout is broken. */
+const MAIN = `${STAGE} main`;
 
 type Placement = Partial<Record<DecorationId, DecorationBox>>;
 
@@ -38,9 +34,9 @@ function place(anchors: DecorationAnchors, layoutShifted: boolean): Placement {
     'top-bar': { left: root.left, top: root.top, width: root.width },
     'page-footer': { left: root.left, top: root.bottom - FOOTER_HEIGHT, width: root.width },
   };
-  const main = pageBox(SHARED_ANCHORS.main);
+  const main = pageBox(MAIN);
   const header = pageBox(`${STAGE} ${anchors.header}`);
-  const photo = pageBox(SHARED_ANCHORS.photo);
+  const photo = pageBox(`${STAGE} ${anchors.photo}`);
   if (layoutShifted && main && header) {
     placement['oh-snap'] = {
       left: main.right + NOTE.marginRight,

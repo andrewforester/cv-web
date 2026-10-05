@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { RETRO_STEP_IDS } from '../../../src/data/retro/scenario.js';
-import { RETRO_NEW_SCENARIO_ID } from '../../../src/data/retro/scenarioNew.js';
 import { NARRATE_BODY, replyBody } from '../../test/helpers.js';
 import { validateShowRequest } from './validateShow.js';
 
@@ -24,14 +23,6 @@ describe('validateShowRequest', () => {
   it('accepts a reply and keeps only the known fields', () => {
     const result = validateShowRequest({ ...replyBody(), extra: 1 });
     expect(result).toEqual({ ok: true, request: replyBody() });
-  });
-
-  it("accepts `/new`'s scenario for narrate and reply, and keeps its id", () => {
-    const narrate = { ...NARRATE_BODY, scenario: RETRO_NEW_SCENARIO_ID };
-    expect(validateShowRequest(narrate)).toEqual({ ok: true, request: narrate });
-    const reply = replyBody({ scenario: RETRO_NEW_SCENARIO_ID, step: 'links', stepsDone: 7 });
-    expect(validateShowRequest(reply)).toEqual({ ok: true, request: reply });
-    expect(codeOf({ ...reply, stepsDone: RETRO_STEP_IDS.length + 1 })).toBe('invalid_request');
   });
 
   it.each([
@@ -68,7 +59,9 @@ describe('validateShowRequest', () => {
     expect(codeOf({ ...NARRATE_BODY, scenario: 'retro-0' })).toBe('unsupported_version');
     expect(codeOf(replyBody({ scenario: 'retro-1' as never }))).toBe('unsupported_version');
     expect(codeOf({ ...NARRATE_BODY, scenario: 'toString' })).toBe('unsupported_version');
-    expect(codeOf({ ...NARRATE_BODY, scenario: 'retro-new-0' })).toBe('unsupported_version');
+    // The per-page scenarios of before the one page (ARCHITECTURE §11).
+    expect(codeOf({ ...NARRATE_BODY, scenario: 'retro-3' })).toBe('unsupported_version');
+    expect(codeOf({ ...NARRATE_BODY, scenario: 'retro-new-1' })).toBe('unsupported_version');
   });
 
   it('accepts 19 messages (the most that end with the visitor), answers 21 with conversation_limit', () => {

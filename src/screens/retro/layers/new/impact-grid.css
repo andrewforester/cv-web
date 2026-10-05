@@ -1,7 +1,0 @@
-[data-retro-stage] ul:has(> [data-testid='forest-impact-card']) {
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2px;
-}
-[data-retro-stage] [data-testid='forest-impact-card'] {
-  min-height: 0;
-}

@@ -190,7 +190,7 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
     try {
       const plan = await planShow(
         validation.request,
-        deps.knowledge,
+        deps.cvPageKnowledge,
         deps.config.model,
         deadlineMs,
       );

@@ -1,26 +1,13 @@
 import { RETRO_LIMITS } from './contract';
 import { RETRO_FINALE_FALLBACK, RETRO_SCENARIO_ID, RETRO_STEP_IDS, RETRO_STEPS } from './scenario';
-import { RETRO_NEW_FINALE_FALLBACK, RETRO_NEW_SCENARIO_ID, RETRO_NEW_STEPS } from './scenarioNew';
 import { isShowScenarioId, SHOW_SCENARIOS } from './scenarios';
 
 const manifests = Object.entries(SHOW_SCENARIOS);
 
 describe('show scenarios registry', () => {
-  it('registers `/` as retro-3, with its manifest unchanged', () => {
-    expect(SHOW_SCENARIOS[RETRO_SCENARIO_ID]).toEqual({
-      id: 'retro-3',
-      page: 'cv',
-      steps: RETRO_STEPS,
-      finale: RETRO_FINALE_FALLBACK,
-    });
-  });
-
-  it('registers `/new` as retro-new-1, grounded in the profile page', () => {
-    expect(SHOW_SCENARIOS[RETRO_NEW_SCENARIO_ID]).toEqual({
-      id: 'retro-new-1',
-      page: 'profile',
-      steps: RETRO_NEW_STEPS,
-      finale: RETRO_NEW_FINALE_FALLBACK,
+  it('registers the one page as retro-4, and nothing else', () => {
+    expect(SHOW_SCENARIOS).toEqual({
+      'retro-4': { id: 'retro-4', steps: RETRO_STEPS, finale: RETRO_FINALE_FALLBACK },
     });
   });
 
@@ -36,13 +23,12 @@ describe('show scenarios registry', () => {
     }
   });
 
-  it('knows only registered ids', () => {
+  it('knows only registered ids: the per-page scenarios of before are unknown', () => {
     expect(isShowScenarioId(RETRO_SCENARIO_ID)).toBe(true);
-    expect(isShowScenarioId(RETRO_NEW_SCENARIO_ID)).toBe(true);
     for (const value of [
       'retro-1',
-      'retro-2',
-      'retro-new-0',
+      'retro-3',
+      'retro-new-1',
       '',
       'toString',
       '__proto__',

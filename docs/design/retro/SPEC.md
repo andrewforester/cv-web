@@ -1012,3 +1012,32 @@ As `/` (States → Accessibility). New retro pairs: `#00FF00` on `#000000` 15.3:
 62. **Decoration copy**: the marquee quotes `/new`'s own headline and subtitle; the nav names `/new`'s sections; the webring is `AI Builders Webring`. Nothing else differs.
 63. **The intro and close are `/`'s lines verbatim** (the human's wording says "this CV" on both pages).
 64. **Plate and highlight unchanged**: the plate sits on the first target's bottom-left corner; multi-target chunks list the topmost block first where the camera should go.
+
+## v3 refit (`retro-4`, CV-112)
+
+The show runs on the one v3 page (`docs/design/v3/`, ADR-0006) as **`retro-4`**: `/new`'s 2001 look and fix list above, on the v3 page's `home-*` hooks and v3 tokens (`docs/retro/ARCHITECTURE.md` §11). Same 32 layer ids, 36 chunks, 8 steps, decorations, flow and timing (≈ 91 s on the fake clock). The source of truth is now `src/screens/retro/layers/*.css` (the copies in `new/layers/` and `layers/` here are history).
+
+**Selectors that moved** (`/new` → v3):
+
+| `/new` | v3 |
+|---|---|
+| `[data-testid='profile']` (root, `decor-room`, `heading-rules`, `page-frame`) | `[data-testid='home']`; the page card is its direct child `[data-testid='home'] > div` (`page-frame`: no side padding, radius or shadow; `heading-rules`: the 16 px section gap) |
+| `forest-hero` (`header-layout`) | `home-header` (photo row and headline centred; no `text-align`, the summary stays left) |
+| `forest-name`, `forest-headline`, `forest-lead`, `forest-photo` | `home-name`, `home-headline`, `home-summary`, `home-photo` |
+| `ul:has(> li > forest-contact)`, `li:has(> forest-contact)` | `div:has(> home-contact)`, `home-contact` (the buttons are inline links) |
+| `footer a`, `:is(h1, footer a) > span` | `[data-testid='home-footer'] a`, `:is(home-headline, home-footer a) > span` |
+| `ul:has(> forest-impact-card)`, `forest-impact-card` | `div:has(> home-impact-card)` (one column at 640 px; three cards, not four), `home-impact-card` |
+| `profile-loop > div`, `ol:has(> forest-loop-step)` | `home-loop > div:has(> ol)` (the panel; the first child is now the heading), `ol:has(> home-loop-step)` |
+| `:is(profile-impact, profile-loop) > h2` | `:is(home-loop, home-impact) h2` (the title sits in a heading div) |
+| `forest-job`, its `div` and `li` | `home-job > div:has(> img)` (the head: logo over the text), `home-job li` (also the project bullets) |
+| `forest-app`, `forest-app img` | `home-project` (the Transcenda tree), `home-project img` |
+| `forest-skill`, `profile-skills h2`, `ul:has(> forest-skill)` | `home-skill`, `home-skills h2` (`align-self: center`: the title is a flex item), `div:has(> home-skill)` |
+| `profile-education`, `profile-about`, `forest-book img` | `home-education`, `home-about`, `home-book` (the cover is the `img`) |
+| `forest-meta-bar` | `home-meta-bar` |
+| `h2` margins and groove rule (`heading-rules`) | on the heading div `section > div:has(> h2)` (full width; the footer's title is an `h2` without one) |
+
+**Tokens** (value for value, ADR-0006 Decision 5): `type-family` `--font-sans` Verdana, `--font-mono` Courier New, `--type-h1-letter-spacing` normal; `type-scale-headings` name 34, h1 15/18, tagline 13, h2 24; `type-scale-text` summary 12/16, body 11/15, buttons 12; `type-scale-cards` stats 22 (spacing normal), card titles 13, labels 11, meta 11; `type-scale-impact` impact 22 (spacing normal), loop lead 13/17; `type-scale-details` company 13, role 11, period 11, footer title 13; `base-colors` card `#FFFFCC`, ink and ink-2 black, ink-3 `#008000` (roles, tagline, card prose: `/new`'s green secondary), ink-4 `#808080` (periods); `panel-colors` (morph: gradient tokens are structural) brand tile `#000080` (the AI stat), dark gradient `#000000`, footer gradient transparent, dark ink `#00FF00`, dark line `#008000`, step numbers `#FFFF00`, footnote `#00CC00`, dark shadow none; `card-colors` line `#808080`, accent `#0000FF`, surface, pink and lilac surfaces `#C0C0C0`, violet (education) transparent.
+
+**v3 blocks broken by the existing layers** (no new chunk): the stat tiles (Arial in `type-faces`, bevelled in `impact-cells`, grey in `card-colors`, the AI tile navy in `panel-colors`); the craft cards (`impact-cells`, `card-colors`, 2 px apart in `impact-grid`); the project tree (green boxes in `app-cells`, squashed icons, dotted stems hidden in `bullets`); the footer (transparent in `panel-colors`, no padding in `card-padding`, its pills plain blue links in `link-style`); the contact buttons (inline in `header-layout`, plain blue links in `link-style`, `Contact me:` in `contact-labels`).
+
+**Differences from `/new`**: the loop steps are plain rows `01 …`–`06 …` instead of a decimal list (the v3 step number is not `aria-hidden`, so it stays and numbers the rows); the fonts step runs down the page (`type-scale-cards` covers the stats and craft cards before `type-scale-impact` covers the loop and impact); the marquee quotes the v3 page (`*** Welcome to my homepage! *** Senior Software Product Engineer *** Android since 2012 *** Agentic engineering *** Please sign my guestbook! ***`, Decision 62); the photo keeps its v3 size (72–96 px). Intents and fallbacks: `src/data/retro/scenario.ts` (`/new`'s, reworded for the stats, craft cards, project tree, contact buttons and footer; no language switcher).

@@ -8,7 +8,7 @@ import type { RetroMode } from './retroMode';
 // whether and when the shell's `import()` of it resolves.
 const SHOW_MODULE = '../screens/retro/RetroShowRoute';
 const SHOW_STUB = 'show-stub';
-// The page's scenario, replaced per test: the show is off until T6, so the seam runs on a stub.
+// The page's scenario, replaced per test, so a page without a show is covered too.
 const SCENARIOS_MODULE = './showScenarios';
 const A_SCENARIO = Object.keys(SHOW_SCENARIOS)[0] as ShowScenarioId;
 

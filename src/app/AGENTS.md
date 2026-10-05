@@ -9,9 +9,8 @@ place where the app decides which data sources it uses.
 Domain terms:
 - **Mode:** `show` or `normal` at page load (docs/retro/ARCHITECTURE.md §9 → Round 5): `?retro=1`
   on a page with a show opens with it, anything else is today's site. Nothing starts on its own.
-- **Scenario** (`showScenarios.ts`, ARCHITECTURE §11): the show the page runs; off (`undefined`)
-  until `retro-4` is ported to the v3 page (T6), so no Show case button and `?retro=1` is today's
-  page.
+- **Scenario** (`showScenarios.ts`, ARCHITECTURE §11): the show the page runs, `retro-4`;
+  `undefined` would turn it off (no Show case button, `?retro=1` opens today's page).
 - **Show case / start seam** (`useShowCase`): `start()` for the Show case button and replays;
   today's site stays until the show's chunk has loaded, then the page scrolls to the top and turns
   broken in one commit. The AI chat is off the page while the show runs (its open conversation is

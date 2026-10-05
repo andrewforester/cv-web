@@ -1,7 +1,8 @@
 :root {
-  --forest-line: #808080;
-  --forest-accent: #0000ff;
-  --forest-surface: #c0c0c0;
-  --forest-card-sage: transparent;
-  --forest-card-sand: transparent;
+  --color-line: #808080;
+  --color-accent: #0000ff;
+  --color-surface: #c0c0c0;
+  --color-surface-pink: #c0c0c0;
+  --color-surface-lilac: #c0c0c0;
+  --color-surface-violet: transparent;
 }

@@ -1,16 +1,15 @@
 import { render, screen } from '@testing-library/react';
 import { AppProviders } from '../../app/AppProviders';
 import tokensCss from '../../theme/tokens.css?raw';
-import { forestTestIds } from '../../shared/forest/testIds';
+import { homeTestIds } from '../home/testIds';
 import { targetQuery } from './engine/chunkSelectors';
 import { effectKey, tokenDeclarations } from './engine/consolePlan';
 import type { DamageLayer } from './engine/showTypes';
-import { DECORATION_IDS } from './scenario';
-import { registeredSources } from './scenarios';
+import { DECORATION_IDS, RETRO_SOURCE } from './scenario';
 import { RetroStageTestHarness } from './RetroStageTestHarness';
 
-// Guard 2 (docs/retro/ARCHITECTURE.md §1, §9 → Guards after the split, §10): per page, the layers
-// and the chunk targets still hit the real page. A renamed hook or token makes a layer a silent
+// Guard 2 (docs/retro/ARCHITECTURE.md §1, §9 → Guards after the split, §11): the layers and the
+// chunk targets still hit the real page. A renamed hook or token makes a layer a silent
 // no-op on the page, or points the highlight and camera at nothing; here it fails instead.
 
 type RuleLike = CSSRule & { selectorText?: string; cssRules?: CSSRuleList; name?: string };
@@ -73,8 +72,8 @@ const queryable = (selectorText: string): string[] =>
 const siteTokens = new Set(tokenDeclarations(tokensCss).map(([name]) => name));
 const onPage = (selectors: readonly string[]) => selectors.filter((s) => !s.startsWith('#'));
 
-describe.each(registeredSources())('%s damage layers (guard 2: hook coverage)', (_, source) => {
-  const { layers, steps } = source.show;
+describe('damage layers (guard 2: hook coverage)', () => {
+  const { layers, steps } = RETRO_SOURCE.show;
   const ids = (display: DamageLayer['display']) =>
     Object.keys(layers).filter((id) => layers[id]?.display === display);
   const cssOf = (id: string) => layers[id]?.css ?? '';
@@ -90,10 +89,10 @@ describe.each(registeredSources())('%s damage layers (guard 2: hook coverage)', 
   beforeEach(async () => {
     render(
       <AppProviders locale="en">
-        <RetroStageTestHarness page={source.page} />
+        <RetroStageTestHarness />
       </AppProviders>,
     );
-    await screen.findByTestId(forestTestIds.name);
+    await screen.findByTestId(homeTestIds.name);
   });
 
   it.each(ids('rules'))('%s: every selector matches the real page', (id) => {

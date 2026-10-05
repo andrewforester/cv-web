@@ -1,7 +1,0 @@
-[data-retro-stage] div:has(> [data-testid='forest-app']) {
-  display: block;
-  margin-left: 40px;
-}
-[data-retro-stage] [data-testid='forest-app'] {
-  margin-bottom: 4px;
-}

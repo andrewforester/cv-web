@@ -1,5 +1,6 @@
 :root {
-  --forest-type-title-size: 13px;
-  --forest-type-role-size: 11px;
-  --forest-type-cta-size: 13px;
+  --type-company-size: 13px;
+  --type-role-size: 11px;
+  --type-period-size: 11px;
+  --type-footer-title-size: 13px;
 }

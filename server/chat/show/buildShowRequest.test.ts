@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { RETRO_SCENARIO_ID, RETRO_STEPS } from '../../../src/data/retro/scenario.js';
-import { RETRO_NEW_SCENARIO_ID, RETRO_NEW_STEPS } from '../../../src/data/retro/scenarioNew.js';
 import { SHOW_SCENARIOS } from '../../../src/data/retro/scenarios.js';
 import { replyBody, VISITOR_TEXT } from '../../test/helpers.js';
 import { HAIKU_4_5, SONNET_5_5 } from '../llm/modelOptions.js';
@@ -19,23 +18,13 @@ import {
 
 const CV_SHOW = SHOW_SCENARIOS[RETRO_SCENARIO_ID];
 const CV_OUTLINE = showOutline(CV_SHOW);
-const NEW_SHOW = SHOW_SCENARIOS[RETRO_NEW_SCENARIO_ID];
 
 describe('showOutline', () => {
-  it("renders `/`'s outline byte for byte as before the per-page split (same cache prefix)", () => {
+  it('renders every step as `id: intent`, in show order', () => {
     const lines = RETRO_STEPS.map(({ id, intent }) => `${id}: ${intent}`);
     expect(CV_OUTLINE).toBe(`<outline>\n${lines.join('\n')}\n</outline>`);
     expect(CV_OUTLINE.split('\n')).toHaveLength(10);
     expect(CV_OUTLINE).toMatch(/^<outline>\nfonts: .+\nlinks: .+\n<\/outline>$/s);
-  });
-
-  it("lists `/new`'s own intents under the same step ids", () => {
-    const outline = showOutline(NEW_SHOW);
-    expect(outline).toBe(
-      `<outline>\n${RETRO_NEW_STEPS.map(({ id, intent }) => `${id}: ${intent}`).join('\n')}\n</outline>`,
-    );
-    expect(outline).toContain('AI Product Engineer headline');
-    expect(outline).not.toBe(CV_OUTLINE);
   });
 });
 
@@ -50,13 +39,6 @@ describe('buildNarrateRequest', () => {
     expect(request.messages).toEqual([{ role: 'user', content: NARRATE_REQUEST_TEXT }]);
     expect(request.max_tokens).toBe(NARRATE_MAX_TOKENS);
     expect(request).not.toHaveProperty('tools');
-  });
-
-  it("sends `/new`'s outline for `/new`, with the same instructions", () => {
-    expect(buildNarrateRequest(NEW_SHOW, HAIKU_4_5).system).toEqual([
-      { type: 'text', text: NARRATE_INSTRUCTIONS },
-      { type: 'text', text: showOutline(NEW_SHOW), cache_control: { type: 'ephemeral' } },
-    ]);
   });
 
   it('is identical for every visitor, with the model knobs', () => {
