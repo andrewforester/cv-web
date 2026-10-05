@@ -1,7 +1,7 @@
 # app
 
 Why it exists: the shell that turns the pieces into the site: the page for the URL with the
-Show case button and the language switcher in its meta bar, and the floating AI chat over it. On a
+Show case button in its meta bar, and the floating AI chat over it. On a
 page with a show (`/` and `/new`) it starts the Retro Rebuild show (the page turns into a broken 2002
 site and an "agent" fixes it live) when asked, and otherwise shows today's site. It is also the single place where the app decides which data
 sources it uses.
@@ -24,8 +24,7 @@ Place in the architecture: the top of the tree. `AppProviders` wires i18n, the d
 (the CV and profile repositories, today one instance over the bundled JSON; the chat repository,
 the real `/api/chat`; the show repository, `/api/chat` `v: 3`) and the page-agent tool registry
 (`src/agent/`, given the page so it offers that page's tools). Swapping the CV mock for a backend
-is one line there. Tests pass fakes, a fixed `retroMode` and a fixed `page` through its props. The shell also offers the `switchLanguage` tool to the page agent,
-since language is an app-level concern.
+is one line there. Tests pass fakes, a fixed `retroMode` and a fixed `page` through its props.
 
 Both modes render one tree shape, so the page's route never remounts: the show (`RetroShowRoute`, from
 `src/screens/retro`) mounts next to the shell and portals its windows into `body`. The AI chat
@@ -43,7 +42,7 @@ Rules and limits:
 - Owner: Scaffold. Screens may only register their own route in `App.tsx`.
 - Two pages, no router library: `routes.ts` maps `/new` to the profile screen and every other path
   to the CV; both are Forest pages that lay themselves out; the shell composes their meta bar's end
-  (Show case button, language switcher) and the chat is shared. The page id (`cv` / `profile`) is the chat contract's: the shell passes it to the chat,
+  (the Show case button) and the chat is shared. The page id (`cv` / `profile`) is the chat contract's: the shell passes it to the chat,
   which answers about that page and offers its own first questions. Production serves `/new` through the rewrite in `vercel.json`; Vite dev/preview fall
   back to `index.html` by themselves.
 - Entry point is `src/main.tsx` (global styles, providers, `App`).

@@ -61,13 +61,6 @@ const cases = [
     before: 'Scrolling to his apps.',
     after: 'Here they are.',
   },
-  {
-    locale: 'uk',
-    browserLocale: 'uk-UA',
-    question: 'покажи застосунки',
-    before: 'Прокручую до застосунків.',
-    after: 'Ось вони.',
-  },
 ] as const;
 
 for (const { locale, browserLocale, question, before, after } of cases) {
@@ -185,9 +178,7 @@ for (const { locale, browserLocale } of cases) {
       await expect
         .poll(() => impact.evaluate((section) => Math.round(section.getBoundingClientRect().top)))
         .toBeLessThan(200);
-      await expect(page.getByTestId('chat-action-chip').first()).toContainText(
-        locale === 'en' ? 'Selected impact' : 'Вибрані результати',
-      );
+      await expect(page.getByTestId('chat-action-chip').first()).toContainText('Selected impact');
       expect(requests).toHaveLength(2);
       expect(requests[0]).toMatchObject({
         page: 'profile',

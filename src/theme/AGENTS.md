@@ -21,7 +21,7 @@ Rules and limits:
   Round 4 adds the box-model highlight fills, the close slide/shrink timings and the `--devtools-*`
   group (the DevTools panel's Chrome-light surfaces, text, badge and syntax colours, fonts, plate shadow).
   The Win98/terminal tokens stay until R16/R17 stop reading them, then they are removed.
-- Fonts are self-hosted, Latin and Cyrillic only, a fixed set of weights; Cyrillic files load only
+- Fonts are self-hosted, a fixed set of weights; Cyrillic files load only
   when Cyrillic text is on the page: Onest (display, the body default), IBM Plex Sans (text) and
   JetBrains Mono (meta). Inter is no longer imported (its npm package is still installed).
 
@@ -39,3 +39,16 @@ all in `tokens.css`; the AI chat uses them, plus its own `--forest-chat-*` from
   `role` (role, meta), `period`, `body` (bullet / body), `skills-title`, `skills-items`, `meta-bar`,
   `cta`. Stepped sizes switch to the phone value in one `@media (max-width: 600px)`; `text-wrap`
   stays in the component.
+
+v3 tokens (`docs/design/v3/SPEC.md`, ADR-0006 Decision 5; look-neutral role names, added next to the
+Forest ones, which go in Cleanup; the page screen uses them from T3):
+- Colours `--color-{page,card,ink,ink-2,ink-3,ink-4,accent,accent-hover,accent-pink,on-accent,surface,
+  surface-pink,surface-lilac,surface-violet,line,tree-line,status,status-dot,dark-ink,dark-line,
+  dark-number,dark-note}`; gradients `--gradient-{brand,brand-tile,dark,footer}`; shadows
+  `--shadow-{card,dark,cta,launcher}`.
+- Fonts `--font-sans` (Figtree 400-700, latin only) and `--font-mono`; type
+  `--type-<role>-{size,weight,line-height,letter-spacing}` for `h1`, `h2`, `name`, `tagline`,
+  `summary`, `stat`, `card-title`, `body`, `label`, `meta`, `tag`, `company`, `role`, `period`,
+  `impact`, `loop-lead`, `footer-title`, `button`; radii `--radius-{page,card,tile,pill,logo,book}`;
+  layout `--page-{max-width,padding-x,section-gap}`.
+- `--agent-highlight-color` is `--color-accent`. The site is English only, so no Cyrillic is added.

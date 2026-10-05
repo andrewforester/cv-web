@@ -1,17 +1,16 @@
 # e2e
 
 Why it exists: the last gate before a change reaches visitors. It proves that the production
-build actually starts and works in a real browser, in both languages, which unit tests in jsdom
+build actually starts and works in a real browser, in an English browser, which unit tests in jsdom
 can't: a green build can still crash at startup. It is the *web check* in the root `AGENTS.md`
 and the `web-smoke` job in CI.
 
 What it guarantees today:
-- Both Forest pages, `/` (the CV) and `/new` (the profile), load directly in English and
-  Ukrainian browsers with no page or console errors and fit a phone screen without horizontal
-  scrolling (desktop and 390 px screenshots); the language switch works and survives a reload.
+- Both Forest pages, `/` (the CV) and `/new` (the profile), load directly with no page or console errors and fit a phone screen without horizontal
+  scrolling (desktop and 390 px screenshots); a `uk-UA` browser gets the English page with no language switcher.
 - The chat answers a question with a streamed reply, and rate limiting shows its notice. A `#ask`
-  link opens it; its Forest look is screenshotted empty and answered, desktop and phone, EN + UK.
-  On `/new` the chat offers `/new`'s own four questions in both languages (`chat-new-{en,uk}.png`)
+  link opens it; its Forest look is screenshotted empty and answered, desktop and phone.
+  On `/new` the chat offers `/new`'s own four questions (`chat-new-en.png`)
   and sends `page: "profile"` with the `/new` route; `/` keeps today's questions.
 - The page agent: asking the chat to show a section scrolls and highlights it, and the next
   question's page snapshot names that section in view and the highlighted target; opening a contact
