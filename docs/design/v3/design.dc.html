@@ -119,13 +119,13 @@ a{color:#8A3FE0;text-decoration:none}a:hover{color:#D9328F}
             <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><div style="font-size:18px;font-weight:600;letter-spacing:-.01em">{{ j.company }}</div><div style="flex:none;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#8C859A;white-space:nowrap">{{ j.period }}</div></div>
             <div style="font-size:15px;color:#5E5770">{{ j.role }}</div>
             <sc-if value="{{ j.hasMeta }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:3px;margin-top:3px;font-size:14px;font-weight:500;color:#5E5770"><span>{{ j.metaText }}</span><sc-if value="{{ j.hasStar }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;line-height:1">★</span></sc-if></div></sc-if>
-            <sc-if value="{{ j.hasAbout }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:8px;align-items:baseline;margin-top:6px;font-size:15px;line-height:1.5;color:#5E5770;text-wrap:pretty"><span style="flex:none;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8A3FE0;background:#F4EAFE;border-radius:6px;padding:2px 7px">{{ j.tag }}</span><span>{{ j.about }}</span></div></sc-if>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:10px;min-width:0;padding-left:56px">
+        <sc-if value="{{ j.hasAbout }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:8px;align-items:center;font-size:15px;line-height:1.5;color:#5E5770;text-wrap:pretty"><span style="flex:none;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8A3FE0;background:#F4EAFE;border-radius:6px;padding:2px 7px">{{ j.tag }}</span><span>{{ j.about }}</span></div></sc-if>
+        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
           <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px">
             <sc-for list="{{ j.points }}" as="p" hint-placeholder-count="2">
-              <li style="display:flex;gap:10px;font-size:16px;line-height:1.55;color:#2A2433;text-wrap:pretty"><span style="color:#D9328F;opacity:.6;flex:none;display:inline-block;transform:scaleX(.7);transform-origin:left center;margin-right:-.3em">—</span><span>{{ p }}</span></li>
+              <li style="display:flex;gap:10px;font-size:16px;line-height:1.55;color:#2A2433;text-wrap:pretty"><span style="flex:none;width:4.2px;height:4.2px;border-radius:50%;background:#D9328F;opacity:.6;margin-top:.68em"></span><span>{{ p }}</span></li>
             </sc-for>
           </ul>
         </div>
@@ -136,28 +136,25 @@ a{color:#8A3FE0;text-decoration:none}a:hover{color:#D9328F}
             <div style="position:relative;display:flex;align-items:flex-start;padding-left:clamp(18px,3vw,30px)">
               <span style="position:absolute;left:0;top:-22px;height:{{ pr.line }};border-left:2px dotted #C7B5EC"></span>
               <span style="position:absolute;left:0;top:21px;width:clamp(12px,2.4vw,24px);border-top:2px dotted #C7B5EC"></span>
-              <div style="flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:12px clamp(16px,3vw,32px)">
-                <div style="flex:1 1 190px;max-width:240px;display:flex;align-items:flex-start;gap:12px;min-width:0">
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:flex-start;gap:12px">
                   <sc-if value="{{ pr.hasIcon }}" hint-placeholder-val="{{ true }}">
                     <img src="{{ pr.icon }}" alt="" style="width:44px;height:44px;border-radius:12px;object-fit:cover;flex:none"></img>
                   </sc-if>
                   <sc-if value="{{ pr.noIcon }}" hint-placeholder-val="{{ false }}">
                     <span style="width:44px;height:44px;border-radius:12px;flex:none;background:linear-gradient(135deg,#FF4FB8,#8B5CF6);color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px">{{ pr.initials }}</span>
                   </sc-if>
-                  <div style="min-width:0;display:flex;flex-direction:column;gap:6px">
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
                     <div style="font-size:16px;font-weight:600">{{ pr.name }}</div>
-                    <span style="align-self:flex-start;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8A3FE0;background:#F4EAFE;border-radius:999px;padding:3px 9px">{{ pr.domain }}</span>
                     <div style="display:flex;align-items:center;gap:3px;margin-top:3px;font-size:14px;font-weight:500;color:#5E5770"><span>{{ pr.metaA }}</span><sc-if value="{{ pr.hasStar }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;line-height:1">★</span></sc-if><span style="white-space:pre">{{ pr.metaB }}</span></div>
                   </div>
                 </div>
-                <div style="flex:3 1 380px;display:flex;flex-direction:column;gap:8px;min-width:0">
-                  <div style="font-size:15px;line-height:1.5;color:#5E5770;text-wrap:pretty">{{ pr.about }}</div>
-                  <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px">
-                    <sc-for list="{{ pr.points }}" as="pp" hint-placeholder-count="2">
-                      <li style="display:flex;gap:10px;font-size:16px;line-height:1.55;color:#2A2433;text-wrap:pretty"><span style="color:#D9328F;opacity:.6;flex:none;display:inline-block;transform:scaleX(.7);transform-origin:left center;margin-right:-.3em">—</span><span>{{ pp }}</span></li>
-                    </sc-for>
-                  </ul>
-                </div>
+                <div style="display:flex;gap:8px;align-items:center;font-size:15px;line-height:1.5;color:#5E5770;text-wrap:pretty"><span style="flex:none;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8A3FE0;background:#F4EAFE;border-radius:6px;padding:2px 7px">{{ pr.domain }}</span><span>{{ pr.about }}</span></div>
+                <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px">
+                  <sc-for list="{{ pr.points }}" as="pp" hint-placeholder-count="2">
+                    <li style="display:flex;gap:10px;font-size:16px;line-height:1.55;color:#2A2433;text-wrap:pretty"><span style="flex:none;width:4.2px;height:4.2px;border-radius:50%;background:#D9328F;opacity:.6;margin-top:.68em"></span><span>{{ pp }}</span></li>
+                  </sc-for>
+                </ul>
               </div>
             </div>
           </sc-for>
@@ -203,19 +200,20 @@ a{color:#8A3FE0;text-decoration:none}a:hover{color:#D9328F}
   </div>
 </section>
 
-<section style="background:linear-gradient(135deg,#FBE3F2,#ECE3FD);border-radius:28px;padding:clamp(22px,3vw,36px);display:flex;flex-direction:column;align-items:flex-start;gap:20px">
-  <h2 style="margin:0;font-size:clamp(30px,3.6vw,34px);letter-spacing:-.035em;font-weight:600;line-height:1.05"><a href="mailto:andriipanasiuk@gmail.com" style="display:inline-flex;align-items:center;gap:clamp(10px,1.5vw,16px);color:#16131C;transition:color .2s" style-hover="background:linear-gradient(90deg,#FF4FB8,#8B5CF6);-webkit-background-clip:text;background-clip:text;color:transparent">Let's build something<span style="flex:none;background:linear-gradient(135deg,#FF4FB8,#8B5CF6);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:0">↗</span></a></h2>
-  <div style="width:100%;max-width:420px;display:flex;flex-direction:column;gap:8px;min-width:0">
+<section style="background:linear-gradient(135deg,#FBE3F2,#ECE3FD);border-radius:28px;padding:clamp(22px,3vw,36px);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px clamp(24px,4vw,56px)">
+  <div style="flex:1 1 300px;display:flex;flex-direction:column;gap:10px;min-width:0">
+  <h2 style="margin:0;font-size:clamp(30px,3.6vw,34px);letter-spacing:-.035em;font-weight:600;line-height:1.05"><a href="mailto:andriipanasiuk@gmail.com" style="display:inline-flex;align-items:center;gap:clamp(10px,1.5vw,16px);color:#16131C;transition:color .2s" style-hover="background:linear-gradient(90deg,#FF4FB8,#8B5CF6);-webkit-background-clip:text;background-clip:text;color:transparent">Let's build something<span style="flex:none;position:relative;top:2px;margin-left:-2px;background:linear-gradient(135deg,#FF4FB8,#8B5CF6);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:0">↗</span></a></h2>
+  </div>
+  <div style="flex:1 1 340px;max-width:460px;display:flex;flex-direction:column;gap:8px;min-width:0">
     <a href="mailto:andriipanasiuk@gmail.com" style="display:flex;justify-content:space-between;align-items:center;gap:10px;background:#FFFFFF;border-radius:999px;min-height:52px;padding:6px 6px 6px 20px;color:#16131C;font-weight:500;font-size:16px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">andriipanasiuk@gmail.com</span><span style="flex:none;width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#FF4FB8,#8B5CF6);color:#FFFFFF;display:flex;align-items:center;justify-content:center">↗</span></a>
-    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
-      <a href="https://t.me/+380938977110" style="display:flex;align-items:center;justify-content:center;background:#FFFFFF;border-radius:999px;min-height:48px;color:#16131C;font-weight:500;font-size:16px">Telegram</a>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
       <a href="https://wa.me/380938977110" style="display:flex;align-items:center;justify-content:center;background:#FFFFFF;border-radius:999px;min-height:48px;color:#16131C;font-weight:500;font-size:16px">WhatsApp</a>
       <a href="https://www.linkedin.com/in/andriipanasiuk/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;background:#FFFFFF;border-radius:999px;min-height:48px;color:#16131C;font-weight:500;font-size:16px">LinkedIn</a>
     </div>
   </div>
 </section>
 
-<div style="text-align:center;font-size:12.5px;color:#8C859A;padding-bottom:48px">© 2026 Andrew Panasiuk</div>
+<div style="text-align:center;font-size:12.5px;color:#8C859A;margin-top:calc(-1 * clamp(24px,4vw,56px))">© 2026 Andrew Panasiuk</div>
 </div>
 </div>
 
@@ -275,7 +273,32 @@ function buildJobs() {
       ]}),
     ];
 }
+const TNAIR = {
+  '255,79,184': '224,20,90', '139,92,246': '59,91,219', '138,63,224': '74,63,208', '217,50,143': '200,16,79',
+  '244,234,254': '236,238,253', '253,230,243': '252,228,236', '239,229,252': '232,235,252', '199,181,236': '179,189,235',
+  '251,227,242': '252,225,234', '236,227,253': '227,232,253', '42,31,61': '31,34,64',
+};
+const _orig = new WeakMap();
+function applyTheme(on) {
+  const root = document.getElementById('dc-root'); if (!root) return;
+  root.querySelectorAll('[style]').forEach(el => {
+    if (!_orig.has(el)) _orig.set(el, el.style.cssText);
+    const base = _orig.get(el);
+    if (!on) { if (el.style.cssText !== base) el.style.cssText = base; return; }
+    let t = base.replace(/rgb\(255,\s*79,\s*184\),\s*rgb\(139,\s*92,\s*246\)/g, 'rgb(224, 20, 90), rgb(122, 59, 217), rgb(59, 91, 219)');
+    t = t.replace(/rgb(a?)\((\d+),\s*(\d+),\s*(\d+)/g, (m, a, r, g, b) => { const k = TNAIR[`${r},${g},${b}`]; return k ? `rgb${a}(${k.split(',').join(', ')}` : m; });
+    if (el.style.cssText !== t) el.style.cssText = t;
+  });
+}
 class Component extends DCLogic {
+  componentDidMount() {
+    this._run = () => applyTheme((this.props.theme ?? 'Default') === 'TnAir');
+    this._run();
+    this._mo = new MutationObserver(() => { cancelAnimationFrame(this._raf); this._raf = requestAnimationFrame(this._run); });
+    const root = document.getElementById('dc-root'); if (root) this._mo.observe(root, { childList: true, subtree: true });
+  }
+  componentDidUpdate() { this._run && this._run(); }
+  componentWillUnmount() { this._mo && this._mo.disconnect(); }
   renderVals() {
     const h = this.props.headline ?? 'Senior Software Product Engineer';
     return {
@@ -295,6 +318,11 @@ class Component extends DCLogic {
         { bg: '#F4EAFE', value: '1M+', text: 'users on each of Cync and August Home – smart-home apps where I shipped key features.' },
         { bg: '#FDE6F3', value: '3 days', text: 'vs. ~2-week estimate: 200+ colors unified into a design system across 8 projects, AI-assisted.' },
         { bg: '#F7F4FB', value: '1 day', text: 'Two AI features – grounded chat and page agent – from architecture to delivery in 14 agent sessions.' },
+      ],
+      apps: [
+        { name: 'Cync', publisher: 'Savant Systems', icon: 'assets/cv_app_cync.png', downloads: '1M+', meta: '5.0 ★ · 91.8K' },
+        { name: 'August Home', publisher: 'August Home', icon: 'assets/cv_app_august.png', downloads: '1M+', meta: '4.1 ★ · 18.7K' },
+        { name: 'Savant', publisher: 'Savant Systems', icon: 'assets/cv_app_savant.png', downloads: '100K+', meta: 'downloads' },
       ],
       jobs: this._jobs || (this._jobs = buildJobs()),
       skills: [
