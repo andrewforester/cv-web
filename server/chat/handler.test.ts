@@ -28,7 +28,7 @@ describe('handleChat: errors before the stream', () => {
     ],
     ['malformed JSON', chatRequest('{"v":1,'), 400, 'invalid_request'],
     ['a schema violation', chatRequest({ ...VALID_BODY, locale: 'fr' }), 400, 'invalid_request'],
-    ['another version', chatRequest({ ...VALID_BODY, v: 4 }), 400, 'unsupported_version'],
+    ['another version', chatRequest({ ...VALID_BODY, v: 5 }), 400, 'unsupported_version'],
     [
       'a too long question',
       chatRequest({ ...VALID_BODY, messages: [{ role: 'user', content: 'a'.repeat(1_001) }] }),

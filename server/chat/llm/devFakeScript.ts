@@ -13,7 +13,10 @@ const DEV_TOOL_TEXT = {
   uk: { before: 'Зараз зроблю.', ok: 'Готово.', failed: 'На цій сторінці це не вийшло.' },
 };
 
-/** Natural commands the fake model turns into tool calls (EN/UK), for trying the widget. */
+/**
+ * Natural commands the fake model turns into tool calls (EN/UK), for trying the widget. A value the
+ * page's catalogue lacks shows the widget's `invalid_params` path.
+ */
 const DEV_COMMANDS: { pattern: RegExp; name: AgentToolCall['name']; value: string }[] = [
   {
     pattern: /(show|scroll|go to|покажи|перейди|прокрути).*(apps|застосунк)/i,
@@ -45,6 +48,14 @@ const DEV_COMMANDS: { pattern: RegExp; name: AgentToolCall['name']; value: strin
     name: 'openContact',
     value: 'telegram',
   },
+  // v4 (the one page): its example commands.
+  {
+    pattern: /highlight.*transcenda/i,
+    name: 'highlightElement',
+    value: 'experience:transcenda',
+  },
+  { pattern: /(show|scroll|go to).*contacts/i, name: 'scrollToSection', value: 'contacts' },
+  { pattern: /(open|write|message).*linkedin/i, name: 'openContact', value: 'linkedin' },
 ];
 
 /** The one parameter of each tool (docs/chat/API.md → Tool catalogue). */

@@ -1,5 +1,6 @@
 import type { ChatPage } from '../../../src/data/chat/contract.js';
 import { CvKnowledgeSource } from './CvKnowledgeSource.js';
+import { CvPageKnowledgeSource } from './CvPageKnowledgeSource.js';
 import type { KnowledgeSource } from './KnowledgeSource.js';
 import { ProfileKnowledgeSource } from './ProfileKnowledgeSource.js';
 
@@ -11,3 +12,6 @@ export const KNOWLEDGE_SOURCES_BY_PAGE: Readonly<Record<ChatPage, readonly Knowl
   cv: [new CvKnowledgeSource()],
   profile: [new ProfileKnowledgeSource()],
 };
+
+/** The one page's knowledge (v4, ADR-0006): one English source, so one cached prefix. */
+export const CV_PAGE_KNOWLEDGE_SOURCES: readonly KnowledgeSource[] = [new CvPageKnowledgeSource()];

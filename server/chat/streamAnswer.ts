@@ -1,4 +1,6 @@
 import {
+  CHAT_API_VERSION_V2,
+  CHAT_API_VERSION_V4,
   CHAT_LIMITS_V2,
   type ChatError,
   type ChatStopReasonV2,
@@ -27,7 +29,7 @@ export interface TextStreamer {
 export interface StreamContext {
   llm: LlmClient;
   llmRequest: LlmRequest;
-  /** The request's API version: 2 streams `tool_call` events. */
+  /** The request's API version: 2 and 4 (the tool dialect) stream `tool_call` events. */
   version: number;
   /** Default: each piece of text is a `delta` event. */
   streamer?: TextStreamer;
@@ -137,8 +139,10 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
       }, ctx.pingIntervalMs);
 
       const toolNames: string[] = [];
+      const toolDialect =
+        ctx.version === CHAT_API_VERSION_V2 || ctx.version === CHAT_API_VERSION_V4;
       const toolFields = (): Partial<ChatLogEntry> =>
-        ctx.version === 2 ? { toolCalls: toolNames.length, toolNames: [...toolNames] } : {};
+        toolDialect ? { toolCalls: toolNames.length, toolNames: [...toolNames] } : {};
 
       const pump = async (): Promise<Partial<ChatLogEntry>> => {
         try {
@@ -151,7 +155,7 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
             }
             if (event.type === 'tool_call') {
               // Over the per-response cap: not streamed; the follow-up answers it invalid_params.
-              if (ctx.version !== 2 || toolNames.length >= CHAT_LIMITS_V2.maxToolCallsPerMessage) {
+              if (!toolDialect || toolNames.length >= CHAT_LIMITS_V2.maxToolCallsPerMessage) {
                 continue;
               }
               toolNames.push(event.call.name);
@@ -160,7 +164,7 @@ export async function streamAnswer(ctx: StreamContext): Promise<Response> {
             }
             sendEvents(ctx.streamer?.end(event.stopReason) ?? []);
             const providerState =
-              ctx.version === 2 && event.stopReason === 'tool_use' && event.blocks
+              toolDialect && event.stopReason === 'tool_use' && event.blocks
                 ? encodeProviderState(event.blocks)
                 : undefined;
             send(

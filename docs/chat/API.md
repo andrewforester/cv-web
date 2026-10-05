@@ -1127,9 +1127,20 @@ X-Chat-Api-Version: 4
 {"error":{"code":"unsupported_version","message":"Unsupported version v=2","retryable":false,"requestId":"..."}}
 ```
 
-### Size (estimate; the Data + backend task replaces it with the built numbers)
+### Size (built, CV-109)
 
-Knowledge ≈ 7,000 chars (≈ 2,000 tokens), tools JSON ≈ 1,900 chars (≈ 550 tokens), shared
-blocks ≈ 1,420 tokens: a static prefix of **≈ 4,000 tokens**, one per model (today: three). On
-Haiku 4.5 it is just under the 4,096-token cache minimum; the automatic marker caches it once the
-history passes that. About $0.004 per uncached request on Haiku.
+Measured on the built request (`buildLlmRequest` with `cvPage.json`), characters as sent; tokens
+estimated at 3.5 chars/token (the knowledge loader's rule) until the real `count_tokens` check:
+
+| Block | Chars | ≈ Tokens |
+|---|---|---|
+| Knowledge (`<knowledge>` with `<document id="cv" title="CV">`) | 7,005 | 2,000 |
+| Tools JSON (3 tools, 38 targets) | 1,981 | 570 |
+| `INSTRUCTIONS` + `PAGE_TOOL_INSTRUCTIONS` + site-language line | 3,757 | 1,070 |
+
+Static prefix: about **12,750 chars ≈ 3,650 tokens**, plus Anthropic's tool-use system prompt
+(a few hundred tokens), so **≈ 4,000 tokens**, one per model (today: three). For comparison,
+`/new` EN on v2 is 11,088 chars. On Haiku 4.5 it is just under the 4,096-token cache minimum;
+the automatic marker caches it once the history passes that. About $0.004 per uncached request on
+Haiku. The exact count (`count_tokens`) and the golden check run with the real model when CV-45
+runs (ADR-0006 action 3).

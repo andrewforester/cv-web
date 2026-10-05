@@ -10,11 +10,13 @@ import {
   CHAT_PAGE_ROUTES,
   type AgentPageState,
   type AgentToolCall,
+  type AgentToolName,
   type AgentToolResultItem,
   type ChatError,
   type ChatPage,
   type ChatRequest,
   type ChatRequestV2,
+  type ChatRequestV4,
 } from '../../src/data/chat/contract.js';
 import { chatError } from './errors.js';
 
@@ -24,13 +26,24 @@ import { chatError } from './errors.js';
  */
 export type ValidatedChatV2 = ChatRequestV2 & { page: ChatPage; toolRound: number };
 
-/** The page a validated request comes from: v1 is the CV (`/`). */
-export function chatPageOf(request: ChatRequest | ValidatedChatV2): ChatPage {
+/** A v4 request after validation, with the tool round it starts (0 = answering a question). */
+export type ValidatedChatV4 = ChatRequestV4 & { toolRound: number };
+
+/** The page a validated request comes from: v1 is the CV (`/`); v4 has no page id (`null`). */
+export function chatPageOf(request: ChatRequest | ValidatedChatV2): ChatPage;
+export function chatPageOf(
+  request: ChatRequest | ValidatedChatV2 | ValidatedChatV4,
+): ChatPage | null;
+export function chatPageOf(
+  request: ChatRequest | ValidatedChatV2 | ValidatedChatV4,
+): ChatPage | null {
+  if (request.v === 4) return null;
   return request.v === 2 ? request.page : 'cv';
 }
 
 export type ValidationResult =
-  { ok: true; request: ChatRequest | ValidatedChatV2 } | { ok: false; error: ChatError };
+  | { ok: true; request: ChatRequest | ValidatedChatV2 | ValidatedChatV4 }
+  | { ok: false; error: ChatError };
 
 export const invalid = (message: string): ValidationResult => ({
   ok: false,
@@ -90,16 +103,25 @@ export function checkPage(raw: unknown, where: string, page: ChatPage): AgentPag
   };
 }
 
-function checkToolCall(raw: unknown, where: string): AgentToolCall | string {
+function checkToolCall(
+  raw: unknown,
+  where: string,
+  names: readonly AgentToolName[],
+): AgentToolCall | string {
   if (!isRecord(raw)) return `${where} must be an object`;
   if (typeof raw.id !== 'string' || !TOOL_USE_ID.test(raw.id)) return `${where}.id is invalid`;
-  if (!isOneOf(AGENT_TOOL_NAMES, raw.name)) return `${where}.name is not a known tool`;
+  if (!isOneOf(names, raw.name)) return `${where}.name is not a known tool`;
   if (!isRecord(raw.input)) return `${where}.input must be an object`;
   if (JSON.stringify(raw.input).length > MAX_TOOL_INPUT_CHARS) return `${where}.input is too long`;
   return { id: raw.id, name: raw.name, input: raw.input };
 }
 
-export function checkToolCalls(raw: unknown, where: string): AgentToolCall[] | string {
+/** An assistant turn's calls; `names` are the tools of the request's catalogue. */
+export function checkToolCalls(
+  raw: unknown,
+  where: string,
+  names: readonly AgentToolName[] = AGENT_TOOL_NAMES,
+): AgentToolCall[] | string {
   if (!Array.isArray(raw) || raw.length === 0)
     return `${where}.toolCalls must be a non-empty array`;
   if (raw.length > CHAT_LIMITS_V2.maxToolCallsPerMessage) {
@@ -107,7 +129,7 @@ export function checkToolCalls(raw: unknown, where: string): AgentToolCall[] | s
   }
   const calls: AgentToolCall[] = [];
   for (const [index, item] of raw.entries()) {
-    const call = checkToolCall(item, `${where}.toolCalls[${index}]`);
+    const call = checkToolCall(item, `${where}.toolCalls[${index}]`, names);
     if (typeof call === 'string') return call;
     calls.push(call);
   }

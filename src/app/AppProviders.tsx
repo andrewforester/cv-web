@@ -1,9 +1,11 @@
 import { useState, type ReactNode } from 'react';
 import { AgentProvider, AgentToolRegistry } from '../agent';
 import {
+  CvPageRepositoryContext,
   CvRepositoryContext,
   ProfileRepositoryContext,
   StaticCvRepository,
+  type CvPageRepository,
   type CvRepository,
   type ProfileRepository,
 } from '../data';
@@ -20,6 +22,7 @@ interface AppProvidersProps {
   /** Test seams: fake repositories, a fixed locale, retro mode and page (default: from the URL). */
   repository?: CvRepository;
   profileRepository?: ProfileRepository;
+  cvPageRepository?: CvPageRepository;
   chatRepository?: ChatRepository;
   showRepository?: ShowRepository;
   agentRegistry?: AgentToolRegistry;
@@ -33,6 +36,7 @@ export function AppProviders({
   children,
   repository,
   profileRepository,
+  cvPageRepository,
   chatRepository,
   showRepository,
   agentRegistry,
@@ -40,12 +44,13 @@ export function AppProviders({
   retroMode,
   page = pageFor(window.location.pathname),
 }: AppProvidersProps) {
-  // One static instance serves both seams until a backend replaces it.
-  const [{ cvRepository, profile }] = useState(() => {
+  // One static instance serves every seam until a backend replaces it.
+  const [{ cvRepository, profile, cvPage }] = useState(() => {
     const staticRepository = new StaticCvRepository();
     return {
       cvRepository: repository ?? staticRepository,
       profile: profileRepository ?? staticRepository,
+      cvPage: cvPageRepository ?? staticRepository,
     };
   });
   const [chat] = useState<ChatRepository>(() => chatRepository ?? new HttpChatRepository());
@@ -56,15 +61,17 @@ export function AppProviders({
     <I18nProvider initial={locale}>
       <CvRepositoryContext value={cvRepository}>
         <ProfileRepositoryContext value={profile}>
-          <ChatRepositoryContext value={chat}>
-            <ShowRepositoryContext value={show}>
-              <RetroModeContext value={retroMode}>
-                <AgentProvider registry={registry} page={page}>
-                  {children}
-                </AgentProvider>
-              </RetroModeContext>
-            </ShowRepositoryContext>
-          </ChatRepositoryContext>
+          <CvPageRepositoryContext value={cvPage}>
+            <ChatRepositoryContext value={chat}>
+              <ShowRepositoryContext value={show}>
+                <RetroModeContext value={retroMode}>
+                  <AgentProvider registry={registry} page={page}>
+                    {children}
+                  </AgentProvider>
+                </RetroModeContext>
+              </ShowRepositoryContext>
+            </ChatRepositoryContext>
+          </CvPageRepositoryContext>
         </ProfileRepositoryContext>
       </CvRepositoryContext>
     </I18nProvider>
