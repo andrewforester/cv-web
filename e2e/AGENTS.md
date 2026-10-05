@@ -7,7 +7,7 @@ and the `web-smoke` job in CI.
 
 What it guarantees today:
 - The one CV page (`/`, docs/design/v3) loads directly with no page or console errors, shows all
-  nine jobs and no Show case button (the show is off), and fits a phone screen without horizontal
+  nine jobs and the Show case button in its meta bar, and fits a phone screen without horizontal
   scrolling (`home.png`, `home-mobile.png`); `/new` shows the same page (locally the same app;
   production redirects it); a `uk-UA` browser gets the English page.
 - The chat sends `v: 4` (no page id, no locale) and answers a question with a streamed reply;
@@ -16,9 +16,11 @@ What it guarantees today:
 - The page agent on the one page (`agent.png`): scrolls to the selected impact, highlights the
   Transcenda job (and the next snapshot says so), and opens LinkedIn in a new tab only after the
   visitor confirms; Cancel opens nothing.
-- The show is a lazy chunk (`retroLazy.spec.ts`): `?retro=0` never requests it. The show's own
-  specs (`retro.spec.ts`, with the helpers in `retroShow.ts` taking the page's `SHOW_URLS`) and
-  the show-mode lazy-chunk cases come back with `retro-4` (CV-107 Build split → T6).
+- The Show case (`retro.spec.ts`, `retro-4`, helpers in `retroShow.ts` on `SHOW_URLS`): at t = 0
+  the broken page alone (`retro-start.png`), guard 4 after every chunk (`retro-mid.png`), guard 3
+  (ends as `?retro=0`, `retro-end.png`), the motion-on timing smoke (60–110 s) and the Show case
+  click. The show is a lazy chunk (`retroLazy.spec.ts`): `?retro=0` never requests it, `?retro=1`
+  shows no frame of today's page first, and a failed chunk leaves the normal site.
 
 Place in the architecture: runs against `vite preview` of `dist/` (port 4173 in CI, a per-worktree port locally, `PW_PORT` overrides; never reuses a running server), where `/api/chat` doesn't
 exist, so every chat scenario mocks the endpoint with scripted SSE, and the show runs scripted

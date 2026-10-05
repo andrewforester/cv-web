@@ -19,11 +19,12 @@ Start here, in this order:
    (the broken page refitted to Forest; CV-90), how to add or change a fix chunk, the known debt.
    Then **section 10** (CV-95): the show per page (`/` and `/new`), scenario selection, the shared
    Show case button, guards per page and the build split; its look is SPEC → 2001 `/new`.
-   Then **section 11** (CV-107, [ADR-0006](../adr/0006-one-page-v3.md)): the site becomes one v3
-   page, English only, and the show one scenario, `retro-4`, ported from `/new`'s onto the v3
-   page's `home-*` hooks and tokens.
+   Then **section 11** (CV-107, built in CV-112, [ADR-0006](../adr/0006-one-page-v3.md)): the
+   site is one v3 page, English only, and the show one scenario, `retro-4`, ported from `/new`'s
+   onto the v3 page's `home-*` hooks and tokens. It is the current record; §10 is history.
 2. `docs/design/retro/SPEC.md`: the look (retro values, damage layers, copy, the atomic fix list,
-   chunk timing, transitions, the highlight, `--retro-*` tokens).
+   chunk timing, transitions, the highlight, `--retro-*` tokens); "2001 `/new`" and its "v3
+   refit" are the current look.
 3. The package `AGENTS.md` of the code you touch: `src/screens/retro/` (and `engine/`, `layers/`),
    `src/data/retro/`, `server/chat/show/`, `src/app/`.
 4. Background only: `ARCHITECTURE.md` sections 0–8 (the design as planned, with the reasoning) and
@@ -34,12 +35,12 @@ element such as the "Oh, snap!" note), **step** / **chunk** / **effect** (a step
 chunks under one narration line; a chunk is one visible change: one effect, its target and its
 motion), **beat** (the pause after a chunk applies), **highlight** (the show's pointer on the
 chunk's target), **manifest** (step ids, titles, LLM intents, scripted fallbacks),
-**narration** (the LLM's commentary lines), **scenario** (one page's show: manifest + source;
-`retro-3` for `/`, `retro-new-1` for `/new`, §10; one, `retro-4`, after CV-107, §11), **stage** (the app shell while the show runs), **hook
+**narration** (the LLM's commentary lines), **scenario** (the show: manifest + source;
+one, `retro-4`, §11; the per-page `retro-3` and `retro-new-1` of §10 are retired), **stage** (the app shell while the show runs), **hook
 contract** (the selectors layers may use), **guards 1–4** (the tests that keep the show honest
 across redesigns).
 
-Rules for implementers: the CV and profile screens are never changed for the show (except adding a missing hook
+Rules for implementers: the page's screen (`src/screens/home`) is never changed for the show (except adding a missing hook
 in its own task); the end state is always the real site with zero layers; the model never supplies
 code or chooses steps; the show must run without the LLM; no message text in logs. Where this
 folder and the code disagree, the code and the package `AGENTS.md` files win; update this folder in
