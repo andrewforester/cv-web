@@ -1,23 +1,18 @@
 import {
   CHAT_API_VERSION,
   CHAT_API_VERSION_V2,
+  CHAT_API_VERSION_V4,
   CHAT_LIMITS,
   CHAT_LOCALES,
   CHAT_PAGES,
   type ChatMessage,
 } from '../../src/data/chat/contract.js';
 import { chatError } from './errors.js';
-import {
-  invalid,
-  isOneOf,
-  isRecord,
-  tooLong,
-  type ValidatedChatV2,
-  type ValidationResult,
-} from './validateParts.js';
+import { invalid, isOneOf, isRecord, tooLong, type ValidationResult } from './validateParts.js';
 import { validateV2 } from './validateV2.js';
+import { validateV4 } from './validateV4.js';
 
-export type { ValidatedChatV2, ValidationResult };
+export type { ValidatedChatV2, ValidatedChatV4, ValidationResult } from './validateParts.js';
 
 /** Checks one message's shape and its place in the alternation (even index: user). */
 function checkMessage(item: unknown, index: number): ChatMessage | string {
@@ -49,12 +44,13 @@ function checkLengths(messages: ChatMessage[]): ValidationResult | undefined {
 }
 
 /**
- * Validates a parsed JSON body against docs/chat/API.md → Request (v1) or → v2. Returns only the
- * known fields (unknown ones are ignored for forward compatibility).
+ * Validates a parsed JSON body against docs/chat/API.md → Request (v1), → v2 or → v4. Returns only
+ * the known fields (unknown ones are ignored for forward compatibility).
  */
 export function validateChatRequest(body: unknown): ValidationResult {
   if (!isRecord(body)) return invalid('Body must be a JSON object');
   if (typeof body.v !== 'number') return invalid('v must be a number');
+  if (body.v === CHAT_API_VERSION_V4) return validateV4(body);
   if (body.v !== CHAT_API_VERSION && body.v !== CHAT_API_VERSION_V2) {
     return {
       ok: false,
