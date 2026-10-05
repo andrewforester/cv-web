@@ -51,4 +51,8 @@ Forest ones, which go in Cleanup; the page screen uses them from T3):
   `summary`, `stat`, `card-title`, `body`, `label`, `meta`, `tag`, `company`, `role`, `period`,
   `impact`, `loop-lead`, `footer-title`, `button`; radii `--radius-{page,card,tile,pill,logo,book}`;
   layout `--page-{max-width,padding-x,section-gap}`.
+- Chat look (T5): the chat uses the v3 tokens (panel = the loop panel's `--gradient-dark` and
+  `--color-dark-*`); its own `--chat-*` block next to them holds only what v3 has no value for
+  (muted ink on dark, fills, error/notice, panel shadow, chat type sizes, the launcher's padding).
+  `--forest-chat-*` and `--chat-fab-*` are no longer read by the chat and go in Cleanup.
 - `--agent-highlight-color` is `--color-accent`. The site is English only, so no Cyrillic is added.

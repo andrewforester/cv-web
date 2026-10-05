@@ -4,11 +4,11 @@
   gap: var(--space-1);
   max-width: var(--chat-hint-max-width);
   padding: var(--space-3) var(--space-2) var(--space-3) var(--space-4);
-  color: var(--forest-dark-ink);
-  background: var(--forest-gradient-dark);
-  border: var(--border-card) solid var(--forest-dark-line);
-  border-radius: var(--forest-radius-step);
-  box-shadow: var(--forest-chat-shadow-panel);
+  color: var(--color-dark-ink);
+  background: var(--gradient-dark);
+  border: var(--border-card) solid var(--color-dark-line);
+  border-radius: var(--radius-tile);
+  box-shadow: var(--chat-shadow-panel);
   animation: fade-in var(--chat-motion-duration) var(--chat-motion-easing) both;
 }
 

@@ -8,7 +8,7 @@
   height: var(--chat-caret-height);
   margin-left: var(--chat-caret-width);
   vertical-align: var(--chat-caret-offset);
-  background: var(--forest-gold-soft);
+  background: var(--color-dark-number);
   animation: blink 1s steps(1) infinite;
 }
 

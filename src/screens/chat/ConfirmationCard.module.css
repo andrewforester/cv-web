@@ -4,16 +4,16 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
-  background: var(--forest-chat-notice-bg);
-  border: var(--border-card) solid var(--forest-dark-line);
-  border-radius: var(--forest-radius-step);
+  background: var(--chat-notice-bg);
+  border: var(--border-card) solid var(--color-dark-line);
+  border-radius: var(--radius-tile);
 }
 
 .title {
   margin: 0;
-  font-size: var(--forest-chat-text-size);
-  line-height: var(--forest-chat-text-line-height);
-  font-weight: var(--forest-type-title-weight);
+  font-size: var(--chat-text-size);
+  line-height: var(--chat-text-line-height);
+  font-weight: var(--type-card-title-weight);
 }
 
 .detail {
@@ -27,14 +27,14 @@
   margin-top: var(--space-1);
 }
 
-/* Primary pill: the one action colour on dark. */
+/* Primary pill: the page's primary CTA (the gradient), glowing on hover. */
 .confirm {
-  color: var(--forest-ink);
-  background: var(--forest-gold-soft);
-  border-color: var(--forest-gold-soft);
+  color: var(--color-on-accent);
+  background: var(--gradient-brand);
+  border-color: transparent;
 }
 
 .confirm:hover {
-  background: var(--forest-gold);
-  border-color: var(--forest-gold);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-cta);
 }
