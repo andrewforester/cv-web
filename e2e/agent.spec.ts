@@ -1,8 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
-import { collectErrors, NORMAL_SITE, SCREENSHOT_DIR } from './support';
+import { collectErrors, NORMAL_SITE } from './support';
 
 // Web check of the page agent with a mocked `/api/chat` scripting a v2 tool round
-// (docs/chat/AGENT.md §7, API.md → v2).
+// (docs/chat/AGENT.md §7, API.md → v2). The old pages' scroll and highlight cases left with them;
+// the one page's cases (`section:impact`, `experience:transcenda`, `contact:linkedin`) come with
+// the chat's move to v4 (CV-111).
 
 const usage = {
   inputTokens: 1,
@@ -53,74 +55,6 @@ async function ask(page: Page, text: string) {
   await page.getByTestId('chat-input').press('Enter');
 }
 
-const cases = [
-  {
-    locale: 'en',
-    browserLocale: 'en-US',
-    question: 'show the apps',
-    before: 'Scrolling to his apps.',
-    after: 'Here they are.',
-  },
-] as const;
-
-for (const { locale, browserLocale, question, before, after } of cases) {
-  test.describe(`page agent (${locale})`, () => {
-    test.use({ locale: browserLocale });
-
-    test('scrolls to the apps section and shows the action chip', async ({ page }) => {
-      const errors = collectErrors(page);
-      const requests = await scriptToolRound(page, {
-        before,
-        call: { id: 'toolu_e2e_1', name: 'scrollToSection', input: { section: 'apps' } },
-        after,
-      });
-      await page.goto(NORMAL_SITE);
-      const apps = page.locator('[data-agent-id="section:apps"]');
-      await expect(apps).not.toBeInViewport();
-
-      await ask(page, question);
-
-      await expect(apps).toBeInViewport();
-      await expect(page.getByTestId('chat-action-chip').first()).toBeVisible();
-      await expect(page.getByTestId('chat-assistant-message').last()).toContainText(after);
-      expect(requests).toHaveLength(2);
-      expect(JSON.stringify(requests[1])).toContain('"callId":"toolu_e2e_1"');
-      await page.screenshot({ path: `${SCREENSHOT_DIR}/agent-${locale}.png` });
-      expect(errors).toEqual([]);
-    });
-  });
-}
-
-test('highlights a CV item with the highlight marker', async ({ page }) => {
-  const errors = collectErrors(page);
-  const requests = await scriptToolRound(page, {
-    before: 'Here.',
-    call: { id: 'toolu_e2e_h', name: 'highlightElement', input: { target: 'section:apps' } },
-    after: 'Done.',
-  });
-  await page.goto(NORMAL_SITE);
-  await ask(page, 'highlight the apps');
-
-  const apps = page.locator('[data-agent-id="section:apps"]');
-  await expect(apps).toBeInViewport();
-  await expect(apps).toHaveAttribute('data-agent-highlighted');
-  await expect(page.getByTestId('chat-action-chip').first()).toBeVisible();
-  await expect(page.getByTestId('chat-assistant-message').last()).toContainText('Done.');
-
-  // The next question's snapshot says what the visitor sees now (the highlight lasts 3 s).
-  await page.getByTestId('chat-input').fill('what is this?');
-  await page.getByTestId('chat-input').press('Enter');
-  await expect.poll(() => requests.length).toBe(3);
-  expect(requests[0]).toMatchObject({
-    messages: [{ page: { activeSection: 'header', highlighted: null } }],
-  });
-  const next = requests[2] as { messages: unknown[] };
-  expect(next.messages.at(-1)).toMatchObject({
-    page: { activeSection: 'apps', highlighted: 'section:apps' },
-  });
-  expect(errors).toEqual([]);
-});
-
 test.describe('openContact confirmation', () => {
   const script: ScriptedRound = {
     before: 'I can open Telegram.',
@@ -155,36 +89,3 @@ test.describe('openContact confirmation', () => {
     expect(errors).toEqual([]);
   });
 });
-
-// `/new` (ADR-0004): the same tools over `/new`'s own sections.
-for (const { locale, browserLocale } of cases) {
-  test.describe(`page agent on /new (${locale})`, () => {
-    test.use({ locale: browserLocale });
-
-    test('scrolls to the selected impact and names it in the chip', async ({ page }) => {
-      const errors = collectErrors(page);
-      const requests = await scriptToolRound(page, {
-        before: '',
-        call: { id: 'toolu_e2e_n', name: 'scrollToSection', input: { section: 'impact' } },
-        after: 'Done.',
-      });
-      await page.goto('./new');
-      const impact = page.locator('[data-agent-id="section:impact"]');
-      await expect(impact).not.toBeInViewport({ ratio: 1 });
-
-      await ask(page, 'impact');
-
-      await expect(impact).toBeInViewport({ ratio: 0.5 });
-      await expect
-        .poll(() => impact.evaluate((section) => Math.round(section.getBoundingClientRect().top)))
-        .toBeLessThan(200);
-      await expect(page.getByTestId('chat-action-chip').first()).toContainText('Selected impact');
-      expect(requests).toHaveLength(2);
-      expect(requests[0]).toMatchObject({
-        page: 'profile',
-        messages: [{ page: { activeSection: 'header', highlighted: null } }],
-      });
-      expect(errors).toEqual([]);
-    });
-  });
-}

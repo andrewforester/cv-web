@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { AgentToolRegistry } from '../agent';
 import { FakeChatRepository, type ChatStreamEventV2 } from '../data/chat';
 import { chatTestIds } from '../screens/chat/testIds';
-import { forestTestIds } from '../shared/forest/testIds';
+import { homeTestIds } from '../screens/home/testIds';
 import { App } from './App';
 import { AppProviders } from './AppProviders';
 
@@ -17,6 +17,7 @@ const sectionsOf = (registry: AgentToolRegistry) =>
   registry.specs().find((spec) => spec.name === 'scrollToSection')?.inputSchema.properties.section
     ?.enum;
 
+// Until the chat moves to v4 (CV-111) it keeps v2 and takes its page id from the URL, over the one page.
 describe('App: the chat and the page agent follow the page', () => {
   afterEach(() => window.history.replaceState(null, '', '/'));
 
@@ -30,7 +31,7 @@ describe('App: the chat and the page agent follow the page', () => {
         <App />
       </AppProviders>,
     );
-    await screen.findByTestId(forestTestIds.name);
+    await screen.findByTestId(homeTestIds.name);
     await user.click(await screen.findByTestId(chatTestIds.fab));
     return { registry, chat, user };
   }

@@ -1,13 +1,16 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ShowScenarioId } from '../data/retro';
-import { FakeShowRepository } from '../data/retro';
-import { forestTestIds } from '../shared/forest/testIds';
+import { FakeShowRepository, SHOW_SCENARIOS, type ShowScenarioId } from '../data/retro';
+import { homeTestIds } from '../screens/home/testIds';
+import { showCaseTestId } from '../shared/ShowCaseButton';
 
-// The Show case button in the meta bar (docs/retro/ARCHITECTURE.md §10): the shell offers it on a
-// page with a scenario, in English, on a desktop viewport. The show's chunk is a stub here.
+// The Show case button at the end of the page's meta bar (docs/retro/ARCHITECTURE.md §11): the
+// shell offers it while the page has a scenario, on a desktop viewport. The show is off until it
+// is ported to the v3 page (T6), so the wiring is checked with a stubbed scenario and show chunk.
 const SHOW_MODULE = '../screens/retro/RetroShowRoute';
+const SCENARIOS_MODULE = './showScenarios';
 const SHOW_STUB = 'show-stub';
+const A_SCENARIO = Object.keys(SHOW_SCENARIOS)[0] as ShowScenarioId;
 
 function StubShow({ scenario }: { scenario: ShowScenarioId }) {
   return <div data-testid={SHOW_STUB} data-scenario={scenario} />;
@@ -25,13 +28,13 @@ function stubViewport(desktop: boolean) {
 }
 
 async function renderApp({
-  path = '/',
+  scenario = A_SCENARIO,
   desktop = true,
-}: { path?: string; desktop?: boolean } = {}) {
-  window.history.replaceState(null, '', path);
+}: { scenario?: ShowScenarioId | null; desktop?: boolean } = {}) {
   stubViewport(desktop);
   vi.resetModules();
   vi.doMock(SHOW_MODULE, async () => ({ RetroShowRoute: StubShow }));
+  vi.doMock(SCENARIOS_MODULE, () => ({ SHOW_SCENARIO: scenario ?? undefined }));
   const { App } = await import('./App');
   const { AppProviders } = await import('./AppProviders');
   render(
@@ -39,7 +42,8 @@ async function renderApp({
       <App />
     </AppProviders>,
   );
-  return within(await screen.findByTestId(forestTestIds.metaBar));
+  await screen.findByTestId(homeTestIds.name);
+  return within(screen.getByTestId(homeTestIds.metaBar));
 }
 
 describe('App: the Show case button', () => {
@@ -50,39 +54,35 @@ describe('App: the Show case button', () => {
     vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
   });
   afterEach(() => {
-    window.history.replaceState(null, '', '/');
     vi.doUnmock(SHOW_MODULE);
+    vi.doUnmock(SCENARIOS_MODULE);
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
-  it('is in the meta bar on / on a desktop viewport', async () => {
+  it('is hidden while the page has no show', async () => {
+    const metaBar = await renderApp({ scenario: null });
+    expect(metaBar.queryByTestId(showCaseTestId)).not.toBeInTheDocument();
+  });
+
+  it('is at the end of the meta bar on a desktop viewport when the page has a show', async () => {
     const metaBar = await renderApp();
     const button = metaBar.getByRole('button', { name: /Show case/ });
-    expect(button).toHaveAttribute('data-testid', forestTestIds.showCase);
+    expect(button).toHaveAttribute('data-testid', showCaseTestId);
     expect(button).toBeVisible();
   });
 
-  it("starts /'s scenario when clicked", async () => {
+  it("starts the page's scenario when clicked", async () => {
     const metaBar = await renderApp();
     expect(screen.queryByTestId(SHOW_STUB)).toBeNull();
 
-    await userEvent.click(metaBar.getByTestId(forestTestIds.showCase));
+    await userEvent.click(metaBar.getByTestId(showCaseTestId));
 
-    expect(await screen.findByTestId(SHOW_STUB)).toHaveAttribute('data-scenario', 'retro-3');
+    expect(await screen.findByTestId(SHOW_STUB)).toHaveAttribute('data-scenario', A_SCENARIO);
   });
 
   it('is hidden below 1024 px', async () => {
     const metaBar = await renderApp({ desktop: false });
-    expect(metaBar.queryByTestId(forestTestIds.showCase)).not.toBeInTheDocument();
-  });
-
-  it("is in /new's meta bar and starts /new's scenario", async () => {
-    const metaBar = await renderApp({ path: '/new' });
-    const button = metaBar.getByTestId(forestTestIds.showCase);
-
-    await userEvent.click(button);
-
-    expect(await screen.findByTestId(SHOW_STUB)).toHaveAttribute('data-scenario', 'retro-new-1');
+    expect(metaBar.queryByTestId(showCaseTestId)).not.toBeInTheDocument();
   });
 });

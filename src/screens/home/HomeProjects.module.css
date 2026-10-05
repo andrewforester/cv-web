@@ -1,0 +1,111 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--home-tree-gap-y);
+  margin-top: var(--space-3);
+  padding-left: var(--home-tree-indent);
+}
+
+.project {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  padding-left: var(--home-tree-branch-indent);
+}
+
+/* The vertical dotted line: from the item above (or the logo) down to this item's branch. */
+.stem {
+  position: absolute;
+  top: calc(-1 * var(--home-tree-gap-y));
+  left: 0;
+  height: calc(100% + var(--home-tree-gap-y));
+  border-left: var(--home-tree-line);
+}
+
+.project:last-child .stem {
+  height: var(--home-tree-last-stem);
+}
+
+.branch {
+  position: absolute;
+  top: var(--home-tree-branch-top);
+  left: 0;
+  width: var(--home-tree-branch-width);
+  border-top: var(--home-tree-line);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--home-tree-gap);
+  min-width: 0;
+}
+
+.card {
+  display: flex;
+  flex: 1 1 190px;
+  align-items: flex-start;
+  gap: var(--space-3);
+  max-width: 240px;
+  min-width: 0;
+}
+
+.icon {
+  flex: none;
+  width: var(--home-logo-size);
+  height: var(--home-logo-size);
+  object-fit: cover;
+  border-radius: var(--radius-logo);
+}
+
+.initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--home-initials-size);
+  font-weight: var(--type-name-weight);
+  color: var(--color-on-accent);
+  background: var(--gradient-brand-tile);
+}
+
+.names {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--type-body-size);
+  font-weight: var(--type-company-weight);
+}
+
+.domain {
+  align-self: flex-start;
+  padding: var(--home-domain-padding);
+  font-family: var(--font-mono);
+  font-size: var(--type-tag-size);
+  color: var(--color-accent);
+  background: var(--color-surface-lilac);
+  border-radius: var(--radius-pill);
+}
+
+.meta {
+  margin-top: var(--space-1);
+}
+
+.details {
+  display: flex;
+  flex: 3 1 380px;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.about {
+  font-size: var(--type-role-size);
+  line-height: var(--type-body-line-height);
+  color: var(--color-ink-3);
+  text-wrap: pretty;
+}
