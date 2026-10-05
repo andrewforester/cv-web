@@ -1,7 +1,7 @@
 .root {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-0-75);
   font-size: var(--type-meta-size);
   font-weight: var(--type-medium-weight);
   line-height: var(--type-meta-line-height);

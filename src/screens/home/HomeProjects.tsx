@@ -40,7 +40,7 @@ export function HomeProjects({ projects, highlightedId }: HomeProjectsProps) {
               )}
               <div className={styles.names}>
                 <div className={styles.name}>{project.name}</div>
-                <HomeStoreMeta className={styles.meta} text={project.meta} />
+                <HomeStoreMeta text={project.meta} />
               </div>
             </div>
             <HomeTagLine tag={project.domain} text={project.about} />
