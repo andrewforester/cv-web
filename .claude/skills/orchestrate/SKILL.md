@@ -10,7 +10,7 @@ You plan, launch, watch and merge. You do **not** write feature code. You may ed
 ## First run: the Scaffold task
 While `AGENTS.md` or `docs/COORDINATION.md` still contain `TODO(scaffold)`, the project has no stack yet. Before any other task:
 1. Agree the stack with the human (frontend, backend, hosting, test tools). Record the choice and why in the task, not in chat only. Before launching Scaffold, make sure the hosting project and every third-party account the stack needs exist and their connectors are connected (`docs/SETUP.md` → 3), or file them as **Needs human**: briefs must carry the real URLs and ids, otherwise sessions guess (e.g. CORS for a domain that isn't ours).
-2. File one Scaffold task (Role DevOps): create the apps/packages, fill every `TODO(scaffold)` (Layout, Commands, Conventions, Hot spots with real paths, Scaffold decisions, Design source of truth), the session-start hook, CI jobs (lint, test, web smoke with screenshots, deploy), a hello-world screen with one UI test, and package docs (`AGENTS.md` + `CLAUDE.md`). Zone: everything. Done when: no `TODO(scaffold)` is left and CI is green on the PR.
+2. File one Scaffold task (Role DevOps): create the apps/packages, fill every `TODO(scaffold)` (Layout, Commands, Conventions, Hot spots with real paths, Scaffold decisions, Design source of truth), the session-start hook, CI jobs (lint, test, e2e with screenshots, deploy, a smoke test against production after each deploy), a hello-world screen with one UI test, and package docs (`AGENTS.md` + `CLAUDE.md`). Zone: everything. Done when: no `TODO(scaffold)` is left and CI is green on the PR.
 3. Nothing else runs in parallel with it.
 
 ## State lives in the tracker
@@ -106,7 +106,7 @@ After the merge (by the reviewer or by you):
 - **Follow-ups never pile up silently.** Every follow-up, "not done", "out of zone" or "should later" item in a session's or reviewer's report becomes either a ticket (Backlog, with the report linked) or a line under **Open gaps** in the report to the human, with your judgement: product gap (what the user gets is wrong or missing) or tech debt. A product gap goes to the top of the report. Don't file them only as "debt" in a closing comment.
 - **Usage tables** (`COORDINATION.md` → Tracker → Usage): put the ticket's table (a row per session: ≈ $, then in / cache / out / total tokens) at the top of the ticket description, and add the ticket's row to the table at the top of the project description, with the total updated. Tokens are the measure; dollars only by the rough formula there.
 - Then run **Dispatch**.
-- Don't watch CI on `main`: the `qa-release` session does and reverts or files a fix when it goes red. Before each merge, check that the latest CI run on `main` isn't red; if it is, merge only the fix or revert.
+- Don't watch CI on `main`: the `qa-release` session does and reverts or files a fix when it goes red. Before each merge, check that the latest CI run on `main` isn't red (the workflow run, not the commit's status icon: a hosting status like a rate-limited deploy can be red while CI is green); if it is, merge only the fix or revert.
 - Report to the human with links (Tooling → Notifications):
   - the deliverables from `AGENTS.md` → Git & CI;
   - **Excluded by me**: the scope decisions you took yourself (see Before filing);

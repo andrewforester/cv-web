@@ -7,7 +7,7 @@ description: Review a CV Andrew Panasiuk task's pull request as the code-review 
 
 You are the code-review session for one task. The orchestrator launched you with only the ticket id; everything else comes from the tracker and the PR. A human is usually not watching. Concrete tools (tracker, code host, sessions) are in `docs/COORDINATION.md` → Tooling.
 
-**Your job is the code only:** correctness, cleanliness and the project's rules. You don't check the UI against the design, screenshots or e2e behaviour: the orchestrator checked those before launching you, and CI ran the web smoke check.
+**Your job is the code only:** correctness, cleanliness and the project's rules. You don't check the UI against the design, screenshots or e2e behaviour: the orchestrator checked those before launching you, and CI ran the e2e.
 
 ## Start
 1. Read the root `AGENTS.md` and `docs/COORDINATION.md`.
@@ -39,7 +39,7 @@ Only blocking findings send the PR back: a broken rule, a bug, missing tests or 
 
 **Approved:**
 1. Post one PR comment: "Review passed", a one-line summary and any non-blocking notes. **Never submit an Approve review**: GitHub refuses it on your own account's PR, and a failed approval followed by a merge gets the merge denied as self-approval.
-2. Merge only if all of these hold: the orchestrator's launch comment on the ticket says autonomous merging is allowed; CI on the PR is green, including the web smoke job; the latest CI run on `main` isn't red; the branch has no conflicts with `main`. Squash-merge (the repository's usual method). The merge is the orchestrator's signal. If the merge command itself is denied (permission mode), don't retry or work around it: post "Review passed, ready to merge" on the ticket and finish; the orchestrator merges.
+2. Merge only if all of these hold: the orchestrator's launch comment on the ticket says autonomous merging is allowed; CI on the PR is green, including the e2e job; the latest CI run on `main` isn't red (the CI workflow run, not the commit's status icon: a hosting status can be red while CI is green); the branch has no conflicts with `main`. Squash-merge (the repository's usual method). The merge is the orchestrator's signal. If the merge command itself is denied (permission mode), don't retry or work around it: post "Review passed, ready to merge" on the ticket and finish; the orchestrator merges.
    If merging isn't allowed, or `main` is red, or there's a conflict: leave the PR ready with your "Review passed" comment, comment on the ticket with the reason, and stop without archiving.
 3. Post your closing comment on the ticket: rounds, findings fixed, and your usage: model, ≈ $, in (cache), out, total (`COORDINATION.md` → Tracker → Usage; cloud: `get_session` without an id). The orchestrator puts it into the ticket's usage table.
 4. Archive your own session (Tooling → Sessions → Review sessions).
