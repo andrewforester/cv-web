@@ -1,5 +1,6 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { AgentToolRegistry } from '../../agent';
+import { AgentRegistryContext } from '../../agent/AgentRegistryContext';
 import { AppProviders } from '../../app/AppProviders';
 import { StaticCvRepository } from '../../data';
 import { buildAgentToolSpecs, type AgentToolName } from '../../data/chat';
@@ -21,9 +22,13 @@ function stubSectionTops(above: string) {
 async function renderCv() {
   const cv = await new StaticCvRepository().getCv('en');
   const registry = new AgentToolRegistry(buildAgentToolSpecs(cv));
+  // The app's `AgentProvider` holds the one page's catalogue (ADR-0006); this retired page keeps
+  // its own until the Cleanup task deletes it.
   const view = render(
-    <AppProviders agentRegistry={registry} locale="en">
-      <CvRoute />
+    <AppProviders locale="en">
+      <AgentRegistryContext value={registry}>
+        <CvRoute />
+      </AgentRegistryContext>
     </AppProviders>,
   );
   await screen.findByTestId(forestTestIds.name);

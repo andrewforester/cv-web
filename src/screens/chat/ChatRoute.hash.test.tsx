@@ -6,7 +6,7 @@ import { ChatRoute } from './ChatRoute';
 
 function renderChat() {
   render(
-    <AppProviders chatRepository={new FakeChatRepository()} locale="en">
+    <AppProviders chatRepository={new FakeChatRepository()}>
       <ChatRoute />
     </AppProviders>,
   );

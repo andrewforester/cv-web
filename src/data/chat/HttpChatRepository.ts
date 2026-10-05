@@ -5,6 +5,7 @@ import {
   CHAT_REQUEST_ID_HEADER,
   type ChatRequest,
   type ChatRequestV2,
+  type ChatRequestV4,
   type ChatStreamEventV2,
 } from './contract';
 import { readChatStream } from './readChatStream';
@@ -25,7 +26,7 @@ export class HttpChatRepository implements ChatRepository {
   }
 
   async *send(
-    request: ChatRequest | ChatRequestV2,
+    request: ChatRequest | ChatRequestV2 | ChatRequestV4,
     signal?: AbortSignal,
   ): AsyncGenerator<ChatStreamEventV2> {
     let response: Response;

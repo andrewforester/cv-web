@@ -13,10 +13,8 @@ export interface ShowUrls {
   normal: string;
 }
 
-/** `/`'s show (docs/retro/ARCHITECTURE.md §10: each page with a show gets its pair). */
-export const CV_SHOW_URLS: ShowUrls = { show: SHOW_SITE, normal: NORMAL_SITE };
-/** `/new`'s show over the profile. */
-export const PROFILE_SHOW_URLS: ShowUrls = { show: './new?retro=1', normal: './new?retro=0' };
+/** The one page's show (docs/retro/ARCHITECTURE.md §11). */
+export const SHOW_URLS: ShowUrls = { show: SHOW_SITE, normal: NORMAL_SITE };
 
 /** Page errors and console errors; a web check fails on any. */
 export function collectErrors(page: Page): string[] {

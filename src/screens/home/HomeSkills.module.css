@@ -1,0 +1,25 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 0 var(--home-wide-gap);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
+  border-top: var(--home-rule);
+}
+
+.title {
+  font-size: var(--type-body-size);
+  font-weight: var(--type-company-weight);
+  line-height: var(--type-company-line-height);
+}
+
+.items {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+  color: var(--color-ink-3);
+}

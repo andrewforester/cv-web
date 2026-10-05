@@ -1,14 +1,14 @@
 import {
   CHAT_LIMITS_V2,
-  type AgentPageState,
+  type AgentPageStateV4,
   type ChatError,
-  type ChatMessageV2,
+  type ChatMessageV4,
   type ChatStopReason,
 } from '../../data/chat';
 import type { ChatActionCall, ChatToolRound, ChatTurn } from './ChatUiState';
 
 export type ConversationAction =
-  | { type: 'ask'; id: string; question: string; page: AgentPageState }
+  | { type: 'ask'; id: string; question: string; page: AgentPageStateV4 }
   | { type: 'retry'; id: string }
   | { type: 'delta'; id: string; text: string }
   /** The model message ended in tool calls: the streamed text and these calls become a round. */
@@ -90,8 +90,8 @@ export function isBusy(turns: readonly ChatTurn[]): boolean {
 }
 
 /** The model messages of a turn's tool rounds: the assistant message, then its results. */
-function roundMessages(rounds: readonly ChatToolRound[]): ChatMessageV2[] {
-  return rounds.flatMap((round): ChatMessageV2[] => [
+function roundMessages(rounds: readonly ChatToolRound[]): ChatMessageV4[] {
+  return rounds.flatMap((round): ChatMessageV4[] => [
     {
       role: 'assistant',
       content: round.text,
@@ -109,7 +109,7 @@ function roundMessages(rounds: readonly ChatToolRound[]): ChatMessageV2[] {
 }
 
 /** The question with its page snapshot and the finished tool rounds: what a retry re-sends. */
-export function turnMessages(turn: ChatTurn): ChatMessageV2[] {
+export function turnMessages(turn: ChatTurn): ChatMessageV4[] {
   return [{ role: 'user', content: turn.question, page: turn.page }, ...roundMessages(turn.rounds)];
 }
 
@@ -118,7 +118,7 @@ export function turnMessages(turn: ChatTurn): ChatMessageV2[] {
  * its tool rounds; stopped and failed turns are dropped with their question so roles keep
  * alternating).
  */
-export function buildHistory(history: readonly ChatTurn[]): ChatMessageV2[] {
+export function buildHistory(history: readonly ChatTurn[]): ChatMessageV4[] {
   return history
     .filter((turn) => turn.status === 'done' && turn.answer.trim() !== '')
     .flatMap((turn) => [
@@ -130,8 +130,8 @@ export function buildHistory(history: readonly ChatTurn[]): ChatMessageV2[] {
 export function buildMessages(
   history: readonly ChatTurn[],
   question: string,
-  page: AgentPageState,
-): ChatMessageV2[] {
+  page: AgentPageStateV4,
+): ChatMessageV4[] {
   return [...buildHistory(history), { role: 'user', content: question, page }];
 }
 

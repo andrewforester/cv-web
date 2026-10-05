@@ -14,12 +14,11 @@ import { ShowRepositoryContext, type ShowRepository } from '../data/retro';
 import { HttpShowRepository } from '../data/retro/HttpShowRepository';
 import { I18nProvider, type Locale } from '../i18n';
 import type { RetroMode } from './retroMode';
-import { pageFor, type Page } from './routes';
 import { RetroModeContext } from './RetroModeContext';
 
 interface AppProvidersProps {
   children: ReactNode;
-  /** Test seams: fake repositories, a fixed locale, retro mode and page (default: from the URL). */
+  /** Test seams: fake repositories, a fixed locale and retro mode. */
   repository?: CvRepository;
   profileRepository?: ProfileRepository;
   cvPageRepository?: CvPageRepository;
@@ -28,7 +27,6 @@ interface AppProvidersProps {
   agentRegistry?: AgentToolRegistry;
   locale?: Locale;
   retroMode?: RetroMode;
-  page?: Page;
 }
 
 /** The data bindings live here: swap an implementation (e.g. `StaticCvRepository`) in one line. */
@@ -42,7 +40,6 @@ export function AppProviders({
   agentRegistry,
   locale,
   retroMode,
-  page = pageFor(window.location.pathname),
 }: AppProvidersProps) {
   // One static instance serves every seam until a backend replaces it.
   const [{ cvRepository, profile, cvPage }] = useState(() => {
@@ -65,9 +62,7 @@ export function AppProviders({
             <ChatRepositoryContext value={chat}>
               <ShowRepositoryContext value={show}>
                 <RetroModeContext value={retroMode}>
-                  <AgentProvider registry={registry} page={page}>
-                    {children}
-                  </AgentProvider>
+                  <AgentProvider registry={registry}>{children}</AgentProvider>
                 </RetroModeContext>
               </ShowRepositoryContext>
             </ChatRepositoryContext>

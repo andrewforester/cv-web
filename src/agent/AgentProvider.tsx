@@ -1,44 +1,31 @@
 import { useEffect, type ReactNode } from 'react';
-import { useCvRepository, useProfileRepository } from '../data';
-import {
-  buildAgentToolSpecs,
-  buildProfileToolSpecs,
-  type AgentToolSpec,
-  type ChatPage,
-} from '../data/chat';
+import { useCvPageRepository } from '../data';
+import { buildCvPageToolSpecs } from '../data/chat';
 import { AgentRegistryContext } from './AgentRegistryContext';
 import type { AgentToolRegistry } from './AgentToolRegistry';
 
 interface AgentProviderProps {
   registry: AgentToolRegistry;
-  /** The page on screen: its catalogue is the one the chat may call. */
-  page: ChatPage;
   children: ReactNode;
 }
 
 /**
- * Provides the registry and fills its catalogue from the page's data: the CV on `/`, the profile
- * on `/new` (ids are the same in every locale, so the English data is enough). Until it loads,
- * every tool answers `not_available`.
+ * Provides the registry and fills its catalogue from the one page's data (ADR-0006), so the chat
+ * may only name the page's sections and items. Until it loads, every tool answers `not_available`.
  */
-export function AgentProvider({ registry, page, children }: AgentProviderProps) {
-  const cvRepository = useCvRepository();
-  const profileRepository = useProfileRepository();
+export function AgentProvider({ registry, children }: AgentProviderProps) {
+  const repository = useCvPageRepository();
 
   useEffect(() => {
     let active = true;
-    const catalogue: Promise<AgentToolSpec[]> =
-      page === 'profile'
-        ? profileRepository.getProfile('en').then(buildProfileToolSpecs)
-        : cvRepository.getCv('en').then(buildAgentToolSpecs);
-    catalogue.then(
-      (specs) => active && registry.setCatalogue(specs),
+    repository.getCvPage().then(
+      (page) => active && registry.setCatalogue(buildCvPageToolSpecs(page)),
       () => undefined,
     );
     return () => {
       active = false;
     };
-  }, [page, cvRepository, profileRepository, registry]);
+  }, [repository, registry]);
 
   return <AgentRegistryContext value={registry}>{children}</AgentRegistryContext>;
 }

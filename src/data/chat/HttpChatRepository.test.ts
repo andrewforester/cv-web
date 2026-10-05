@@ -1,7 +1,22 @@
-import type { ChatRequest, ChatStreamEventV2 } from './contract';
+import type { ChatRequestV4, ChatStreamEventV2 } from './contract';
 import { HttpChatRepository } from './HttpChatRepository';
 
-const request: ChatRequest = { v: 1, locale: 'en', messages: [{ role: 'user', content: 'Hi' }] };
+const request: ChatRequestV4 = {
+  v: 4,
+  messages: [
+    {
+      role: 'user',
+      content: 'Hi',
+      page: {
+        viewport: 'desktop',
+        chat: 'card',
+        activeSection: null,
+        highlighted: null,
+        tools: [],
+      },
+    },
+  ],
+};
 const usage = {
   inputTokens: 1,
   outputTokens: 2,
