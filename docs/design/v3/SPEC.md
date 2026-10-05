@@ -82,21 +82,20 @@ separate layout.
 1. **One page, one URL.** `/` shows this page. `/new` stays reachable and shows the same page
    (old links keep working); there is no second page any more. How (alias vs redirect) is the
    architecture's call.
-2. **Ukrainian.** The design is EN only. The site stays bilingual: the UK text is a translation of
-   these EN texts, written in the build task, proofread by the human later (company and product
-   names, tech terms and numbers stay as is).
-3. **Cyrillic font.** Figtree has no Cyrillic: for `uk` use a close fallback with Cyrillic
-   (decided by the Theme task, e.g. Onest, already self-hosted). Record which one.
-4. **Missing assets.** The SpotOn icon (`cv_app_spoton.png`) is not in the package: render the
-   design's own fallback, the gradient initials tile ("S"). `cv_logo_samsung_hq2.png` here is a
-   copy of the existing Samsung logo; use it.
+2. **English only** (the human, 2026-10-05). No Ukrainian anywhere: no translation, no language
+   switcher, no `uk` locale (ADR-0006 → Decision 6).
+3. **Fonts:** Figtree + JetBrains Mono, latin subsets only.
+4. **Logos.** Samsung: the classic blue ellipse logo, `assets/cv_logo_samsung.svg` (the human's
+   pick, 2026-10-05; Wikimedia Commons `Samsung_Logo.svg`); it replaces `cv_logo_samsung_hq2.png`,
+   shown plain (no tile) as in the design. SpotOn: `assets/cv_app_spoton.png`, the App Store icon
+   of SpotOn Restaurant Reports (the human's pick, 2026-10-05), shown like the other app icons.
 5. **Dropped from the design file:** headline variant B, the "TnAir" alternative palette and the
    unused `apps` list (Savant). They are not part of the page.
 6. **Chat.** The "Ask my AI" pill replaces the round launcher; the chat panel keeps its behaviour
    (`docs/design/chat/SPEC.md`) and is restyled to this palette (the Forest-dark panel becomes the
    v3 dark panel colours above). The chat answers about this one page.
-7. **Language switcher and Show case button** go at the end of the meta bar (as today in Forest),
-   styled as small mono pills in this palette.
+7. **Show case button** goes at the end of the meta bar (as today in Forest), styled as a small
+   mono pill in this palette.
 8. Contact links: phone numbers and URLs exactly as in the design (`wa.me/380938977110`,
    `t.me/+380938977110`, LinkedIn `in/andriipanasiuk`).
 
