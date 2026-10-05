@@ -1,6 +1,6 @@
 # ADR-0005: The Show case per page: one engine, a scenario per page, the same step ids
 
-**Status:** Proposed (CV-95)
+**Status:** Superseded by [ADR-0006](0006-one-page-v3.md) (CV-107; was Proposed in CV-95)
 **Date:** 2026-10-02
 **Deciders:** Andrew Panasiuk (owner); orchestrator
 **Related:** [`docs/retro/ARCHITECTURE.md`](../retro/ARCHITECTURE.md) §10 (the design and the build

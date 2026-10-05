@@ -1,6 +1,6 @@
 # ADR-0004: The AI chat knows which page it is on
 
-**Status:** Proposed (CV-94)
+**Status:** Superseded by [ADR-0006](0006-one-page-v3.md) (CV-107; was Proposed in CV-94)
 **Date:** 2026-10-02
 **Deciders:** Andrew Panasiuk (owner); orchestrator
 **Related:** [`docs/chat/API.md`](../chat/API.md) (→ Page-aware chat), [`docs/chat/AGENT.md`](../chat/AGENT.md),
