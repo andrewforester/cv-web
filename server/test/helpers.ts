@@ -1,18 +1,26 @@
 import type {
   AgentPageState,
+  AgentPageStateV4,
   AgentToolCall,
+  ChatAssistantMessageV2,
   ChatLocale,
   ChatMessageV2,
+  ChatMessageV4,
   ChatRequest,
   ChatRequestV2,
+  ChatRequestV4,
+  ChatToolResultsMessageV2,
 } from '../../src/data/chat/contract.js';
 import type { ShowNarrateRequest, ShowReplyRequest } from '../../src/data/retro/contract.js';
 import { RETRO_SCENARIO_ID } from '../../src/data/retro/scenario.js';
 import { readChatConfig } from '../chat/config.js';
 import type { ChatDeps } from '../chat/handler.js';
 import { DayCostMeter } from '../chat/dayCost.js';
-import { createPageKnowledgeLoader } from '../chat/knowledge/assembleKnowledge.js';
-import { KNOWLEDGE_SOURCES_BY_PAGE } from '../chat/knowledge/sources.js';
+import {
+  createCvPageKnowledgeLoader,
+  createPageKnowledgeLoader,
+} from '../chat/knowledge/assembleKnowledge.js';
+import { CV_PAGE_KNOWLEDGE_SOURCES, KNOWLEDGE_SOURCES_BY_PAGE } from '../chat/knowledge/sources.js';
 import { FakeLlmClient, type FakeScript } from '../chat/llm/FakeLlmClient.js';
 import type { ChatLogEntry } from '../chat/log.js';
 import { RateLimiter } from '../chat/rateLimiter.js';
@@ -41,19 +49,24 @@ export const SCROLL_APPS: AgentToolCall = {
   input: { section: 'apps' },
 };
 
-/** v2 message builders: a question, a tool-use turn and its results (all `ok` by default). */
+/**
+ * v2 message builders: a question, a tool-use turn and its results (all `ok` by default). The
+ * last two are v4's too.
+ */
 export const question = (content: string): ChatMessageV2 => ({ role: 'user', content, page: PAGE });
 export const toolTurn = (
   toolCalls: AgentToolCall[] = [SCROLL_APPS],
   content = 'Scrolling.',
   providerState?: string,
-): ChatMessageV2 => ({
+): ChatAssistantMessageV2 => ({
   role: 'assistant',
   content,
   toolCalls,
   ...(providerState !== undefined ? { providerState } : {}),
 });
-export const toolResults = (toolCalls: AgentToolCall[] = [SCROLL_APPS]): ChatMessageV2 => ({
+export const toolResults = (
+  toolCalls: AgentToolCall[] = [SCROLL_APPS],
+): ChatToolResultsMessageV2 => ({
   role: 'user',
   toolResults: toolCalls.map((call) => ({ callId: call.id, result: { ok: true } })),
 });
@@ -75,6 +88,32 @@ export const profileBody = (
   locale,
   page: 'profile',
   messages: [{ role: 'user', content, page: { ...PROFILE_PAGE, locale } }],
+});
+
+/** The one page's snapshot (v4: no route, no locale) and a v4 body; default: one question. */
+export const PAGE_V4: AgentPageStateV4 = {
+  viewport: 'desktop',
+  chat: 'card',
+  activeSection: 'header',
+  highlighted: null,
+  tools: ['highlightElement', 'openContact', 'scrollToSection'],
+};
+
+export const SCROLL_IMPACT: AgentToolCall = {
+  id: 'toolu_1',
+  name: 'scrollToSection',
+  input: { section: 'impact' },
+};
+
+export const questionV4 = (content: string): ChatMessageV4 => ({
+  role: 'user',
+  content,
+  page: PAGE_V4,
+});
+
+export const v4Body = (...messages: ChatMessageV4[]): ChatRequestV4 => ({
+  v: 4,
+  messages: messages.length > 0 ? messages : [questionV4('Show his selected impact')],
 });
 
 /** v3 bodies: the show's narration request and a visitor message during step 2. */
@@ -135,6 +174,7 @@ export function testDeps(
     limiter: new RateLimiter(),
     dayCost: new DayCostMeter(),
     knowledge: createPageKnowledgeLoader(KNOWLEDGE_SOURCES_BY_PAGE),
+    cvPageKnowledge: createCvPageKnowledgeLoader(CV_PAGE_KNOWLEDGE_SOURCES),
     log: (entry) => logs.push(entry),
     newRequestId: () => 'req-1',
     logs,

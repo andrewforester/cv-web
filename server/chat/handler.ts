@@ -1,8 +1,10 @@
 import {
   CHAT_API_VERSION_V2,
+  CHAT_API_VERSION_V4,
   CHAT_LIMITS,
   type ChatError,
   type ChatMessageV2,
+  type ChatMessageV4,
   type ChatRequest,
 } from '../../src/data/chat/contract.js';
 import { CHAT_API_VERSION_V3 } from '../../src/data/retro/contract.js';
@@ -11,7 +13,7 @@ import type { ChatConfig } from './config.js';
 import type { DayCostMeter } from './dayCost.js';
 import { chatError, errorResponse, HTTP_STATUS_BY_CODE } from './errors.js';
 import { checkContentType, checkMethod, checkOrigin, readBody } from './guards.js';
-import type { PageKnowledgeLoader } from './knowledge/assembleKnowledge.js';
+import type { CvPageKnowledgeLoader, PageKnowledgeLoader } from './knowledge/assembleKnowledge.js';
 import type { LlmClient, LlmRequest } from './llm/LlmClient.js';
 import type { ChatLogEntry, ChatLogger } from './log.js';
 import { buildLlmRequest } from './prompt/buildLlmRequest.js';
@@ -33,6 +35,8 @@ export interface ChatDeps {
   dayCost: DayCostMeter;
   /** The page's knowledge in a locale (ADR-0004: only the page the chat is on). */
   knowledge: PageKnowledgeLoader;
+  /** v4: the one page's knowledge (ADR-0006), English, the same for every request. */
+  cvPageKnowledge: CvPageKnowledgeLoader;
   log: ChatLogger;
   now?: () => number;
   newRequestId?: () => string;
@@ -88,7 +92,7 @@ function newEntry(requestId: string, deps: ChatDeps, request: Request): ChatLogE
 }
 
 /** Characters of text the visitor and the model wrote (never the text itself). */
-function inputChars(messages: ChatRequest['messages'] | ChatMessageV2[]): number {
+function inputChars(messages: ChatRequest['messages'] | ChatMessageV2[] | ChatMessageV4[]): number {
   return messages.reduce(
     (sum, message) => sum + ('content' in message ? message.content.length : 0),
     0,
@@ -105,7 +109,7 @@ function parseJson(text: string): { ok: true; value: unknown } | { ok: false } {
 
 /**
  * `POST /api/chat` (docs/chat/API.md): guards, rate limit, body and validation, the page's
- * knowledge, prompt, then the SSE answer. `v: 3` (the show dialect) shares everything up to the
+ * knowledge (v4: the one page's), prompt, then the SSE answer. `v: 3` (the show dialect) shares everything up to the
  * body, then takes its own validation and prompts (`show/`). Every outcome writes exactly one log
  * line.
  */
@@ -199,20 +203,27 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
 
   const validation = validateChatRequest(json.value);
   if (!validation.ok) {
-    return fail(validation.error, entry.v === CHAT_API_VERSION_V2 ? entry.v : undefined);
+    const { v } = entry;
+    return fail(
+      validation.error,
+      v === CHAT_API_VERSION_V2 || v === CHAT_API_VERSION_V4 ? v : undefined,
+    );
   }
 
   const chat = validation.request;
-  const page = chatPageOf(chat);
-  entry.locale = chat.locale;
-  entry.page = page;
+  // v4 has neither: the one page, in English.
+  entry.locale = chat.v === 4 ? null : chat.locale;
+  entry.page = chatPageOf(chat);
   entry.messages = chat.messages.length;
   entry.inputChars = inputChars(chat.messages);
 
   try {
-    const knowledge = await deps.knowledge(page, chat.locale);
+    const knowledge =
+      chat.v === 4
+        ? await deps.cvPageKnowledge()
+        : await deps.knowledge(chatPageOf(chat), chat.locale);
     const llmRequest = buildLlmRequest(chat, knowledge, deps.config.model);
-    if (chat.v === 2) {
+    if (chat.v !== 1) {
       entry.toolRound = chat.toolRound;
       entry.toolChoice = llmRequest.tool_choice?.type ?? null;
     }
