@@ -1,0 +1,28 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.point {
+  display: flex;
+  gap: var(--space-3);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+
+/* A narrowed em dash, as in the design. */
+.dash {
+  display: inline-block;
+  flex: none;
+  margin-right: -0.3em;
+  color: var(--color-accent-hover);
+  opacity: var(--home-bullet-opacity);
+  transform: scaleX(0.7);
+  transform-origin: left center;
+}

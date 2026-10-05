@@ -1,7 +1,6 @@
 /** Test ids of the Forest building blocks; a page's sections get theirs from the screen. */
 export const forestTestIds = {
   metaBar: 'forest-meta-bar',
-  showCase: 'forest-show-case',
   hero: 'forest-hero',
   name: 'forest-name',
   headline: 'forest-headline',
