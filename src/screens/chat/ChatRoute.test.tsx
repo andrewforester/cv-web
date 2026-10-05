@@ -10,7 +10,7 @@ describe('chat widget', () => {
   it('opens from the FAB, shows the empty state, closes with × and returns focus', async () => {
     const user = userEvent.setup();
     render(
-      <AppProviders chatRepository={new FakeChatRepository()} locale="en">
+      <AppProviders chatRepository={new FakeChatRepository()}>
         <ChatRoute />
       </AppProviders>,
     );
@@ -19,7 +19,7 @@ describe('chat widget', () => {
     await user.click(screen.getByRole('button', { name: 'Open chat with the AI assistant' }));
 
     const dialog = screen.getByRole('dialog', { name: 'Ask about Andrew' });
-    expect(dialog).toHaveAccessibleDescription('AI assistant · answers from this CV');
+    expect(dialog).toHaveAccessibleDescription('AI assistant · answers from this page');
     expect(within(dialog).getByRole('textbox', { name: 'Your question' })).toHaveFocus();
     expect(within(dialog).getAllByTestId(chatTestIds.suggestion)).toHaveLength(4);
     expect(within(dialog).getByRole('button', { name: 'Send' })).toBeDisabled();
@@ -32,7 +32,7 @@ describe('chat widget', () => {
   it('closes on Esc and returns focus to the FAB; the conversation survives reopening', async () => {
     const { repository, user } = await renderOpenChat();
     repository.reply(...answer('Since 2012.'));
-    await user.click(screen.getByRole('button', { name: 'What is his experience with Android?' }));
+    await user.click(screen.getByRole('button', { name: 'How does he build with AI agents?' }));
     expect(await inList().findByText('Since 2012.')).toBeInTheDocument();
 
     await user.keyboard('{Escape}');
@@ -43,24 +43,29 @@ describe('chat widget', () => {
     expect(inList().getByText('Since 2012.')).toBeInTheDocument();
   });
 
-  it('sends a suggested question with the locale and renders deltas progressively', async () => {
+  it('sends a suggested question as v4 and renders deltas progressively', async () => {
     const { repository, user } = await renderOpenChat();
-    await user.click(screen.getByRole('button', { name: 'Which apps has he worked on?' }));
+    await user.click(screen.getByRole('button', { name: 'Which apps has he shipped?' }));
 
     expect(screen.getByTestId(chatTestIds.visitorMessage)).toHaveTextContent(
-      'Which apps has he worked on?',
+      'Which apps has he shipped?',
     );
     expect(screen.queryAllByTestId(chatTestIds.suggestion)).toHaveLength(0);
     expect(screen.getByTestId(chatTestIds.typing)).toBeInTheDocument();
     expect(screen.getByTestId(chatTestIds.announcer)).toHaveTextContent('Assistant is typing…');
-    expect(repository.requests[0]).toMatchObject({
-      v: 2,
-      locale: 'en',
+    expect(repository.requests[0]).toEqual({
+      v: 4,
       messages: [
         {
           role: 'user',
-          content: 'Which apps has he worked on?',
-          page: { route: '/', locale: 'en', tools: [] },
+          content: 'Which apps has he shipped?',
+          page: {
+            viewport: 'desktop',
+            chat: 'card',
+            activeSection: null,
+            highlighted: null,
+            tools: [],
+          },
         },
       ],
     });
@@ -101,7 +106,7 @@ describe('chat widget', () => {
 
   it('stops a streaming answer, keeps the partial text and drops it from the history', async () => {
     const { repository, user } = await renderOpenChat();
-    await user.click(screen.getByRole('button', { name: 'Has he led a team?' }));
+    await user.click(screen.getByRole('button', { name: 'Is he open to new roles?' }));
     await act(async () => repository.emit({ type: 'delta', text: 'Yes, at ivi' }));
 
     await user.click(screen.getByRole('button', { name: 'Stop answer' }));
@@ -115,17 +120,5 @@ describe('chat widget', () => {
     await user.type(screen.getByTestId(chatTestIds.input), 'Next?{Enter}');
     await inList().findByText('Next');
     expect(repository.requests[1]?.messages).toMatchObject([{ role: 'user', content: 'Next?' }]);
-  });
-
-  it('shows Ukrainian texts', async () => {
-    const { repository, user } = await renderOpenChat('uk');
-    expect(screen.getByRole('dialog', { name: 'Запитайте про Андрія' })).toBeInTheDocument();
-    repository.reply(...answer('Так.'));
-
-    await user.click(screen.getByRole('button', { name: 'Чи керував він командою?' }));
-
-    expect(await inList().findByText('Так.')).toBeInTheDocument();
-    expect(repository.requests[0]?.locale).toBe('uk');
-    expect(screen.getByText('Відповіді генерує ШІ, тож можливі помилки.')).toBeInTheDocument();
   });
 });

@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react';
-import type { ChatPage } from '../data/chat';
-
-/** What the shell passes to the chat: the page it is on. */
-export interface ChatProps {
-  page: ChatPage;
-}
-
 export interface LazyChat {
   /** The AI chat to render: loaded, and not hidden by the show. */
-  Chat: ComponentType<ChatProps> | null;
+  Chat: ComponentType | null;
   /** Loads the chunk and resolves once the chat is on the page (the show's `ai-chat` loader). */
   load: () => Promise<void>;
 }
@@ -20,7 +13,7 @@ export interface LazyChat {
  * today's site unmounts it) until the show's `load` puts it back.
  */
 export function useLazyChat(normal: boolean): LazyChat {
-  const [Chat, setChat] = useState<ComponentType<ChatProps> | null>(null);
+  const [Chat, setChat] = useState<ComponentType | null>(null);
   const [loadedByShow, setLoadedByShow] = useState(false);
   const [wasNormal, setWasNormal] = useState(normal);
   if (wasNormal !== normal) {

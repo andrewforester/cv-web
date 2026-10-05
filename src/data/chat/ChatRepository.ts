@@ -1,4 +1,4 @@
-import type { ChatRequest, ChatRequestV2, ChatStreamEventV2 } from './contract';
+import type { ChatRequest, ChatRequestV2, ChatRequestV4, ChatStreamEventV2 } from './contract';
 
 /**
  * The chat seam: streams one answer for a conversation (docs/chat/API.md).
@@ -9,7 +9,7 @@ import type { ChatRequest, ChatRequestV2, ChatStreamEventV2 } from './contract';
  */
 export interface ChatRepository {
   send(
-    request: ChatRequest | ChatRequestV2,
+    request: ChatRequest | ChatRequestV2 | ChatRequestV4,
     signal?: AbortSignal,
   ): AsyncIterable<ChatStreamEventV2>;
 }

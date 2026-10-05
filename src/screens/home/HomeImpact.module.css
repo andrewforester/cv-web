@@ -1,0 +1,41 @@
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: var(--space-3);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: var(--home-impact-min-height);
+  padding: var(--space-5);
+  border-radius: var(--radius-card);
+}
+
+.lilac {
+  background: var(--color-surface-lilac);
+}
+
+.pink {
+  background: var(--color-surface-pink);
+}
+
+.neutral {
+  background: var(--color-surface);
+}
+
+.value {
+  font-size: var(--type-impact-size);
+  font-weight: var(--type-impact-weight);
+  line-height: var(--type-impact-line-height);
+  letter-spacing: var(--type-impact-letter-spacing);
+}
+
+.text {
+  margin-top: auto;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+  color: var(--color-ink-3);
+  text-wrap: pretty;
+}

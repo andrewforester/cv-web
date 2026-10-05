@@ -1,0 +1,52 @@
+import type { CvProject } from '../../data';
+import type { AgentTargetId } from '../../data/chat';
+import { agentTargetProps } from '../../shared/agentTarget';
+import { HomePoints } from './HomePoints';
+import styles from './HomeProjects.module.css';
+import { HomeStoreMeta } from './HomeStoreMeta';
+import { homeImageUrl } from './images';
+import { homeTestIds } from './testIds';
+
+interface HomeProjectsProps {
+  projects: CvProject[];
+  highlightedId: AgentTargetId | null;
+}
+
+/** A job's client projects on a dotted tree from the job's logo (agent targets `app:<id>`). */
+export function HomeProjects({ projects, highlightedId }: HomeProjectsProps) {
+  return (
+    <div className={styles.root}>
+      {projects.map((project) => (
+        <div
+          key={project.id}
+          className={styles.project}
+          data-testid={homeTestIds.project}
+          {...agentTargetProps('app', project.id, highlightedId)}
+        >
+          <span className={styles.stem} aria-hidden="true" />
+          <span className={styles.branch} aria-hidden="true" />
+          <div className={styles.body}>
+            <div className={styles.card}>
+              {project.icon ? (
+                <img className={styles.icon} src={homeImageUrl(project.icon)} alt="" />
+              ) : (
+                <span className={`${styles.icon} ${styles.initials}`} aria-hidden="true">
+                  {project.name.charAt(0)}
+                </span>
+              )}
+              <div className={styles.names}>
+                <div className={styles.name}>{project.name}</div>
+                <span className={styles.domain}>{project.domain}</span>
+                <HomeStoreMeta className={styles.meta} text={project.meta} />
+              </div>
+            </div>
+            <div className={styles.details}>
+              <div className={styles.about}>{project.about}</div>
+              <HomePoints points={project.points} />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}

@@ -1,5 +1,5 @@
 import type {
-  AgentPageState,
+  AgentPageStateV4,
   AgentToolCall,
   AgentToolResult,
   ChatError,
@@ -42,7 +42,7 @@ export interface ChatTurn {
   readonly id: string;
   readonly question: string;
   /** The page snapshot taken when the question was sent (kept so history stays append-only). */
-  readonly page: AgentPageState;
+  readonly page: AgentPageStateV4;
   /** Finished tool rounds of this turn, in order; the `answer` is the model message after them. */
   readonly rounds: readonly ChatToolRound[];
   readonly answer: string;

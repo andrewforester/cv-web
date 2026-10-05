@@ -1,5 +1,5 @@
 import type { ChatRepository } from './ChatRepository';
-import type { ChatRequest, ChatRequestV2, ChatStreamEventV2 } from './contract';
+import type { ChatRequest, ChatRequestV2, ChatRequestV4, ChatStreamEventV2 } from './contract';
 
 /**
  * Scripted `ChatRepository` for tests. Each `send` plays the next reply queued with `reply()`
@@ -8,7 +8,7 @@ import type { ChatRequest, ChatRequestV2, ChatStreamEventV2 } from './contract';
  * streamed answer. Aborting the signal ends the stream. Every request is recorded in `requests`.
  */
 export class FakeChatRepository implements ChatRepository {
-  readonly requests: (ChatRequest | ChatRequestV2)[] = [];
+  readonly requests: (ChatRequest | ChatRequestV2 | ChatRequestV4)[] = [];
   private readonly replies: ChatStreamEventV2[][] = [];
   private live: EventChannel | null = null;
 
@@ -31,7 +31,7 @@ export class FakeChatRepository implements ChatRepository {
   }
 
   async *send(
-    request: ChatRequest | ChatRequestV2,
+    request: ChatRequest | ChatRequestV2 | ChatRequestV4,
     signal?: AbortSignal,
   ): AsyncGenerator<ChatStreamEventV2> {
     this.requests.push(request);

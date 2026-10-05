@@ -1,20 +1,19 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 import {
-  CHAT_API_VERSION_V2,
+  CHAT_API_VERSION_V4,
   CHAT_LIMITS_V2,
-  CHAT_PAGE_ROUTES,
+  CV_SECTION_IDS,
   useChatRepository,
-  type AgentPageState,
+  type AgentPageStateV4,
   type AgentToolCall,
   type ChatError,
-  type ChatLocale,
-  type ChatMessageV2,
-  type ChatPage,
-  type ChatRequestV2,
+  type ChatMessageV4,
+  type ChatRequestV4,
+  type CvSectionId,
 } from '../../data/chat';
-import { useCvRepository, useProfileRepository } from '../../data';
+import { useCvPageRepository } from '../../data';
 import { useAgentRegistry } from '../../agent';
-import { useLocale, useStrings } from '../../i18n';
+import { useStrings } from '../../i18n';
 import { useAgentExecutor } from './agentExecutor';
 import type { ChatAnnouncementInput, ChatTurn } from './ChatUiState';
 import {
@@ -43,8 +42,6 @@ export interface Conversation {
 }
 
 interface ConversationOptions {
-  /** The page the chat is on: sent with every request; its data backs chips and confirmations. */
-  page: ChatPage;
   announce: (announcement: ChatAnnouncementInput) => void;
   /** The chat is the full-screen sheet: visual page actions close it (the conversation stays). */
   sheet: boolean;
@@ -62,26 +59,27 @@ const tooManyRounds: ChatError = {
   retryable: false,
 };
 
+/** The page's section in view; any other view (an old screen until the Cleanup task) is none. */
+const pageSection = (section: string | null): CvSectionId | null =>
+  CV_SECTION_IDS.find((id) => id === section) ?? null;
+
 /**
- * Drives the conversation: sends the completed history + the question through `ChatRepository`,
- * appends streamed deltas, and runs the model's page tools client-side (AGENT.md §4): after a
- * `done: tool_use` the calls run in order, the results go back in a follow-up request, at most
- * `maxToolRoundsPerTurn` times. Stop (abort) drops the turn; a retry re-sends the finished rounds
- * and never runs their tools again. A running turn keeps going while the panel is closed;
- * unmount aborts it.
+ * Drives the conversation on the one page (API.md → v4): sends the completed history + the
+ * question through `ChatRepository`, appends streamed deltas, and runs the model's page tools
+ * client-side (AGENT.md §4): after a `done: tool_use` the calls run in order, the results go back
+ * in a follow-up request, at most `maxToolRoundsPerTurn` times. Stop (abort) drops the turn; a
+ * retry re-sends the finished rounds and never runs their tools again. A running turn keeps going
+ * while the panel is closed; unmount aborts it.
  */
 export function useChatConversation({
-  page,
   announce,
   sheet,
   closeSheet,
 }: ConversationOptions): Conversation {
   const repository = useChatRepository();
-  const cvRepository = useCvRepository();
-  const profileRepository = useProfileRepository();
+  const cvPageRepository = useCvPageRepository();
   const executor = useAgentExecutor();
   const registry = useAgentRegistry();
-  const { locale } = useLocale();
   const strings = useStrings(chatStrings);
   const [turns, dispatch] = useReducer(conversationReducer, []);
   const controller = useRef<AbortController | null>(null);
@@ -95,28 +93,26 @@ export function useChatConversation({
   });
   useEffect(() => () => controller.current?.abort(), []);
 
-  const pageState = useCallback(
-    (): AgentPageState => ({
-      route: CHAT_PAGE_ROUTES[page],
-      locale,
+  const pageState = useCallback((): AgentPageStateV4 => {
+    const { activeSection, highlighted } = registry.view();
+    return {
       viewport: sheet ? 'mobile' : 'desktop',
       chat: sheet ? 'sheet' : 'card',
-      ...registry.view(),
+      activeSection: pageSection(activeSection),
+      highlighted,
       tools: executor.available(),
-    }),
-    [page, locale, sheet, registry, executor],
-  );
+    };
+  }, [sheet, registry, executor]);
 
   const { waitForDecision, confirmAction, declineAction } = useConfirmationDecisions();
 
   const run = useCallback(
-    async (id: string, initial: ChatMessageV2[], finishedRounds: number) => {
+    async (id: string, initial: ChatMessageV4[], finishedRounds: number) => {
       const current = new AbortController();
       const { signal } = current;
       controller.current = current;
       const messages = [...initial];
       let rounds = finishedRounds;
-      let requestLocale: ChatLocale = locale;
       const fail = (error: ChatError) => {
         dispatch({ type: 'fail', id, error });
         announce({ kind: 'error', code: error.code, retryable: error.retryable });
@@ -125,12 +121,7 @@ export function useChatConversation({
         for (;;) {
           let answer = '';
           const calls: AgentToolCall[] = [];
-          const request: ChatRequestV2 = {
-            v: CHAT_API_VERSION_V2,
-            locale: requestLocale,
-            page,
-            messages: [...messages],
-          };
+          const request: ChatRequestV4 = { v: CHAT_API_VERSION_V4, messages: [...messages] };
           let terminal;
           for await (const event of repository.send(request, signal)) {
             if (signal.aborted) return;
@@ -157,10 +148,7 @@ export function useChatConversation({
           }
           if (rounds >= CHAT_LIMITS_V2.maxToolRoundsPerTurn) return fail(tooManyRounds);
 
-          const content = await loadPageContent(page, locale, {
-            cv: cvRepository,
-            profile: profileRepository,
-          });
+          const content = await loadPageContent(cvPageRepository);
           const results = await runToolCalls(calls, terminal.providerState, {
             turnId: id,
             executor,
@@ -184,10 +172,6 @@ export function useChatConversation({
             },
             { role: 'user', toolResults: results },
           );
-          calls.forEach((call, index) => {
-            if (!results[index]?.result.ok) return;
-            if (call.name === 'switchLanguage') requestLocale = call.input.locale as ChatLocale;
-          });
           if (
             latest.current.sheet &&
             calls.some((call, i) => VISUAL_TOOLS.includes(call.name) && results[i]?.result.ok)
@@ -204,17 +188,7 @@ export function useChatConversation({
         if (controller.current === current) controller.current = null;
       }
     },
-    [
-      repository,
-      page,
-      cvRepository,
-      profileRepository,
-      executor,
-      locale,
-      strings,
-      announce,
-      waitForDecision,
-    ],
+    [repository, cvPageRepository, executor, strings, announce, waitForDecision],
   );
 
   const busy = isBusy(turns);

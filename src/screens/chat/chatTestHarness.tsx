@@ -2,44 +2,30 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AppProviders } from '../../app/AppProviders';
 import {
-  buildAgentToolSpecs,
-  buildProfileToolSpecs,
+  buildCvPageToolSpecs,
   FakeChatRepository,
   type AgentToolCall,
-  type ChatPage,
   type ChatStreamEventV2,
 } from '../../data/chat';
 import { StaticCvRepository } from '../../data/mock/StaticCvRepository';
-import type { Locale } from '../../i18n';
 import { AgentExecutorContext } from './agentExecutor';
 import { FakeAgentExecutor } from './fakeAgentExecutor';
 import { ChatRoute } from './ChatRoute';
 import { chatTestIds } from './testIds';
 
-/** The page's real catalogue, as the app's `AgentProvider` builds it. */
-async function catalogue(page: ChatPage) {
-  const data = new StaticCvRepository();
-  return page === 'profile'
-    ? buildProfileToolSpecs(await data.getProfile('en'))
-    : buildAgentToolSpecs(await data.getCv('en'));
-}
-
 /**
- * Test helper: the chat widget on `page` (default the CV) over a `FakeChatRepository`, already
- * opened. With `withTools`, the page tools are a `FakeAgentExecutor` over the page's real
- * catalogue (returned as `executor`).
+ * Test helper: the chat widget over a `FakeChatRepository`, already opened. With `withTools`, the
+ * page tools are a `FakeAgentExecutor` over the page's real catalogue (returned as `executor`).
  */
-export async function renderOpenChat(
-  locale: Locale = 'en',
-  { withTools = false, page = 'cv' as ChatPage } = {},
-) {
+export async function renderOpenChat({ withTools = false } = {}) {
   const repository = new FakeChatRepository();
-  const executor = new FakeAgentExecutor(await catalogue(page));
+  const page = await new StaticCvRepository().getCvPage();
+  const executor = new FakeAgentExecutor(buildCvPageToolSpecs(page));
   const user = userEvent.setup();
   render(
-    <AppProviders chatRepository={repository} locale={locale} page={page}>
+    <AppProviders chatRepository={repository}>
       <AgentExecutorContext value={withTools ? executor : null}>
-        <ChatRoute page={page} />
+        <ChatRoute />
       </AgentExecutorContext>
     </AppProviders>,
   );
