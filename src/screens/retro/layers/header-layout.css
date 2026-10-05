@@ -1,7 +1,6 @@
 [data-retro-stage] [data-testid='home-header'] {
   align-items: center;
   gap: 8px;
-  text-align: center;
 }
 [data-retro-stage] div:has(> [data-testid='home-contact']) {
   display: block;

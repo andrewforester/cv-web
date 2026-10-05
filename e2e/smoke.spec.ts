@@ -12,7 +12,7 @@ test('loads directly and renders without errors', async ({ page }) => {
   await expect(page.getByTestId('home-name')).toHaveText('Andrew Panasiuk');
   await expect(page.getByTestId('home-job')).toHaveCount(9);
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await expect(page.getByTestId('show-case')).toHaveCount(0);
+  await expect(page.getByTestId('home-meta-bar').getByTestId('show-case')).toBeVisible();
   await page.screenshot({ path: `${SCREENSHOT_DIR}/home.png`, fullPage: true });
   expect(errors).toEqual([]);
 });
