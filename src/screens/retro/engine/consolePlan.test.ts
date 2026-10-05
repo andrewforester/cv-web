@@ -137,9 +137,7 @@ describe('layer host', () => {
   it('morphs instantly where view transitions are missing', async () => {
     const host = newHost();
     host.sync(styles(['page-frame', 'skills-grid']));
-    await host.morph(styles(['skills-grid']), [
-      "[data-retro-stage] [data-testid='home-header']",
-    ]);
+    await host.morph(styles(['skills-grid']), ["[data-retro-stage] [data-testid='home-header']"]);
     expect(injected()).toEqual(['skills-grid']);
     expect(document.head.querySelector('style[data-retro-motion]')).toBeNull();
   });
