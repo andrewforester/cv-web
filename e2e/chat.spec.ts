@@ -22,7 +22,7 @@ const cases = [
   {
     locale: 'en',
     browserLocale: 'en-US',
-    question: 'Which apps has he worked on?',
+    question: 'Which apps has he shipped?',
     deltas: ['Andrew built **Cync** and ', '**August Home**:\n\n- 1M+ users each'],
     answer: 'Andrew built Cync and August Home:',
   },
@@ -41,7 +41,7 @@ for (const { locale, browserLocale, question, deltas, answer } of cases) {
           status: 200,
           headers: {
             'Content-Type': 'text/event-stream; charset=utf-8',
-            'X-Chat-Api-Version': '1',
+            'X-Chat-Api-Version': '4',
           },
           body: sseBody([...deltas]),
         });
@@ -59,16 +59,12 @@ for (const { locale, browserLocale, question, deltas, answer } of cases) {
       await expect(dialog.getByTestId('chat-send')).toBeVisible();
       expect(requests).toEqual([
         {
-          v: 2,
-          locale,
-          page: 'cv',
+          v: 4,
           messages: [
             {
               role: 'user',
               content: question,
               page: {
-                route: '/',
-                locale,
                 viewport: 'desktop',
                 chat: 'card',
                 activeSection: 'header',
@@ -92,7 +88,7 @@ test('shows the rate-limit notice for a platform 429', async ({ page }) => {
   );
   await page.goto(NORMAL_SITE);
   await page.getByTestId('chat-fab').click();
-  await page.getByTestId('chat-input').fill('Has he led a team?');
+  await page.getByTestId('chat-input').fill('Is he open to new roles?');
   await page.getByTestId('chat-input').press('Enter');
 
   await expect(page.getByTestId('chat-notice')).toContainText('a lot of questions');
@@ -120,7 +116,7 @@ for (const { locale, browserLocale, question, deltas, answer } of cases) {
             status: 200,
             headers: {
               'Content-Type': 'text/event-stream; charset=utf-8',
-              'X-Chat-Api-Version': '1',
+              'X-Chat-Api-Version': '4',
             },
             body: sseBody([...deltas]),
           }),
@@ -145,66 +141,15 @@ for (const { locale, browserLocale, question, deltas, answer } of cases) {
   }
 }
 
-// `/new` (ADR-0004): the chat offers `/new`'s own first questions and says which page it is on.
-const profileCases = [
-  {
-    locale: 'en',
-    browserLocale: 'en-US',
-    suggestions: [
-      'What does he build with AI?',
-      'How does he work with coding agents?',
-      'What impact has he had?',
-      'Which apps has he worked on?',
-    ],
-  },
-] as const;
-
-for (const { locale, browserLocale, suggestions } of profileCases) {
-  test.describe(`chat on /new (${locale})`, () => {
-    test.use({ locale: browserLocale });
-
-    test('offers /new’s questions and sends the profile page', async ({ page }) => {
-      const errors = collectErrors(page);
-      const requests: { page?: string; messages: { page?: { route: string } }[] }[] = [];
-      await page.route('**/api/chat', async (route) => {
-        requests.push(route.request().postDataJSON());
-        await route.fulfill({
-          status: 200,
-          headers: {
-            'Content-Type': 'text/event-stream; charset=utf-8',
-            'X-Chat-Api-Version': '2',
-          },
-          body: sseBody(['Agents.']),
-        });
-      });
-      await page.goto('./new#ask');
-
-      const dialog = page.getByRole('dialog');
-      await expect(dialog).toBeVisible();
-      await expect(dialog.getByTestId('chat-suggestion')).toHaveText([...suggestions]);
-      await dialog.evaluate((panel) =>
-        Promise.all(panel.getAnimations().map((animation) => animation.finished)),
-      );
-      await page.screenshot({ path: `${SCREENSHOT_DIR}/chat-new-${locale}.png` });
-
-      await dialog.getByRole('button', { name: suggestions[0] }).click();
-      await expect(dialog.getByTestId('chat-assistant-message')).toContainText('Agents.');
-      expect(requests).toHaveLength(1);
-      expect(requests[0]?.page).toBe('profile');
-      expect(requests[0]?.messages[0]?.page?.route).toBe('/new');
-      expect(errors).toEqual([]);
-    });
-  });
-}
-
-test('on / the chat still offers today’s questions', async ({ page }) => {
+// One page (ADR-0006): the first questions of ADR-0006 → Decision 3.
+test('offers the page’s first questions', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto(`${NORMAL_SITE}#ask`);
   await expect(page.getByRole('dialog').getByTestId('chat-suggestion')).toHaveText([
-    'What is his experience with Android?',
-    'Which AI tools does he use?',
-    'Which apps has he worked on?',
-    'Has he led a team?',
+    'How does he build with AI agents?',
+    'What impact has he had?',
+    'Which apps has he shipped?',
+    'Is he open to new roles?',
   ]);
   expect(errors).toEqual([]);
 });
