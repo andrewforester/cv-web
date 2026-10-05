@@ -34,14 +34,14 @@ export function HomeJob({ job, highlightedId }: HomeJobProps) {
           </div>
           <div className={styles.role}>{job.role}</div>
           {job.meta && <HomeStoreMeta className={styles.meta} text={job.meta} />}
-          {job.about && (
-            <div className={styles.about}>
-              {job.tag && <span className={styles.tag}>{job.tag}</span>}
-              <span>{job.about}</span>
-            </div>
-          )}
         </div>
       </div>
+      {job.about && (
+        <div className={styles.about}>
+          {job.tag && <span className={styles.tag}>{job.tag}</span>}
+          <span>{job.about}</span>
+        </div>
+      )}
       {job.points.length > 0 && (
         <div className={styles.points}>
           <HomePoints points={job.points} />
