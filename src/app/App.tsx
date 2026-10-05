@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { HomeRoute } from '../screens/home/HomeRoute';
 import { ShowCaseButton } from '../shared/ShowCaseButton';
 import styles from './App.module.css';
-import { pageFor } from './routes';
 import { SHOW_SCENARIO } from './showScenarios';
 import { useLazyChat } from './useLazyChat';
 import { useRetroMode } from './useRetroMode';
@@ -18,8 +17,6 @@ import { useShowCaseAvailable } from './useShowCaseAvailable';
  * hidden until it has loaded, so the first visible frame is already the broken page.
  */
 export function App() {
-  // TODO(CV-111): the chat still gets the v2 page id from the URL until it moves to v4.
-  const chatPage = pageFor(window.location.pathname);
   const retroMode = useRetroMode();
   const { showing, pending, Show, start, end } = useShowCase(SHOW_SCENARIO, retroMode === 'show');
   const canShow = useShowCaseAvailable(SHOW_SCENARIO);
@@ -36,7 +33,7 @@ export function App() {
         <main>
           <HomeRoute metaBarEnd={canShow && <ShowCaseButton onClick={start} />} />
         </main>
-        {Chat && <Chat page={chatPage} />}
+        {Chat && <Chat />}
       </div>
       {showing && Show && SHOW_SCENARIO && (
         <Show scenario={SHOW_SCENARIO} loaders={loaders} onDone={end} />

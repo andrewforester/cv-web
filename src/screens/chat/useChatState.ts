@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { CHAT_LIMITS, type ChatPage } from '../../data/chat';
+import { CHAT_LIMITS } from '../../data/chat';
 import { useStrings } from '../../i18n';
 import type {
   ChatActions,
@@ -13,17 +13,16 @@ import { useChatConversation } from './useChatConversation';
 import { useChatHint } from './useChatHint';
 import { CHAT_SHEET_QUERY, useMediaQuery } from './useMediaQuery';
 import { useOnlineStatus } from './useOnlineStatus';
-import { pageCommands, pageCopy, pageSuggestions } from './pageContent';
 import { chatStrings } from './strings';
 
 /** The counter appears from 80 % of the limit (SPEC O1: from 800 of 1,000). */
 const COUNTER_FROM = CHAT_LIMITS.maxUserMessageChars * 0.8;
 
 /**
- * State holder of the chat widget on `page`: panel (also opened by the `#ask` hash), hint,
- * composer, conversation, connectivity, and the page's suggested questions and commands.
+ * State holder of the chat widget: panel (also opened by the `#ask` hash), hint, composer,
+ * conversation, connectivity, and the suggested questions and commands.
  */
-export function useChatState(page: ChatPage): { state: ChatUiState; actions: ChatActions } {
+export function useChatState(): { state: ChatUiState; actions: ChatActions } {
   const strings = useStrings(chatStrings);
   const [isOpen, setOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -41,7 +40,7 @@ export function useChatState(page: ChatPage): { state: ChatUiState; actions: Cha
   useAskHash(open);
   const sheet = useMediaQuery(CHAT_SHEET_QUERY);
   const closeSheet = useCallback(() => setOpen(false), []);
-  const conversation = useChatConversation({ page, announce, sheet, closeSheet });
+  const conversation = useChatConversation({ announce, sheet, closeSheet });
   const { turns, busy } = conversation;
 
   const tooLong = (text: string) => text.length > CHAT_LIMITS.maxUserMessageChars;
@@ -88,9 +87,17 @@ export function useChatState(page: ChatPage): { state: ChatUiState; actions: Cha
     canSend,
     conversationFull,
     announcement,
-    ...pageCopy(page, strings),
-    suggestions: pageSuggestions(page, strings),
-    commands: conversation.commandsAvailable ? pageCommands(page, strings) : [],
+    subtitle: strings.subtitle,
+    greeting: strings.greeting,
+    suggestions: [
+      strings.suggestion1,
+      strings.suggestion2,
+      strings.suggestion3,
+      strings.suggestion4,
+    ],
+    commands: conversation.commandsAvailable
+      ? [strings.command1, strings.command2, strings.command3]
+      : [],
   };
 
   return { state, actions };

@@ -9,7 +9,7 @@ describe('chat widget notices', () => {
       { type: 'delta', text: 'Partial' },
       { type: 'error', error: { code: 'upstream_error', message: 'x', retryable: true } },
     );
-    await user.click(screen.getByRole('button', { name: 'Which AI tools does he use?' }));
+    await user.click(screen.getByRole('button', { name: 'What impact has he had?' }));
 
     const notice = await screen.findByTestId(chatTestIds.notice);
     expect(notice).toHaveTextContent('Sorry, I couldn’t answer. Please try again.');
@@ -28,7 +28,7 @@ describe('chat widget notices', () => {
   it('treats a stream that ends without a terminal event as a retryable error', async () => {
     const { repository, user } = await renderOpenChat();
     repository.reply({ type: 'delta', text: 'Cut' });
-    await user.click(screen.getByRole('button', { name: 'Has he led a team?' }));
+    await user.click(screen.getByRole('button', { name: 'Is he open to new roles?' }));
     expect(await screen.findByRole('button', { name: 'Try again' })).toBeInTheDocument();
   });
 
@@ -38,7 +38,7 @@ describe('chat widget notices', () => {
       type: 'error',
       error: { code: 'rate_limited', message: 'x', retryable: true, retryAfterSeconds: 60 },
     });
-    await user.click(screen.getByRole('button', { name: 'Has he led a team?' }));
+    await user.click(screen.getByRole('button', { name: 'Is he open to new roles?' }));
 
     const notice = await screen.findByTestId(chatTestIds.notice);
     expect(notice).toHaveTextContent('I’m getting a lot of questions right now.');
@@ -52,7 +52,7 @@ describe('chat widget notices', () => {
       type: 'error',
       error: { code: 'conversation_limit', message: 'x', retryable: false },
     });
-    await user.click(screen.getByRole('button', { name: 'Has he led a team?' }));
+    await user.click(screen.getByRole('button', { name: 'Is he open to new roles?' }));
     expect(await screen.findByTestId(chatTestIds.notice)).toHaveTextContent(
       'This chat has reached its length limit.',
     );

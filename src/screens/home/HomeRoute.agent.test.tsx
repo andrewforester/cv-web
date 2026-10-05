@@ -1,7 +1,7 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { AgentToolRegistry } from '../../agent';
 import { AppProviders } from '../../app/AppProviders';
-import { StaticCvRepository, type CvRepository } from '../../data';
+import { StaticCvRepository } from '../../data';
 import { buildCvPageToolSpecs, cvPageTargetIds, type AgentToolName } from '../../data/chat';
 import { openLink } from '../../shared/agentTarget/pageActions';
 import { HomeRoute } from './HomeRoute';
@@ -24,17 +24,11 @@ function stubSectionTops(above: string) {
   });
 }
 
-/**
- * Until the chat moves to v4 (CV-111), `AgentProvider` fills the registry from the old CV. A CV
- * that never loads keeps the page's own v4 catalogue in place, as the chat will offer it.
- */
-const pendingCv: CvRepository = { getCv: () => new Promise(() => undefined) };
-
 async function renderHome() {
   const page = await new StaticCvRepository().getCvPage();
   const registry = new AgentToolRegistry(buildCvPageToolSpecs(page));
   const view = render(
-    <AppProviders agentRegistry={registry} repository={pendingCv} locale="en">
+    <AppProviders agentRegistry={registry}>
       <HomeRoute />
     </AppProviders>,
   );
@@ -113,6 +107,7 @@ describe('the page agent on the one page', () => {
     expect(scrollIntoView.mock.contexts[0]).toBe(target(id));
     expect(target(id)).toHaveAttribute('data-agent-highlighted');
     expect(document.querySelectorAll('[data-agent-highlighted]')).toHaveLength(1);
+    expect(registry.view()).toMatchObject({ highlighted: id });
     act(() => void vi.advanceTimersByTime(3000));
     expect(target(id)).not.toHaveAttribute('data-agent-highlighted');
   });

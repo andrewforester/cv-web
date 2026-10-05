@@ -27,8 +27,6 @@ Domain terms:
   (after the visitor confirms in the chat).
 
 Stubs and limits:
-- Until the chat moves to v4 (CV-111) the snapshot's section in view leaves out `craft` and
-  `contacts` (v2's section type lacks them; they read as the section above).
 - Layout values the v3 tokens don't cover yet are private `--home-*` properties on the page root
   (`HomePage.module.css`, `TODO(theme)`).
 - The "Ask my AI" launcher belongs to the chat screen, not this page.

@@ -1,23 +1,8 @@
 import { useAgentTools, type AgentToolHandlers } from '../../agent';
-import type { AgentTargetId, CvSectionId } from '../../data/chat';
 import { OK, openLink, targetToolHandlers, useAgentPageView } from '../../shared/agentTarget';
+import { CV_SECTION_IDS, type AgentTargetId } from '../../data/chat';
 import { contactFor } from './homeTargets';
 import type { HomeUiState } from './HomeUiState';
-
-/**
- * The sections the chat's snapshot can name today. TODO(CV-111): `CV_SECTION_IDS` once the
- * agent's view is typed on v4; v2's section union has no `craft` or `contacts`, so those read as
- * the section above them.
- */
-const VIEW_SECTIONS = [
-  'header',
-  'loop',
-  'impact',
-  'experience',
-  'skills',
-  'education',
-  'about',
-] as const satisfies readonly CvSectionId[];
 
 /**
  * Registers the page's tools while it is shown (`ready`): scroll and highlight through the
@@ -42,5 +27,6 @@ export function useHomeAgentTools(
       }
     : {};
   useAgentTools(handlers);
-  useAgentPageView(VIEW_SECTIONS, state.status === 'ready' ? state.highlightedId : null);
+  const highlighted = state.status === 'ready' ? state.highlightedId : null;
+  useAgentPageView(CV_SECTION_IDS, highlighted);
 }

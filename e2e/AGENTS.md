@@ -10,11 +10,12 @@ What it guarantees today:
   nine jobs and no Show case button (the show is off), and fits a phone screen without horizontal
   scrolling (`home.png`, `home-mobile.png`); `/new` shows the same page (locally the same app;
   production redirects it); a `uk-UA` browser gets the English page.
-- The chat answers a question with a streamed reply, and rate limiting shows its notice. A `#ask`
-  link opens it; its look is screenshotted empty and answered, desktop and phone. Until the chat
-  moves to v4 (CV-111) it still sends v2 with the old pages' ids (`/new` → `page: "profile"`).
-- The page agent: opening a contact asks for confirmation and does nothing on Cancel. The one
-  page's scroll and highlight cases come with CV-111.
+- The chat sends `v: 4` (no page id, no locale) and answers a question with a streamed reply;
+  it offers the page's four first questions, and rate limiting shows its notice. A `#ask` link
+  opens it; its look is screenshotted empty and answered, desktop and phone.
+- The page agent on the one page (`agent.png`): scrolls to the selected impact, highlights the
+  Transcenda job (and the next snapshot says so), and opens LinkedIn in a new tab only after the
+  visitor confirms; Cancel opens nothing.
 - The show is a lazy chunk (`retroLazy.spec.ts`): `?retro=0` never requests it. The show's own
   specs (`retro.spec.ts`, with the helpers in `retroShow.ts` taking the page's `SHOW_URLS`) and
   the show-mode lazy-chunk cases come back with `retro-4` (CV-107 Build split → T6).
