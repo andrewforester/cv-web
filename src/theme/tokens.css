@@ -229,13 +229,14 @@
   --chat-notice-bg: rgba(255, 122, 203, 0.12);
   --chat-shadow-panel:
     0 30px 80px -40px rgba(139, 92, 246, 0.5), 0 16px 40px -12px rgba(14, 12, 18, 0.35);
-  --chat-text-size: 15px;
-  --chat-text-line-height: 22px;
-  --chat-ui-size: 14px;
-  --chat-ui-line-height: 20px;
-  --chat-caption-size: 11.5px;
-  --chat-caption-line-height: 16px;
-  --chat-title-size: 16px;
+  --chat-text-size: 17px;
+  --chat-text-line-height: 24px;
+  --chat-ui-size: 16px;
+  --chat-ui-line-height: 22px;
+  --chat-caption-size: 13.5px;
+  --chat-caption-line-height: 18px;
+  --chat-title-size: 18px;
+  --chat-launcher-line-height: 20px;
   --chat-launcher-padding: 6px 18px 6px 6px;
 
   /* Page agent: highlight of a targeted section or item, and where a scroll lands */
@@ -249,6 +250,13 @@
   --retro-dock-width: 400px;
   --retro-dock-inset: 16px;
   --retro-chat-height: 392px;
+  --retro-chat-text-size: 15px;
+  --retro-chat-text-line-height: 22px;
+  --retro-chat-ui-size: 14px;
+  --retro-chat-ui-line-height: 20px;
+  --retro-chat-caption-size: 11.5px;
+  --retro-chat-caption-line-height: 16px;
+  --retro-chat-title-size: 16px;
   --retro-z-index: 1001;
   --retro-highlight-fade-in: 150ms;
   --retro-highlight-fade-out: 800ms;

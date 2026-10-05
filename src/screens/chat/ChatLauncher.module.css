@@ -17,7 +17,7 @@
   padding: var(--chat-launcher-padding);
   font-family: var(--font-sans);
   font-size: var(--type-body-size);
-  line-height: var(--chat-ui-line-height);
+  line-height: var(--chat-launcher-line-height);
   font-weight: var(--type-button-weight);
   white-space: nowrap;
   color: var(--color-ink);
