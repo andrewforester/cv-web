@@ -1,18 +1,18 @@
 # CV Andrew Panasiuk
 
-Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + React + TypeScript) on Vercel, bilingual English + Ukrainian with a language switcher on the page. CV data comes from a `CvRepository` (today a mock over bundled JSON in `src/data/mock/`); a backend for editing the CV will replace the mock later by swapping one binding in `src/app/AppProviders.tsx`. Visual style comes from a Figma file (see `docs/COORDINATION.md`).
+Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + React + TypeScript) on Vercel, one page in English (ADR-0006; `/new` redirects to `/`). CV data comes from a `CvPageRepository` (today a mock over bundled JSON in `src/data/mock/`); a backend for editing the CV will replace the mock later by swapping one binding in `src/app/AppProviders.tsx`. Visual style comes from the v3 design package `docs/design/v3/` (see `docs/COORDINATION.md`).
 
 ## Layout
 
 | Path | What lives there |
 |---|---|
 | `src/main.tsx` | Entry point: global styles, providers, `App`. |
-| `src/app/` | App shell (`App.tsx`: header with the language switcher + page; `routes.ts`: `/new` → profile, anything else → CV) and `AppProviders.tsx` (i18n + data binding). |
+| `src/app/` | App shell (`App.tsx`: the one page with the Show case button in its meta bar, the floating chat, the show) and `AppProviders.tsx` (data binding, agent registry). `/new` is a 307 redirect in `vercel.json`. |
 | `src/theme/` | Design tokens (`tokens.css`, CSS custom properties) and global styles. |
-| `src/i18n/` | In-house typed i18n: locale detection/persistence, `defineStrings`, `useStrings`, the shared `common` namespace. |
-| `src/data/` | CV models, the `CvRepository` interface and its context, `mock/` (JSON per locale + `StaticCvRepository`); `chat/contract.ts`: the `/api/chat` contract types shared with `server/`. |
-| `src/shared/` | Shared stateless components (`LanguageSwitcher/`). |
-| `src/screens/<screen>/` | One folder per screen (`home/` today). |
+| `src/i18n/` | EN-only typed strings: `defineStrings({ en })`, `useStrings`, the shared `common` namespace. |
+| `src/data/` | The `CvPage` model (`cvPage.ts`), the `CvPageRepository` interface and its context, `mock/` (`cvPage.json` + `StaticCvRepository`); `chat/contract.ts`: the `/api/chat` contract types shared with `server/`. |
+| `src/shared/` | Shared stateless components (`ShowCaseButton/`, `agentTarget/`, `chat/`). |
+| `src/screens/<screen>/` | One folder per screen: `home/` (the v3 CV page), `chat/`, `retro/`. |
 | `src/screens/retro/` | The Show case: the live-fix show (the CV opens as a broken 2000s page; an agent chat and a DevTools dock fix it step by step until it is today's CV). A lazy chunk started only by the Show case button or `?retro=1`; `harness/` is dev-only. |
 | `api/` | Vercel Functions (Node runtime), thin entries only: `chat.ts` = `POST /api/chat` (AI CV chat). Every file here becomes a function. |
 | `server/` | Framework-free backend logic: `chat/` (the `/api/chat` pipeline: guards, limiter, validation, knowledge, prompt, Claude via `@anthropic-ai/sdk`, SSE), `dev/` (Vite plugin serving `/api/chat` in `npm run dev`), `test/` (server test setup and helpers). |
@@ -36,11 +36,11 @@ Skills refer to these slots by name (*lint*, *format*, *test*, *build*, *run*, *
 | test | `npm test` | fast tests, no device/emulator: Vitest projects `web` (Testing Library, jsdom, `src/**/*.test.ts(x)`) and `server` (node, `server/**/*.test.ts`, fake LLM only; the setup deletes `ANTHROPIC_API_KEY`) |
 | build | `npm run build` | production build; output dir: `dist/` (base path `/`) |
 | run | `npm run dev` | local dev server, http://localhost:5173/; also serves `POST /api/chat` (env from `.env.local`, see `.env.example`; `CHAT_FAKE_LLM=1` answers without a key) |
-| web check | `npm run build && npm run web-check` | Playwright serves `dist/` with `vite preview` (CI: http://localhost:4173/; locally a port derived from the worktree path, or `PW_PORT`, so parallel sessions never share a server), Chromium 1280×800, browser locales `en-US` and `uk-UA`; fails on `pageerror`/console errors; screenshots in `web-check/home-{en,uk}.png`. In the cloud container the preinstalled Chromium is used (no `playwright install`). |
+| web check | `npm run build && npm run web-check` | Playwright serves `dist/` with `vite preview` (CI: http://localhost:4173/; locally a port derived from the worktree path, or `PW_PORT`, so parallel sessions never share a server), Chromium 1280×800, browser locale `en-US`; fails on `pageerror`/console errors; screenshots in `web-check/` (`home.png`, `home-mobile.png`, `chat*.png`, `agent.png`, `retro-*.png`). In the cloud container the preinstalled Chromium is used (no `playwright install`). |
 
 Before every push: *lint* and *test* must pass. In Claude Code sessions (local and cloud) a `PostToolUse` hook (`.claude/hooks/lint-edited-file.sh`) runs ESLint on every `.ts`/`.tsx` file right after it is edited and feeds errors back; fix them on the spot. It skips silently when `node_modules` is missing. `tsc`, Prettier and the tests still run only in *lint* and *test*.
 
-Chat env (server-side only; Vercel Project Settings for Production + Preview, `.env.local` for dev): `ANTHROPIC_API_KEY` (missing: `/api/chat` answers `503`), `CHAT_MODEL` (`claude-haiku-4-5` default, or `claude-sonnet-5-5`), `CHAT_ENABLED` (`false` = kill switch), `CHAT_FAKE_LLM` (`1` = scripted answers; dev/tests only, ignored on Vercel). No test or CI job calls a real model. Try the endpoint with `curl -N -X POST http://localhost:5173/api/chat -H 'Content-Type: application/json' -H 'Origin: http://localhost:5173' -d '{"v":1,"locale":"en","messages":[{"role":"user","content":"Hi"}]}'`.
+Chat env (server-side only; Vercel Project Settings for Production + Preview, `.env.local` for dev): `ANTHROPIC_API_KEY` (missing: `/api/chat` answers `503`), `CHAT_MODEL` (`claude-haiku-4-5` default, or `claude-sonnet-5-5`), `CHAT_ENABLED` (`false` = kill switch), `CHAT_FAKE_LLM` (`1` = scripted answers; dev/tests only, ignored on Vercel). No test or CI job calls a real model. Try the endpoint with `curl -N -X POST http://localhost:5173/api/chat -H 'Content-Type: application/json' -H 'Origin: http://localhost:5173' -d '{"v":4,"messages":[{"role":"user","content":"Hi","page":{"viewport":"desktop","chat":"card","activeSection":null,"highlighted":null,"tools":[]}}]}'`.
 
 Local sessions (launched by a local orchestrator, see `docs/COORDINATION.md` → Tooling → Sessions): install what you need yourself: Node 22 (`nvm install 22` or `brew install node@22`), `npm ci`, and for the *web check* Playwright's Chromium (`npx playwright install chromium`). The session-start hook does not run locally.
 
@@ -49,7 +49,7 @@ Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `n
 ## Conventions
 
 - TypeScript strict (`noUncheckedIndexedAccess` on), React function components, CSS Modules (`<Component>.module.css`) using only `var(--token)` values. ESLint flat config (`eslint.config.js`: typescript-eslint strict, react-hooks, react-refresh) + Prettier (`.prettierrc.json`: single quotes, width 100) enforce it via *lint*. Markdown is not auto-formatted.
-- Strings: `defineStrings({ en, uk })` per namespace, read with `useStrings(ns)`; screen namespace in `src/screens/<screen>/strings.ts`, shared one in `src/i18n/common.ts`. CV content is data (`src/data`), not strings.
+- Strings (English only): `defineStrings({ en })` per namespace, read with `useStrings(ns)`; screen namespace in `src/screens/<screen>/strings.ts`, shared one in `src/i18n/common.ts`. CV content is data (`src/data`), not strings.
 - Components: one per file, props/state in, callbacks out, first optional param is the styling hook (e.g. `className`/`modifier`) when the stack has one.
 - Never hardcode colours, text sizes or user-visible strings in screens: use design tokens and the strings/i18n mechanism.
 - One screen = one folder (`<screen>/`: screen, its components, test ids): `src/screens/<screen>/` with `<Screen>UiState.ts`, `use<Screen>State.ts`, `<Screen>Screen.tsx`, `<Screen>Route.tsx`, `strings.ts`, `testIds.ts`, tests next to the code (see `src/screens/AGENTS.md`).
@@ -61,7 +61,7 @@ Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `n
 
 - **Layers:** data (models, repository/API interfaces, mocks) → screen state holder (UI state + events) → stateless components (state in, callbacks out). UI never reads mocks or the network directly; it gets state.
 - **Boundaries are enforced by *lint*** (`no-restricted-imports` in `eslint.config.js`; each error message says what to do instead): screens, `src/shared` and `src/agent` don't import `src/data/mock` (tests may); a screen doesn't import another screen; `src/shared`, `src/agent`, `src/data`, `src/i18n` and `src/theme` don't import screens; nothing in `src/` imports `server/`, `api/` or `@anthropic-ai/*`; `server/` and `api/` import only `src/data` and `src/i18n`, never React. Non-test source files are capped at 250 lines (`max-lines`). Never silence these rules with `eslint-disable`: an error means the code belongs somewhere else. If a boundary really must change, that's a change to this file and `eslint.config.js`, raised in a PR comment.
-- **Reference implementation:** `src/screens/cv/` is the model screen (state holder → UI state → stateless screen → route, strings, test ids, tests). Follow its shape and naming rather than inventing a new one; for a new piece, find the closest existing one and match it.
+- **Reference implementation:** `src/screens/home/` is the model screen (state holder → UI state → stateless screen → route, strings, test ids, tests). Follow its shape and naming rather than inventing a new one; for a new piece, find the closest existing one and match it.
 - **Unidirectional data flow:** immutable UI state, events as callbacks, no business logic in components.
 - **Small files:** one component per file; split a file when it grows past ≈200 lines or does two jobs (*lint* fails at 250). Components past ≈60 lines get split into named sub-components.
 - **Don't duplicate (DRY):** before writing a component, look in the shared components folder and other screens. If a second screen needs the same piece, move it to shared components (a Theme-zone PR, see `docs/COORDINATION.md`) instead of copying it. Same for dimensions and styles: reuse tokens, add a token rather than repeat a literal.
