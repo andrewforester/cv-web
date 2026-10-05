@@ -537,8 +537,11 @@ That is the "code piles up, then it all changes" the human saw.
 - **State.** `step`, `chunk` (index in the step) and `stage`: `narrate` (0.6 s) → per chunk `type`
   → apply → `beat` (1 s) → … → `stepDone` (0.3 s) → next step's `narrate`. A chunk applies when its
   typing ends **and** the camera has settled (event `focusSettled(key)` from the state holder, or
-  0.8 s after the chunk started, whichever comes first); `page` and module chunks skip that wait,
-  the camera never scrolls for them. A `focusSettled` for another chunk's key is ignored. A module
+  0.8 s after the chunk started, whichever comes first); when the camera did scroll
+  (`focusScrolling(key)`, sent before the scroll) the apply waits `focusPauseMs` 500 more, also past
+  the cap. A chunk that targets an element pauses its typing `selectorPauseMs` 500 after the
+  `// → <label>` line (typing time stays 100 chars/s, 0.6–1.3 s; the pause is extra). `page` and
+  module chunks skip these waits, the camera never scrolls for them; reduced motion has no pauses. A `focusSettled` for another chunk's key is ignored. A module
   chunk is `running` until `moduleLoaded`/timeout (5 s); its beat starts when it resolves.
   `effectFailed` prints a `console.warn` row (`<id> skipped: <reason>`) and the beat still runs.
 - **Holds** are at **chunk boundaries**: `composing` (≤ 15 s) and `answering` (≤ 12 s) hold before
@@ -546,12 +549,13 @@ That is the "code piles up, then it all changes" the human saw.
   `hidden` still freezes the clock anywhere.
 - **`timing.ts`**: `codeCharsPerSecond` 100, `chunkMinMs` 600 (GRA-56; were 240 and 400),
   `chunkMaxMs` 1 300, `beatMs` 1 000,
-  `narrateMs` 600, `stepDoneMs` 300, `focusSettleCapMs` 800, `reducedMotionApplyMs` 600,
+  `narrateMs` 600, `stepDoneMs` 300, `focusSettleCapMs` 800, `focusPauseMs` 500, `selectorPauseMs` 500,
+  `reducedMotionApplyMs` 600,
   `highlightHoldMs` 200, `leaveMs` 250, `closeDelayMs` 3 000, `closingMs` 650,
   `visitorScrollQuietMs` 4 000. Show time on the fake clock: ≈ 89 s with an instantly settling
   camera, ≈ 92 s when every targeted chunk waits the cap, ≈ 79 s with reduced motion (GRA-56
-  commands; round 3: ≈ 73 s); the e2e motion-on run fails past 110 s (SPEC → Chunk rhythm budgets
-  ≈ 91 s).
+  commands; round 3: ≈ 73 s); CV-122's two pauses add ≈ 15 s (≈ 106 s with an instantly settling
+  camera); the e2e motion-on run fails past 130 s (SPEC → Chunk rhythm budgets).
 - **Selectors** (`showSelectors.ts`, `chunkSelectors.ts`). `consoleView` prints, for the current
   step, every started chunk's lines and its `✓` under it; finished steps collapse to
   `✓ n/8 title`. `currentChunk(state)` (key, target, motion, `typing`/`applied`/`skipped`,

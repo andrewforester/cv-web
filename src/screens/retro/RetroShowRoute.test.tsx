@@ -144,7 +144,7 @@ describe('retro show screen', { timeout: 60_000 }, () => {
     expect(log).toHaveTextContent("style.setProperty('--color-card', '#ffffff')");
     expect(log).toHaveTextContent('✓ base-colors: 1 token set');
 
-    await advance(80_000);
+    await advance(100_000);
     expect(loaders['ai-chat']).toHaveBeenCalledTimes(1);
     expect(layers()).toHaveLength(0);
     expect(document.head.querySelector('style[data-retro-host]')).toBeNull();

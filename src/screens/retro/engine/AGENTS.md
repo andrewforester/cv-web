@@ -13,7 +13,8 @@ What it holds (ARCHITECTURE §2–§3, §9 → Round 3):
   under them), then per
   **chunk** (one visible change) `type` → apply → `beat` (1 s), then `stepDone` (0.3 s). A chunk
   types on its own clock (100 chars/s, 0.6–1.3 s) and applies at its last character once the
-  screen's camera has settled on its target (`focusSettled`, capped at 0.8 s). Holds for a
+  screen's camera has settled on its target (`focusSettled`, capped at 0.8 s; after a scroll `focusScrolling` makes it wait 0.5 s more). A
+  chunk that targets an element also pauses typing 0.5 s after its selector line. Holds for a
   composing visitor (≤ 15 s) or a streaming reply (≤ 12 s) happen only at chunk boundaries;
 - the **console plan**: per chunk one DevTools console input, its `// → <target>` comment and the
   command that does exactly what the apply does (remove the layer's `<style>`, `style.setProperty`
@@ -34,5 +35,5 @@ live in `timing.ts`.
 
 Limits: one reply at a time; a module that hasn't loaded 5 s after its code is typed is skipped
 (a warning row) and `done` still removes everything, inline tokens included. Until the screen dispatches
-`focusSettled`, targeted chunks wait the 0.8 s cap. `showTestRun.ts` drives the reducer like the
+`focusSettled`, targeted chunks wait the 0.8 s cap (typing and its pause may take longer). `showTestRun.ts` drives the reducer like the
 state holder does, for tests only.

@@ -11,15 +11,16 @@ You own `main` after merges; the orchestrator owns everything before them. You d
 - At start, follow the standing CI signal for `main`. Then you only wake on its events. No recurring check-ins.
 - Never merge, close or change that signal; if it's gone, recreate it as Tooling describes and tell the orchestrator and the human.
 - Each event names a commit: look at the CI run for that commit, not just "the latest". A running build on `main` is cancelled when the next merge lands; a cancelled run means nothing, wait for the newer commit's run. Merges can come from anyone (other sessions, the human), not only the orchestrator.
+- Red means a failed CI run or a failed production smoke run (`COORDINATION.md` → Tooling) for the commit. A hosting status on the commit alone (e.g. a rate-limited deploy) is not a red build: production lags; tell the human.
 
 ## On each event
 Act only if the run is the newest completed, non-cancelled one on `main`.
 
 **Green:**
 1. Check what users get, for each deliverable listed in `AGENTS.md` → Git & CI:
-   - **Web is live:** the deployed URL returns 200 and every asset its `index.html` references returns 200. A missing asset means a broken or partial deploy: treat it as red.
+   - **Web is live:** the production smoke run for this commit is green, when the project has one; and the deployed URL returns 200 and every asset its `index.html` references returns 200. A missing asset means a broken or partial deploy: treat it as red.
    - **Backend:** its endpoints answer as the deploy check in `COORDINATION.md` → Tooling describes, and report this commit's version if they expose one.
-   - **Screens:** look at the web smoke screenshots for the screens touched since the last green run if you can fetch them; otherwise rely on the job's result and say so.
+   - **Screens:** look at the e2e screenshots for the screens touched since the last green run if you can fetch them; otherwise rely on the job's result and say so.
 2. Remember this commit as the last green one: one short comment on the CI signal with the commit, the merged PRs it covers and what you looked at. That comment is where the next run starts from.
 
 **Red:**

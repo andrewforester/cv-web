@@ -29,6 +29,7 @@ export function createShowState(config: ShowConfig, now: number): ShowState {
     stageAt: 0,
     comment: [],
     focusAt: null,
+    focusScrolled: false,
     heldSince: null,
     effects,
     chat: [],

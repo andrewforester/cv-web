@@ -18,7 +18,7 @@ What it guarantees today:
   visitor confirms; Cancel opens nothing.
 - The Show case (`retro.spec.ts`, `retro-4`, helpers in `retroShow.ts` on `SHOW_URLS`): at t = 0
   the broken page alone (`retro-start.png`), guard 4 after every chunk (`retro-mid.png`), guard 3
-  (ends as `?retro=0`, `retro-end.png`), the motion-on timing smoke (60–110 s) and the Show case
+  (ends as `?retro=0`, `retro-end.png`), the motion-on timing smoke (60–130 s) and the Show case
   click. The show is a lazy chunk (`retroLazy.spec.ts`): `?retro=0` never requests it, `?retro=1`
   shows no frame of today's page first, and a failed chunk leaves the normal site.
 

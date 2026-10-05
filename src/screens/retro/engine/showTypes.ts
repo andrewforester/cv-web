@@ -76,6 +76,8 @@ export interface PlannedChunk {
   tokens: readonly TokenValue[];
   /** Typed characters of the chunk: it applies at the last one. */
   chars: number;
+  /** Leading characters that name the target (the `// → <label>` line); 0 without a target. */
+  selectorChars: number;
 }
 
 export interface PlannedStep {
@@ -183,6 +185,8 @@ export interface ShowState {
   comment: readonly string[];
   /** Show time the screen's camera settled on the current chunk's target (`focusSettled`). */
   focusAt: number | null;
+  /** The camera scrolled for the current chunk (`focusScrolling`): its apply waits a pause after. */
+  focusScrolled: boolean;
   heldSince: number | null;
   /** Per chunk key: its effect's run. */
   effects: Readonly<Record<string, EffectRun>>;
@@ -201,6 +205,7 @@ export type ShowEvent =
   | { type: 'replyDelta'; now: number; text: string }
   | { type: 'replyEnded'; now: number }
   | { type: 'replyFailed'; now: number; code: ChatErrorCode }
+  | { type: 'focusScrolling'; now: number; key: string }
   | { type: 'focusSettled'; now: number; key: string }
   | { type: 'moduleLoaded'; now: number; key: string }
   | { type: 'effectFailed'; now: number; key: string; reason: string }
