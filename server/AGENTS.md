@@ -6,7 +6,7 @@ is the AI CV chat (`chat/`); a CV-editing backend is planned.
 
 Place in the architecture: `api/` (entries) → `server/` (logic) → external services (Claude).
 It shares a few framework-free files with the browser: the chat contract and the page-agent tool
-catalogue (`src/data/chat/`), the CV and profile types (`src/data/models.ts`, `profile.ts`) and the
+catalogue (`src/data/chat/`), the page types (`src/data/models.ts`, `profile.ts`, `cvPage.ts`) and the
 JSON the chat answers from (`src/data/mock/`). Those must stay free of React, DOM, Vite-only syntax and i18n runtime.
 
 Areas: `chat/` (the chat pipeline), `dev/` (serves `/api/chat` in `npm run dev`, never deployed),
