@@ -6,6 +6,7 @@ import {
   type AgentToolName,
   type AgentToolResult,
   type AgentToolSpec,
+  type CvSectionId,
 } from '../data/chat';
 import { isValidToolInput } from './validate';
 
@@ -20,8 +21,14 @@ export type AgentConfirm = (request: {
   input: Record<string, string>;
 }) => Promise<boolean>;
 
-/** What the visitor sees on the page right now: part of the snapshot sent with a question. */
-export type AgentPageView = Pick<AgentPageState, 'activeSection' | 'highlighted'>;
+/**
+ * What the visitor sees on the page right now: part of the snapshot sent with a question. The old
+ * pages' sections stay allowed until the Cleanup task deletes those screens (ADR-0006 → Decision 7).
+ */
+export interface AgentPageView {
+  activeSection: CvSectionId | AgentPageState['activeSection'];
+  highlighted: AgentPageState['highlighted'];
+}
 
 /** Reads the mounted screen's view on demand (when a question is sent). */
 export type AgentViewSource = () => AgentPageView;

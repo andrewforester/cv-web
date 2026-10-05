@@ -1,9 +1,8 @@
 import { screen, render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AgentToolRegistry } from '../agent';
-import { FakeChatRepository, type ChatStreamEventV2 } from '../data/chat';
+import { CV_SECTION_IDS, FakeChatRepository, type ChatStreamEventV2 } from '../data/chat';
 import { chatTestIds } from '../screens/chat/testIds';
-import { forestTestIds } from '../shared/forest/testIds';
 import { App } from './App';
 import { AppProviders } from './AppProviders';
 
@@ -17,45 +16,30 @@ const sectionsOf = (registry: AgentToolRegistry) =>
   registry.specs().find((spec) => spec.name === 'scrollToSection')?.inputSchema.properties.section
     ?.enum;
 
-describe('App: the chat and the page agent follow the page', () => {
+describe('App: the chat and the page agent on the one page', () => {
   afterEach(() => window.history.replaceState(null, '', '/'));
 
-  async function renderAt(path: string) {
+  it.each(['/', '/new'])('on %s: the page’s catalogue and a v4 request', async (path) => {
     window.history.replaceState(null, '', path);
     const registry = new AgentToolRegistry();
     const chat = new FakeChatRepository();
     const user = userEvent.setup();
     render(
-      <AppProviders locale="en" agentRegistry={registry} chatRepository={chat}>
+      <AppProviders agentRegistry={registry} chatRepository={chat}>
         <App />
       </AppProviders>,
     );
-    await screen.findByTestId(forestTestIds.name);
     await user.click(await screen.findByTestId(chatTestIds.fab));
-    return { registry, chat, user };
-  }
 
-  it('on /new: /new’s catalogue, suggestions and page id in the request', async () => {
-    const { registry, chat, user } = await renderAt('/new');
-
-    await waitFor(() => expect(sectionsOf(registry)).toContain('impact'));
-    expect(sectionsOf(registry)).not.toContain('summary');
+    await waitFor(() => expect(sectionsOf(registry)).toEqual([...CV_SECTION_IDS]));
     chat.reply({ type: 'delta', text: 'Agents.' }, done);
-    await user.click(screen.getByRole('button', { name: 'What does he build with AI?' }));
+    await user.click(screen.getByRole('button', { name: 'How does he build with AI agents?' }));
 
-    expect(chat.requests[0]).toMatchObject({
-      page: 'profile',
-      messages: [{ page: { route: '/new' } }],
+    expect(chat.requests[0]).toEqual({
+      v: 4,
+      messages: [
+        { role: 'user', content: 'How does he build with AI agents?', page: expect.any(Object) },
+      ],
     });
-  });
-
-  it('on /: the CV catalogue, today’s suggestions and the cv page id', async () => {
-    const { registry, chat, user } = await renderAt('/');
-
-    await waitFor(() => expect(sectionsOf(registry)).toContain('summary'));
-    chat.reply({ type: 'delta', text: 'Since 2012.' }, done);
-    await user.click(screen.getByRole('button', { name: 'What is his experience with Android?' }));
-
-    expect(chat.requests[0]).toMatchObject({ page: 'cv', messages: [{ page: { route: '/' } }] });
   });
 });

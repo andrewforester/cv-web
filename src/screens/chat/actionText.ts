@@ -1,46 +1,35 @@
-import type {
-  AgentContactChannel,
-  AgentSectionId,
-  AgentToolCall,
-  ProfileSectionId,
-} from '../../data/chat';
+import type { AgentToolName, CvContactChannel, CvSectionId } from '../../data/chat';
 import type { ChatActionCall } from './ChatUiState';
 import type { ChatStrings } from './strings';
 
 type Key = keyof ChatStrings;
 
-/** Section names of both pages; `header`, `apps`, `education` and `about` are on both. */
-const SECTION_KEYS: Record<AgentSectionId | ProfileSectionId, Key> = {
+/** The page's section names (ADR-0006 → Decision 3). */
+const SECTION_KEYS: Record<CvSectionId, Key> = {
   header: 'sectionHeader',
-  summary: 'sectionSummary',
-  technologies: 'sectionTechnologies',
-  'latest-experience': 'sectionLatestExperience',
-  apps: 'sectionApps',
-  education: 'sectionEducation',
-  about: 'sectionAbout',
-  'previous-experience': 'sectionPreviousExperience',
-  impact: 'sectionImpact',
+  craft: 'sectionCraft',
   loop: 'sectionLoop',
+  impact: 'sectionImpact',
   experience: 'sectionExperience',
   skills: 'sectionSkills',
-  footer: 'sectionFooter',
+  education: 'sectionEducation',
+  about: 'sectionAbout',
+  contacts: 'sectionContacts',
 };
 
-const CHANNEL_KEYS: Record<AgentContactChannel, Key> = {
+const CHANNEL_KEYS: Record<CvContactChannel, Key> = {
   email: 'channelEmail',
-  phone: 'channelPhone',
   whatsapp: 'channelWhatsapp',
   telegram: 'channelTelegram',
+  linkedin: 'channelLinkedin',
 };
-
-const LANGUAGE_KEYS: Record<string, Key> = { en: 'languageEn', uk: 'languageUk' };
 
 const lookup = (table: Partial<Record<string, Key>>, id: string, strings: ChatStrings) => {
   const key = table[id];
   return key ? strings[key] : undefined;
 };
 
-/** The `<kind>` and `<id>` of a `highlightElement` target such as `technology:kotlin`. */
+/** The `<kind>` and `<id>` of a `highlightElement` target such as `experience:transcenda`. */
 export function splitTargetId(target: string): [kind: string, id: string] {
   const colon = target.indexOf(':');
   return colon === -1 ? ['', target] : [target.slice(0, colon), target.slice(colon + 1)];
@@ -53,8 +42,6 @@ export function actionTarget(action: ChatActionCall, strings: ChatStrings): stri
   switch (name) {
     case 'scrollToSection':
       return lookup(SECTION_KEYS, value('section'), strings) ?? value('section');
-    case 'switchLanguage':
-      return lookup(LANGUAGE_KEYS, value('locale'), strings) ?? value('locale');
     case 'openContact':
       return lookup(CHANNEL_KEYS, value('channel'), strings) ?? value('channel');
     case 'highlightElement': {
@@ -62,13 +49,15 @@ export function actionTarget(action: ChatActionCall, strings: ChatStrings): stri
       const fixed = kind === 'section' ? SECTION_KEYS : kind === 'contact' ? CHANNEL_KEYS : {};
       return lookup(fixed, id, strings) ?? action.label ?? id;
     }
+    default:
+      // Not in the page's catalogue (`switchLanguage` until the Cleanup task): the registry refuses it.
+      return '';
   }
 }
 
-const PHRASES: Record<AgentToolCall['name'], [running: Key, done: Key]> = {
+const PHRASES: Partial<Record<AgentToolName, [running: Key, done: Key]>> = {
   scrollToSection: ['actionScrollRunning', 'actionScrollDone'],
   highlightElement: ['actionHighlightRunning', 'actionHighlightDone'],
-  switchLanguage: ['actionLanguageRunning', 'actionLanguageDone'],
   openContact: ['actionContactRunning', 'actionContactDone'],
 };
 
@@ -76,7 +65,7 @@ const fill = (template: string, target: string) => template.replace('{target}', 
 
 /** The chip's (and the live region's) text for the action's current state. */
 export function actionText(action: ChatActionCall, strings: ChatStrings): string {
-  const phrases = (PHRASES as Partial<Record<string, [Key, Key]>>)[action.call.name];
+  const phrases = PHRASES[action.call.name];
   const target = actionTarget(action, strings);
   const { result } = action;
   if (action.status === 'awaiting') return action.confirmation?.title ?? strings.confirmGeneric;

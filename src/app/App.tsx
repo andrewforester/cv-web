@@ -17,8 +17,7 @@ import { useShowCaseAvailable } from './useShowCaseAvailable';
  * for the Show case button) over the same tree (`data-retro-stage`), so the page never remounts;
  * the AI chat is off the page until the show's last step loads it. The show is a lazy chunk: at a
  * `?retro=1` load the shell stays hidden until it has loaded, so the first visible frame is already
- * the broken page. The chat is told which page it is on: it answers about that page and drives its
- * tools.
+ * the broken page.
  */
 export function App() {
   const page = pageFor(window.location.pathname);
@@ -46,7 +45,7 @@ export function App() {
             <CvRoute metaBarEnd={metaBarEnd} />
           )}
         </main>
-        {Chat && <Chat page={page} />}
+        {Chat && <Chat />}
       </div>
       {showing && Show && scenario && <Show scenario={scenario} loaders={loaders} onDone={end} />}
     </>

@@ -1,4 +1,4 @@
-import type { AgentPageState } from '../../data/chat';
+import type { AgentPageStateV4 } from '../../data/chat';
 import type { ChatActionCall, ChatToolRound, ChatTurn } from './ChatUiState';
 import {
   buildHistory,
@@ -8,9 +8,7 @@ import {
   turnMessages,
 } from './conversation';
 
-const page: AgentPageState = {
-  route: '/',
-  locale: 'en',
+const page: AgentPageStateV4 = {
   viewport: 'desktop',
   chat: 'card',
   activeSection: null,
