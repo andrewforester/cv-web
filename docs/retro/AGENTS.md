@@ -19,6 +19,9 @@ Start here, in this order:
    (the broken page refitted to Forest; CV-90), how to add or change a fix chunk, the known debt.
    Then **section 10** (CV-95): the show per page (`/` and `/new`), scenario selection, the shared
    Show case button, guards per page and the build split; its look is SPEC → 2001 `/new`.
+   Then **section 11** (CV-107, [ADR-0006](../adr/0006-one-page-v3.md)): the site becomes one v3
+   page, English only, and the show one scenario, `retro-4`, ported from `/new`'s onto the v3
+   page's `home-*` hooks and tokens.
 2. `docs/design/retro/SPEC.md`: the look (retro values, damage layers, copy, the atomic fix list,
    chunk timing, transitions, the highlight, `--retro-*` tokens).
 3. The package `AGENTS.md` of the code you touch: `src/screens/retro/` (and `engine/`, `layers/`),
@@ -32,7 +35,7 @@ chunks under one narration line; a chunk is one visible change: one effect, its 
 motion), **beat** (the pause after a chunk applies), **highlight** (the show's pointer on the
 chunk's target), **manifest** (step ids, titles, LLM intents, scripted fallbacks),
 **narration** (the LLM's commentary lines), **scenario** (one page's show: manifest + source;
-`retro-3` for `/`, `retro-new-1` for `/new`, §10), **stage** (the app shell while the show runs), **hook
+`retro-3` for `/`, `retro-new-1` for `/new`, §10; one, `retro-4`, after CV-107, §11), **stage** (the app shell while the show runs), **hook
 contract** (the selectors layers may use), **guards 1–4** (the tests that keep the show honest
 across redesigns).
 
