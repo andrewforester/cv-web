@@ -1,11 +1,11 @@
 ---
 name: orchestrate
-description: Coordinate work on CV Andrew Panasiuk as the orchestrator session — turn the human's requests into tracker tasks, open a branch and draft PR per task, launch one working session on it (the same kind of session as the orchestrator itself), follow the PR, check the result and hand code PRs to a review session that merges them, and report results with links. Use when the user makes you the orchestrator/coordinator/PM, hands you a screen or feature to "get done", or asks to launch, watch, merge or report on work sessions.
+description: Coordinate work on CV Andrew Panasiuk as the orchestrator session — turn the human's requests into tracker tasks, open a branch and draft PR per task, launch one working session on it (the same kind of session as the orchestrator itself), which has its PR reviewed by a reviewer subagent and merges it, audit each Done ticket, dispatch the next tasks, and report results with links. Use when the user makes you the orchestrator/coordinator/PM, hands you a screen or feature to "get done", or asks to launch, watch, merge or report on work sessions.
 ---
 
 # Orchestrate
 
-You plan, launch, watch and merge. You do **not** write feature code. You may edit only `docs/**`, the root `AGENTS.md` / `CLAUDE.md`, `.claude/skills/**`, `.claude/settings.json`, `.github/pull_request_template.md` (via your own PRs, each from its own worktree: the main checkout stays on `main`, `COORDINATION.md` → General rules), and a design package on its design branch before merging it. Read `AGENTS.md` and `docs/COORDINATION.md` first: **Tracker** (where tasks live, statuses, labels, the brief format) and **Tooling** (the concrete commands for every step below).
+You plan, launch, watch and audit. You do **not** write feature code, and you don't review or merge code PRs: the developer session does, after its own reviewer subagent passes the PR. You may edit only `docs/**`, the root `AGENTS.md` / `CLAUDE.md`, `.claude/skills/**`, `.claude/settings.json`, `.github/pull_request_template.md` (via your own PRs, each from its own worktree: the main checkout stays on `main`, `COORDINATION.md` → General rules), and a design package on its design branch before merging it. Read `AGENTS.md` and `docs/COORDINATION.md` first: **Tracker** (where tasks live, statuses, labels, the brief format) and **Tooling** (the concrete commands for every step below).
 
 ## First run: the Scaffold task
 While `AGENTS.md` or `docs/COORDINATION.md` still contain `TODO(scaffold)`, the project has no stack yet. Before any other task:
@@ -14,7 +14,7 @@ While `AGENTS.md` or `docs/COORDINATION.md` still contain `TODO(scaffold)`, the 
 3. Nothing else runs in parallel with it.
 
 ## State lives in the tracker
-- One task = one ticket = one session = one branch `claude/<short>` = one PR that closes the ticket. **You** open the branch and the draft PR before launching the session; the session only pushes to it and marks it ready.
+- One task = one ticket = one session = one branch `claude/<short>` = one PR that closes the ticket. **You** open the branch and the draft PR before launching the session; the session pushes to it, has it reviewed, merges it and sets the ticket Done.
 - Every ticket gets a **Role** and a **Type** label; move its status as it changes (Backlog → Todo → In Progress → In Review → Done). **Needs human** when you wait for the human.
 - Everything about the process is on the ticket: launch (session name/id), scope changes, answers, decisions, your verification result with the screenshot. Sessions write their plan, questions and report there too, so there is nothing to mirror (`COORDINATION.md` → Tracker → Single source of truth). Never keep task tables or status in the repo.
 
@@ -48,13 +48,13 @@ Launch every task as a **new agent in a new background session**, with the launc
    Use the `<skill>` skill. Plan, questions and the report go on the ticket; the PR holds only code and review.
    Use Anthropic's design / system-design / architecture skills when available, after the project skills.
    Start with `git fetch origin && git merge origin/main`. Commit and push early and often.
-   Don't call design-tool MCPs. Don't merge the PR; a review session does after its code review.
+   Don't call design-tool MCPs.
    Never wait for an answer: post the question, take the conservative option, continue.
-   When done, mark PR #P Ready for review (that's the signal), then stay on the PR until it is merged:
-   keep it green and work the review rounds. Don't schedule check-ins.
+   When done, mark PR #P Ready for review, then run the review rounds with the `reviewer` subagent
+   (it sees only the ticket and the PR), merge once it passes and set the ticket Done. Don't schedule check-ins.
    ```
 3. Pick the model by task size (Tooling → Sessions). The model is not the main cost driver: long exploration and repeated heavy checks are. Keep briefs on the ticket precise (likely cause, exact files, how much verification is enough).
-4. Set the ticket to In Progress and comment with the session name and id. Schedule one fallback check-in for when it should be done.
+4. Set the ticket to In Progress and comment with the session name and id and "Merge: autonomous merge allowed / not allowed" (the developer reads it before merging). Schedule one fallback check-in for when it should be done.
 
 **Screenshots from the human** (bug reports from a device): upload them to the ticket (`COORDINATION.md` → Tracker → Screenshots); the session never sees the chat.
 
@@ -67,43 +67,34 @@ The human sends tasks one after another. File each one as soon as it arrives; do
   1. For each Backlog ticket: if every hard dependency is Done (merged) and every soft one has a branch, move it to Todo and comment "Unblocked by CV-N".
   2. Count running sessions (In Progress). While fewer than the limit are running and the usage limit allows, launch the Todo tickets, oldest first.
   3. Nothing launchable: do nothing, write nothing.
-- **Merge first, then dispatch**, in the same wake-up: a merge is what unblocks the next tasks, so the queue moves without the human.
+- **Audit first, then dispatch**, in the same wake-up: a merge is what unblocks the next tasks, so the queue moves without the human.
 - **Start early behind a gate** when most of a dependency is already merged and the rest only adds to it (e.g. a big merge of `main` while the last page task is still in review): launch the dependent task now, turn the `blocked by` into `related`, and write on its ticket "before Ready: wait for PR #N to merge (background until-loop), merge again, re-run everything". It saved 30–40 min twice in Oct 2026.
 - **Stacked branches and squash merges.** A task started on another task's branch (or behind a gate on it) conflicts with `main` once that branch is squash-merged, since main gets one new commit and not the branch's history. Tell the dependent session in its gate comment, before it starts: "after the merge, `git merge origin/main` and keep main's version for the other task's files". For back-to-back merges (A then B), message B's session right after A merges and merge B only when it is `MERGEABLE` and green again (Oct 2026: T3→T4, T4→T5/T6, T6→T7 of P-CV-10).
-- **Two orchestrators on one project:** if the other one stalls (a ready, green PR with no review for 15+ min, its session `waiting`), run the check and the review for its tickets yourself, say so on each ticket and to the other orchestrator, and tell the human.
+- **Two orchestrators on one project:** if the other one stalls (a merged task PR with no audit on its ticket for 15+ min, its session `waiting`), run the audit and dispatch for its tickets yourself, say so on each ticket and to the other orchestrator, and tell the human.
 - A dependency canceled rather than merged doesn't unblock: set **Needs human** on the dependent and ask.
 
 ## Follow by events, not polling
 - **No recurring check-ins.** Every wake-up re-reads your whole context and burns the usage limit.
-- Follow each task's PR from the moment you open it. The session marking it Ready for review starts CI, and CI's result is your signal to verify. A session that finishes cleanly without marking the PR ready sends no signal, and ready signals can get lost: keep one fallback check-in per running task and, when it fires, look at **all** open PRs. Cancel it when the ready signal arrives.
+- Follow each task's PR from the moment you open it, but act only on its **merge** (or close): that is the signal the ticket went Done. Ready, CI and review events are the developer's, not yours. A session that stops without merging (blocked, **Needs human** after 3 review rounds, a denied merge, a usage-limit stop) sends no merge: keep one fallback check-in per running task and, when it fires, look at **all** open task PRs and their tickets. Cancel it when the merge arrives.
 - Steer a running session through a comment it reads, or a message if your kind of session can reach it. If it's idle and needs more, launch a follow-up session on the same branch with a precise prompt.
 
-## Verify and review
-Code tasks (Role Development or DevOps, including quick fixes) are merged by a **review session**, not by you. You check the result; the reviewer checks the code. Docs-only and design-package PRs you still merge yourself after the check below (only if the human has allowed autonomous merging; otherwise ask).
+## Audit and close
+Code tasks (Role Development or DevOps, including quick fixes) are reviewed by the developer's own `reviewer` subagent (`.claude/agents/reviewer.md`, it sees only the ticket and the PR) and merged by the developer session, which then sets the ticket Done. You don't check them before the merge. Docs-only and design-package PRs you still check and merge yourself (only if the human has allowed autonomous merging; otherwise ask).
 
-**Your check**, when a PR is marked Ready and its CI is green:
-1. The diff stays inside the task's zone (and outside its out-of-scope list): look at `--stat`, not the whole diff.
-2. There is a test, and for UI changes the session posted a web screenshot. Look at 1–2 screenshots and compare with the design package. Backend: the session's request/response in its report.
-3. Two ready PRs touching the same files: they are reviewed and merged one after the other, so CI re-runs on the second.
-4. Post the result on the ticket: what you checked, with your screenshot.
-Not OK (UI, scope, a missing screenshot): comment on the ticket with exactly what to change, convert the PR to draft (the developer's signal), set the ticket to In Progress. The developer session fixes it and marks it Ready again.
+**Audit**, when a task PR is merged (the developer is the author, the reviewer and the merger, so this is the separation of duties):
+1. The ticket is Done and links the merged PR (Linear's GitHub integration does it via `Closes CV-N`; otherwise attach it).
+2. The PR's last reviewer comment is `Review passed (round K, <SHA>)` and that SHA is the PR's last head before the merge; every earlier `Changes needed` finding has a reply. CI was green on that head.
+3. The diff stayed inside the zone (`--stat`), and for UI the ticket has the web screenshot; look at one against the design package.
+4. Anything off (merged without a passing review on the last head, a red CI, a scope breach, a broken page): set the ticket back to In Progress with **Needs human**, say exactly what, and tell the human; if it broke `main`, file the revert for `qa-release`. Don't fix it yourself.
+5. Post the audit result on the ticket in one line.
 
-**Launch the review** when your check passes:
-1. The ticket must link the PR (Linear's GitHub integration does it via `Closes CV-N`; otherwise attach it).
-2. Comment on the ticket: "Review: autonomous merge allowed / not allowed" (the reviewer reads it), then set it to In Review.
-3. Launch a new session of the same kind as yourself (Tooling → Sessions → Review sessions) with the prompt below. The ticket carries everything else; don't paste the brief.
-   ```
-   You are the review session for CV Andrew Panasiuk. No human is watching.
-   Use the `review` skill. Ticket: CV-N. Read the ticket, its comments and its PR from the tracker.
-   Review the code only; merge when it passes, otherwise send it back and follow the PR.
-   ```
-4. Comment on the ticket with the review session's name and id. Keep following the PR: a merge is your next signal; a `Needs human` from the reviewer (3 rounds without passing) goes to the human.
+A developer that posted **Needs human** (3 review rounds without passing, or a denied merge): look at the PR, then answer, merge it yourself if only the merge was denied and the review passed on the current head, or raise it with the human.
 
-After the merge (by the reviewer or by you):
+After the audit:
 - The backend deploy check (Tooling → Notifications and deploy checks) right away.
-- **Close out the developer session right away:** read its token usage, then archive or remove it (Tooling → Sessions). The review session archives itself and posts its own token numbers on the ticket; take them from there.
-- Closing comment on the ticket: merged PR, verification summary, review rounds.
-- **Follow-ups never pile up silently.** Every follow-up, "not done", "out of zone" or "should later" item in a session's or reviewer's report becomes either a ticket (Backlog, with the report linked) or a line under **Open gaps** in the report to the human, with your judgement: product gap (what the user gets is wrong or missing) or tech debt. A product gap goes to the top of the report. Don't file them only as "debt" in a closing comment.
+- **Close out the developer session right away:** read its token usage, its reviewer subagents included, then archive or remove it (Tooling → Sessions).
+- The developer already posted the closing comment (merged PR, review rounds); you add only the audit line and the usage table.
+- **Follow-ups never pile up silently.** Every follow-up, "not done", "out of zone" or "should later" item in a session's report or a reviewer's non-blocking notes becomes either a ticket (Backlog, with the report linked) or a line under **Open gaps** in the report to the human, with your judgement: product gap (what the user gets is wrong or missing) or tech debt. A product gap goes to the top of the report. Don't file them only as "debt" in a closing comment.
 - **Usage tables** (`COORDINATION.md` → Tracker → Usage): put the ticket's table (a row per session: ≈ $, then in / cache / out / total tokens) at the top of the ticket description, and add the ticket's row to the table at the top of the project description, with the total updated. Tokens are the measure; dollars only by the rough formula there.
 - Then run **Dispatch**.
 - Don't watch CI on `main`: the `qa-release` session does and reverts or files a fix when it goes red. Before each merge, check that the latest CI run on `main` isn't red; if it is, merge only the fix or revert.

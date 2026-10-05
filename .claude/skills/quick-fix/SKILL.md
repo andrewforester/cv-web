@@ -15,7 +15,7 @@ A fix is small: one symptom, a few files, no design package, no new screen. If i
 3. **Launch** like any task (`orchestrate` → Launch a session) on branch `claude/fix-<short>`, with the cheaper model and "Use the `quick-fix` skill"; fallback check-in ≈ 12 min. A quick fix should stay small in tokens (mostly cache reads, few output tokens: no wide exploration, no repeated heavy checks); if it needs measurements, say exactly which (e.g. "two screenshots, no network throttling").
    The human's device screenshots go into the ticket (`COORDINATION.md` → Tracker → Screenshots).
    If two fixes touch the same file, run them one after the other.
-4. **Check and review** per `orchestrate` → Verify and review: a quick fix goes through the review session like any code task. When a web screenshot can't show the change (config, backend, a specific browser), your check is the diff's scope and CI.
+4. **After the merge** per `orchestrate` → Audit and close: the session runs its own reviewer subagent and merges like any code task; you audit the Done ticket.
 
 ## Session
 1. Local session in the main checkout? Create your worktree first (`COORDINATION.md` → General rules). Then `git fetch origin && git merge origin/main`. Read `AGENTS.md`, `docs/COORDINATION.md`, and the ticket named in the prompt with all its comments (the brief is only there).
@@ -23,5 +23,5 @@ A fix is small: one symptom, a few files, no design package, no new screen. If i
 3. **Minimal fix** inside the zone. Fix the lint errors the edit hook reports right away and never add `eslint-disable`. No refactors, no new dependencies (ask in a ticket comment if one is needed). Keep the style reference. If the fix changes what a folder does, update its `AGENTS.md` (create it, with its `CLAUDE.md`, if it has none; root `AGENTS.md` → Package docs).
 4. **Verify, proportionately:** *lint* and *test*; for UI also the *web check* with an "after" screenshot, any page error fails. Add or adjust a test when the fix is testable (`engineering:testing-strategy` when available, if it isn't obvious which). One before/after pair is enough; no long performance experiments unless the brief asks. List what needs a check on a real device or another browser.
 5. **Report** as a ticket comment: cause, fix, before/after screenshots (stored per `COORDINATION.md` → Tracker → Screenshots), what you couldn't verify.
-6. Push to the draft PR the orchestrator opened (never open another), add a one-line summary to its body next to the ticket reference, then mark it **Ready for review**: that starts CI and signals the orchestrator. Stay on the PR until it is merged: fix red CI and handle review rounds as `develop` → Review round says. Don't merge, and don't schedule check-ins.
+6. Push to the draft PR the orchestrator opened (never open another), add a one-line summary to its body next to the ticket reference, then mark it **Ready for review** (starts CI). Then run the review rounds, merge and set the ticket Done exactly as `develop` → Review rounds says. Don't schedule check-ins.
 7. Never wait for answers: post the question, take the conservative option, continue.
