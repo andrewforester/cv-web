@@ -75,7 +75,7 @@ The review is a **`reviewer` subagent** (`.claude/agents/reviewer.md`) that you 
 **Passed → merge.** Merge only when all of these hold; otherwise don't, and say which one failed in a ticket comment:
 - the latest reviewer comment on the PR is `Review passed` and its SHA is the PR's current head (any push after it, even a merge of `main`, needs a new round);
 - the orchestrator's launch comment on the ticket says autonomous merging is allowed;
-- CI on the PR is green, including the web smoke job; the latest CI run on `main` isn't red; no conflicts with `main`.
+- CI on the PR is green, including the e2e job; the latest CI run on `main` isn't red (the workflow run, not the commit's status icon: a hosting status can be red while CI is green); no conflicts with `main`.
 
 Squash-merge (Tooling → Code host). If the merge command is denied (permission mode), don't retry or work around it: comment "Review passed, ready to merge" on the ticket with **Needs human**, and finish; the orchestrator merges.
 
