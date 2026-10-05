@@ -19,7 +19,6 @@ const FAKE_PAGE: CvPage = {
   contacts: [
     { id: 'email', label: 'test@example.com', href: 'mailto:test@example.com' },
     { id: 'whatsapp', label: 'WhatsApp', href: 'https://wa.example.com/1' },
-    { id: 'telegram', label: 'Telegram', href: 'https://t.example.com/1' },
     { id: 'linkedin', label: 'LinkedIn', href: 'https://in.example.com/1' },
   ],
   craft: [
@@ -114,16 +113,11 @@ describe('Home screen', () => {
     expect(screen.getAllByTestId(homeTestIds.stat)[1]).toHaveClass('accent');
 
     const contacts = screen.getAllByTestId(homeTestIds.contact);
-    expect(contacts.map((link) => link.textContent)).toEqual([
-      'Email me↗',
-      'WhatsApp',
-      'Telegram',
-      'LinkedIn',
-    ]);
+    expect(contacts.map((link) => link.textContent)).toEqual(['Email me↗', 'WhatsApp', 'LinkedIn']);
     expect(contacts[0]).toHaveAttribute('href', 'mailto:test@example.com');
     expect(contacts[0]).not.toHaveAttribute('target');
-    expect(contacts[3]).toHaveAttribute('href', 'https://in.example.com/1');
-    expect(contacts[3]).toHaveAttribute('target', '_blank');
+    expect(contacts[2]).toHaveAttribute('href', 'https://in.example.com/1');
+    expect(contacts[2]).toHaveAttribute('target', '_blank');
   });
 
   it('renders every section in the design order', async () => {
@@ -170,7 +164,7 @@ describe('Home screen', () => {
     expect(within(project).getByText('Z')).toHaveClass('initials');
   });
 
-  it('closes with the email and the messenger pills, without Telegram', async () => {
+  it('closes with the email and the messenger pills', async () => {
     renderHome(repositoryOf(() => Promise.resolve(FAKE_PAGE)));
     await screen.findByTestId(homeTestIds.name);
 

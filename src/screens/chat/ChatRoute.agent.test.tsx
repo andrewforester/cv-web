@@ -9,7 +9,7 @@ import { chatTestIds } from './testIds';
 import { answer, inList, renderOpenChat, toolTurn } from './chatTestHarness';
 
 const scrollToImpact = { name: 'scrollToSection', input: { section: 'impact' } } as const;
-const openTelegram = { name: 'openContact', input: { channel: 'telegram' } } as const;
+const openWhatsapp = { name: 'openContact', input: { channel: 'whatsapp' } } as const;
 
 async function ask(
   user: ReturnType<typeof import('@testing-library/user-event').default.setup>,
@@ -204,25 +204,25 @@ describe('chat confirmation card', () => {
 
   it('asks first, built from the page data; Confirm runs the tool, then the follow-up goes out', async () => {
     const { repository, executor, user } = await renderOpenChat({ withTools: true });
-    repository.reply(...toolTurn('Opening Telegram.', openTelegram)).reply(...answer('Opened.'));
+    repository.reply(...toolTurn('Opening WhatsApp.', openWhatsapp)).reply(...answer('Opened.'));
 
-    await ask(user, 'Message him on Telegram');
+    await ask(user, 'Message him on WhatsApp');
 
     const card = await screen.findByTestId(chatTestIds.confirmation);
-    expect(card).toHaveTextContent('Open a Telegram chat with Andrew?');
-    expect(card).toHaveTextContent('t.me/+380938977110');
+    expect(card).toHaveTextContent('Open a WhatsApp chat with Andrew?');
+    expect(card).toHaveTextContent('wa.me/380938977110');
     expect(executor.executed).toHaveLength(0);
     expect(repository.requests).toHaveLength(1);
     expect(screen.getByTestId(chatTestIds.announcer)).toHaveTextContent(
-      'Open a Telegram chat with Andrew?',
+      'Open a WhatsApp chat with Andrew?',
     );
 
     await user.click(within(card).getByTestId(chatTestIds.confirmAction));
 
     expect(await inList().findByText('Opened.')).toBeInTheDocument();
-    expect(executor.executed).toEqual([{ id: 'toolu_1', ...openTelegram }]);
+    expect(executor.executed).toEqual([{ id: 'toolu_1', ...openWhatsapp }]);
     expect(screen.queryByTestId(chatTestIds.confirmation)).not.toBeInTheDocument();
-    expect(screen.getByTestId(chatTestIds.actionChip)).toHaveTextContent('Opened Telegram');
+    expect(screen.getByTestId(chatTestIds.actionChip)).toHaveTextContent('Opened WhatsApp');
     expect(repository.requests[1]?.messages.at(-1)).toMatchObject({
       toolResults: [{ callId: 'toolu_1', result: { ok: true } }],
     });
@@ -230,9 +230,9 @@ describe('chat confirmation card', () => {
 
   it('Cancel returns declined and the tool never runs', async () => {
     const { repository, executor, user } = await renderOpenChat({ withTools: true });
-    repository.reply(...toolTurn('', openTelegram)).reply(...answer('No problem.'));
+    repository.reply(...toolTurn('', openWhatsapp)).reply(...answer('No problem.'));
 
-    await ask(user, 'Telegram');
+    await ask(user, 'WhatsApp');
     await user.click(await screen.findByTestId(chatTestIds.declineAction));
 
     expect(await inList().findByText('No problem.')).toBeInTheDocument();
@@ -245,9 +245,9 @@ describe('chat confirmation card', () => {
 
   it('Stop while the card is open drops the turn; nothing runs and history stays clean', async () => {
     const { repository, executor, user } = await renderOpenChat({ withTools: true });
-    repository.reply(...toolTurn('', openTelegram)).reply(...answer('Hi.'));
+    repository.reply(...toolTurn('', openWhatsapp)).reply(...answer('Hi.'));
 
-    await ask(user, 'Telegram');
+    await ask(user, 'WhatsApp');
     await screen.findByTestId(chatTestIds.confirmation);
     await user.click(screen.getByTestId(chatTestIds.stop));
 
@@ -344,18 +344,18 @@ describe('chat over the real tool registry', () => {
     repository
       .reply(...toolTurn('', scrollToImpact))
       .reply(...answer('Scrolled.'))
-      .reply(...toolTurn('', openTelegram))
+      .reply(...toolTurn('', openWhatsapp))
       .reply(...answer('Opened.'));
 
     await ask(user, 'Show the impact');
     expect(await inList().findByText('Scrolled.')).toBeInTheDocument();
     expect(scroll).toHaveBeenCalledWith({ section: 'impact' });
 
-    await ask(user, 'Telegram');
+    await ask(user, 'WhatsApp');
     expect(open).not.toHaveBeenCalled();
     await user.click(await screen.findByTestId(chatTestIds.confirmAction));
     expect(await inList().findByText('Opened.')).toBeInTheDocument();
-    expect(open).toHaveBeenCalledWith({ channel: 'telegram' });
+    expect(open).toHaveBeenCalledWith({ channel: 'whatsapp' });
     expect(repository.requests.at(-1)?.messages.at(-1)).toMatchObject({
       toolResults: [{ result: { ok: true } }],
     });

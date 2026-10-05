@@ -97,7 +97,7 @@ export const RETRO_STEPS: readonly RetroStepMeta[] = [
     id: 'links',
     title: 'links & contacts',
     intent:
-      'Restore the contact buttons (Email me, WhatsApp, Telegram, LinkedIn) and the footer\'s "Let\'s build something" with its links, and load the real "Ask my AI" chat.',
+      'Restore the contact buttons (Email me, WhatsApp, LinkedIn) and the footer\'s "Let\'s build something" with its links, and load the real "Ask my AI" chat.',
     fallback:
       'Finally, links: restoring the contact buttons and the footer links, and loading the AI chat assistant.',
   },

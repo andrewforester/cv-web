@@ -62,7 +62,7 @@ describe('the page agent on the one page', () => {
   it('puts every catalogue target on the page exactly once, and nothing else', async () => {
     const { page } = await renderHome();
     const ids = cvPageTargetIds(page);
-    expect(ids).toHaveLength(38);
+    expect(ids).toHaveLength(37);
     for (const id of ids) {
       expect(document.querySelectorAll(`[data-agent-id="${id}"]`), id).toHaveLength(1);
     }
@@ -71,7 +71,7 @@ describe('the page agent on the one page', () => {
 
   it('the contact targets are the header buttons, not the footer pills', async () => {
     await renderHome();
-    expect(target('contact:telegram')).toHaveAttribute('data-testid', homeTestIds.contact);
+    expect(target('contact:whatsapp')).toHaveAttribute('data-testid', homeTestIds.contact);
     for (const link of screen.getAllByTestId(homeTestIds.footerLink)) {
       expect(link).not.toHaveAttribute('data-agent-id');
     }
@@ -123,12 +123,17 @@ describe('the page agent on the one page', () => {
 
     registry.setConfirm(() => Promise.resolve(true));
     expect(await registry.execute(call('openContact', { channel: 'email' }))).toEqual({ ok: true });
-    expect(await registry.execute(call('openContact', { channel: 'telegram' }))).toEqual({
+    expect(await registry.execute(call('openContact', { channel: 'whatsapp' }))).toEqual({
       ok: true,
+    });
+    // Telegram is no longer a channel (CV-124): an old tab asking for it is refused, nothing opens.
+    expect(await registry.execute(call('openContact', { channel: 'telegram' }))).toEqual({
+      ok: false,
+      error: 'invalid_params',
     });
     expect(vi.mocked(openLink).mock.calls).toEqual([
       ['mailto:andriipanasiuk@gmail.com'],
-      ['https://t.me/+380938977110'],
+      ['https://wa.me/380938977110'],
     ]);
   });
 

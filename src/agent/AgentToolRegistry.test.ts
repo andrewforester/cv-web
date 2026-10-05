@@ -82,7 +82,7 @@ describe('AgentToolRegistry', () => {
     const registry = await makeRegistry();
     const handler = vi.fn(() => ({ ok: true as const }));
     registry.register('openContact', handler);
-    const input = { channel: 'telegram' };
+    const input = { channel: 'whatsapp' };
 
     expect(await registry.execute(call('openContact', input))).toEqual({
       ok: false,

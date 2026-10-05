@@ -188,7 +188,7 @@ export const CV_SECTION_IDS = [
 export type CvSectionId = (typeof CV_SECTION_IDS)[number];
 
 /** `CvPage.contacts` ids, in the header's order; `data-agent-id="contact:<channel>"`. */
-export const CV_CONTACT_CHANNELS = ['email', 'whatsapp', 'telegram', 'linkedin'] as const;
+export const CV_CONTACT_CHANNELS = ['email', 'whatsapp', 'linkedin'] as const;
 export type CvContactChannel = (typeof CV_CONTACT_CHANNELS)[number];
 
 /** Page snapshot sent with each question: enums and booleans only, never text or values. */

@@ -12,7 +12,7 @@ function toLlmTools(specs: AgentToolSpec[]): readonly LlmTool[] {
 }
 
 /**
- * The page-agent tools as Anthropic `tools` (docs/chat/API.md → v4: three tools, 38 targets):
+ * The page-agent tools as Anthropic `tools` (docs/chat/API.md → v4: three tools, 37 targets):
  * built once from the one page, so every request sends byte-identical tools at the head of the
  * cached prefix. `confirm` stays client-side.
  */

@@ -41,7 +41,6 @@ export function itemLabel(
 const CONFIRM_KEYS: Record<CvContactChannel, keyof ChatStrings> = {
   email: 'confirmEmail',
   whatsapp: 'confirmWhatsapp',
-  telegram: 'confirmTelegram',
   linkedin: 'confirmLinkedin',
 };
 

@@ -47,5 +47,6 @@ describe('devFakeScript: tool rounds', () => {
 
   it('answers ordinary questions in text', () => {
     expect(scriptFor(v4Body(questionV4('What does he do?'))).toolCalls).toBeUndefined();
+    expect(scriptFor(v4Body(questionV4('Message him on Telegram'))).toolCalls).toBeUndefined();
   });
 });

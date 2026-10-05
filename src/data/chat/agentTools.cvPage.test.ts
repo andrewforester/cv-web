@@ -47,11 +47,11 @@ describe('buildCvPageToolSpecs', () => {
 });
 
 describe('cvPageTargetIds', () => {
-  it('lists 38 targets: sections, then the CvPage ids per kind in data order, then contacts', async () => {
+  it('lists 37 targets: sections, then the CvPage ids per kind in data order, then contacts', async () => {
     const page = await loadPage();
     const targets = cvPageTargetIds(page);
     expect(enumOf(page, 'highlightElement', 'target')).toEqual(targets);
-    expect(targets).toHaveLength(38);
+    expect(targets).toHaveLength(37);
     expect(new Set(targets).size).toBe(targets.length);
     const ofKind = (kind: string) =>
       targets.filter((t) => t.startsWith(`${kind}:`)).map((t) => t.slice(kind.length + 1));

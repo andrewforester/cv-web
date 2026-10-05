@@ -4,7 +4,6 @@ import type { CvJob, CvPage, CvProject } from '../../../src/data/cvPage.js';
 const CONTACT_NAMES: Record<string, string> = {
   email: 'Email',
   whatsapp: 'WhatsApp',
-  telegram: 'Telegram',
   linkedin: 'LinkedIn',
 };
 
