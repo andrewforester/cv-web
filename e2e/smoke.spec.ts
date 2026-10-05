@@ -5,7 +5,7 @@ import { collectErrors, SCREENSHOT_DIR } from './support';
 // `vite preview` serves the same app for it, which shows the same page.
 test.use({ locale: 'en-US' });
 
-test('loads directly and renders without errors', async ({ page }) => {
+test('loads directly and renders without errors @prod', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('./');
 
@@ -31,11 +31,13 @@ test('fits a phone screen', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test('/new shows the same page', async ({ page }) => {
+test('/new shows the same page @prod', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('./new');
 
   await expect(page.getByTestId('home-name')).toHaveText('Andrew Panasiuk');
   await expect(page.getByTestId('home')).toHaveCount(1);
+  // Production redirects /new to /; against the local preview the same app serves /new itself.
+  if (process.env.PW_BASE_URL) expect(new URL(page.url()).pathname).toBe('/');
   expect(errors).toEqual([]);
 });

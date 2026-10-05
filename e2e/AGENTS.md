@@ -3,7 +3,7 @@
 Why it exists: the last gate before a change reaches visitors. It proves that the production
 build actually starts and works in a real browser, which unit tests in jsdom
 can't: a green build can still crash at startup. It is the *web check* in the root `AGENTS.md`
-and the `web-smoke` job in CI.
+and the `e2e` job in CI (non-draft PRs and pushes to `main`).
 
 What it guarantees today:
 - The one CV page (`/`, docs/design/v3) loads directly with no page or console errors, shows all
@@ -21,6 +21,13 @@ What it guarantees today:
   (ends as `?retro=0`, `retro-end.png`), the motion-on timing smoke (60–110 s) and the Show case
   click. The show is a lazy chunk (`retroLazy.spec.ts`): `?retro=0` never requests it, `?retro=1`
   shows no frame of today's page first, and a failed chunk leaves the normal site.
+
+Production smoke: tests titled `@prod` (the home page and `/new`; `/new` must end on `/`) also run
+against the live site after each Vercel production deploy (`.github/workflows/prod-smoke.yml`, on
+`deployment_status` for environment Production, plus a manual `workflow_dispatch`), with a `curl`
+that `GET /api/chat` answers `405` JSON. Locally: `npm run web-check:prod` (`PW_BASE_URL` overrides
+the production domain; any `PW_BASE_URL` makes Playwright start no server). Never tag a test
+`@prod` unless it makes no `/api/chat` call or mocks it.
 
 Place in the architecture: runs against `vite preview` of `dist/` (port 4173 in CI, a per-worktree port locally, `PW_PORT` overrides; never reuses a running server), where `/api/chat` doesn't
 exist, so every chat scenario mocks the endpoint with scripted SSE, and the show runs scripted

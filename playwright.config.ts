@@ -9,6 +9,8 @@ function worktreePort(): number {
   return 4200 + (hash % 800);
 }
 
+// PW_BASE_URL (e.g. production) tests that deployment: no local server is started.
+const BASE_URL = process.env.PW_BASE_URL;
 const PORT = Number(process.env.PW_PORT) || (process.env.CI ? 4173 : worktreePort());
 
 export default defineConfig({
@@ -17,13 +19,15 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
   use: {
-    baseURL: `http://localhost:${PORT}/`,
+    baseURL: BASE_URL ?? `http://localhost:${PORT}/`,
     ...devices['Desktop Chrome'],
     viewport: { width: 1280, height: 800 },
   },
-  webServer: {
-    command: `npx vite preview --port ${PORT} --strictPort`,
-    url: `http://localhost:${PORT}/`,
-    reuseExistingServer: false,
-  },
+  webServer: BASE_URL
+    ? undefined
+    : {
+        command: `npx vite preview --port ${PORT} --strictPort`,
+        url: `http://localhost:${PORT}/`,
+        reuseExistingServer: false,
+      },
 });
