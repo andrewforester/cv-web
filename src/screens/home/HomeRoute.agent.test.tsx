@@ -15,6 +15,15 @@ vi.mock('../../shared/agentTarget/pageActions', async (importOriginal) => ({
 const call = (name: AgentToolName, input: Record<string, unknown>) => ({ id: 'c1', name, input });
 const target = (id: string) => document.querySelector(`[data-agent-id="${id}"]`);
 
+/** Lays the page out for the reading line: `section:<above>` just above it, the rest below. */
+function stubSectionTops(above: string) {
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+    const id = this.getAttribute('data-agent-id');
+    const top = id === `section:${above}` ? 100 : id === 'section:header' ? -2000 : 2000;
+    return { top } as DOMRect;
+  });
+}
+
 /**
  * Until the chat moves to v4 (CV-111), `AgentProvider` fills the registry from the old CV. A CV
  * that never loads keeps the page's own v4 catalogue in place, as the chat will offer it.
@@ -104,7 +113,6 @@ describe('the page agent on the one page', () => {
     expect(scrollIntoView.mock.contexts[0]).toBe(target(id));
     expect(target(id)).toHaveAttribute('data-agent-highlighted');
     expect(document.querySelectorAll('[data-agent-highlighted]')).toHaveLength(1);
-    expect(registry.view()).toEqual({ activeSection: null, highlighted: id });
     act(() => void vi.advanceTimersByTime(3000));
     expect(target(id)).not.toHaveAttribute('data-agent-highlighted');
   });
@@ -127,5 +135,19 @@ describe('the page agent on the one page', () => {
       ['mailto:andriipanasiuk@gmail.com'],
       ['https://t.me/+380938977110'],
     ]);
+  });
+
+  it("offers the section in view and the highlighted target to the chat's snapshot", async () => {
+    stubSectionTops('impact');
+    const { registry, view } = await renderHome();
+    expect(registry.view()).toEqual({ activeSection: 'impact', highlighted: null });
+
+    await act(async () => {
+      await registry.execute(call('highlightElement', { target: 'impact:users' }));
+    });
+    expect(registry.view()).toEqual({ activeSection: 'impact', highlighted: 'impact:users' });
+
+    view.unmount();
+    expect(registry.view()).toEqual({ activeSection: null, highlighted: null });
   });
 });

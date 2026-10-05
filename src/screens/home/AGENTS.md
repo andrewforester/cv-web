@@ -1,0 +1,34 @@
+# home
+
+Why it exists: the one CV page of the site (design `docs/design/v3/`, ADR-0006): Andrew as a
+Senior Software Product Engineer, with the stats and contacts up top, code craft × agentic
+process, how he builds with agents, selected impact, experience (Transcenda's client projects on a
+tree), skills, education, about me and a closing call to action. It replaced both older pages: the
+app shell shows it on every path, and `/new` redirects here on Vercel.
+
+Place in the architecture: the screen pattern of the root `AGENTS.md` over `CvPageRepository`
+(`src/data`, mocked by `src/data/mock/cvPage.json`, English only). The state holder loads the page
+and owns the page agent's highlight; the stateless screen renders the page's blocks with
+components that live in this folder (one screen uses them). All content about Andrew is data;
+section headings and fixed words (the handle, "Email me", ©) are this screen's strings. The look
+is not data: card tones follow the card's position. Data images are bundled in `assets/` under the
+`home_` prefix and resolved in `images.ts`. The shell fills the meta bar's end (the Show case
+button, shown only while the page has a show).
+
+Domain terms:
+- **Hooks**: the `home-*` test ids (`testIds.ts`, ADR-0006 → Decision 2). The Show case's damage
+  layers select them, so they are a contract with `src/screens/retro`.
+- **Page agent** (ADR-0002): every section and item the chat can point at carries
+  `data-agent-id`. Sections `header` (meta bar + header), `craft`, `loop`, `impact`, `experience`,
+  `skills`, `education`, `about`, `contacts` (the closing call to action); items `impact:`,
+  `experience:` (with Transcenda's tree), `app:` (its projects), `skill:`, `book:`, and
+  `contact:<channel>` on the header buttons. Each id appears once (`cvPageTargetIds`, 38). While
+  the page is shown it offers scroll, highlight (fades after a few seconds) and open contact
+  (after the visitor confirms in the chat).
+
+Stubs and limits:
+- Until the chat moves to v4 (CV-111) the snapshot's section in view leaves out `craft` and
+  `contacts` (v2's section type lacks them; they read as the section above).
+- Layout values the v3 tokens don't cover yet are private `--home-*` properties on the page root
+  (`HomePage.module.css`, `TODO(theme)`).
+- The "Ask my AI" launcher belongs to the chat screen, not this page.
