@@ -1,13 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { ChatPage } from '../../../src/data/chat/contract.js';
-import { RETRO_NEW_SCENARIO_ID } from '../../../src/data/retro/scenarioNew.js';
 import { SHOW_SCENARIOS } from '../../../src/data/retro/scenarios.js';
 import { NARRATE_BODY, replyBody } from '../../test/helpers.js';
 import { HAIKU_4_5 } from '../llm/modelOptions.js';
 import { NARRATE_DEADLINE_MS, narrationStreamer, planShow } from './planShow.js';
 import { showOutline } from './showPrompt.js';
 
-const knowledge = () => Promise.resolve('<knowledge>CV</knowledge>');
+const knowledge = () => Promise.resolve('<knowledge>CV page</knowledge>');
 
 describe('planShow', () => {
   it('caps the narrate deadline at 20 s and leaves the reply deadline as is', async () => {
@@ -22,21 +20,15 @@ describe('planShow', () => {
     const outline = showOutline(SHOW_SCENARIOS[NARRATE_BODY.scenario]);
     const narrate = await planShow(NARRATE_BODY, knowledge, HAIKU_4_5, 1);
     expect(narrate.llmRequest.system[1]?.text).toBe(outline);
-    expect(narrate.logFields).toMatchObject({ showKind: 'narrate', showScenario: 'retro-3' });
+    expect(narrate.logFields).toMatchObject({ showKind: 'narrate', showScenario: 'retro-4' });
     const reply = await planShow(replyBody(), knowledge, HAIKU_4_5, 1);
     expect(reply.llmRequest.system[1]?.text).toBe(outline);
-    expect(reply.logFields).toMatchObject({ showKind: 'reply', showScenario: 'retro-3' });
+    expect(reply.logFields).toMatchObject({ showKind: 'reply', showScenario: 'retro-4' });
   });
 
-  it("grounds replies in the scenario's page: `/new` in the profile, `/` in the CV", async () => {
-    const byPage = (page: ChatPage) => Promise.resolve(`<knowledge>${page}</knowledge>`);
-    const newShow = replyBody({ scenario: RETRO_NEW_SCENARIO_ID });
-    const onNew = await planShow(newShow, byPage, HAIKU_4_5, 1);
-    expect(onNew.llmRequest.system[1]?.text).toBe(showOutline(SHOW_SCENARIOS['retro-new-1']));
-    expect(onNew.llmRequest.system[2]?.text).toBe('<knowledge>profile</knowledge>');
-    expect(onNew.logFields).toMatchObject({ showKind: 'reply', showScenario: 'retro-new-1' });
-    const onCv = await planShow(replyBody(), byPage, HAIKU_4_5, 1);
-    expect(onCv.llmRequest.system[2]?.text).toBe('<knowledge>cv</knowledge>');
+  it("grounds replies in the one page's knowledge (ADR-0006 Decision 4)", async () => {
+    const reply = await planShow(replyBody(), knowledge, HAIKU_4_5, 1);
+    expect(reply.llmRequest.system[2]?.text).toBe('<knowledge>CV page</knowledge>');
   });
 
   it('loads the knowledge only for replies', async () => {

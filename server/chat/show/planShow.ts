@@ -1,6 +1,6 @@
 import type { ShowRequest } from '../../../src/data/retro/contract.js';
 import { SHOW_SCENARIOS } from '../../../src/data/retro/scenarios.js';
-import type { PageKnowledgeLoader } from '../knowledge/assembleKnowledge.js';
+import type { CvPageKnowledgeLoader } from '../knowledge/assembleKnowledge.js';
 import type { LlmRequest } from '../llm/LlmClient.js';
 import type { ModelOptions } from '../llm/modelOptions.js';
 import type { ChatLogEntry } from '../log.js';
@@ -35,12 +35,12 @@ export function narrationStreamer(): TextStreamer {
 
 /**
  * The model request, streaming and log fields of a v3 request (docs/chat/API.md → v3), for the
- * request's scenario. Replies answer from the knowledge of the scenario's page, like the chat on
- * that page (ADR-0004, docs/retro/ARCHITECTURE.md §10 → Server).
+ * request's scenario. Replies answer from the one page's knowledge, like the chat (ADR-0006
+ * Decision 4, docs/retro/ARCHITECTURE.md §11).
  */
 export async function planShow(
   request: ShowRequest,
-  knowledge: PageKnowledgeLoader,
+  knowledge: CvPageKnowledgeLoader,
   model: ModelOptions,
   deadlineMs: number,
 ): Promise<ShowPlan> {
@@ -55,7 +55,7 @@ export async function planShow(
     };
   }
   return {
-    llmRequest: buildReplyRequest(request, manifest, await knowledge(manifest.page, locale), model),
+    llmRequest: buildReplyRequest(request, manifest, await knowledge(), model),
     deadlineMs,
     logFields: {
       locale,

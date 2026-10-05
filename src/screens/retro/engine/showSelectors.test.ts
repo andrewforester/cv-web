@@ -78,7 +78,7 @@ describe('consoleRows (DevTools console)', () => {
   it('collapses a finished step to ✓ n/N when the next one starts', () => {
     const run = new ShowTestRun(RETRO_SHOW);
     run.advanceUntil((state) => state.stage === 'stepDone');
-    expect(brief(run.state).filter((row) => row.startsWith('done'))).toHaveLength(6);
+    expect(brief(run.state).filter((row) => row.startsWith('done'))).toHaveLength(7);
     expect(brief(run.state).at(-1)).toBe('prompt');
     run.advanceUntil((state) => state.step === 1);
     expect(brief(run.state)).toEqual([
@@ -131,7 +131,7 @@ describe('consoleCounters', () => {
     run.advanceUntil(applied('layer:type-faces'));
     expect(consoleCounters(run.state)).toEqual({ errors: 35, warnings: 8 });
     run.advanceUntil((state) => state.step === 1);
-    expect(consoleCounters(run.state)).toEqual({ errors: 30, warnings: 7 });
+    expect(consoleCounters(run.state)).toEqual({ errors: 29, warnings: 7 });
     run.advanceUntil((state) => state.phase === 'done');
     expect(consoleCounters(run.state)).toEqual({ errors: 0, warnings: 0 });
   });
@@ -185,7 +185,7 @@ describe('chunk selectors (for the stage)', () => {
       key: 'layer:type-faces',
       phase: 'typing',
       page: false,
-      queries: ["[data-retro-stage] [data-testid='forest-name']", '[data-retro-stage] h2'],
+      queries: ["[data-retro-stage] [data-testid='home-name']", '[data-retro-stage] h2'],
     });
     run.advanceUntil(applied('layer:type-faces'));
     const at = run.state.effects['layer:type-faces']?.at ?? NaN;

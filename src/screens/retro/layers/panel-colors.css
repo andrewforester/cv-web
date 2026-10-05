@@ -1,0 +1,10 @@
+:root {
+  --gradient-brand-tile: #000080;
+  --gradient-dark: #000000;
+  --gradient-footer: transparent;
+  --color-dark-ink: #00ff00;
+  --color-dark-line: #008000;
+  --color-dark-number: #ffff00;
+  --color-dark-note: #00cc00;
+  --shadow-dark: none;
+}

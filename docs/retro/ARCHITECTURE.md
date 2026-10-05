@@ -1153,11 +1153,17 @@ loader, so it is blocked by CV-96 too (already true through A). CV-97 adds `data
 
 ## 11. One page v3: one scenario, `retro-4` (designed in CV-107)
 
-> **Design, not built yet.** The site becomes one page with the v3 design, English only
-> ([ADR-0006](../adr/0006-one-page-v3.md)). `/new` redirects to `/`, so there is one page left to
-> run the show on. Decision 4 of the ADR picks the scenario: **`retro-4`, a port of `/new`'s
-> `retro-new-1`** onto the v3 page. §10 (per-page scenarios) and §9 stay the record of what is
-> built until CV-107's Show task (T6) lands; it then updates this section to "as built".
+> **As built (CV-112).** The site is one page with the v3 design, English only
+> ([ADR-0006](../adr/0006-one-page-v3.md)); `/new` redirects to `/`. The show is one scenario,
+> **`retro-4`, a port of `/new`'s `retro-new-1`** onto the v3 page (Decision 4), built as below.
+> This section is the record now; §10's per-page model (`SHOW_SOURCES`, `retro-3`, `retro-new-1`,
+> `layers/new/`, `retroNew.spec.ts`) is history. Every selector that moved and the rules added for
+> the v3 blocks: `docs/design/retro/SPEC.md` → v3 refit. Deviations from the plan below:
+> `RetroShowRoute` keeps its `scenario` prop (the wire id) and always runs the one source
+> (`RETRO_SOURCE` in `scenario.ts`); the decoration anchors gained `photo` (`home-photo`); the
+> server passes `deps.cvPageKnowledge` to `planShow` (`server/chat/handler.ts`); the fonts step
+> reorders `type-scale-cards` (stats, craft) before `type-scale-impact` (loop, impact) to follow
+> the page; the loop steps break into plain rows, not a decimal list (SPEC → v3 refit).
 
 ### What stays
 

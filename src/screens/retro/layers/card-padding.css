@@ -1,3 +1,4 @@
-[data-retro-stage] :is([data-testid='cv-education'], [data-testid='cv-about']) {
+[data-retro-stage]
+  :is([data-testid='home-education'], [data-testid='home-about'], [data-testid='home-footer']) {
   padding: 0;
 }

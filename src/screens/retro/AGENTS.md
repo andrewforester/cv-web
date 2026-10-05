@@ -1,13 +1,13 @@
 # retro
 
-Why it exists: the Retro Rebuild show (the Show case). When the visitor asks for it the page (`/`, the CV, or `/new`,
-the profile) turns into a broken 2002 homepage; an agent chat in the site's own AI chat look says "That's how this CV
+Why it exists: the Retro Rebuild show (the Show case). When the visitor asks for it the one CV page (v3) turns
+into a broken 2002 homepage; an agent chat in the site's own AI chat look says "That's how this CV
 would look like in 2001." and "Now let's fix it.", then Chrome DevTools (light theme) docks to the
 right and the "agent" fixes the site live in its Console, its commentary typed as `//` comments
 while the chat stays quiet: every command it types is what changes the page, until the page is
 today's page and the real AI chat button loads; the ✖ / ⚠ counters fall from 36 / 8 to 0. At the end
 DevTools collapses, the chat says "All good now." and then shrinks into the site's chat launcher.
-Design: `docs/design/retro/SPEC.md` (look, copy, timing; `/new`'s part is "2001 `/new`"); mechanism: `docs/retro/ARCHITECTURE.md`,
+Design: `docs/design/retro/SPEC.md` (look, copy, timing; "2001 `/new`" and its "v3 refit"); mechanism: `docs/retro/ARCHITECTURE.md`,
 `docs/adr/0003-retro-live-fix-show.md`.
 
 Domain terms:
@@ -18,13 +18,11 @@ Domain terms:
   `style.setProperty` calls carrying the site's live values (set inline on `<html>` until the end).
 - **Decoration**: show-owned DOM over the page (nav bar + marquee, footer, "Oh, snap!" note),
   rendered through a portal, `aria-hidden`, its DOM id = its id.
-- **Source** (`scenarios.ts`, ARCHITECTURE §10): what a page's scenario does to that page: its
-  chunks, damage layers, the decorations' anchors and copy. `SHOW_SOURCES` maps each scenario id
-  to its source (`/`'s `retro-3`, `/new`'s `retro-new-1`); a scenario without a source ends at once.
-- **Step / chunk** (`/`'s source: `scenario.ts` registers layers, decorations and modules;
-  `scenarioSteps.ts` holds the fix list; `/new`'s: `scenarioNew.ts`, which reuses 17 of `/`'s
-  layers, and `scenarioNewSteps.ts`; both fix lists are written with `chunkBuilders.ts`): per
-  page 8 manifest steps (the same ids on both pages) of 36 chunks. A step opens with its **narration comment**
+- **Source** (`scenario.ts`, ARCHITECTURE §11): what the one scenario, `retro-4`, does to the
+  page: its damage layers, decorations, modules, the decorations' anchors (`home`, `home-header`,
+  `home-photo`) and copy, in `RETRO_SOURCE`.
+- **Step / chunk** (`scenarioSteps.ts` holds the fix list, written with `chunkBuilders.ts`): 8
+  manifest steps of 36 chunks. A step opens with its **narration comment**
   (the LLM line or the manifest fallback, wrapped into `// …` lines) typed into the console. A chunk is one visible change: one effect
   (remove a layer or decoration, load a module: the AI chat is the last chunk), its **target**
   (the `// → <label>` console line and what the highlight marks) and its **motion** (`fade`,
@@ -66,17 +64,17 @@ Rules and limits:
   fixed `All good now.`).
 - The LLM is never on the critical path: missing narration → the manifest's fallback lines,
   failed replies → a scripted line; automation (`navigator.webdriver`) runs fully scripted.
-- Guards run per registered source: `scenario.test.ts` (every layer/decoration removed exactly
+- Guards: `scenario.test.ts` (every layer/decoration removed exactly
   once, every chunk has a target, motion fits the layer's CSS, every file under `layers/` is
   registered), `layers.test.tsx` (every rule-layer and target selector matches the real page in
-  `RetroStageTestHarness page=…`, every token exists), `engine/showTiming.test.ts` (≈ 91 s), and
-  in `e2e/retro.spec.ts` (`/`) and `e2e/retroNew.spec.ts` (`/new`) guards 3 and 4. Renaming a page's hook or token fails them; fix
+  `RetroStageTestHarness`, every token exists), `engine/showTiming.test.ts` (≈ 91 s), and
+  in `e2e/retro.spec.ts` guards 3 and 4. Renaming a page's hook or token fails them; fix
   the layer, never the guard.
 - EN only by decision: `strings.ts` has no `uk` (it falls back to English).
 - Tests import layer files with `?raw` like the app (`vite.config.ts` → `test.css.include`).
 - Dev harness: `harness/` (not a build entry): `npm run dev`, then
-  `/src/screens/retro/harness/index.html` (`?scenario=<id>` for another page's show).
+  `/src/screens/retro/harness/index.html`.
 - Motion never touches the page's screen: the classes live only for a chunk's window and go with the
   show. Reduced motion: no classes, no view transitions, no leave, instant close. Browsers without
   view transitions get morphs instantly (the highlight still shows where).
-- Desktop only. Runs on the pages the shell maps to a scenario (`/` and `/new`). Started by the shell (`?retro=1` or its start seam); replay = start again (R24).
+- Desktop only. Runs on the one page (`src/app/showScenarios.ts`). Started by the shell (`?retro=1` or its start seam); replay = start again (R24).

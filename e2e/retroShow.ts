@@ -1,10 +1,10 @@
 import { expect, type Page } from '@playwright/test';
 import { collectErrors, SCREENSHOT_DIR, type ShowUrls } from './support';
 
-// Helpers for the show specs (none while the show is off; `retro.spec.ts` comes back with `retro-4`,
-// ARCHITECTURE §11): drive the page's Retro Rebuild show on Playwright's fake clock, read what the
-// console printed and what the show left on the page (docs/retro/ARCHITECTURE.md §1 → guards 3
-// and 4; the page's URLs come as `ShowUrls`).
+// Helpers for the show spec (`retro.spec.ts`, `retro-4`, ARCHITECTURE §11): drive the page's
+// Retro Rebuild show on Playwright's fake clock, read what the console printed and what the show
+// left on the page (docs/retro/ARCHITECTURE.md §1 → guards 3 and 4; the page's URLs come as
+// `ShowUrls`).
 
 /** Fake time per turn of the loop; the runner is time-based, so the slice only sets the pace. */
 const SLICE_MS = 250;

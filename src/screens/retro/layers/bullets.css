@@ -1,11 +1,13 @@
-[data-retro-stage] :is([data-testid='forest-lead'] p, [data-testid='forest-job'] li) {
+[data-retro-stage] :is(ol:has(> [data-testid='home-loop-step']), [data-testid='home-loop-step']) {
+  display: block;
+}
+[data-retro-stage] [data-testid='home-job'] li {
   display: list-item;
   margin-left: 28px;
-  list-style: disc outside;
+  list-style: square outside;
 }
-[data-retro-stage] [data-testid='forest-job'] li {
-  list-style-type: square;
-}
-[data-retro-stage] [data-testid='forest-job'] li > [aria-hidden='true'] {
+[data-retro-stage]
+  :is([data-testid='home-job'] li, [data-testid='home-project'])
+  > [aria-hidden='true'] {
   display: none;
 }

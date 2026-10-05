@@ -1,7 +1,9 @@
+import { isShowScenarioId } from '../data/retro';
 import { SHOW_SCENARIO } from './showScenarios';
 
 describe('SHOW_SCENARIO', () => {
-  it('is off until the show is ported to the v3 page', () => {
-    expect(SHOW_SCENARIO).toBeUndefined();
+  it('runs retro-4 on the one page, a known scenario', () => {
+    expect(SHOW_SCENARIO).toBe('retro-4');
+    expect(isShowScenarioId(SHOW_SCENARIO)).toBe(true);
   });
 });

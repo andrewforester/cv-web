@@ -10,20 +10,19 @@ Domain terms (contract: `docs/chat/API.md` → v3; design: `docs/retro/ARCHITECT
   `finale`; the server parses complete lines as they stream and sends each valid one as a `line`
   event. Junk, unknown keys, repeats and runaway lines are dropped, and the browser falls back to
   the manifest text for any key that never arrives.
-- **reply:** one request per visitor message: a short answer grounded in the scenario's page like
-  the chat on that page (`/`: the CV, `/new`: the profile), with the step on screen passed as
-  `<show_state>` data on the latest message.
+- **reply:** one request per visitor message: a short answer grounded in the one page's knowledge,
+  like the chat (ADR-0006 Decision 4), with the step on screen passed as `<show_state>` data on
+  the latest message.
 - **Scenario manifest:** step ids, intents and fallbacks of the request's scenario, looked up in
-  `src/data/retro/scenarios.ts` (the registry the browser runs too; one scenario per page with a
-  show: `/`'s `retro-3`, `/new`'s `retro-new-1`). An unknown scenario id is
-  `unsupported_version`; `step` and `stepsDone` are checked against that scenario. The outline
-  the model sees is rendered from the manifest, so `/`'s prompt text (and its cache prefix) is the
-  same as before the per-page split.
+  `src/data/retro/scenarios.ts` (the registry the browser runs too; one scenario, `retro-4`,
+  docs/retro/ARCHITECTURE.md §11). An unknown scenario id (the per-page `retro-3` and
+  `retro-new-1` of before included) is `unsupported_version`; `step` and `stepsDone` are checked
+  against that scenario. The outline the model sees is rendered from the manifest.
 
 Place in the architecture: a branch of the chat pipeline (`../handler.ts`). Guards, rate limits,
 daily budget, kill switch, model choice, SSE framing and the log line are the chat's; this folder
 adds validation, prompts, the line parser and the dev-mode fake scripts. Reply knowledge comes from
-`../knowledge/`'s per-page loader, for the manifest's `page`. The browser side is
+`../knowledge/`'s one-page loader (`deps.cvPageKnowledge`, the v4 chat's). The browser side is
 `src/data/retro/HttpShowRepository.ts`.
 
 Rules and limits:

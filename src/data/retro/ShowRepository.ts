@@ -9,7 +9,7 @@ export type ShowReplyInput = Pick<ShowReplyRequest, 'scenario'> & ShowReplyState
 
 /**
  * The show's LLM seam (docs/chat/API.md → v3): narration for the whole scenario and replies to the
- * visitor. One bound repository serves every page, so the scenario comes with each call. Each
+ * visitor. The scenario (the wire id) comes with each call. Each
  * stream yields its events, then exactly one terminal `done` or `error`. Never throws for
  * protocol, HTTP or network failures: they arrive as an `error` event, and the show goes scripted.
  * When `signal` aborts, the stream just ends (no terminal event).

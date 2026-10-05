@@ -1,7 +1,13 @@
-[data-retro-stage] :is([data-testid='forest-contact'], footer a) {
+[data-retro-stage] :is([data-testid='home-contact'], [data-testid='home-footer'] a) {
   color: #0000ee;
   text-decoration: underline;
 }
-[data-retro-stage] [data-testid='forest-contact'] [aria-hidden='true'] {
+[data-retro-stage] :is([data-testid='home-contact'], [data-testid='home-footer-link']) {
+  background: none;
+  box-shadow: none;
+}
+[data-retro-stage]
+  :is([data-testid='home-contact'], [data-testid='home-footer-link'])
+  [aria-hidden='true'] {
   display: none;
 }

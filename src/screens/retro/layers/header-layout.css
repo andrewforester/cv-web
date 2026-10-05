@@ -1,15 +1,11 @@
-[data-retro-stage] [data-testid='forest-hero'] {
-  flex-wrap: nowrap;
-  flex-direction: row-reverse;
-  align-items: flex-start;
-  gap: 16px;
-  text-align: center;
+[data-retro-stage] [data-testid='home-header'] {
+  align-items: center;
+  gap: 8px;
 }
-[data-retro-stage] ul:has(> li > [data-testid='forest-contact']) {
+[data-retro-stage] div:has(> [data-testid='home-contact']) {
   display: block;
-  text-align: center;
 }
-[data-retro-stage] li:has(> [data-testid='forest-contact']) {
-  display: inline-block;
+[data-retro-stage] [data-testid='home-contact'] {
+  display: inline;
   margin: 0 8px;
 }

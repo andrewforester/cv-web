@@ -48,7 +48,7 @@ describe('handleChat v3: narrate', () => {
         locale: 'en',
         promptVersion: SHOW_PROMPT_VERSION,
         showKind: 'narrate',
-        showScenario: 'retro-3',
+        showScenario: 'retro-4',
         stepId: null,
         narrationLines: 4,
         messages: null,
@@ -82,7 +82,7 @@ describe('handleChat v3: narrate', () => {
 });
 
 describe('handleChat v3: reply', () => {
-  it('streams the answer as deltas, grounded in the CV with the show state as data', async () => {
+  it('streams the answer as deltas, grounded in the one page with the show state as data', async () => {
     const deps = testDeps({ deltas: ['Enjoy it ', 'while it lasts.'] });
     const response = await handleChat(chatRequest(replyBody()), deps);
     expect(response.headers.get('x-chat-api-version')).toBe('3');
@@ -96,7 +96,7 @@ describe('handleChat v3: reply', () => {
     expect(deps.logs[0]).toMatchObject({
       v: 3,
       showKind: 'reply',
-      showScenario: 'retro-3',
+      showScenario: 'retro-4',
       stepId: 'layout',
       messages: 1,
       inputChars: VISITOR_TEXT.length,

@@ -8,25 +8,23 @@ talk to the LLM. Design: `docs/retro/ARCHITECTURE.md`, `docs/adr/0003-retro-live
 `docs/design/retro/SPEC.md`; wire contract: `docs/chat/API.md` → v3.
 
 Domain terms:
-- **Scenario / step:** the authored fix sequence of one page, 8 steps with one concern each
-  (`fonts`, `colours`, `layout`, `images`, `cards`, `spacing`, `chrome`, `links`; the same ids on
-  every page). The manifest has ids, console titles, an intent line for the LLM and a scripted
+- **Scenario / step:** the authored fix sequence of the page, 8 steps with one concern each
+  (`fonts`, `colours`, `layout`, `images`, `cards`, `spacing`, `chrome`, `links`). The manifest has ids, console titles, an intent line for the LLM and a scripted
   fallback per step. What a step *does* to the page (its chunks: damage layers, decorations,
   modules) lives in the retro screen.
-- **Scenario registry** (`scenarios.ts`, ARCHITECTURE §10): every known scenario by its wire id
-  with its manifest and the page whose content grounds the replies: `/`'s `retro-3`
-  (`scenario.ts`, grounded in the CV) and `/new`'s `retro-new-1` (`scenarioNew.ts`, grounded in
-  the profile; same step ids and titles, its own intents and fallbacks). The browser and the
-  server both read it, so a registered id is known on both sides.
+- **Scenario registry** (`scenarios.ts`, ARCHITECTURE §11): every known scenario by its wire id
+  with its manifest; one today, `retro-4` (`scenario.ts`), the show on the one v3 page. Replies
+  ground in that page's knowledge. The browser and the server both read it, so a registered id is
+  known on both sides; the per-page `retro-3` and `retro-new-1` of before are unknown now.
 - **Narration:** one commentary line per step plus the `finale`, fetched once per show
   (`narrate`); a missing line falls back to the manifest text, so the show never waits on the LLM.
 - **Reply:** the LLM's answer to a visitor message, with the step on screen as context.
-- **Scenario id:** a page's id is bumped whenever its steps change; an old tab then gets
+- **Scenario id:** bumped whenever the steps change; an old tab then gets
   `unsupported_version` and goes scripted.
 
 Place in the architecture: data layer. The retro screen's state holder reaches the repository
-through its context; `src/app/AppProviders.tsx` binds the implementation. One repository serves
-every page, so the scenario is an argument of each call. `server/chat/show/` imports
+through its context; `src/app/AppProviders.tsx` binds the implementation. The scenario stays an
+argument of each call (the wire carries it). `server/chat/show/` imports
 `scenario.ts`, `scenarios.ts` and `contract.ts` (framework-free, `.js` specifiers); errors, usage and
 chat messages are reused from `../chat/contract`.
 
