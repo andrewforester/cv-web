@@ -3,13 +3,38 @@ import { addChat, chunkResolved, currentStep } from './showState';
 import { commentMs, revealMs, TIMING, typingMs } from './timing';
 import type { EffectRun, PlannedChunk, PlannedStep, ShowPhase, ShowState } from './showTypes';
 
-/** Typing time of the current chunk and how many of its characters show at `t`. */
+/** Whether the chunk's apply waits for the camera: page-wide and module chunks never scroll. */
+const waitsForFocus = (chunk: PlannedChunk) =>
+  chunk.target !== null && chunk.target.selectors !== 'page';
+
+/** Typing stops after the selector line of a chunk that targets an element (not when reduced). */
+const selectorPauseMs = (state: ShowState, chunk: PlannedChunk) =>
+  waitsForFocus(chunk) && !state.config.reducedMotion ? TIMING.selectorPauseMs : 0;
+
+/**
+ * Show time the current chunk's typing stops for the selector pause and resumes, or `null` when it
+ * has none. The characters take `typingMs`; the pause comes on top.
+ */
+export function selectorPause(
+  state: ShowState,
+  chunk: PlannedChunk,
+): [from: number, to: number] | null {
+  const pause = selectorPauseMs(state, chunk);
+  if (!pause) return null;
+  const from = state.stageAt + (typingMs(chunk.chars, false) * chunk.selectorChars) / chunk.chars;
+  return [from, from + pause];
+}
+
+/** Typing time of the current chunk (with its selector pause) and how many characters show at `t`. */
 export function chunkTyping(state: ShowState, chunk: PlannedChunk): { ms: number; shown: number } {
   const { reducedMotion } = state.config;
-  const ms = typingMs(chunk.chars, reducedMotion);
+  const charsMs = typingMs(chunk.chars, reducedMotion);
+  const ms = charsMs + selectorPauseMs(state, chunk);
   if (state.stage !== 'type' || reducedMotion) return { ms, shown: chunk.chars };
-  const elapsed = state.t - state.stageAt;
-  return { ms, shown: Math.min(chunk.chars, Math.floor((elapsed / ms) * chunk.chars)) };
+  const pause = selectorPause(state, chunk);
+  const paused = pause ? Math.min(Math.max(state.t - pause[0], 0), pause[1] - pause[0]) : 0;
+  const elapsed = state.t - state.stageAt - paused;
+  return { ms, shown: Math.min(chunk.chars, Math.floor((elapsed / charsMs) * chunk.chars)) };
 }
 
 /** Typing time of the step's narration comment and how many of its characters show at `t`. */
@@ -26,18 +51,17 @@ export function narrateEndsAt(state: ShowState): number {
   return state.stageAt + commentTyping(state).ms + TIMING.narrateMs;
 }
 
-/** Whether the chunk's apply waits for the camera: page-wide and module chunks never scroll. */
-const waitsForFocus = (chunk: PlannedChunk) =>
-  chunk.target !== null && chunk.target.selectors !== 'page';
-
 /**
  * Show time the current chunk applies: its typing has ended and the camera has settled on its
- * target (`focusSettled`), or the settle cap has passed, whichever comes first.
+ * target (`focusSettled`), or the settle cap has passed, whichever comes first. After a scroll
+ * the apply waits `focusPauseMs` more (also past the cap); with no scroll it doesn't.
  */
 export function applyDueAt(state: ShowState, chunk: PlannedChunk): number {
   const typedAt = state.stageAt + chunkTyping(state, chunk).ms;
   if (!waitsForFocus(chunk)) return typedAt;
-  return Math.max(typedAt, state.focusAt ?? state.stageAt + TIMING.focusSettleCapMs);
+  const settledAt = state.focusAt ?? state.stageAt + TIMING.focusSettleCapMs;
+  const pause = state.focusScrolled && !state.config.reducedMotion ? TIMING.focusPauseMs : 0;
+  return Math.max(typedAt, settledAt + pause);
 }
 
 /** Where a hold at a chunk boundary ends: the latest cap of the holds still on. */
@@ -64,7 +88,15 @@ function passBoundary(state: ShowState, ready: number, next: (at: number) => Sho
 }
 
 function startChunk(state: ShowState, index: number, at: number): ShowState {
-  return { ...state, stage: 'type', chunk: index, stageAt: at, focusAt: null, heldSince: null };
+  return {
+    ...state,
+    stage: 'type',
+    chunk: index,
+    stageAt: at,
+    focusAt: null,
+    focusScrolled: false,
+    heldSince: null,
+  };
 }
 
 /** A step starts with its narration typed into the console as comments; the chat stays silent. */
@@ -80,6 +112,7 @@ function enterStep(state: ShowState, index: number, at: number): ShowState {
     stageAt: at,
     comment: narrationComment(state.narration[step.id] ?? step.fallback),
     focusAt: null,
+    focusScrolled: false,
     heldSince: null,
   };
 }

@@ -27,6 +27,10 @@ export const TIMING = {
   stepDoneMs: 300,
   /** A chunk applies at most this long after it started if the camera hasn't settled by then. */
   focusSettleCapMs: 800,
+  /** After a camera scroll ends (or its cap passes), before the chunk applies and highlights. */
+  focusPauseMs: 500,
+  /** Typing stops this long after a chunk's selector line, then the rest types at the same rate. */
+  selectorPauseMs: 500,
   /** Reduced motion: a chunk's code shows at once and applies after this. */
   reducedMotionApplyMs: 600,
   /** The highlight holds its fill this long after the apply, then fades until the beat ends. */

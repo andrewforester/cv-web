@@ -53,7 +53,8 @@ describe('useChunkFocus (the show camera)', () => {
     const scrollTo = stage(2_000);
     const dispatch = focus();
     expect(scrollTo).toHaveBeenCalledWith({ top: 1_976, behavior: 'smooth' });
-    expect(dispatch).not.toHaveBeenCalled();
+    expect(dispatch).toHaveBeenCalledWith({ type: 'focusScrolling', key: 'layer:heading-colors' });
+    expect(dispatch).not.toHaveBeenCalledWith(settled);
     window.dispatchEvent(new Event('scrollend'));
     expect(dispatch).toHaveBeenCalledWith(settled);
   });

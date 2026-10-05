@@ -1,4 +1,11 @@
-import { applyDueAt, chunkTyping, commentTyping, holdEndsAt, narrateEndsAt } from './showProgress';
+import {
+  applyDueAt,
+  chunkTyping,
+  commentTyping,
+  holdEndsAt,
+  narrateEndsAt,
+  selectorPause,
+} from './showProgress';
 import { currentPlannedChunk, currentStep } from './showState';
 import { revealMs, TIMING } from './timing';
 import type { ShowState } from './showTypes';
@@ -16,7 +23,10 @@ export function isAnimating(state: ShowState): boolean {
     return commentTyping(state).shown < state.comment.join('').length;
   }
   const chunk = currentPlannedChunk(state);
-  return !!chunk && state.stage === 'type' && chunkTyping(state, chunk).shown < chunk.chars;
+  if (!chunk || state.stage !== 'type') return false;
+  const pause = selectorPause(state, chunk);
+  if (pause && state.t >= pause[0] && state.t < pause[1]) return false;
+  return chunkTyping(state, chunk).shown < chunk.chars;
 }
 
 /**
@@ -46,6 +56,8 @@ function nextDeadline(state: ShowState): number | null {
       if (!chunk) return state.t;
       const run = state.effects[chunk.key];
       if (run?.status === 'running') return run.at + TIMING.moduleTimeoutMs;
+      const pause = selectorPause(state, chunk);
+      if (pause && state.t >= pause[0] && state.t < pause[1]) return pause[1];
       return applyDueAt(state, chunk);
     }
     case 'beat':

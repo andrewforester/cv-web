@@ -9,7 +9,7 @@ import { collectErrors, SCREENSHOT_DIR, type ShowUrls } from './support';
 /** Fake time per turn of the loop; the runner is time-based, so the slice only sets the pace. */
 const SLICE_MS = 250;
 /** The 8-step, 36-chunk show takes ≈ 78 s of show time with reduced motion, ≈ 91 s with motion. */
-export const SHOW_LIMIT_MS = 110_000;
+export const SHOW_LIMIT_MS = 130_000;
 /** Below this the show has skipped chunks: 36 chunks with a 1 s beat each take ≈ 90 s. */
 export const MIN_SHOW_MS = 60_000;
 
