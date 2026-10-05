@@ -10,6 +10,8 @@ The look of the show. The mechanism (damage layers, decorations, runner, LLM, sh
 
 **Revision CV-90 (2 Oct 2026, R23)**: the site under the show is now the **Forest `/`** (`docs/design/forest/SPEC.md`), so the broken page is refitted to it: the same 2002 homepage (star tile, 640 px cream table, Verdana/Times/Comic, bevels, marquee, "NEW!", blue links, broken images, footer furniture), drawn over Forest's hooks and tokens, and every chunk moves it toward the Forest page. Still 8 steps, 36 chunks, 32 layers, 3 decorations; step ids unchanged (`retro-3`). Sections changed: Source, Screen layout (meta bar), Damage layers (Forest refit), Decorations (note anchor), Per section, The fix list, Chunk rhythm budget, Texts (intents, fallbacks, labels), Decisions 46–52. Where this file still names the pre-Forest CV (`cv-name`, Inter, navy, logos, renders 01–12), that is history.
 
+**Revision CV-112/CV-114 (5 Oct 2026)**: the show now runs once, on the **one v3 page** (`retro-4`, ADR-0006; see "v3 refit"). `layers/`, `new/layers/` and `new/render.mjs` were deleted in CV-114, so `mock.html` and `render.sh` no longer render: they and the PNGs here are history. The code (`src/screens/retro/layers/`) is the source.
+
 **Revision CV-95 (2 Oct 2026)**: the show also runs on **`/new`** (the Forest profile), over its own 2001 version: part **2001 `/new`** at the end of this file (direction, per-section look, damage layers, decorations, the 8 steps of 36 chunks with targets, console commands, timing, copy, decisions 53–64), its layer files in `new/layers/` and its render in `new/`. The mechanism per page is `docs/retro/ARCHITECTURE.md` §10. `/`'s show (everything above) is unchanged; only the Show case button section now covers both pages.
 
 ## Source

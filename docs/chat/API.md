@@ -4,9 +4,9 @@ The contract between the chat widget (`src/data/chat/**`, `src/screens/chat/**`)
 (`api/chat.ts` + `server/chat/**`). It is final for v1 and for v2 (page-agent tools,
 [below](#v2-page-agent-tools)), including its page-aware form (`page`: `/` or `/new`,
 [below](#page-aware-chat-v2--page)): the backend and frontend tickets implement exactly this.
-**v4** ([below](#v4-the-one-page-chat), ADR-0006) is the chat of the one v3 page, English only: it
-replaces v2 in the widget, and v1/v2 are retired when the old pages are removed (CV-107's Cleanup
-task).
+**v4** ([below](#v4-the-one-page-chat), ADR-0006) is the chat of the one v3 page, English only.
+**Since CV-114 (2026-10-05) the server serves only v3 and v4**: v1/v2 get `400 unsupported_version`;
+their sections below are kept as history and as the base v4 builds on.
 Design context: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md); decisions:
 [`../adr/0001-ai-cv-chat.md`](../adr/0001-ai-cv-chat.md),
 [`../adr/0004-page-aware-chat.md`](../adr/0004-page-aware-chat.md) (page awareness, superseded),
@@ -20,7 +20,7 @@ Design context: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md); decisions:
 | Request | JSON: `v`, `locale`, the whole conversation in `messages` (the server is stateless); v2 adds the optional `page` (`cv` = `/`, `profile` = `/new`) |
 | Success | `200`, `text/event-stream`: `delta`\* then exactly one terminal event, `done` or `error` |
 | Failure before the stream | non-2xx with a JSON body `{ "error": ChatError }` |
-| Version | `v` in the body (1, 2, 3 or 4, see [Versioning](#versioning)); response header `X-Chat-Api-Version` with the same number |
+| Version | `v` in the body (3 or 4 since CV-114; see [Versioning](#versioning)); response header `X-Chat-Api-Version` with the same number |
 | Types | `src/data/chat/contract.ts` (shared by `src/` and `server/`; copy the block below verbatim) |
 
 ## Request
@@ -651,7 +651,7 @@ the error body and codes, SSE framing and stream guarantees. The response header
 | `v` | `3` |
 | `locale` | Must be `"en"` (the show is English only); anything else: `400 invalid_request`. |
 | `kind` | `"narrate"` or `"reply"`; anything else or missing: `400 invalid_request`. |
-| `scenario` | A known scenario id, the one the page was built with: `retro-3` (`/`) or `retro-new-1` (`/new`); from CV-107's Show task only `retro-4` (the one v3 page, ADR-0006 → Decision 4) (`ShowScenarioId`, the keys of `SHOW_SCENARIOS` in `src/data/retro/scenarios.ts`). A string the server doesn't know (a tab opened before a deploy that changed the steps): `400 unsupported_version`. Not a string: `400 invalid_request`. |
+| `scenario` | A known scenario id, the one the page was built with: `retro-4` (the one v3 page, ADR-0006 → Decision 4; `retro-3` and `retro-new-1` are retired since CV-112) (`ShowScenarioId`, the keys of `SHOW_SCENARIOS` in `src/data/retro/scenarios.ts`). A string the server doesn't know (a tab opened before a deploy that changed the steps): `400 unsupported_version`. Not a string: `400 invalid_request`. |
 | `narrate` body | `v`, `locale`, `kind`, `scenario` only; other fields ignored. No conversation, no CV knowledge. |
 | `reply` body | Adds `step` (the step on screen when the message was sent: a step id of the scenario, or `null` before the first step and after the last), `stepsDone` (integer, `0` to the number of steps) and `messages` (v1 shape and rules: roles alternate, start and end with `user`). A bad `step` or `stepsDone`: `400 invalid_request`. |
 | Limits (`reply`) | `messages` 1 to **20** (10 visitor messages; more: `422 conversation_limit`); a `user` message at most **1,000** chars, an `assistant` message at most **1,000** chars (`413 too_long`); v1's total and body limits still apply. |

@@ -140,8 +140,8 @@ Each has one owner: a role, not a particular session. The task names the role.
 | `src/shared/**` | Theme | a component lives in its screen folder first; when a second screen needs it, a separate PR moves it |
 | Strings | each screen has its own `src/screens/<screen>/strings.ts` (namespace `<screen>`) | `src/i18n/common.ts` and the `src/i18n/` mechanism belong to Theme |
 | Images, icons | `src/screens/<screen>/assets/<screen>_*`; shared icons in `src/shared/icons/` belong to Theme | never rename other screens' resources |
-| `src/data/**` (`models.ts`, `CvRepository.ts`) | the first screen that needs them | a screen's mocks live in `src/data/mock/` under its own file names |
-| API contract between frontend and backend (`src/data/CvRepository.ts`, `src/data/models.ts`) | Scaffold (DevOps) until a backend owner exists | changes go through their own task |
+| `src/data/**` (`cvPage.ts`, `CvPageRepository.ts`) | the first screen that needs them | a screen's mocks live in `src/data/mock/` under its own file names |
+| API contract between frontend and backend (`src/data/CvPageRepository.ts`, `src/data/cvPage.ts`) | Scaffold (DevOps) until a backend owner exists | changes go through their own task |
 | `api/**`, `server/**`, `src/data/chat/contract.ts` (the `/api/chat` contract, `docs/chat/API.md`), `vercel.json` `functions` | Backend (Development) | contract changes go through their own task and a PR comment; breaking ones bump `v` |
 | `docs/**`, root `AGENTS.md` and `CLAUDE.md`, `.claude/skills/**`, `.claude/settings.json`, `.github/pull_request_template.md` | coordinator or human | others propose changes in a PR |
 
@@ -151,12 +151,12 @@ Scaffold first, then theme, then screens (in parallel, any order). A screen can 
 
 ## Scaffold decisions (reference)
 
-- **Stack:** Vite 8 + React 19 + TypeScript 6 (strict, `noUncheckedIndexedAccess`), npm with a committed `package-lock.json`, Node 22 (`.nvmrc`). Static SPA, two routes without a router library (`src/app/routes.ts`: `/` CV, `/new` profile; `vercel.json` rewrites `/new`).
+- **Stack:** Vite 8 + React 19 + TypeScript 6 (strict, `noUncheckedIndexedAccess`), npm with a committed `package-lock.json`, Node 22 (`.nvmrc`). Static SPA, one page, no router (ADR-0006: `/new` is a 307 redirect to `/` in `vercel.json`).
 - **Hosting:** Vercel (Hobby, Git integration: production = `main`, a preview per PR), Vite `base: '/'`. Reference public files as `/favicon.svg` in `index.html` and use `import.meta.env.BASE_URL` in code, never a bare `/`, so the base can change again.
-- **Layout:** `src/app` (shell, providers), `src/theme`, `src/i18n`, `src/data` (`models.ts`, `CvRepository.ts`, `mock/`), `src/shared/<Component>/`, `src/screens/<screen>/`, `e2e/`. Every code folder has an `AGENTS.md` and a `CLAUDE.md` with `@AGENTS.md` (root `AGENTS.md` → Package docs).
-- **Tokens:** CSS custom properties in `src/theme/tokens.css` (CV design tokens, names fixed in the Theme task; see `src/theme/AGENTS.md`), fonts in `src/theme/fonts.css`, used from CSS Modules. No TS mirror yet.
-- **i18n:** in-house, no library. Locales `en`, `uk` (label "UA"). Detection: `localStorage['cv.locale']` → `navigator.language` → `en`; mirrored into `<html lang>`. Namespaces are `defineStrings({ en, uk })` objects (a missing `uk` key fails `tsc`), read with `useStrings(ns)`. CV content is localized data from the repository, not strings.
-- **Data:** `CvRepository.getCv(locale): Promise<Cv>`; `StaticCvRepository` reads `src/data/mock/cv.<locale>.json`. Bound once in `src/app/AppProviders.tsx` (a backend swaps that line); state holders get it with `useCvRepository()`.
+- **Layout:** `src/app` (shell, providers), `src/theme`, `src/i18n`, `src/data` (`cvPage.ts`, `CvPageRepository.ts`, `mock/`), `src/shared/<Component>/`, `src/screens/<screen>/`, `e2e/`. Every code folder has an `AGENTS.md` and a `CLAUDE.md` with `@AGENTS.md` (root `AGENTS.md` → Package docs).
+- **Tokens:** CSS custom properties in `src/theme/tokens.css` (v3 role names, ADR-0006 → Decision 5; see `src/theme/AGENTS.md`), fonts in `src/theme/fonts.css`, used from CSS Modules. No TS mirror yet.
+- **i18n:** English only (2026-10-05, ADR-0006 → Decision 6): `defineStrings({ en })` per namespace, read with `useStrings(ns)`; `<html lang="en">` fixed; no locale detection. CV content is data from the repository, not strings.
+- **Data:** `CvPageRepository.getCvPage(): Promise<CvPage>`; `StaticCvRepository` reads `src/data/mock/cvPage.json`. Bound once in `src/app/AppProviders.tsx` (a backend swaps that line); state holders get it from `CvPageRepositoryContext`.
 - **Screen pattern:** `use<Screen>State()` (state holder) → `<Screen>UiState` → stateless `<Screen>Screen` (`className?`, `state`, callbacks) ← glued by `<Screen>Route`. Test ids in `testIds.ts`.
 - **Guardrails:** architecture boundaries and the 250-line cap are ESLint rules in `eslint.config.js` (list in `AGENTS.md` → Architecture & code quality), so *lint*, CI and the `PostToolUse` edit hook (`.claude/hooks/lint-edited-file.sh`, wired in `.claude/settings.json`) all enforce them. No stylelint yet: "tokens only in CSS" is still checked by review (the `#000` in `mask` gradients is the only allowed literal).
 - **Tests:** Vitest + Testing Library + jest-dom (jsdom, globals on, `src/test/setup.ts` clears `localStorage` between tests). Wrap components in `AppProviders` (props `repository`, `locale` for fakes). Playwright 1.56 for the web smoke check (`e2e/`).
