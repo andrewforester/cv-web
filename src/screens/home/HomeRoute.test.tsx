@@ -164,12 +164,13 @@ describe('Home screen', () => {
     // Samsung-style plain logo: no tile, and no empty points list.
     expect(globex.querySelector('img')).not.toHaveClass('tile');
     const project = within(globex).getByTestId(homeTestIds.project);
-    expect(project).toHaveTextContent('ZetaHome1K · 5.0★ · 10 reviewsZeta app.—Shipped Z.');
+    // Laid out like a job: name and store line, then the domain tag line, then the points.
+    expect(project).toHaveTextContent('Zeta1K · 5.0★ · 10 reviewsHomeZeta app.Shipped Z.');
     // No icon in the data: the initials tile.
     expect(within(project).getByText('Z')).toHaveClass('initials');
   });
 
-  it('closes with the email and the messenger pills', async () => {
+  it('closes with the email and the messenger pills, without Telegram', async () => {
     renderHome(repositoryOf(() => Promise.resolve(FAKE_PAGE)));
     await screen.findByTestId(homeTestIds.name);
 
@@ -178,12 +179,7 @@ describe('Home screen', () => {
       'href',
       'mailto:test@example.com',
     );
-    expect(texts(homeTestIds.footerLink)).toEqual([
-      'test@example.com↗',
-      'Telegram',
-      'WhatsApp',
-      'LinkedIn',
-    ]);
+    expect(texts(homeTestIds.footerLink)).toEqual(['test@example.com↗', 'WhatsApp', 'LinkedIn']);
   });
 
   it('shows the error state when the page cannot be loaded', async () => {

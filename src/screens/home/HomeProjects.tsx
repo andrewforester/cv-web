@@ -4,6 +4,7 @@ import { agentTargetProps } from '../../shared/agentTarget';
 import { HomePoints } from './HomePoints';
 import styles from './HomeProjects.module.css';
 import { HomeStoreMeta } from './HomeStoreMeta';
+import { HomeTagLine } from './HomeTagLine';
 import { homeImageUrl } from './images';
 import { homeTestIds } from './testIds';
 
@@ -12,7 +13,10 @@ interface HomeProjectsProps {
   highlightedId: AgentTargetId | null;
 }
 
-/** A job's client projects on a dotted tree from the job's logo (agent targets `app:<id>`). */
+/**
+ * A job's client projects on a dotted tree from the job's logo (agent targets `app:<id>`), each laid
+ * out like a job: icon, name and store line; the domain tag line; the points.
+ */
 export function HomeProjects({ projects, highlightedId }: HomeProjectsProps) {
   return (
     <div className={styles.root}>
@@ -26,7 +30,7 @@ export function HomeProjects({ projects, highlightedId }: HomeProjectsProps) {
           <span className={styles.stem} aria-hidden="true" />
           <span className={styles.branch} aria-hidden="true" />
           <div className={styles.body}>
-            <div className={styles.card}>
+            <div className={styles.head}>
               {project.icon ? (
                 <img className={styles.icon} src={homeImageUrl(project.icon)} alt="" />
               ) : (
@@ -36,14 +40,11 @@ export function HomeProjects({ projects, highlightedId }: HomeProjectsProps) {
               )}
               <div className={styles.names}>
                 <div className={styles.name}>{project.name}</div>
-                <span className={styles.domain}>{project.domain}</span>
                 <HomeStoreMeta className={styles.meta} text={project.meta} />
               </div>
             </div>
-            <div className={styles.details}>
-              <div className={styles.about}>{project.about}</div>
-              <HomePoints points={project.points} />
-            </div>
+            <HomeTagLine tag={project.domain} text={project.about} />
+            <HomePoints points={project.points} />
           </div>
         </div>
       ))}
