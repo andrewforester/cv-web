@@ -4,6 +4,15 @@
  * tokens are the live site values (the dock's token shield), so the damage layers never reach it.
  */
 .card {
+  /* The dock keeps the chat's earlier, smaller type: its card has a fixed height. */
+  --chat-text-size: var(--retro-chat-text-size);
+  --chat-text-line-height: var(--retro-chat-text-line-height);
+  --chat-ui-size: var(--retro-chat-ui-size);
+  --chat-ui-line-height: var(--retro-chat-ui-line-height);
+  --chat-caption-size: var(--retro-chat-caption-size);
+  --chat-caption-line-height: var(--retro-chat-caption-line-height);
+  --chat-title-size: var(--retro-chat-title-size);
+
   /* The site chat's root type (Figtree UI text). */
   font-family: var(--font-sans);
   font-size: var(--chat-ui-size);
