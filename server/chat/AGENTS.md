@@ -5,7 +5,9 @@ gets a streamed answer from Claude that uses only facts from the page it was ask
 CV; `/new`: the profile; the request's `page`, ADR-0004), in the visitor's language, and refuses
 off-topic or private questions. In v2 the model can also operate
 the page (scroll, highlight, switch language, open a contact) through tools the browser runs; the
-server stays stateless and the browser sends the results back in a follow-up request. The same
+server stays stateless and the browser sends the results back in a follow-up request. `v: 4`
+(ADR-0006) is the same tool dialect for the one page v3: no page id, no locale, English knowledge
+from `cvPage.json` and its three tools; v1/v2 are served until the Cleanup task removes them. The same
 endpoint also serves the Retro Rebuild show (`v: 3`, `show/`): the live commentary on each fix step
 and short answers to the visitor's messages in the show's terminal chat.
 
@@ -28,7 +30,10 @@ Rules and limits:
 - Tests use only the fake model; no network. The golden-question check against the real model
   runs by hand before a release or any prompt/model change.
 - A v2 request without `page` is a `/` request, byte for byte as before it existed; v1 and the
-  show (`v: 3`) always use the CV.
+  show (`v: 3`) always use the CV. v4 always uses the one page (`cvPageData.ts`, the same JSON
+  the site renders) and logs `page` and `locale` as `null`.
+- v2 and v4 share the tool-dialect rules (`validateToolTurns.ts`: limits, alternation, tool
+  rounds); each version only brings its snapshot check and catalogue.
 - Env (`ANTHROPIC_API_KEY`, `CHAT_MODEL`, `CHAT_ENABLED`, `CHAT_FAKE_LLM`, `CHAT_DAILY_BUDGET_USD`)
   is read in one place; `CHAT_FAKE_LLM` is ignored on Vercel.
 - Manual setup outside the code: the key in Vercel env, the Firewall rule, the spend limit.

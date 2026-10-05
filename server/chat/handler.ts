@@ -109,9 +109,9 @@ function parseJson(text: string): { ok: true; value: unknown } | { ok: false } {
 
 /**
  * `POST /api/chat` (docs/chat/API.md): guards, rate limit, body and validation, the page's
- * knowledge (v4: the one page's), prompt, then the SSE answer. `v: 3` (the show dialect) shares everything up to the
- * body, then takes its own validation and prompts (`show/`). Every outcome writes exactly one log
- * line.
+ * knowledge (v4: the one page's), prompt, then the SSE answer. `v: 3` (the show dialect) shares
+ * everything up to the body, then takes its own validation and prompts (`show/`). Every outcome
+ * writes exactly one log line.
  */
 export async function handleChat(request: Request, deps: ChatDeps): Promise<Response> {
   const now = deps.now ?? Date.now;
