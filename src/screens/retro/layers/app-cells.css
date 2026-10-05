@@ -1,6 +1,5 @@
-[data-retro-stage] [data-testid='forest-app'] {
+[data-retro-stage] [data-testid='home-project'] {
   padding: 4px;
   background: #ccffcc;
   border: 1px solid #000000;
-  border-radius: 0;
 }

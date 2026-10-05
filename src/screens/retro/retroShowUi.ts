@@ -9,8 +9,7 @@ import {
 import { canSend, MAX_VISITOR_CHARS, MAX_VISITOR_MESSAGES } from './engine/showReducer';
 import type { ChatEntry, ShowState } from './engine/showTypes';
 import type { ChatLineUi, DecorationBox, HighlightUi, RetroShowUiState } from './RetroShowUiState';
-import type { DecorationId } from './scenario';
-import type { DecorationCopy } from './scenarios';
+import type { DecorationCopy, DecorationId } from './scenario';
 import { fill, type RetroStrings } from './strings';
 
 /** The composer shows `{count} / 500` from this many characters (SPEC → Agent chat panel). */

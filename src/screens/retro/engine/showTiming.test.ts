@@ -1,5 +1,4 @@
 import { RETRO_SHOW } from '../scenario';
-import { registeredSources } from '../scenarios';
 import { retroStrings } from '../strings';
 import { currentPlannedChunk } from './showState';
 import { ShowTestRun } from './showTestRun';
@@ -109,7 +108,8 @@ describe('show timing: one chunk', () => {
   });
 });
 
-describe.each(registeredSources())('show timing: the whole %s show', (_, { show }) => {
+describe('show timing: the whole show', () => {
+  const show = RETRO_SHOW;
   it('runs in about 91 s with the real copy and a camera that settles at once (Round 5)', () => {
     const run = new ShowTestRun(show, { copy: retroStrings.en });
     const total = runWithInstantCamera(run);

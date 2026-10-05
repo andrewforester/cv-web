@@ -1,7 +1,0 @@
-[data-retro-stage] [data-testid='profile-skills'] h2 {
-  text-align: center;
-}
-[data-retro-stage] ul:has(> [data-testid='forest-skill']) {
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-}

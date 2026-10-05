@@ -5,8 +5,8 @@ import { homeTestIds } from '../screens/home/testIds';
 import { showCaseTestId } from '../shared/ShowCaseButton';
 
 // The Show case button at the end of the page's meta bar (docs/retro/ARCHITECTURE.md §11): the
-// shell offers it while the page has a scenario, on a desktop viewport. The show is off until it
-// is ported to the v3 page (T6), so the wiring is checked with a stubbed scenario and show chunk.
+// shell offers it while the page has a scenario, on a desktop viewport. The wiring is checked with
+// a stubbed scenario and show chunk, so a page without a show is covered too.
 const SHOW_MODULE = '../screens/retro/RetroShowRoute';
 const SCENARIOS_MODULE = './showScenarios';
 const SHOW_STUB = 'show-stub';

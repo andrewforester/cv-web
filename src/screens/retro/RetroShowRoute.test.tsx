@@ -1,12 +1,7 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { AppProviders } from '../../app/AppProviders';
-import {
-  FAKE_SHOW_REPLY,
-  FakeShowRepository,
-  ShowRepositoryContext,
-  type ShowScenarioId,
-} from '../../data/retro';
-import { forestTestIds } from '../../shared/forest/testIds';
+import { FAKE_SHOW_REPLY, FakeShowRepository, ShowRepositoryContext } from '../../data/retro';
+import { homeTestIds } from '../home/testIds';
 import { RetroShowRoute } from './RetroShowRoute';
 import { RetroStageTestHarness } from './RetroStageTestHarness';
 import { retroStrings } from './strings';
@@ -21,7 +16,7 @@ function renderShow(repository = new FakeShowRepository()) {
     <AppProviders locale="en">
       <ShowRepositoryContext value={repository}>
         <RetroStageTestHarness>
-          <RetroShowRoute scenario="retro-3" loaders={loaders} onDone={onDone} />
+          <RetroShowRoute scenario="retro-4" loaders={loaders} onDone={onDone} />
         </RetroStageTestHarness>
       </ShowRepositoryContext>
     </AppProviders>,
@@ -109,11 +104,11 @@ describe('retro show screen', { timeout: 60_000 }, () => {
 
   it('opens broken, fixes the page step by step and ends on the real site', async () => {
     // The site's own token value: the colours step prints it and sets it inline.
-    siteStyle(':root { --forest-bg: #ffffff; }');
-    const inlineBg = () => document.documentElement.style.getPropertyValue('--forest-bg');
+    siteStyle(':root { --color-card: #ffffff; }');
+    const inlineBg = () => document.documentElement.style.getPropertyValue('--color-card');
     const { loaders, onDone } = renderShow();
     await advance(0);
-    expect(screen.getByTestId(forestTestIds.name)).toBeInTheDocument();
+    expect(screen.getByTestId(homeTestIds.name)).toBeInTheDocument();
     expect(layers()).toHaveLength(32);
     expect(document.getElementById('oh-snap')).toHaveTextContent(strings.noteTitle);
     expect(screen.queryByTestId(retroTestIds.dock)).not.toBeInTheDocument();
@@ -146,7 +141,7 @@ describe('retro show screen', { timeout: 60_000 }, () => {
 
     await advanceUntil(() => inlineBg() !== '', 40_000);
     expect(inlineBg()).toBe('#ffffff');
-    expect(log).toHaveTextContent("style.setProperty('--forest-bg', '#ffffff')");
+    expect(log).toHaveTextContent("style.setProperty('--color-card', '#ffffff')");
     expect(log).toHaveTextContent('✓ base-colors: 1 token set');
 
     await advance(80_000);
@@ -175,8 +170,8 @@ describe('retro show screen', { timeout: 60_000 }, () => {
       { role: 'user', content: 'wow, a marquee!' },
     ]);
     // Narration and replies are for the running scenario.
-    expect(repository.narrateScenarios).toEqual(['retro-3']);
-    expect(repository.replyInputs[0]?.scenario).toBe('retro-3');
+    expect(repository.narrateScenarios).toEqual(['retro-4']);
+    expect(repository.replyInputs[0]?.scenario).toBe('retro-4');
   });
 
   it('sends with Enter, keeps Shift+Enter for a new line, and refuses a message over 500', async () => {
@@ -220,12 +215,12 @@ describe('retro show screen', { timeout: 60_000 }, () => {
   });
 
   it('shields the dock from the damage token layers with the live site values', async () => {
-    siteStyle(':root { --forest-bg: #ffffff; --forest-font-display: Inter; }');
+    siteStyle(':root { --color-card: #ffffff; --font-sans: Inter; }');
     renderShow();
     await advance(3_000);
     const dock = screen.getByTestId(retroTestIds.dock);
-    expect(dock.style.getPropertyValue('--forest-bg')).toBe('#ffffff');
-    expect(dock.style.getPropertyValue('--forest-font-display')).toBe('Inter');
+    expect(dock.style.getPropertyValue('--color-card')).toBe('#ffffff');
+    expect(dock.style.getPropertyValue('--font-sans')).toBe('Inter');
   });
 
   it('highlights the current chunk while it types, flashes it at the apply, then lets go', async () => {
@@ -249,13 +244,13 @@ describe('retro show screen', { timeout: 60_000 }, () => {
     // Chunk 1 targets the name and every section title.
     const boxes = screen.getAllByTestId(retroTestIds.highlightBox);
     const titles = document.querySelectorAll(
-      "[data-retro-stage] [data-testid='forest-name'], [data-retro-stage] h2",
+      "[data-retro-stage] [data-testid='home-name'], [data-retro-stage] h2",
     );
     expect(boxes.length).toBe(titles.length);
     expect(boxes[0]).toHaveStyle({ left: '10px', top: '100px', width: '200px', height: '40px' });
     // Several matches: the first one's tag and class, and how many there are.
     const plate = screen.getByTestId(retroTestIds.highlightPlate);
-    expect(plate).toHaveTextContent(`p.name × ${boxes.length}`);
+    expect(plate).toHaveTextContent(`div.name × ${boxes.length}`);
   });
 
   it('tints the page area for a page-wide chunk, with the body plate', async () => {
@@ -316,26 +311,5 @@ describe('retro show screen', { timeout: 60_000 }, () => {
     });
     expect(onDone).toHaveBeenCalledTimes(1);
     expect(seen).toEqual({ motion: false, leaving: false, closing: false });
-  });
-});
-
-describe('a scenario without a source', () => {
-  it('ends at once: no layer, no decoration, no dock', () => {
-    const onDone = vi.fn();
-    render(
-      <AppProviders locale="en">
-        <ShowRepositoryContext value={new FakeShowRepository()}>
-          <RetroShowRoute
-            scenario={'retro-new-0' as ShowScenarioId}
-            loaders={{ 'ai-chat': vi.fn() }}
-            onDone={onDone}
-          />
-        </ShowRepositoryContext>
-      </AppProviders>,
-    );
-    expect(onDone).toHaveBeenCalledOnce();
-    expect(layers()).toHaveLength(0);
-    expect(screen.queryByTestId(retroTestIds.decoration)).not.toBeInTheDocument();
-    expect(screen.queryByTestId(retroTestIds.dock)).not.toBeInTheDocument();
   });
 });

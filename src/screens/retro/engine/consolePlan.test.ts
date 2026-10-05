@@ -21,18 +21,18 @@ describe('console plan (code shown = code applied)', () => {
   });
 
   it('types a token layer as setProperty calls with the live values, the ones the engine sets', () => {
-    const live: Record<string, string> = { '--forest-bg': '#ffffff', '--forest-ink': '#001670' };
+    const live: Record<string, string> = { '--color-card': '#ffffff', '--color-ink': '#16131c' };
     const colors = chunk('layer:base-colors', chunksOf(planShow(RETRO_SHOW, (name) => live[name])));
-    // No live value (`--forest-ink-2` here): dropping the layer is the whole change.
+    // No live value (`--color-ink-2` here): dropping the layer is the whole change.
     expect(colors?.input).toEqual([
       '// → page',
       'const { style } = document.documentElement',
-      "style.setProperty('--forest-bg', '#ffffff')",
-      "style.setProperty('--forest-ink', '#001670')",
+      "style.setProperty('--color-card', '#ffffff')",
+      "style.setProperty('--color-ink', '#16131c')",
     ]);
     expect(colors?.tokens).toEqual([
-      ['--forest-bg', '#ffffff'],
-      ['--forest-ink', '#001670'],
+      ['--color-card', '#ffffff'],
+      ['--color-ink', '#16131c'],
     ]);
     expect(colors?.doneText).toBe('base-colors: 2 tokens set');
     expect(colors?.motion).toBe('fade');
@@ -41,7 +41,7 @@ describe('console plan (code shown = code applied)', () => {
   it('prints a value with a single quote in double quotes, so the input stays valid JS', () => {
     const family = "'Inter', system-ui, sans-serif";
     const planned = chunk('layer:type-family', chunksOf(planShow(RETRO_SHOW, () => family)));
-    expect(planned?.input).toContain(`style.setProperty('--forest-font-display', "${family}")`);
+    expect(planned?.input).toContain(`style.setProperty('--font-sans', "${family}")`);
     expect(literal('a\\b')).toBe('"a\\\\b"');
   });
 
@@ -91,7 +91,7 @@ describe('layer host', () => {
   it('injects layers, removes them as they go, and reads live tokens past them', () => {
     const site = document.createElement('style');
     site.textContent =
-      ':root { --forest-bg: #ffffff; } @media print { :root { --forest-bg: #000; } }';
+      ':root { --color-card: #ffffff; } @media print { :root { --color-card: #000; } }';
     document.head.append(site);
     const host = newHost();
 
@@ -102,7 +102,7 @@ describe('layer host', () => {
     expect(hostStyle).toMatch(
       /@media \(prefers-reduced-motion: no-preference\) \{ @keyframes retro-blink/,
     );
-    expect(readLiveToken(document, '--forest-bg')).toBe('#ffffff');
+    expect(readLiveToken(document, '--color-card')).toBe('#ffffff');
 
     host.sync(styles(['page-background']));
     expect(injected()).toEqual(['page-background']);
@@ -119,28 +119,28 @@ describe('layer host', () => {
       styles(
         [],
         [
-          ['--forest-bg', '#ffffff'],
-          ['--forest-font-display', 'Inter'],
+          ['--color-card', '#ffffff'],
+          ['--font-sans', 'Inter'],
         ],
       ),
     );
-    expect(inlineToken('--forest-bg')).toBe('#ffffff');
-    expect(inlineToken('--forest-font-display')).toBe('Inter');
+    expect(inlineToken('--color-card')).toBe('#ffffff');
+    expect(inlineToken('--font-sans')).toBe('Inter');
 
-    host.sync(styles([], [['--forest-bg', '#ffffff']]));
-    expect(inlineToken('--forest-font-display')).toBe('');
+    host.sync(styles([], [['--color-card', '#ffffff']]));
+    expect(inlineToken('--font-sans')).toBe('');
     host.dispose();
-    expect(inlineToken('--forest-bg')).toBe('');
+    expect(inlineToken('--color-card')).toBe('');
     expect(inlineToken('--not-the-show')).toBe('1px');
   });
 
   it('morphs instantly where view transitions are missing', async () => {
     const host = newHost();
-    host.sync(styles(['page-frame', 'tech-grid']));
-    await host.morph(styles(['tech-grid']), [
-      "[data-retro-stage] [data-agent-id='section:header']",
+    host.sync(styles(['page-frame', 'skills-grid']));
+    await host.morph(styles(['skills-grid']), [
+      "[data-retro-stage] [data-testid='home-header']",
     ]);
-    expect(injected()).toEqual(['tech-grid']);
+    expect(injected()).toEqual(['skills-grid']);
     expect(document.head.querySelector('style[data-retro-motion]')).toBeNull();
   });
 
@@ -150,28 +150,28 @@ describe('layer host', () => {
     const seen: { layers: (string | undefined)[]; motion?: string | null; token: string }[] = [];
     const start = vi.fn((update: () => void) => {
       const motion = document.head.querySelector('style[data-retro-motion]')?.textContent;
-      const before = inlineToken('--forest-font-display');
+      const before = inlineToken('--font-sans');
       update();
       seen.push({
         layers: injected(),
         motion,
-        token: `${before}→${inlineToken('--forest-font-display')}`,
+        token: `${before}→${inlineToken('--font-sans')}`,
       });
       return { finished } as ViewTransition;
     });
     Object.defineProperty(document, 'startViewTransition', { value: start, configurable: true });
     vi.spyOn(CSS, 'supports').mockReturnValue(true);
     const host = newHost();
-    host.sync(styles(['page-frame', 'tech-grid']));
+    host.sync(styles(['page-frame', 'skills-grid']));
 
-    const morphing = host.morph(styles(['tech-grid'], [['--forest-font-display', 'Inter']]), [
+    const morphing = host.morph(styles(['skills-grid'], [['--font-sans', 'Inter']]), [
       '[data-retro-stage] h2',
       '#oh-snap',
     ]);
     // The tokens change inside the transition, with the layers: the old snapshot is the old look.
     expect(seen).toEqual([
       {
-        layers: ['tech-grid'],
+        layers: ['skills-grid'],
         motion: '[data-retro-stage] h2, #oh-snap { view-transition-name: match-element; }',
         token: '→Inter',
       },

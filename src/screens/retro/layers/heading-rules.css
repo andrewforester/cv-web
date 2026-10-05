@@ -1,7 +1,7 @@
-[data-retro-stage] [data-testid='cv'] {
+[data-retro-stage] [data-testid='home'] > div {
   gap: 16px;
 }
-[data-retro-stage] h2 {
+[data-retro-stage] section > div:has(> h2) {
   margin: 16px 0 8px;
   padding-bottom: 2px;
   border-bottom: 2px groove #c0c0c0;

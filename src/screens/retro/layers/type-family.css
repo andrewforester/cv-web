@@ -1,6 +1,5 @@
 :root {
-  --forest-font-display: Verdana, Geneva, sans-serif;
-  --forest-font-text: Verdana, Geneva, sans-serif;
-  --forest-font-mono: 'Courier New', Courier, monospace;
-  --forest-type-h1-letter-spacing: normal;
+  --font-sans: Verdana, Geneva, sans-serif;
+  --font-mono: 'Courier New', Courier, monospace;
+  --type-h1-letter-spacing: normal;
 }
