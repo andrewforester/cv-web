@@ -6,7 +6,7 @@ import { commentMs, TIMING, typingMs } from './timing';
 import type { PlannedChunk, ShowState } from './showTypes';
 
 // The chunk rhythm on the fake clock (docs/design/retro/SPEC.md → Chunk rhythm and timing budget):
-// one chunk on `/`'s source, the whole show on every page's.
+// one chunk, then the whole show.
 
 const inChunk = (key: string) => (state: ShowState) =>
   state.stage === 'type' && currentPlannedChunk(state)?.key === key;
