@@ -5,17 +5,18 @@ live" scene) must look like the same product. The stateless pieces of the chat l
 when the site's chat is restyled the show follows, and the show doesn't import the chat screen
 (a screen may not import another screen).
 
-What is here: the card frame (`ChatCard`: the dark Forest panel) and its header
-(`ChatCardHeader`: badge, title, subtitle, one trailing action: close on the site, minimise in the
+What is here: the card frame (`ChatCard`: the v3 dark panel, the loop panel's colours) and its
+header (`ChatCardHeader`: badge, title, subtitle, one trailing action: close on the site, minimise in the
 show), message bubbles (`MessageRow`, `NoticeRow`), the waiting and streaming cues
 (`TypingIndicator`, `StreamingCaret`), `SendButton` (Send, or Stop while busy), `OfflineNotice`,
+`ChatBadge` (the ✦ on the gradient: the header's badge and the site's "Ask my AI" pill),
 `ChatIcon` with its `assets/`, and `chat.module.css` (caption, screen-reader-only, icon and
 secondary buttons).
 
 Place in the architecture: stateless components below the screens: props in, callbacks out. They
 hold no chat state and no strings: each screen passes its own texts (author prefixes, button
-labels, offline text) from its own strings namespace. Tokens are in the theme: `--forest-*` and `--forest-chat-*` for the look,
-`--chat-*` for geometry and motion.
+labels, offline text) from its own strings namespace. Tokens are in the theme: the v3 ones (`--color-*`,
+`--gradient-*`, `--font-*`, `--radius-*`) and `--chat-*` for the chat-only values.
 Used by `src/screens/chat/` (which binds its strings in thin wrappers) and the retro show's agent
 chat (`src/screens/retro/`).
 

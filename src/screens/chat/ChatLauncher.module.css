@@ -1,59 +1,45 @@
 .launcher {
   position: fixed;
-  right: var(--space-6);
-  bottom: var(--space-6);
+  right: var(--space-4);
+  bottom: var(--space-4);
   z-index: var(--chat-z-index);
   display: flex;
   align-items: center;
   gap: var(--space-3);
 }
 
-.fab {
-  position: relative;
+/* The "Ask my AI" pill (docs/design/v3/SPEC.md, Structure 11): ✦ badge + label on white. */
+.pill {
   flex: none;
-  width: var(--chat-fab-size);
-  height: var(--chat-fab-size);
-  display: grid;
-  place-items: center;
-  padding: 0;
-  color: var(--forest-dark-ink);
-  background: var(--forest-gradient-dark);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--chat-launcher-padding);
+  font-family: var(--font-sans);
+  font-size: var(--type-body-size);
+  line-height: var(--chat-ui-line-height);
+  font-weight: var(--type-button-weight);
+  white-space: nowrap;
+  color: var(--color-ink);
+  background: var(--color-card);
   border: 0;
-  border-radius: 50%;
-  box-shadow: var(--forest-chat-shadow-fab);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-launcher);
   cursor: pointer;
+  transition: color var(--chat-transition);
 
-  /* Focus on the light page: the page's accent, outside the gradient ring (4 + 2 = 6 px). */
-  --chat-focus-ring-color: var(--forest-accent);
-  --chat-focus-ring-offset: calc(var(--space-1) + var(--chat-fab-ring-width));
+  /* Focus on the light page: the page's accent. */
+  --chat-focus-ring-color: var(--color-accent);
 }
 
-.fab:hover {
-  background: var(--forest-gradient-hero);
+.pill:hover {
+  color: var(--color-accent);
 }
 
-/* AI ring: the Forest green→gold gradient, 2 px wide, 4 px outside the button. */
-.fab::before {
-  content: '';
-  position: absolute;
-  inset: calc(-1 * var(--space-1));
-  padding: var(--chat-fab-ring-width);
-  border-radius: 50%;
-  background: var(--forest-gradient-text);
-  mask:
-    linear-gradient(#000 0 0) content-box exclude,
-    linear-gradient(#000 0 0);
-  pointer-events: none;
-}
-
-.icon {
-  width: var(--chat-fab-icon-size);
-  height: var(--chat-fab-icon-size);
-}
-
-@media (max-width: 599px), (max-height: 499px) {
+/* Not enough room beside the pill on a phone: the hint goes above it. */
+@media (max-width: 599px) {
   .launcher {
-    right: var(--space-4);
-    bottom: var(--space-4);
+    flex-direction: column;
+    align-items: flex-end;
   }
 }

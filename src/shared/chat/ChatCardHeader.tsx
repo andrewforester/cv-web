@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import chat from './chat.module.css';
-import { ChatIcon } from './ChatIcon';
+import { ChatBadge } from './ChatBadge';
 import styles from './ChatCardHeader.module.css';
 
 interface ChatCardHeaderProps {
@@ -25,9 +25,7 @@ export function ChatCardHeader({
 }: ChatCardHeaderProps) {
   return (
     <header className={className ? `${styles.header} ${className}` : styles.header}>
-      <span className={styles.badge} aria-hidden="true">
-        <ChatIcon name="sparkle" />
-      </span>
+      <ChatBadge />
       <div className={styles.titles}>
         <h2 id={titleId} className={styles.title}>
           {title}

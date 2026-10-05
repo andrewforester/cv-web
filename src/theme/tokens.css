@@ -211,8 +211,8 @@
   --chat-action-icon-size: 14px;
   --chat-fab-ring-width: 2px;
   --chat-focus-ring-width: 2px;
-  /* `**bold**` in answers: Plex 500 (the theme loads Plex 400/500 only). */
-  --chat-bold-weight: 500;
+  /* `**bold**` in answers: Figtree 600 (the theme loads Figtree 400–700). */
+  --chat-bold-weight: 600;
 
   /* v3 (docs/design/v3/SPEC.md, ADR-0006 Decision 5): look-neutral role names */
   --color-page: #f2eef8;
@@ -335,6 +335,26 @@
   --page-max-width: 1120px;
   --page-padding-x: clamp(14px, 3vw, 42px);
   --page-section-gap: clamp(48px, 7vw, 88px);
+
+  /* Chat look on the v3 palette (docs/design/v3/SPEC.md, Decision 6): the panel is the loop panel
+     (--gradient-dark, --color-dark-*; accent on dark --color-dark-number). Only the values v3 has
+     no token for are here. */
+  --chat-ink-2: #b3aabf;
+  --chat-fill: rgba(244, 242, 247, 0.06);
+  --chat-fill-hover: rgba(244, 242, 247, 0.12);
+  --chat-error: #ff8f8f;
+  --chat-error-bg: rgba(255, 143, 143, 0.12);
+  --chat-notice-bg: rgba(255, 122, 203, 0.12);
+  --chat-shadow-panel:
+    0 30px 80px -40px rgba(139, 92, 246, 0.5), 0 16px 40px -12px rgba(14, 12, 18, 0.35);
+  --chat-text-size: 15px;
+  --chat-text-line-height: 22px;
+  --chat-ui-size: 14px;
+  --chat-ui-line-height: 20px;
+  --chat-caption-size: 11.5px;
+  --chat-caption-line-height: 16px;
+  --chat-title-size: 16px;
+  --chat-launcher-padding: 6px 18px 6px 6px;
 
   /* Page agent: highlight of a targeted section or item, and where a scroll lands */
   --agent-highlight-color: var(--color-accent);

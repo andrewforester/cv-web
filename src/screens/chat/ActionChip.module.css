@@ -5,12 +5,12 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-3);
-  font-family: var(--forest-font-mono);
-  font-size: var(--forest-chat-caption-size);
-  line-height: var(--forest-chat-caption-line-height);
-  color: var(--forest-dark-ink);
-  border: var(--border-card) solid var(--forest-dark-line);
-  border-radius: var(--forest-radius-pill);
+  font-family: var(--font-mono);
+  font-size: var(--chat-caption-size);
+  line-height: var(--chat-caption-line-height);
+  color: var(--color-dark-ink);
+  border: var(--border-card) solid var(--color-dark-line);
+  border-radius: var(--radius-pill);
   overflow-wrap: anywhere;
 }
 
@@ -18,11 +18,11 @@
   flex: none;
   width: var(--chat-action-icon-size);
   height: var(--chat-action-icon-size);
-  color: var(--forest-gold-soft);
+  color: var(--color-dark-number);
 }
 
 .running {
-  color: var(--forest-dark-ink-2);
+  color: var(--chat-ink-2);
 }
 
 .running .icon {
@@ -30,9 +30,9 @@
 }
 
 .failed {
-  color: var(--forest-chat-error);
-  background: var(--forest-chat-error-bg);
-  border-color: var(--forest-chat-error);
+  color: var(--chat-error);
+  background: var(--chat-error-bg);
+  border-color: var(--chat-error);
 }
 
 .failed .icon {

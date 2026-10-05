@@ -14,26 +14,26 @@
 
 /* Meta text: subtitle, disclaimer, counter, captions under bubbles, group labels. */
 .caption {
-  font-family: var(--forest-font-mono);
-  font-size: var(--forest-chat-caption-size);
-  line-height: var(--forest-chat-caption-line-height);
-  font-weight: var(--forest-type-period-weight);
-  color: var(--forest-dark-ink-2);
+  font-family: var(--font-mono);
+  font-size: var(--chat-caption-size);
+  line-height: var(--chat-caption-line-height);
+  font-weight: var(--type-period-weight);
+  color: var(--chat-ink-2);
 }
 
-/* Forest pill (Try again, Start a new chat, Cancel); Confirm adds its gold fill. */
+/* Outline pill (Try again, Start a new chat, Cancel); Confirm adds the gradient. */
 .secondaryButton {
   min-height: var(--chat-secondary-button-height);
   padding: 0 var(--space-4);
-  font-family: var(--forest-font-display);
-  font-size: var(--forest-chat-ui-size);
-  line-height: var(--forest-chat-ui-line-height);
-  font-weight: var(--forest-type-title-weight);
+  font-family: var(--font-sans);
+  font-size: var(--chat-ui-size);
+  line-height: var(--chat-ui-line-height);
+  font-weight: var(--type-button-weight);
   letter-spacing: normal;
-  color: var(--forest-dark-ink);
+  color: var(--color-dark-ink);
   background: transparent;
-  border: var(--border-card) solid var(--forest-dark-ink-2);
-  border-radius: var(--forest-radius-pill);
+  border: var(--border-card) solid var(--chat-ink-2);
+  border-radius: var(--radius-pill);
   cursor: pointer;
   transition:
     background-color var(--chat-transition),
@@ -41,7 +41,7 @@
 }
 
 .secondaryButton:hover {
-  background: var(--forest-chat-fill-hover);
+  background: var(--chat-fill-hover);
 }
 
 /* Transparent round 44 px icon button (panel close; the hint's dismiss overrides the size). */
@@ -52,7 +52,7 @@
   display: grid;
   place-items: center;
   padding: 0;
-  color: var(--forest-dark-ink);
+  color: var(--color-dark-ink);
   background: transparent;
   border: 0;
   border-radius: 50%;
@@ -61,5 +61,5 @@
 }
 
 .iconButton:hover {
-  background: var(--forest-chat-fill-hover);
+  background: var(--chat-fill-hover);
 }

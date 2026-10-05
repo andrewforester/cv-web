@@ -1,7 +1,7 @@
 .notice {
   padding: var(--space-2) var(--space-5);
-  background: var(--forest-chat-notice-bg);
-  border-bottom: var(--border-card) solid var(--forest-gold-soft);
+  background: var(--chat-notice-bg);
+  border-bottom: var(--border-card) solid var(--color-dark-number);
 }
 
 @media (max-width: 599px), (max-height: 499px) {

@@ -1,12 +1,12 @@
 # chat
 
-Why it exists: lets a visitor talk to Andrew's CV instead of reading it. A button in the corner
-(with a first-visit hint) opens a chat where the visitor asks about Andrew's experience and gets
-answers streamed from the page's content. Suggested questions help start; the chat can also act
-on the page: "show his selected impact" scrolls there, "highlight his work at Transcenda" marks
+Why it exists: lets a visitor talk to Andrew's CV instead of reading it. The "Ask my AI" pill in
+the corner (with a first-visit hint) opens a chat where the visitor asks about Andrew's experience
+and gets answers streamed from the page's content. Suggested questions help start; the chat can
+also act on the page: "show his selected impact" scrolls there, "highlight his work at Transcenda" marks
 the job, and opening a contact asks for confirmation first. A link to `#ask` anywhere on the site
 opens it too. Behaviour: `docs/design/chat/SPEC.md` (with "Orchestrator decisions"); look:
-`docs/design/forest-chat/SPEC.md` (the dark Forest panel, until the v3 look); API:
+`docs/design/v3/SPEC.md` → Decision 6 (the pill; the panel in the loop panel's dark colours); API:
 `docs/chat/API.md` → v4; page agent: `docs/chat/AGENT.md`; copy and labels: ADR-0006 → Decision 3.
 
 What the visitor can rely on:
@@ -31,8 +31,9 @@ over `src/data/chat/` (the conversation stream), `CvPageRepository` (labels) and
 (running page tools). The stateless pieces (card frame and header, message and notice rows, send
 button, offline banner, icons, shared CSS) live in `src/shared/chat/`, also used by the show's
 agent chat; here thin wrappers bind them to this screen's strings. Strings in `strings.ts`
-(English only); tokens in the theme: `--forest-*` and `--forest-chat-*` for the look, `--chat-*`
-for geometry and motion.
+(English only); tokens in the theme: the v3 ones (`--color-*`, `--gradient-*`, `--font-*`,
+`--radius-*`) plus `--chat-*` for the chat-only colours, sizes, geometry and motion.
 
 Stubs and limits: the sheet media query is repeated in the CSS modules; the composer reserves a
-slot for a future voice button. The look and the launcher are still the Forest ones (T5).
+slot for a future voice button. The launcher's visible label is its accessible name (WCAG 2.5.3);
+its test id is still `chat-fab`.

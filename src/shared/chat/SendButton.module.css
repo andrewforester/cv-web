@@ -5,20 +5,21 @@
   display: grid;
   place-items: center;
   padding: 0;
-  color: var(--forest-ink);
-  background: var(--forest-gold-soft);
+  color: var(--color-on-accent);
+  background: var(--gradient-brand-tile);
   border: 0;
   border-radius: 50%;
   cursor: pointer;
-  transition: background-color var(--chat-transition);
+  transition: box-shadow var(--chat-transition);
 }
 
+/* The page's primary CTA: the gradient, glowing on hover. */
 .button:hover:enabled {
-  background: var(--forest-gold);
+  box-shadow: var(--shadow-cta);
 }
 
 .button:disabled {
-  color: var(--forest-ink-3);
-  background: var(--forest-chat-fill-hover);
+  color: var(--color-ink-4);
+  background: var(--chat-fill-hover);
   cursor: default;
 }
