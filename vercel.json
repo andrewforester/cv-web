@@ -5,9 +5,9 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "ignoreCommand": "bash scripts/vercel-ignore.sh",
-  "rewrites": [
-    { "source": "/new", "destination": "/index.html" },
-    { "source": "/new/", "destination": "/index.html" }
+  "redirects": [
+    { "source": "/new", "destination": "/", "permanent": false },
+    { "source": "/new/", "destination": "/", "permanent": false }
   ],
   "functions": {
     "api/chat.ts": { "maxDuration": 60, "supportsCancellation": true }

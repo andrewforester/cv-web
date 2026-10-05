@@ -1,22 +1,21 @@
 import { commonStrings, useStrings } from '../../i18n';
-import { classNames } from './classNames';
 import styles from './ShowCaseButton.module.css';
-import { forestTestIds } from './testIds';
+import { showCaseTestId } from './testIds';
 
 interface ShowCaseButtonProps {
   className?: string;
   onClick: () => void;
 }
 
-/** The meta bar's text control that starts the Retro Rebuild show (docs/design/retro/SPEC.md). */
+/** The meta bar's small mono pill that starts the Retro Rebuild show (docs/design/retro/SPEC.md). */
 export function ShowCaseButton({ className, onClick }: ShowCaseButtonProps) {
   const strings = useStrings(commonStrings);
   return (
     <button
       type="button"
-      className={classNames(styles.root, className)}
+      className={className ? `${styles.root} ${className}` : styles.root}
       onClick={onClick}
-      data-testid={forestTestIds.showCase}
+      data-testid={showCaseTestId}
     >
       <span aria-hidden="true">▶</span> {strings.showCase}
     </button>

@@ -1,0 +1,16 @@
+.status {
+  color: var(--color-ink-3);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-3);
+}
+
+.copyright {
+  padding-bottom: var(--space-9);
+  font-size: var(--type-period-size);
+  color: var(--color-ink-4);
+  text-align: center;
+}

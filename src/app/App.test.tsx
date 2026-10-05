@@ -2,9 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { AgentToolRegistry } from '../agent';
 import { StaticCvRepository } from '../data';
 import { buildAgentToolSpecs } from '../data/chat';
-import { cvTestIds } from '../screens/cv/testIds';
-import { profileTestIds } from '../screens/profile/testIds';
-import { forestTestIds } from '../shared/forest/testIds';
+import { homeTestIds } from '../screens/home/testIds';
 import { App } from './App';
 import { AppProviders } from './AppProviders';
 
@@ -18,38 +16,26 @@ describe('App', () => {
         <App />
       </AppProviders>,
     );
-    await screen.findByTestId(forestTestIds.name);
+    await screen.findByTestId(homeTestIds.name);
     expect(registry.available()).not.toContain('switchLanguage');
     expect(screen.queryByRole('group', { name: 'Language' })).not.toBeInTheDocument();
   });
 
-  describe('routes', () => {
+  describe('one page on every path', () => {
     afterEach(() => window.history.replaceState(null, '', '/'));
 
-    function renderAt(path: string) {
+    it.each(['/', '/new', '/anything'])('renders the CV page on %s', async (path) => {
       window.history.replaceState(null, '', path);
       render(
         <AppProviders locale="en">
           <App />
         </AppProviders>,
       );
-    }
 
-    it('renders the profile on /new, without a language switcher', async () => {
-      renderAt('/new');
-
-      expect(await screen.findByTestId(forestTestIds.name)).toHaveTextContent('Andrew Panasiuk');
-      expect(screen.queryByTestId(cvTestIds.root)).not.toBeInTheDocument();
-      expect(screen.queryByRole('group', { name: 'Language' })).not.toBeInTheDocument();
-    });
-
-    it('renders the CV on /, without a language switcher', async () => {
-      renderAt('/');
-
-      expect(await screen.findByTestId(forestTestIds.name)).toHaveTextContent('Andrew Panasiuk');
-      expect(screen.getByTestId(cvTestIds.root)).toBeInTheDocument();
-      expect(screen.queryByTestId(profileTestIds.root)).not.toBeInTheDocument();
-      expect(screen.queryByRole('group', { name: 'Language' })).not.toBeInTheDocument();
+      expect(await screen.findByTestId(homeTestIds.name)).toHaveTextContent('Andrew Panasiuk');
+      expect(screen.getAllByTestId(homeTestIds.root)).toHaveLength(1);
+      expect(screen.queryByTestId('cv')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('profile')).not.toBeInTheDocument();
     });
   });
 });

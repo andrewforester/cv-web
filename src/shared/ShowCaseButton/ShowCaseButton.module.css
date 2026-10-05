@@ -1,0 +1,22 @@
+/* A small mono pill in the v3 palette (docs/design/v3/SPEC.md → Orchestrator decisions 7). */
+.root {
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--type-tag-size);
+  color: var(--color-accent);
+  white-space: nowrap;
+  background: var(--color-surface-lilac);
+  border: none;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.root:hover {
+  color: var(--color-accent-hover);
+}
+
+/* TODO(theme): a v3 focus-ring token. */
+.root:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
