@@ -50,7 +50,7 @@ export function actionTarget(action: ChatActionCall, strings: ChatStrings): stri
       return lookup(fixed, id, strings) ?? action.label ?? id;
     }
     default:
-      // Not in the page's catalogue (`switchLanguage` until the Cleanup task): the registry refuses it.
+      // Not in the page's catalogue (`switchLanguage` until Cleanup): the registry refuses it.
       return '';
   }
 }

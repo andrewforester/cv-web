@@ -64,12 +64,12 @@ const pageSection = (section: string | null): CvSectionId | null =>
   CV_SECTION_IDS.find((id) => id === section) ?? null;
 
 /**
- * Drives the conversation on the one page (API.md → v4): sends the completed history + the question through `ChatRepository`,
- * appends streamed deltas, and runs the model's page tools client-side (AGENT.md §4): after a
- * `done: tool_use` the calls run in order, the results go back in a follow-up request, at most
- * `maxToolRoundsPerTurn` times. Stop (abort) drops the turn; a retry re-sends the finished rounds
- * and never runs their tools again. A running turn keeps going while the panel is closed;
- * unmount aborts it.
+ * Drives the conversation on the one page (API.md → v4): sends the completed history + the
+ * question through `ChatRepository`, appends streamed deltas, and runs the model's page tools
+ * client-side (AGENT.md §4): after a `done: tool_use` the calls run in order, the results go back
+ * in a follow-up request, at most `maxToolRoundsPerTurn` times. Stop (abort) drops the turn; a
+ * retry re-sends the finished rounds and never runs their tools again. A running turn keeps going
+ * while the panel is closed; unmount aborts it.
  */
 export function useChatConversation({
   announce,
