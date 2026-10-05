@@ -2,8 +2,8 @@
 
 Why it exists: lets a visitor talk to Andrew's CV instead of reading it. The "Ask my AI" pill in
 the corner (with a first-visit hint) opens a chat where the visitor asks about Andrew's experience
-and gets answers streamed from the page's content. Suggested questions help start; the chat can also act
-on the page: "show his selected impact" scrolls there, "highlight his work at Transcenda" marks
+and gets answers streamed from the page's content. Suggested questions help start; the chat can
+also act on the page: "show his selected impact" scrolls there, "highlight his work at Transcenda" marks
 the job, and opening a contact asks for confirmation first. A link to `#ask` anywhere on the site
 opens it too. Behaviour: `docs/design/chat/SPEC.md` (with "Orchestrator decisions"); look:
 `docs/design/v3/SPEC.md` → Decision 6 (the pill; the panel in the loop panel's dark colours); API:
