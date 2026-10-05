@@ -1,6 +1,6 @@
 ---
 name: develop
-description: Work a CV Andrew Panasiuk task as a developer session — stay inside the task's zone, build the feature or screen, verify locally (lint, tests, web check), push to the draft PR the orchestrator opened and mark it Ready for review, then work the review rounds until a review session merges it. Use when a session is started on a task/ticket, told to implement a feature/fix/screen from one, or given the develop role.
+description: Work a CV Andrew Panasiuk task as a developer session — stay inside the task's zone, build the feature or screen, verify locally (lint, tests, web check), push to the draft PR the orchestrator opened and mark it Ready for review, then run code review by a reviewer subagent and merge the PR once it passes. Use when a session is started on a task/ticket, told to implement a feature/fix/screen from one, or given the develop role.
 ---
 
 # Develop
@@ -53,12 +53,34 @@ Guessing starts when the context is full of the wrong things.
    - **follow-ups**: anything the feature needs that you didn't do (out of zone, "not cheap", left for later), one line each with what the user would miss without it; the orchestrator turns each into a ticket or raises it with the human;
    - how you verified it, and what you installed.
 4. Update the PR body (template `.github/pull_request_template.md`): keep the ticket reference, add a short summary of what changed. Nothing else about the task goes into the PR.
-5. Mark the PR **Ready for review** as the last step of the work: it starts CI and is the orchestrator's signal. Then **stay on the PR until it is merged**: fix red CI, and handle the review (below). Don't schedule check-ins: follow the PR by events (Tooling → Code host); the orchestrator closes your session after the merge.
-6. Don't merge. The orchestrator checks the result, then a review session reviews the code and merges.
+5. Mark the PR **Ready for review**: it starts CI. Set the ticket to **In Review**.
+6. Run the review rounds (below) until the review passes, then merge (below). Don't schedule check-ins: follow the PR by events (Tooling → Code host).
 7. If you're blocked (you can't continue even on a stub), comment on the ticket with exactly what is missing, push what you have, and stop.
 
-## Review round
-The review session (`review` skill) sends the PR back by a **Request changes** review, converting the PR to draft and setting the ticket to In Progress. The orchestrator sends it back the same way (draft) with its notes on the ticket. Then:
-1. Read every review comment on the PR and every new comment on the ticket. Fix each blocking finding; for one you disagree with, reply on its thread with the reason instead of ignoring it. Non-blocking notes are optional.
-2. Reply to each thread with what you changed (or why not). Don't resolve the reviewer's threads yourself.
-3. Merge `origin/main`, run the checks (Verify before every push), push, then mark the PR **Ready for review** again: that is the reviewer's signal.
+## Review rounds
+The review is a **`reviewer` subagent** (`.claude/agents/reviewer.md`) that you launch yourself, a fresh one each round. It must judge the result, not your reasoning, so it sees only the ticket and the PR:
+- Push everything first; the subagent reviews the pushed head of the branch, not your working tree.
+- Launch it (Tooling → Sessions → Review subagent) with this prompt and nothing else: no summary of your work, no hints where to look, no "this is fine":
+  ```
+  Review round K. Ticket: CV-N. PR: #P (branch claude/<short>).
+  ```
+- It writes its findings on the PR and answers `PASSED` or `CHANGES NEEDED` with the reviewed SHA.
+
+**Changes needed:**
+1. Read every finding on the PR. Fix each blocking one; for one you disagree with, reply on its thread with the reason instead of ignoring it. Non-blocking notes are optional.
+2. Reply to each thread with what you changed (or why not). Don't resolve the reviewer's threads, don't edit or delete its comments.
+3. Merge `origin/main`, run the checks (Verify before every push), push, then launch a new reviewer with the next round number.
+4. After the **3rd** round that still needs changes, stop: comment on the ticket with **Needs human** (what is still open and why), leave the PR ready, and finish.
+
+**Passed → merge.** Merge only when all of these hold; otherwise don't, and say which one failed in a ticket comment:
+- the latest reviewer comment on the PR is `Review passed` and its SHA is the PR's current head (any push after it, even a merge of `main`, needs a new round);
+- the orchestrator's launch comment on the ticket says autonomous merging is allowed;
+- CI on the PR is green, including the e2e job; the latest CI run on `main` isn't red (the workflow run, not the commit's status icon: a hosting status can be red while CI is green); no conflicts with `main`.
+
+Squash-merge (Tooling → Code host). If the merge command is denied (permission mode), don't retry or work around it: comment "Review passed, ready to merge" on the ticket with **Needs human**, and finish; the orchestrator merges.
+
+**After the merge:**
+1. Set the ticket to **Done** (Linear usually does it from `Closes CV-N`; check it) and post the closing comment: the merged PR, review rounds and what they fixed, the reviewer verdict links.
+2. Don't touch the ticket after that: the orchestrator audits it, adds the usage table and closes your session.
+
+Never write `Review passed` yourself, never merge without it, never set Done before the merge.
