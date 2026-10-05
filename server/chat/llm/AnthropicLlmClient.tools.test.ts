@@ -6,17 +6,17 @@ import {
   sse,
   streamResponse,
 } from '../../test/anthropicStream.js';
-import { LLM_TOOLS } from '../prompt/llmTools.js';
+import { LLM_TOOLS_V4 } from '../prompt/llmTools.js';
 import { mapStopReason, toToolCall } from './AnthropicLlmClient.js';
 import type { LlmRequest } from './LlmClient.js';
 
 const REQUEST: LlmRequest = {
   model: 'claude-sonnet-5-5',
   max_tokens: 800,
-  tools: [...LLM_TOOLS],
+  tools: [...LLM_TOOLS_V4],
   tool_choice: { type: 'auto' },
   system: [{ type: 'text', text: 'Instructions' }],
-  messages: [{ role: 'user', content: 'Show the apps' }],
+  messages: [{ role: 'user', content: 'Show the impact' }],
 };
 
 type Ev = [string, unknown];
@@ -53,10 +53,10 @@ const TOOL_TURN: Ev[] = [
   stop(1),
   start(2, { type: 'tool_use', id: 'toolu_1', name: 'scrollToSection', input: {} }),
   blockDelta(2, { type: 'input_json_delta', partial_json: '{"sect' }),
-  blockDelta(2, { type: 'input_json_delta', partial_json: 'ion":"apps"}' }),
+  blockDelta(2, { type: 'input_json_delta', partial_json: 'ion":"impact"}' }),
   stop(2),
-  start(3, { type: 'tool_use', id: 'toolu_2', name: 'switchLanguage', input: {} }),
-  blockDelta(3, { type: 'input_json_delta', partial_json: '{"locale":"uk"}' }),
+  start(3, { type: 'tool_use', id: 'toolu_2', name: 'openContact', input: {} }),
+  blockDelta(3, { type: 'input_json_delta', partial_json: '{"channel":"email"}' }),
   stop(3),
   ...end('tool_use'),
 ];
@@ -70,7 +70,7 @@ describe('AnthropicLlmClient: tool use', () => {
     expect(events.map((event) => event.type)).toEqual(['text', 'tool_call', 'tool_call', 'done']);
     expect(events[1]).toEqual({
       type: 'tool_call',
-      call: { id: 'toolu_1', name: 'scrollToSection', input: { section: 'apps' } },
+      call: { id: 'toolu_1', name: 'scrollToSection', input: { section: 'impact' } },
     });
     expect(events[3]).toMatchObject({
       type: 'done',
@@ -78,11 +78,11 @@ describe('AnthropicLlmClient: tool use', () => {
       blocks: [
         { type: 'thinking', thinking: 'Scroll first.', signature: 'sig-1' },
         { type: 'text', text: 'Scrolling.' },
-        { type: 'tool_use', id: 'toolu_1', name: 'scrollToSection', input: { section: 'apps' } },
-        { type: 'tool_use', id: 'toolu_2', name: 'switchLanguage', input: { locale: 'uk' } },
+        { type: 'tool_use', id: 'toolu_1', name: 'scrollToSection', input: { section: 'impact' } },
+        { type: 'tool_use', id: 'toolu_2', name: 'openContact', input: { channel: 'email' } },
       ],
     });
-    expect(calls[0]?.body).toMatchObject({ tools: LLM_TOOLS, tool_choice: { type: 'auto' } });
+    expect(calls[0]?.body).toMatchObject({ tools: LLM_TOOLS_V4, tool_choice: { type: 'auto' } });
   });
 
   it('sends no blocks when the turn does not end in tool_use', async () => {
@@ -109,10 +109,10 @@ describe('AnthropicLlmClient: tool use', () => {
     expect(toToolCall('t', 'rm', '{}')).toBeUndefined();
     expect(toToolCall('t', 'scrollToSection', '{"section":')).toBeUndefined();
     expect(toToolCall('t', 'scrollToSection', '[1]')).toBeUndefined();
-    expect(toToolCall('t', 'scrollToSection', '{"section":"apps"}')).toEqual({
+    expect(toToolCall('t', 'scrollToSection', '{"section":"impact"}')).toEqual({
       id: 't',
       name: 'scrollToSection',
-      input: { section: 'apps' },
+      input: { section: 'impact' },
     });
   });
 });

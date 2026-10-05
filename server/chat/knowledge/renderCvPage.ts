@@ -27,8 +27,8 @@ function job(entry: CvJob): string[] {
 }
 
 /**
- * The one page (v4) as compact Markdown for the model, like `renderProfile`: English headings and
- * everything the page shows as text, in page order. Dropped: image refs and the footer call to
+ * The one page as compact Markdown for the model: English headings and everything the page shows
+ * as text, in page order. Dropped: image refs and the footer call to
  * action (its email is a contact). Deterministic, which prompt caching needs.
  */
 export function renderCvPage(page: CvPage): string {

@@ -2,14 +2,12 @@ import { useCallback, useEffect, useReducer, useRef } from 'react';
 import {
   CHAT_API_VERSION_V4,
   CHAT_LIMITS_V2,
-  CV_SECTION_IDS,
   useChatRepository,
   type AgentPageStateV4,
   type AgentToolCall,
   type ChatError,
   type ChatMessageV4,
   type ChatRequestV4,
-  type CvSectionId,
 } from '../../data/chat';
 import { useCvPageRepository } from '../../data';
 import { useAgentRegistry } from '../../agent';
@@ -59,10 +57,6 @@ const tooManyRounds: ChatError = {
   retryable: false,
 };
 
-/** The page's section in view; any other view (an old screen until the Cleanup task) is none. */
-const pageSection = (section: string | null): CvSectionId | null =>
-  CV_SECTION_IDS.find((id) => id === section) ?? null;
-
 /**
  * Drives the conversation on the one page (API.md → v4): sends the completed history + the
  * question through `ChatRepository`, appends streamed deltas, and runs the model's page tools
@@ -94,12 +88,10 @@ export function useChatConversation({
   useEffect(() => () => controller.current?.abort(), []);
 
   const pageState = useCallback((): AgentPageStateV4 => {
-    const { activeSection, highlighted } = registry.view();
     return {
       viewport: sheet ? 'mobile' : 'desktop',
       chat: sheet ? 'sheet' : 'card',
-      activeSection: pageSection(activeSection),
-      highlighted,
+      ...registry.view(),
       tools: executor.available(),
     };
   }, [sheet, registry, executor]);

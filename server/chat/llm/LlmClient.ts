@@ -61,7 +61,7 @@ export interface LlmTool {
 export interface LlmRequest extends LlmRequestKnobs {
   model: string;
   max_tokens: number;
-  /** v2 only; rendered before `system`, so it heads the cached prefix. */
+  /** The chat (v4) only; rendered before `system`, so it heads the cached prefix. */
   tools?: LlmTool[];
   tool_choice?: { type: 'auto' | 'none' };
   system: LlmSystemBlock[];

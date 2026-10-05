@@ -1,5 +1,0 @@
-[data-retro-stage] ul:has(> li > [data-testid='forest-contact'])::before {
-  content: 'Contact me:';
-  display: block;
-  font-weight: 700;
-}

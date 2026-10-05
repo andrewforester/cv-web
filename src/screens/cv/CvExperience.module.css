@@ -1,6 +1,0 @@
-/* A run of job rows inside the Experience section, spaced like the section's own rows. */
-.rows {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}

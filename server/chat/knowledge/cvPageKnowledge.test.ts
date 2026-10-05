@@ -84,6 +84,27 @@ describe('createCvPageKnowledgeLoader', () => {
     );
   });
 
+  const source = (id: string, text: string): KnowledgeSource => ({
+    id,
+    load: vi.fn(async () => [{ id, title: `Title ${id}`, text }]),
+  });
+
+  it('wraps all documents in registry order', async () => {
+    const load = createCvPageKnowledgeLoader([source('cv', 'CV text'), source('cases', 'Cases')]);
+    await expect(load()).resolves.toBe(
+      '<knowledge>\n' +
+        '<document id="cv" title="Title cv">\nCV text\n</document>\n' +
+        '<document id="cases" title="Title cases">\nCases\n</document>\n' +
+        '</knowledge>',
+    );
+  });
+
+  it('warns above 50,000 estimated tokens', async () => {
+    const warn = vi.fn();
+    await createCvPageKnowledgeLoader([source('big', 'a'.repeat(200_000))], warn)();
+    expect(warn).toHaveBeenCalledOnce();
+  });
+
   it('loads once: the same text for every request', async () => {
     const source: KnowledgeSource = { id: 'cv', load: vi.fn(async () => []) };
     const load = createCvPageKnowledgeLoader([source]);

@@ -51,8 +51,6 @@ export const chatStrings = defineStrings({
     actionHighlightDone: 'Showing {target}',
     actionContactRunning: 'Opening {target}…',
     actionContactDone: 'Opened {target}',
-    actionGenericRunning: 'Working on the page…',
-    actionGenericDone: 'Done',
     actionDeclined: 'Cancelled',
     actionUnavailable: 'That isn’t available on this page.',
     actionFailed: 'The action didn’t work.',

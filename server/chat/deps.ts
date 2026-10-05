@@ -1,11 +1,8 @@
 import { readChatConfig } from './config.js';
 import type { ChatDeps } from './handler.js';
 import { DayCostMeter } from './dayCost.js';
-import {
-  createCvPageKnowledgeLoader,
-  createPageKnowledgeLoader,
-} from './knowledge/assembleKnowledge.js';
-import { CV_PAGE_KNOWLEDGE_SOURCES, KNOWLEDGE_SOURCES_BY_PAGE } from './knowledge/sources.js';
+import { createCvPageKnowledgeLoader } from './knowledge/assembleKnowledge.js';
+import { CV_PAGE_KNOWLEDGE_SOURCES } from './knowledge/sources.js';
 import { AnthropicLlmClient } from './llm/AnthropicLlmClient.js';
 import { devFakeScript } from './llm/devFakeScript.js';
 import { FakeLlmClient } from './llm/FakeLlmClient.js';
@@ -45,7 +42,6 @@ export function createChatDeps(env: Record<string, string | undefined>): ChatDep
     llm,
     limiter: new RateLimiter(),
     dayCost: new DayCostMeter(),
-    knowledge: createPageKnowledgeLoader(KNOWLEDGE_SOURCES_BY_PAGE),
     cvPageKnowledge: createCvPageKnowledgeLoader(CV_PAGE_KNOWLEDGE_SOURCES),
     log: consoleLogger,
   };

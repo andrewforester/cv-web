@@ -1,5 +1,5 @@
 import {
-  CHAT_API_VERSION,
+  CHAT_API_VERSION_V4,
   CHAT_API_VERSION_HEADER,
   CHAT_REQUEST_ID_HEADER,
   type ChatError,
@@ -37,10 +37,13 @@ export function chatError(
   return { code, message, retryable: RETRYABLE_BY_DEFAULT.has(code), ...extra };
 }
 
-/** Headers every response of the function carries; `version` is the request's once known. */
+/**
+ * Headers every response of the function carries; `version` is the request's once known (3 or
+ * 4), else the chat's.
+ */
 export function baseHeaders(
   requestId: string,
-  version: number = CHAT_API_VERSION,
+  version: number = CHAT_API_VERSION_V4,
 ): Record<string, string> {
   return {
     [CHAT_API_VERSION_HEADER]: String(version),
@@ -52,7 +55,7 @@ export function baseHeaders(
 export function errorResponse(
   error: ChatError,
   requestId: string,
-  version: number = CHAT_API_VERSION,
+  version: number = CHAT_API_VERSION_V4,
 ): Response {
   const body: ChatErrorBody = { error: { ...error, requestId } };
   const headers: Record<string, string> = {

@@ -18,7 +18,7 @@ Domain terms:
 - **Stage:** the shell's wrapper (page + chat) carrying `data-retro-stage` while the show runs;
   the show's damage layers select only under it.
 
-Place in the architecture: the top of the tree. `AppProviders` wires i18n, the data bindings
+Place in the architecture: the top of the tree. `AppProviders` wires the data bindings
 (one static repository over the bundled JSON for the page; the chat repository, the real
 `/api/chat` `v: 4`; the show repository, `/api/chat` `v: 3`) and the page-agent tool registry
 (`src/agent/`, whose one catalogue comes from `CvPage`). Swapping the mock for a backend is one

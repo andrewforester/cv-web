@@ -1,7 +1,7 @@
 # e2e
 
 Why it exists: the last gate before a change reaches visitors. It proves that the production
-build actually starts and works in a real browser, in an English browser, which unit tests in jsdom
+build actually starts and works in a real browser, which unit tests in jsdom
 can't: a green build can still crash at startup. It is the *web check* in the root `AGENTS.md`
 and the `web-smoke` job in CI.
 
@@ -9,7 +9,7 @@ What it guarantees today:
 - The one CV page (`/`, docs/design/v3) loads directly with no page or console errors, shows all
   nine jobs and the Show case button in its meta bar, and fits a phone screen without horizontal
   scrolling (`home.png`, `home-mobile.png`); `/new` shows the same page (locally the same app;
-  production redirects it); a `uk-UA` browser gets the English page.
+  production redirects it).
 - The chat sends `v: 4` (no page id, no locale) and answers a question with a streamed reply;
   it offers the page's four first questions, and rate limiting shows its notice. A `#ask` link
   opens it; its look is screenshotted empty and answered, desktop and phone.

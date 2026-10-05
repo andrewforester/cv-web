@@ -18,68 +18,58 @@ function sseBody(deltas: string[]): string {
   ].join('');
 }
 
-const cases = [
-  {
-    locale: 'en',
-    browserLocale: 'en-US',
-    question: 'Which apps has he shipped?',
-    deltas: ['Andrew built **Cync** and ', '**August Home**:\n\n- 1M+ users each'],
-    answer: 'Andrew built Cync and August Home:',
-  },
-] as const;
+test.use({ locale: 'en-US' });
 
-for (const { locale, browserLocale, question, deltas, answer } of cases) {
-  test.describe(`chat (${locale})`, () => {
-    test.use({ locale: browserLocale });
+const question = 'Which apps has he shipped?';
+const deltas = ['Andrew built **Cync** and ', '**August Home**:\n\n- 1M+ users each'];
+const answer = 'Andrew built Cync and August Home:';
 
-    test('asks a suggested question and renders the streamed answer', async ({ page }) => {
-      const errors = collectErrors(page);
-      const requests: unknown[] = [];
-      await page.route('**/api/chat', async (route) => {
-        requests.push(route.request().postDataJSON());
-        await route.fulfill({
-          status: 200,
-          headers: {
-            'Content-Type': 'text/event-stream; charset=utf-8',
-            'X-Chat-Api-Version': '4',
-          },
-          body: sseBody([...deltas]),
-        });
-      });
-      await page.goto(NORMAL_SITE);
-
-      await page.getByTestId('chat-fab').click();
-      const dialog = page.getByRole('dialog');
-      await expect(dialog).toBeVisible();
-      await dialog.getByRole('button', { name: question }).click();
-
-      const reply = dialog.getByTestId('chat-assistant-message');
-      await expect(reply).toContainText(answer);
-      await expect(reply.locator('strong').first()).toHaveText('Cync');
-      await expect(dialog.getByTestId('chat-send')).toBeVisible();
-      expect(requests).toEqual([
-        {
-          v: 4,
-          messages: [
-            {
-              role: 'user',
-              content: question,
-              page: {
-                viewport: 'desktop',
-                chat: 'card',
-                activeSection: 'header',
-                highlighted: null,
-                tools: ['highlightElement', 'openContact', 'scrollToSection'],
-              },
-            },
-          ],
-        },
-      ]);
-      await page.screenshot({ path: `${SCREENSHOT_DIR}/chat-${locale}.png` });
-      expect(errors).toEqual([]);
+test('asks a suggested question and renders the streamed answer', async ({ page }) => {
+  const errors = collectErrors(page);
+  const requests: unknown[] = [];
+  await page.route('**/api/chat', async (route) => {
+    requests.push(route.request().postDataJSON());
+    await route.fulfill({
+      status: 200,
+      headers: {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'X-Chat-Api-Version': '4',
+      },
+      body: sseBody(deltas),
     });
   });
-}
+  await page.goto(NORMAL_SITE);
+
+  await page.getByTestId('chat-fab').click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: question }).click();
+
+  const reply = dialog.getByTestId('chat-assistant-message');
+  await expect(reply).toContainText(answer);
+  await expect(reply.locator('strong').first()).toHaveText('Cync');
+  await expect(dialog.getByTestId('chat-send')).toBeVisible();
+  expect(requests).toEqual([
+    {
+      v: 4,
+      messages: [
+        {
+          role: 'user',
+          content: question,
+          page: {
+            viewport: 'desktop',
+            chat: 'card',
+            activeSection: 'header',
+            highlighted: null,
+            tools: ['highlightElement', 'openContact', 'scrollToSection'],
+          },
+        },
+      ],
+    },
+  ]);
+  await page.screenshot({ path: `${SCREENSHOT_DIR}/chat.png` });
+  expect(errors).toEqual([]);
+});
 
 test('shows the rate-limit notice for a platform 429', async ({ page }) => {
   const errors = collectErrors(page);
@@ -97,48 +87,46 @@ test('shows the rate-limit notice for a platform 429', async ({ page }) => {
   expect(errors.filter((error) => !error.includes('429'))).toEqual([]);
 });
 
-// Forest look (docs/design/forest-chat): the chat opened by the `#ask` link, empty and answered,
+// The chat look on the v3 palette (docs/design/v3): opened by the `#ask` link, empty and answered,
 // on the desktop card and the phone sheet. Compare the screenshots with the package's PNGs.
 const viewports = [
   { name: 'desktop', size: { width: 1280, height: 800 } },
   { name: 'phone', size: { width: 390, height: 844 } },
 ] as const;
 
-for (const { locale, browserLocale, question, deltas, answer } of cases) {
-  for (const { name, size } of viewports) {
-    test.describe(`chat look (${locale}, ${name})`, () => {
-      test.use({ locale: browserLocale, viewport: size });
+for (const { name, size } of viewports) {
+  test.describe(`chat look (${name})`, () => {
+    test.use({ viewport: size });
 
-      test('opens from #ask and shows the empty state and an answer', async ({ page }) => {
-        const errors = collectErrors(page);
-        await page.route('**/api/chat', (route) =>
-          route.fulfill({
-            status: 200,
-            headers: {
-              'Content-Type': 'text/event-stream; charset=utf-8',
-              'X-Chat-Api-Version': '4',
-            },
-            body: sseBody([...deltas]),
-          }),
-        );
-        await page.goto('./#ask');
+    test('opens from #ask and shows the empty state and an answer', async ({ page }) => {
+      const errors = collectErrors(page);
+      await page.route('**/api/chat', (route) =>
+        route.fulfill({
+          status: 200,
+          headers: {
+            'Content-Type': 'text/event-stream; charset=utf-8',
+            'X-Chat-Api-Version': '4',
+          },
+          body: sseBody(deltas),
+        }),
+      );
+      await page.goto('./#ask');
 
-        const dialog = page.getByRole('dialog');
-        await expect(dialog).toBeVisible();
-        await expect(page).toHaveURL(/\/$/);
-        // Let the open animation finish so the screenshot shows the final look.
-        await dialog.evaluate((panel) =>
-          Promise.all(panel.getAnimations().map((animation) => animation.finished)),
-        );
-        await page.screenshot({ path: `${SCREENSHOT_DIR}/chat-empty-${locale}-${name}.png` });
+      const dialog = page.getByRole('dialog');
+      await expect(dialog).toBeVisible();
+      await expect(page).toHaveURL(/\/$/);
+      // Let the open animation finish so the screenshot shows the final look.
+      await dialog.evaluate((panel) =>
+        Promise.all(panel.getAnimations().map((animation) => animation.finished)),
+      );
+      await page.screenshot({ path: `${SCREENSHOT_DIR}/chat-empty-${name}.png` });
 
-        await dialog.getByRole('button', { name: question }).click();
-        await expect(dialog.getByTestId('chat-assistant-message')).toContainText(answer);
-        await page.screenshot({ path: `${SCREENSHOT_DIR}/chat-answer-${locale}-${name}.png` });
-        expect(errors).toEqual([]);
-      });
+      await dialog.getByRole('button', { name: question }).click();
+      await expect(dialog.getByTestId('chat-assistant-message')).toContainText(answer);
+      await page.screenshot({ path: `${SCREENSHOT_DIR}/chat-answer-${name}.png` });
+      expect(errors).toEqual([]);
     });
-  }
+  });
 }
 
 // One page (ADR-0006): the first questions of ADR-0006 → Decision 3.

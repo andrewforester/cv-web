@@ -49,13 +49,10 @@ export function actionTarget(action: ChatActionCall, strings: ChatStrings): stri
       const fixed = kind === 'section' ? SECTION_KEYS : kind === 'contact' ? CHANNEL_KEYS : {};
       return lookup(fixed, id, strings) ?? action.label ?? id;
     }
-    default:
-      // Not in the page's catalogue (`switchLanguage` until Cleanup): the registry refuses it.
-      return '';
   }
 }
 
-const PHRASES: Partial<Record<AgentToolName, [running: Key, done: Key]>> = {
+const PHRASES: Record<AgentToolName, [running: Key, done: Key]> = {
   scrollToSection: ['actionScrollRunning', 'actionScrollDone'],
   highlightElement: ['actionHighlightRunning', 'actionHighlightDone'],
   openContact: ['actionContactRunning', 'actionContactDone'],
@@ -69,8 +66,8 @@ export function actionText(action: ChatActionCall, strings: ChatStrings): string
   const target = actionTarget(action, strings);
   const { result } = action;
   if (action.status === 'awaiting') return action.confirmation?.title ?? strings.confirmGeneric;
-  if (!result) return phrases ? fill(strings[phrases[0]], target) : strings.actionGenericRunning;
-  if (result.ok) return phrases ? fill(strings[phrases[1]], target) : strings.actionGenericDone;
+  if (!result) return fill(strings[phrases[0]], target);
+  if (result.ok) return fill(strings[phrases[1]], target);
   switch (result.error) {
     case 'declined':
       return strings.actionDeclined;

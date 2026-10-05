@@ -1,39 +1,31 @@
-import { describe, expect, expectTypeOf, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import type {
   ChatErrorBody,
-  ChatLocale,
-  ChatSseEventName,
   ChatSseEventNameV2,
-  ChatStreamEvent,
   ChatStreamEventV2,
 } from '../../src/data/chat/contract.js';
-import type { Locale } from '../../src/i18n/locale.js';
-import { chatRequest, readSse, SCROLL_APPS, testDeps, v2Body } from '../test/helpers.js';
+import { chatRequest, readSse, SCROLL_IMPACT, testDeps, v4Body } from '../test/helpers.js';
 import { handleChat } from './handler.js';
 import { LlmError } from './llm/LlmClient.js';
 
 /**
  * Consumer side of the contract, as the widget sees it: the provider's response mapped to
- * `ChatStreamEvent`s. (The real `HttpChatRepository` arrives with the frontend ticket.)
+ * `ChatStreamEventV2`s.
  */
-async function consume(response: Response): Promise<ChatStreamEvent[]> {
+async function consume(response: Response): Promise<ChatStreamEventV2[]> {
   if (!response.ok)
     return [{ type: 'error', error: ((await response.json()) as ChatErrorBody).error }];
   const { events } = await readSse(response);
   return events
     .filter((event) => event.event !== 'comment')
-    .map((event): ChatStreamEvent => {
-      const name = event.event as ChatSseEventName;
+    .map((event): ChatStreamEventV2 => {
+      const name = event.event as ChatSseEventNameV2;
       if (name === 'error') return { type: 'error', error: event.data as ChatErrorBody['error'] };
-      return { type: name, ...(event.data as object) } as ChatStreamEvent;
+      return { type: name, ...(event.data as object) } as ChatStreamEventV2;
     });
 }
 
 describe('contract', () => {
-  it('keeps ChatLocale equal to the site Locale', () => {
-    expectTypeOf<ChatLocale>().toEqualTypeOf<Locale>();
-  });
-
   it('success: delta* then exactly one done', async () => {
     const events = await consume(await handleChat(chatRequest(), testDeps({ deltas: ['A', 'B'] })));
     expect(events.map((event) => event.type)).toEqual(['delta', 'delta', 'done']);
@@ -61,18 +53,12 @@ describe('contract', () => {
     ]);
   });
 
-  it('v2 tool round: delta*, tool_call*, then done with tool_use and providerState', async () => {
-    const deps = testDeps({ deltas: ['Scrolling.'], toolCalls: [SCROLL_APPS] });
-    const response = await handleChat(chatRequest(v2Body()), deps);
-    const { events } = await readSse(response);
-    const consumed = events.map((event): ChatStreamEventV2 => {
-      const name = event.event as ChatSseEventNameV2;
-      if (name === 'error') return { type: 'error', error: event.data as ChatErrorBody['error'] };
-      return { type: name, ...(event.data as object) } as ChatStreamEventV2;
-    });
+  it('tool round: delta*, tool_call*, then done with tool_use and providerState', async () => {
+    const deps = testDeps({ deltas: ['Scrolling.'], toolCalls: [SCROLL_IMPACT] });
+    const consumed = await consume(await handleChat(chatRequest(v4Body()), deps));
     expect(consumed).toEqual([
       { type: 'delta', text: 'Scrolling.' },
-      { type: 'tool_call', ...SCROLL_APPS },
+      { type: 'tool_call', ...SCROLL_IMPACT },
       {
         type: 'done',
         stopReason: 'tool_use',

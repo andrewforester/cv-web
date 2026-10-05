@@ -18,7 +18,7 @@ import { PROMPT_VERSION } from './prompt/systemPrompt.js';
 type Done = ChatSsePayloadsV2['done'];
 
 describe('handleChat: v4 (the one page)', () => {
-  it('answers with the one page knowledge and logs v4 without page or locale', async () => {
+  it('answers with the one page knowledge and logs v4 without a locale', async () => {
     const deps = testDeps({ deltas: ['Hello'] });
     const response = await handleChat(chatRequest(v4Body(questionV4('Who is he?'))), deps);
     const { events } = await readSse(response);
@@ -35,7 +35,6 @@ describe('handleChat: v4 (the one page)', () => {
         status: 200,
         outcome: 'done',
         locale: null,
-        page: null,
         promptVersion: PROMPT_VERSION,
         messages: 1,
         inputChars: 'Who is he?'.length,

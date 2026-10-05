@@ -1,7 +1,0 @@
-body:has([data-retro-stage]) {
-  background: #000033 var(--retro-tile-stars) repeat;
-}
-
-[data-retro-stage] main {
-  background: #ffffcc;
-}

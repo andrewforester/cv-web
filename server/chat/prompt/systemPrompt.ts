@@ -1,5 +1,3 @@
-import type { ChatLocale } from '../../../src/data/chat/contract.js';
-
 /** Bump on every change of the instructions (logged with each request). */
 export const PROMPT_VERSION = '2026-10-05.1';
 
@@ -31,21 +29,10 @@ Language and format
 - Allowed formatting: short paragraphs separated by a blank line, simple lists with lines starting with "- ", and **bold** for a few key words. Nothing else: no headings, links, URLs, tables, code blocks, numbered lists or HTML. Write the email address and phone number as plain text; for WhatsApp and Telegram, point to the contacts on this page instead of writing their URLs.
 - Keep answers short: usually under 120 words.`;
 
-const LOCALE_NAMES: Record<ChatLocale, string> = { en: 'English', uk: 'Ukrainian' };
-
-/** The last system block: the site language, the fallback reply language. */
-export function localeLine(locale: ChatLocale): string {
-  return `Site language: ${LOCALE_NAMES[locale]} (${locale}).`;
-}
-
-/** v4's last system block: the one page is English (ADR-0006 → Decision 3). */
+/** The last system block: the site language, the fallback reply language (ADR-0006 → Decision 3). */
 export const SITE_LANGUAGE_LINE = 'Site language: English (en).';
 
-/**
- * The page-agent rules (docs/chat/AGENT.md §5), a separate system block sent only with the v2
- * and v4 tools, right after the instructions, so v1 prompts stay as they were. Shared by v2 and
- * v4: it names no page, language or tool that only one of them has.
- */
+/** The page-agent rules (docs/chat/AGENT.md §5), a separate system block right after the instructions. */
 export const PAGE_TOOL_INSTRUCTIONS = `Operating the page
 - You can operate the visitor's CV page, and only through the provided tools. Use a tool only when the visitor asks for something on the page (show, scroll to, highlight, open a contact). Never use tools on your own initiative.
 - Before a tool call, say in one short sentence what you are doing, in the reply language. Then call the tool.

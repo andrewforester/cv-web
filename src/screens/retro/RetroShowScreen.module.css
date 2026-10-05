@@ -87,11 +87,11 @@
   to {
     right: var(--space-6);
     bottom: var(--space-6);
-    width: var(--chat-fab-size);
-    height: var(--chat-fab-size);
+    width: var(--chat-control-size);
+    height: var(--chat-control-size);
     border-radius: 50%;
-    background: var(--forest-gradient-dark);
-    box-shadow: var(--forest-chat-shadow-fab);
+    background: var(--gradient-dark);
+    box-shadow: var(--shadow-launcher);
     opacity: 0;
   }
 }

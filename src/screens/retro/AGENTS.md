@@ -70,7 +70,6 @@ Rules and limits:
   `RetroStageTestHarness`, every token exists), `engine/showTiming.test.ts` (≈ 91 s), and
   in `e2e/retro.spec.ts` guards 3 and 4. Renaming a page's hook or token fails them; fix
   the layer, never the guard.
-- EN only by decision: `strings.ts` has no `uk` (it falls back to English).
 - Tests import layer files with `?raw` like the app (`vite.config.ts` → `test.css.include`).
 - Dev harness: `harness/` (not a build entry): `npm run dev`, then
   `/src/screens/retro/harness/index.html`.

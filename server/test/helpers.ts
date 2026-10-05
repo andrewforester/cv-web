@@ -1,13 +1,8 @@
 import type {
-  AgentPageState,
   AgentPageStateV4,
   AgentToolCall,
   ChatAssistantMessageV2,
-  ChatLocale,
-  ChatMessageV2,
   ChatMessageV4,
-  ChatRequest,
-  ChatRequestV2,
   ChatRequestV4,
   ChatToolResultsMessageV2,
 } from '../../src/data/chat/contract.js';
@@ -16,81 +11,15 @@ import { RETRO_SCENARIO_ID } from '../../src/data/retro/scenario.js';
 import { readChatConfig } from '../chat/config.js';
 import type { ChatDeps } from '../chat/handler.js';
 import { DayCostMeter } from '../chat/dayCost.js';
-import {
-  createCvPageKnowledgeLoader,
-  createPageKnowledgeLoader,
-} from '../chat/knowledge/assembleKnowledge.js';
-import { CV_PAGE_KNOWLEDGE_SOURCES, KNOWLEDGE_SOURCES_BY_PAGE } from '../chat/knowledge/sources.js';
+import { createCvPageKnowledgeLoader } from '../chat/knowledge/assembleKnowledge.js';
+import { CV_PAGE_KNOWLEDGE_SOURCES } from '../chat/knowledge/sources.js';
 import { FakeLlmClient, type FakeScript } from '../chat/llm/FakeLlmClient.js';
 import type { ChatLogEntry } from '../chat/log.js';
 import { RateLimiter } from '../chat/rateLimiter.js';
 
 export const SITE = 'https://cv.example.com';
 
-export const VALID_BODY: ChatRequest = {
-  v: 1,
-  locale: 'en',
-  messages: [{ role: 'user', content: 'What does Andrew do?' }],
-};
-
-export const PAGE: AgentPageState = {
-  route: '/',
-  locale: 'en',
-  viewport: 'desktop',
-  chat: 'card',
-  activeSection: 'header',
-  highlighted: null,
-  tools: ['highlightElement', 'openContact', 'scrollToSection', 'switchLanguage'],
-};
-
-export const SCROLL_APPS: AgentToolCall = {
-  id: 'toolu_1',
-  name: 'scrollToSection',
-  input: { section: 'apps' },
-};
-
-/**
- * v2 message builders: a question, a tool-use turn and its results (all `ok` by default). The
- * last two are v4's too.
- */
-export const question = (content: string): ChatMessageV2 => ({ role: 'user', content, page: PAGE });
-export const toolTurn = (
-  toolCalls: AgentToolCall[] = [SCROLL_APPS],
-  content = 'Scrolling.',
-  providerState?: string,
-): ChatAssistantMessageV2 => ({
-  role: 'assistant',
-  content,
-  toolCalls,
-  ...(providerState !== undefined ? { providerState } : {}),
-});
-export const toolResults = (
-  toolCalls: AgentToolCall[] = [SCROLL_APPS],
-): ChatToolResultsMessageV2 => ({
-  role: 'user',
-  toolResults: toolCalls.map((call) => ({ callId: call.id, result: { ok: true } })),
-});
-
-export const v2Body = (...messages: ChatMessageV2[]): ChatRequestV2 => ({
-  v: 2,
-  locale: 'en',
-  messages: messages.length > 0 ? messages : [question('Show the apps')],
-});
-
-/** The `/new` snapshot, and a question asked there (`page: 'profile'`) in a locale. */
-export const PROFILE_PAGE: AgentPageState = { ...PAGE, route: '/new' };
-
-export const profileBody = (
-  locale: ChatLocale = 'en',
-  content = 'What impact has he had?',
-): ChatRequestV2 => ({
-  v: 2,
-  locale,
-  page: 'profile',
-  messages: [{ role: 'user', content, page: { ...PROFILE_PAGE, locale } }],
-});
-
-/** The one page's snapshot (v4: no route, no locale) and a v4 body; default: one question. */
+/** The one page's snapshot (v4: no route, no locale). */
 export const PAGE_V4: AgentPageStateV4 = {
   viewport: 'desktop',
   chat: 'card',
@@ -105,16 +34,37 @@ export const SCROLL_IMPACT: AgentToolCall = {
   input: { section: 'impact' },
 };
 
+/** Message builders: a question, a tool-use turn and its results (all `ok` by default). */
 export const questionV4 = (content: string): ChatMessageV4 => ({
   role: 'user',
   content,
   page: PAGE_V4,
 });
+export const toolTurn = (
+  toolCalls: AgentToolCall[] = [SCROLL_IMPACT],
+  content = 'Scrolling.',
+  providerState?: string,
+): ChatAssistantMessageV2 => ({
+  role: 'assistant',
+  content,
+  toolCalls,
+  ...(providerState !== undefined ? { providerState } : {}),
+});
+export const toolResults = (
+  toolCalls: AgentToolCall[] = [SCROLL_IMPACT],
+): ChatToolResultsMessageV2 => ({
+  role: 'user',
+  toolResults: toolCalls.map((call) => ({ callId: call.id, result: { ok: true } })),
+});
 
+/** A v4 body; default: one question. */
 export const v4Body = (...messages: ChatMessageV4[]): ChatRequestV4 => ({
   v: 4,
   messages: messages.length > 0 ? messages : [questionV4('Show his selected impact')],
 });
+
+/** The default chat body: one plain question. */
+export const VALID_BODY: ChatRequestV4 = v4Body(questionV4('What does Andrew do?'));
 
 /** v3 bodies: the show's narration request and a visitor message during step 2. */
 export const NARRATE_BODY: ShowNarrateRequest = {
@@ -173,7 +123,6 @@ export function testDeps(
     llm: new FakeLlmClient(script),
     limiter: new RateLimiter(),
     dayCost: new DayCostMeter(),
-    knowledge: createPageKnowledgeLoader(KNOWLEDGE_SOURCES_BY_PAGE),
     cvPageKnowledge: createCvPageKnowledgeLoader(CV_PAGE_KNOWLEDGE_SOURCES),
     log: (entry) => logs.push(entry),
     newRequestId: () => 'req-1',

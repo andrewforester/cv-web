@@ -24,8 +24,8 @@ describe('validateChatRequest: v4', () => {
 
   it('ignores page, locale and snapshot fields it does not know', () => {
     const body = {
-      ...v4Body({ ...questionV4('Hi'), page: { ...PAGE_V4, route: '/', locale: 'uk' } } as never),
-      locale: 'uk',
+      ...v4Body({ ...questionV4('Hi'), page: { ...PAGE_V4, route: '/', locale: 'de' } } as never),
+      locale: 'de',
       page: 'profile',
     };
     expect(validateChatRequest(body)).toEqual({
@@ -75,14 +75,14 @@ describe('validateChatRequest: v4', () => {
   });
 
   it('rejects a tool call outside the page catalogue', () => {
-    const call: AgentToolCall = { id: 'toolu_1', name: 'switchLanguage', input: { locale: 'uk' } };
+    const name = 'switchLanguage' as AgentToolCall['name'];
+    const call: AgentToolCall = { id: 'toolu_1', name, input: { locale: 'de' } };
     expect(
-      errorOf(v4Body(questionV4('Ukrainian please'), toolTurn([call]), toolResults([call])))
-        ?.message,
+      errorOf(v4Body(questionV4('German please'), toolTurn([call]), toolResults([call])))?.message,
     ).toBe('messages[1].toolCalls[0].name is not a known tool');
   });
 
-  it("keeps v2's limits", () => {
+  it('keeps the tool dialect limits', () => {
     expect(errorOf({ v: 4 })?.message).toBe('messages must be an array');
     expect(errorOf({ v: 4, messages: [] })?.message).toBe('messages must not be empty');
     const many = Array.from({ length: 41 }, (_, i) =>

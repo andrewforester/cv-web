@@ -1,8 +1,8 @@
 import { defineStrings } from '../../i18n';
 
 /**
- * `retro` namespace: docs/design/retro/SPEC.md → Texts, verbatim. EN only by decision (the show
- * runs only in English); `uk` falls back to English. Step titles and narration are scenario data.
+ * `retro` namespace: docs/design/retro/SPEC.md → Texts, verbatim. Step titles and narration are
+ * scenario data.
  */
 export const retroStrings = defineStrings({
   en: {

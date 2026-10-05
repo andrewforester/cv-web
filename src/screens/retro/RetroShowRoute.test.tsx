@@ -13,7 +13,7 @@ function renderShow(repository = new FakeShowRepository()) {
   const loaders = { 'ai-chat': vi.fn(() => Promise.resolve()) };
   const onDone = vi.fn();
   render(
-    <AppProviders locale="en">
+    <AppProviders>
       <ShowRepositoryContext value={repository}>
         <RetroStageTestHarness>
           <RetroShowRoute scenario="retro-4" loaders={loaders} onDone={onDone} />

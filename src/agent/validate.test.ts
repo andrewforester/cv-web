@@ -1,10 +1,10 @@
 import { StaticCvRepository } from '../data';
-import { buildAgentToolSpecs, type AgentToolSpec } from '../data/chat';
+import { buildCvPageToolSpecs, type AgentToolSpec } from '../data/chat';
 import { isValidToolInput } from './validate';
 
 async function specOf(name: string): Promise<AgentToolSpec> {
-  const cv = await new StaticCvRepository().getCv('en');
-  const spec = buildAgentToolSpecs(cv).find((s) => s.name === name);
+  const page = await new StaticCvRepository().getCvPage();
+  const spec = buildCvPageToolSpecs(page).find((s) => s.name === name);
   if (!spec) throw new Error(name);
   return spec;
 }
@@ -12,17 +12,17 @@ async function specOf(name: string): Promise<AgentToolSpec> {
 describe('isValidToolInput', () => {
   it('accepts exactly the required enum param', async () => {
     const spec = await specOf('scrollToSection');
-    expect(isValidToolInput(spec, { section: 'apps' })).toBe(true);
+    expect(isValidToolInput(spec, { section: 'impact' })).toBe(true);
   });
 
   it.each([
     ['wrong enum value', { section: 'nowhere' }],
     ['missing field', {}],
-    ['extra field', { section: 'apps', extra: 'x' }],
+    ['extra field', { section: 'impact', extra: 'x' }],
     ['wrong type', { section: 1 }],
-    ['not an object', 'apps'],
+    ['not an object', 'impact'],
     ['null', null],
-    ['array', ['apps']],
+    ['array', ['impact']],
   ])('rejects %s', async (_label, input) => {
     expect(isValidToolInput(await specOf('scrollToSection'), input)).toBe(false);
   });

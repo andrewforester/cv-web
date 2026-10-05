@@ -34,7 +34,7 @@ describe('validateShowRequest', () => {
   });
 
   it.each([
-    ['locale uk', { ...NARRATE_BODY, locale: 'uk' }],
+    ['locale de', { ...NARRATE_BODY, locale: 'de' }],
     ['no kind', { ...NARRATE_BODY, kind: undefined }],
     ['an unknown kind', { ...NARRATE_BODY, kind: 'chat' }],
     ['a scenario that is not a string', { ...NARRATE_BODY, scenario: 1 }],
