@@ -91,6 +91,12 @@ function replyFinished(state: ShowState, failed: ChatErrorCode | null): ShowStat
   return addChat(next, { kind: 'agent', text: reply, revealFrom: state.t });
 }
 
+/** The camera started scrolling to the typing chunk's target: its apply will wait a pause after. */
+function focusScrolling(state: ShowState, key: string): ShowState {
+  const typing = state.stage === 'type' && currentPlannedChunk(state)?.key === key;
+  return typing && !state.focusScrolled ? { ...state, focusScrolled: true } : state;
+}
+
 /** The camera settled on the typing chunk's target: its apply may happen as soon as it is typed. */
 function focusSettled(state: ShowState, key: string): ShowState {
   const typing = state.stage === 'type' && currentPlannedChunk(state)?.key === key;
@@ -125,6 +131,8 @@ function handle(state: ShowState, event: ShowEvent): ShowState {
       return replyFinished(state, null);
     case 'replyFailed':
       return replyFinished(state, event.code);
+    case 'focusScrolling':
+      return focusScrolling(state, event.key);
     case 'focusSettled':
       return focusSettled(state, event.key);
     case 'moduleLoaded':

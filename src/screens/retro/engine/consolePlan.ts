@@ -169,6 +169,7 @@ function planChunk(chunk: RetroChunk, source: ShowSource, readToken: TokenReader
     doneText,
     tokens,
     chars: input.reduce((sum, line) => sum + line.length, 0),
+    selectorChars: chunk.target ? (input[0]?.length ?? 0) : 0,
   };
 }
 

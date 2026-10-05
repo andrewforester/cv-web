@@ -79,6 +79,7 @@ export function useChunkFocus(
     }
     // The runner applies after its settle cap anyway; `scrollend` only lets it apply sooner.
     ownScroll.current = true;
+    dispatch({ type: 'focusScrolling', key });
     const onScrollEnd = () => settle();
     window.addEventListener('scrollend', onScrollEnd, { once: true });
     window.scrollTo({ top, behavior: reducedMotion ? 'instant' : 'smooth' });
