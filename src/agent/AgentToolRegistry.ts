@@ -1,6 +1,6 @@
 import {
   AGENT_TOOL_NAMES,
-  type AgentPageState,
+  type AgentPageStateV4,
   type AgentToolCall,
   type AgentToolExecutor,
   type AgentToolName,
@@ -21,13 +21,10 @@ export type AgentConfirm = (request: {
   input: Record<string, string>;
 }) => Promise<boolean>;
 
-/**
- * What the visitor sees on the page right now: part of the snapshot sent with a question. The
- * old pages' sections stay allowed until the Cleanup task deletes those screens (ADR-0006).
- */
+/** What the visitor sees on the page right now: part of the snapshot sent with a question. */
 export interface AgentPageView {
-  activeSection: CvSectionId | AgentPageState['activeSection'];
-  highlighted: AgentPageState['highlighted'];
+  activeSection: CvSectionId | null;
+  highlighted: AgentPageStateV4['highlighted'];
 }
 
 /** Reads the mounted screen's view on demand (when a question is sent). */

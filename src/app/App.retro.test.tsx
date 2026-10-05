@@ -8,7 +8,7 @@ import type { RetroMode } from './retroMode';
 
 function renderApp(retroMode: RetroMode) {
   return render(
-    <AppProviders locale="en" retroMode={retroMode} showRepository={new FakeShowRepository()}>
+    <AppProviders retroMode={retroMode} showRepository={new FakeShowRepository()}>
       <App />
     </AppProviders>,
   );

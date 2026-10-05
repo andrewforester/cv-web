@@ -87,7 +87,7 @@ const repositoryOf = (getCvPage: CvPageRepository['getCvPage']): CvPageRepositor
 
 function renderHome(cvPageRepository?: CvPageRepository) {
   render(
-    <AppProviders locale="en" cvPageRepository={cvPageRepository}>
+    <AppProviders cvPageRepository={cvPageRepository}>
       <HomeRoute metaBarEnd={<button type="button">end control</button>} />
     </AppProviders>,
   );

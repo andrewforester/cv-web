@@ -8,7 +8,7 @@ import { RetroShowTestHarness } from './RetroShowTestHarness';
 describe('harness', () => {
   it('runs the show over the page', async () => {
     render(
-      <AppProviders locale="en">
+      <AppProviders>
         <ShowRepositoryContext value={new FakeShowRepository()}>
           <RetroShowTestHarness />
         </ShowRepositoryContext>

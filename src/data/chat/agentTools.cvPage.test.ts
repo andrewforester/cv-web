@@ -12,7 +12,7 @@ function enumOf(page: CvPage, tool: string, param: string): string[] | undefined
 }
 
 describe('buildCvPageToolSpecs', () => {
-  it('lists three tools sorted by name, without switchLanguage', async () => {
+  it('lists three tools sorted by name', async () => {
     const specs = buildCvPageToolSpecs(await loadPage());
     expect(specs.map((spec) => [spec.name, spec.confirm])).toEqual([
       ['highlightElement', false],

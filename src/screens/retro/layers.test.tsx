@@ -88,7 +88,7 @@ describe('damage layers (guard 2: hook coverage)', () => {
 
   beforeEach(async () => {
     render(
-      <AppProviders locale="en">
+      <AppProviders>
         <RetroStageTestHarness />
       </AppProviders>,
     );

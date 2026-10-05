@@ -1,5 +1,4 @@
 import { useId, useRef } from 'react';
-import { useLocale } from '../../i18n';
 import { ChatCard } from '../../shared/chat/ChatCard';
 import { ChatComposer } from './ChatComposer';
 import { ChatHeader } from './ChatHeader';
@@ -24,7 +23,6 @@ interface ChatPanelProps {
 
 /** The open chat: a modal dialog card (desktop) or full-screen sheet (small viewports). */
 export function ChatPanel({ className, state, actions, closing, onKeyboardClose }: ChatPanelProps) {
-  const { locale } = useLocale();
   const titleId = useId();
   const subtitleId = useId();
   const dialogRef = useRef<HTMLElement>(null);
@@ -56,7 +54,6 @@ export function ChatPanel({ className, state, actions, closing, onKeyboardClose 
       aria-modal="true"
       aria-labelledby={titleId}
       aria-describedby={subtitleId}
-      lang={locale}
       tabIndex={-1}
       inert={closing}
       data-testid={chatTestIds.panel}

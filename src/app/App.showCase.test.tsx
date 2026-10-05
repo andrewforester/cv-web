@@ -38,7 +38,7 @@ async function renderApp({
   const { App } = await import('./App');
   const { AppProviders } = await import('./AppProviders');
   render(
-    <AppProviders locale="en" retroMode="normal" showRepository={new FakeShowRepository()}>
+    <AppProviders retroMode="normal" showRepository={new FakeShowRepository()}>
       <App />
     </AppProviders>,
   );

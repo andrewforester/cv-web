@@ -1,10 +1,10 @@
 import { StaticCvRepository } from '../data';
-import { buildAgentToolSpecs, type AgentToolName } from '../data/chat';
+import { buildCvPageToolSpecs, type AgentToolName } from '../data/chat';
 import { AgentToolRegistry } from './AgentToolRegistry';
 
 async function makeRegistry() {
-  const cv = await new StaticCvRepository().getCv('en');
-  return new AgentToolRegistry(buildAgentToolSpecs(cv));
+  const page = await new StaticCvRepository().getCvPage();
+  return new AgentToolRegistry(buildCvPageToolSpecs(page));
 }
 const call = (name: AgentToolName, input: Record<string, unknown>) => ({ id: 'c1', name, input });
 
@@ -14,10 +14,10 @@ describe('AgentToolRegistry', () => {
     const handler = vi.fn(() => ({ ok: true as const }));
     registry.register('scrollToSection', handler);
 
-    expect(await registry.execute(call('scrollToSection', { section: 'apps' }))).toEqual({
+    expect(await registry.execute(call('scrollToSection', { section: 'impact' }))).toEqual({
       ok: true,
     });
-    expect(handler).toHaveBeenCalledWith({ section: 'apps' });
+    expect(handler).toHaveBeenCalledWith({ section: 'impact' });
   });
 
   it('answers invalid_params without running the handler', async () => {
@@ -25,13 +25,13 @@ describe('AgentToolRegistry', () => {
     const handler = vi.fn(() => ({ ok: true as const }));
     registry.register('scrollToSection', handler);
 
-    for (const input of [{ section: 'x' }, {}, { section: 'apps', more: 'y' }]) {
+    for (const input of [{ section: 'x' }, {}, { section: 'impact', more: 'y' }]) {
       expect(await registry.execute(call('scrollToSection', input))).toEqual({
         ok: false,
         error: 'invalid_params',
       });
     }
-    expect(await registry.execute(call('nope' as AgentToolName, { section: 'apps' }))).toEqual({
+    expect(await registry.execute(call('nope' as AgentToolName, { section: 'impact' }))).toEqual({
       ok: false,
       error: 'invalid_params',
     });
@@ -40,7 +40,7 @@ describe('AgentToolRegistry', () => {
 
   it('answers not_available for a tool that is not mounted, and after unregistering', async () => {
     const registry = await makeRegistry();
-    const input = { section: 'apps' };
+    const input = { section: 'impact' };
     expect(await registry.execute(call('scrollToSection', input))).toEqual({
       ok: false,
       error: 'not_available',
@@ -55,24 +55,24 @@ describe('AgentToolRegistry', () => {
 
   it('keeps a newer registration when an older one unregisters', async () => {
     const registry = await makeRegistry();
-    const first = registry.register('switchLanguage', () => ({ ok: true }));
-    registry.register('switchLanguage', () => ({ ok: true }));
+    const first = registry.register('scrollToSection', () => ({ ok: true }));
+    registry.register('scrollToSection', () => ({ ok: true }));
     first();
-    expect(registry.available()).toEqual(['switchLanguage']);
+    expect(registry.available()).toEqual(['scrollToSection']);
   });
 
   it('passes handler results through, including unknown_target, and maps throws to failed', async () => {
     const registry = await makeRegistry();
     registry.register('highlightElement', () => ({ ok: false, error: 'unknown_target' }));
-    registry.register('switchLanguage', () => {
+    registry.register('scrollToSection', () => {
       throw new Error('boom');
     });
 
-    expect(await registry.execute(call('highlightElement', { target: 'section:apps' }))).toEqual({
+    expect(await registry.execute(call('highlightElement', { target: 'section:impact' }))).toEqual({
       ok: false,
       error: 'unknown_target',
     });
-    expect(await registry.execute(call('switchLanguage', { locale: 'uk' }))).toEqual({
+    expect(await registry.execute(call('scrollToSection', { section: 'impact' }))).toEqual({
       ok: false,
       error: 'failed',
     });
@@ -103,12 +103,12 @@ describe('AgentToolRegistry', () => {
     const registry = await makeRegistry();
     expect(registry.view()).toEqual({ activeSection: null, highlighted: null });
 
-    let section: 'apps' | 'about' = 'apps';
+    let section: 'impact' | 'about' = 'impact';
     const clear = registry.setViewSource(() => ({
       activeSection: section,
-      highlighted: 'section:apps',
+      highlighted: 'section:impact',
     }));
-    expect(registry.view()).toEqual({ activeSection: 'apps', highlighted: 'section:apps' });
+    expect(registry.view()).toEqual({ activeSection: 'impact', highlighted: 'section:impact' });
     section = 'about';
     expect(registry.view().activeSection).toBe('about');
 

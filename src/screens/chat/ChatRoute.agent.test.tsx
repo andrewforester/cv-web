@@ -382,8 +382,7 @@ describe('chat over the real tool registry', () => {
       page: { activeSection: 'impact', highlighted: 'impact:users' },
     });
 
-    // An old screen's section (until the Cleanup task) is not the page's: sent as none.
-    view = { activeSection: 'apps', highlighted: null };
+    view = { activeSection: null, highlighted: null };
     await ask(user, 'And this?');
     expect(await inList().findByText('Two.')).toBeInTheDocument();
     const [first, , second] = repository.requests[1]?.messages ?? [];

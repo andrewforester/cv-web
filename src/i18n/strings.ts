@@ -1,12 +1,10 @@
-import type { Locale } from './locale';
-
 /**
- * A strings namespace: one object per locale. The `en` object sets the keys; other locales may
- * translate some or all of them (an unknown key is a type error), missing ones fall back to `en`.
+ * A strings namespace: the site is English only (ADR-0006 → Decision 6), so one `en` object. The
+ * wrapper keeps user-visible texts out of components and leaves room for a locale to come back.
  */
-export type Strings<T extends Record<string, string>> = { en: T } & Partial<
-  Record<Exclude<Locale, 'en'>, { [K in keyof T]?: string }>
->;
+export interface Strings<T extends Record<string, string>> {
+  en: T;
+}
 
 export function defineStrings<T extends Record<string, string>>(strings: Strings<T>): Strings<T> {
   return strings;

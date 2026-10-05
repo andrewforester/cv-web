@@ -1,13 +1,3 @@
-import type { Book, ImageRef } from './models';
-import type {
-  AgentLoop,
-  Education,
-  FooterCta,
-  HeadlinePart,
-  ImpactCard,
-  SkillGroup,
-} from './profile';
-
 /**
  * The one CV page (v3) as the UI consumes it: English only, in the design's order
  * (`docs/design/v3/`, ADR-0006 → Decision 1). Every list item carries a stable slug `id`: React key
@@ -114,4 +104,63 @@ export interface CvAbout {
 export interface CvAboutLine {
   label: string;
   text: string;
+}
+
+/**
+ * An image reference: an asset id bundled with the site (e.g. `photo`, `logo_transcenda`) or an
+ * absolute URL (a backend may return those).
+ */
+export type ImageRef = string;
+
+export interface HeadlinePart {
+  text: string;
+  accent?: boolean;
+}
+
+/** The "How I build with agents" panel; steps are numbered by their order. */
+export interface AgentLoop {
+  lead: string;
+  steps: LoopStep[];
+  /** Without the leading `↺`, which is decoration. */
+  footnote: string;
+}
+
+export interface LoopStep {
+  id: string;
+  text: string;
+}
+
+export interface ImpactCard {
+  id: string;
+  /** The big figure, e.g. `1 day`, `1M+`. */
+  value: string;
+  text: string;
+}
+
+export interface SkillGroup {
+  id: string;
+  title: string;
+  /** As displayed, comma-separated. */
+  items: string;
+}
+
+export interface Education {
+  title: string;
+  place: string;
+  /** As displayed, e.g. `2007–2012`. */
+  period: string;
+  text: string;
+}
+
+export interface Book {
+  id: string;
+  title: string;
+  author: string;
+  cover: ImageRef;
+}
+
+export interface FooterCta {
+  label: string;
+  /** Usually `mailto:`. */
+  href: string;
 }
