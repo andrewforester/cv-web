@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { ChatBadge } from './ChatBadge';
 import { ChatCardHeader } from './ChatCardHeader';
 import { MessageRow } from './MessageRow';
 import { OfflineNotice } from './OfflineNotice';
@@ -44,5 +45,15 @@ describe('shared chat pieces', () => {
     expect(screen.getByRole('heading', { name: 'Agent' })).toBeInTheDocument();
     expect(screen.getByText('Fixing')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Min' })).toBeInTheDocument();
+  });
+
+  it('ChatBadge is decorative: hidden from assistive tech, so a button keeps its text name', () => {
+    render(
+      <button type="button">
+        <ChatBadge />
+        Ask
+      </button>,
+    );
+    expect(screen.getByRole('button')).toHaveAccessibleName('Ask');
   });
 });

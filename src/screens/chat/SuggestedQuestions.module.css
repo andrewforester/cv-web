@@ -5,12 +5,12 @@
   gap: var(--space-2);
 }
 
-/* The page's section-label style: Mono 500, gold-soft on dark. */
+/* The page's section-label style: Mono 500, the loop panel's pink on dark. */
 .label {
   margin-top: var(--space-1);
-  font-weight: var(--forest-type-label-weight);
-  letter-spacing: var(--forest-type-label-letter-spacing);
-  color: var(--forest-gold-soft);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-letter-spacing);
+  color: var(--color-dark-number);
 }
 
 /* A pill on one line, a rounded card when a long question wraps. */
@@ -21,10 +21,10 @@
   font: inherit;
   letter-spacing: inherit;
   text-align: left;
-  color: var(--forest-dark-ink);
-  background: var(--forest-chat-fill);
-  border: var(--border-card) solid var(--forest-dark-line);
-  border-radius: var(--forest-radius-step);
+  color: var(--color-dark-ink);
+  background: var(--chat-fill);
+  border: var(--border-card) solid var(--color-dark-line);
+  border-radius: var(--radius-tile);
   cursor: pointer;
   transition:
     background-color var(--chat-transition),
@@ -32,8 +32,8 @@
 }
 
 .chip:hover {
-  background: var(--forest-chat-fill-hover);
-  border-color: var(--forest-gold-soft);
+  background: var(--chat-fill-hover);
+  border-color: var(--color-dark-number);
 }
 
 .groups {

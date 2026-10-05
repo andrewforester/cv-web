@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  height: var(--forest-chat-text-line-height);
+  height: var(--chat-text-line-height);
 }
 
 .dot {
@@ -11,7 +11,7 @@
   width: var(--chat-dot-size);
   height: var(--chat-dot-size);
   border-radius: 50%;
-  background: var(--forest-gold-soft);
+  background: var(--color-dark-number);
   animation: pulse 1.2s infinite both;
 }
 

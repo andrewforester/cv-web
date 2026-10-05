@@ -6,7 +6,7 @@ import { defineStrings } from '../../i18n';
  */
 export const chatStrings = defineStrings({
   en: {
-    fabLabel: 'Open chat with the AI assistant',
+    launcherLabel: 'Ask my AI',
     hint: 'Questions about Andrew’s experience? Ask the AI assistant.',
     hintDismiss: 'Dismiss',
     title: 'Ask about Andrew',

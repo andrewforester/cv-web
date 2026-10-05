@@ -3,18 +3,7 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-2) var(--space-3) var(--space-5);
-  border-bottom: var(--border-card) solid var(--forest-dark-line);
-}
-
-.badge {
-  flex: none;
-  width: var(--chat-badge-size);
-  height: var(--chat-badge-size);
-  display: grid;
-  place-items: center;
-  color: var(--forest-ink);
-  background: var(--forest-gradient-text);
-  border-radius: 50%;
+  border-bottom: var(--border-card) solid var(--color-dark-line);
 }
 
 .titles {
@@ -26,11 +15,11 @@
 }
 
 .title {
-  font-family: var(--forest-type-skills-title-family);
-  font-size: var(--forest-type-skills-title-size);
-  line-height: var(--forest-chat-ui-line-height);
-  font-weight: var(--forest-type-skills-title-weight);
-  letter-spacing: var(--forest-type-title-letter-spacing);
+  font-family: var(--font-sans);
+  font-size: var(--chat-title-size);
+  line-height: var(--chat-ui-line-height);
+  font-weight: var(--type-card-title-weight);
+  letter-spacing: var(--type-card-title-letter-spacing);
 }
 
 @media (max-width: 599px), (max-height: 499px) {

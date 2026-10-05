@@ -9,7 +9,7 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  scrollbar-color: var(--forest-dark-line) transparent;
+  scrollbar-color: var(--color-dark-line) transparent;
   list-style: none;
 }
 

@@ -1,11 +1,11 @@
 /* Chat widget root (its children are fixed-positioned). */
 .root {
-  /* UI text in Onest; bubbles and the textarea switch to Plex, meta to Mono. */
-  font-family: var(--forest-font-display);
-  font-size: var(--forest-chat-ui-size);
-  line-height: var(--forest-chat-ui-line-height);
+  /* UI text in Figtree (bubbles and the textarea too), meta in Mono. */
+  font-family: var(--font-sans);
+  font-size: var(--chat-ui-size);
+  line-height: var(--chat-ui-line-height);
   letter-spacing: normal;
-  color: var(--forest-dark-ink);
+  color: var(--color-dark-ink);
   /* Light text on the dark panel: grayscale antialiasing keeps the weights as designed (macOS). */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -13,9 +13,10 @@
 
 /*
  * The textarea's ring is its field's border; the dialog container takes focus without a ring.
- * Gold-soft on the dark surfaces; an element on the light page overrides the two variables.
+ * The loop panel's pink on the dark surfaces; an element on the light page overrides the two
+ * variables.
  */
 .root :focus-visible:not(textarea, [tabindex='-1']) {
-  outline: var(--chat-focus-ring-width) solid var(--chat-focus-ring-color, var(--forest-gold-soft));
+  outline: var(--chat-focus-ring-width) solid var(--chat-focus-ring-color, var(--color-dark-number));
   outline-offset: var(--chat-focus-ring-offset, var(--chat-focus-ring-width));
 }
