@@ -12,6 +12,14 @@ profile) become one page with this design's structure, texts and look. It supers
 package stays as history. The **texts** in `design.dc.html` (EN) are the content source of truth:
 all of them, including the `buildJobs()`, `loop`, `impact` and `skills` data in its script.
 
+**Update 2026-10-05 (handoff).** The human's later design session in the same file is exported
+here: `design.dc.html`, the renders, the three changed assets (`cv_app_spoton.png`,
+`cv_app_august.png`, `cv_logo_samsung_hq2.png`) and `design-print.dc.html` (A4 print layout, not
+built yet). The designer's delta list with exact values is `HANDOFF-2026-10-05.md`: type scale,
+job and project block layout, dot bullets, texts, contacts, footer CTA layout, footer, assets.
+Items it lists that the site already has (e.g. LinkedIn, no "Shipped apps" section) need no work.
+Where it disagrees with the sections below, the handoff and `design.dc.html` win.
+
 ## Tokens
 
 Colours (names are proposals; the Theme task fixes them in `src/theme/tokens.css`):
@@ -62,14 +70,15 @@ Page: card max-width 1120, padding `0 clamp(14px,3vw,42px)`, section gap `clamp(
    steps 01–06, footnote "↺ every retro lands as a PR to the rules…".
 5. **Selected impact**: 3 cards (1M+, 3 days, 1 day) on lilac / pink / neutral.
 6. **Experience**: 9 jobs, each: logo tile 44 px (Samsung: plain logo, no tile), company + period,
-   role, optional store meta (ivi), tag (`product`, Samsung `tool`) + one-line about, bullets "—".
+   role, optional store meta (ivi); below, from the logo's left edge: tag (`product`, Samsung `tool`) +
+   one-line about, then dot bullets (handoff §2, §4).
    Transcenda has **projects** (SpotOn, Cync, August Home) on a dotted tree: icon, name, domain
    pill, meta (stars "★"), about, bullets. The first job "AI-powered CV" uses the photo as logo.
 7. **Skills**: 6 groups, 3 columns on desktop, 1 px top rules.
 8. **Education** (lilac card) + **About me** (neutral card: 4 book covers, "Reading on systems",
    "Off-screen").
-9. **Footer CTA**: "Let's build something ↗" (hover: gradient text), email pill with ↗ circle,
-   Telegram / WhatsApp / LinkedIn pills.
+9. **Footer CTA**: two columns (handoff §6b): left "Let's build something ↗" (hover: gradient
+   text); right the email pill with ↗ circle, then WhatsApp / LinkedIn pills (no Telegram).
 10. © 2026 Andrew Panasiuk.
 11. **"Ask my AI"** launcher: fixed pill bottom-right (✦ circle on the gradient + label). It opens
     our chat (in the design it is a plain link).
@@ -85,10 +94,10 @@ separate layout.
 2. **English only** (the human, 2026-10-05). No Ukrainian anywhere: no translation, no language
    switcher, no `uk` locale (ADR-0006 → Decision 6).
 3. **Fonts:** Figtree + JetBrains Mono, latin subsets only.
-4. **Logos.** Samsung: the classic blue ellipse logo, `assets/cv_logo_samsung.svg` (the human's
-   pick, 2026-10-05; Wikimedia Commons `Samsung_Logo.svg`); it replaces `cv_logo_samsung_hq2.png`,
-   shown plain (no tile) as in the design. SpotOn: `assets/cv_app_spoton.png`, the App Store icon
-   of SpotOn Restaurant Reports (the human's pick, 2026-10-05), shown like the other app icons.
+4. **Logos** (handoff 2026-10-05 replaces the earlier picks). Samsung: `assets/cv_logo_samsung_hq2.png`
+   (256×256, transparent), shown plain (no tile); it replaces `cv_logo_samsung.svg`. SpotOn:
+   `assets/cv_app_spoton.png`, the 256×256 circle mark. August Home: the high-res
+   `assets/cv_app_august.png`.
 5. **Dropped from the design file:** headline variant B, the "TnAir" alternative palette and the
    unused `apps` list (Savant). They are not part of the page.
 6. **Chat.** The "Ask my AI" pill replaces the round launcher; the chat panel keeps its behaviour
