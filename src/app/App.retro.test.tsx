@@ -28,7 +28,6 @@ describe('App modes', () => {
     expect(await screen.findByTestId(chatTestIds.fab)).toBeInTheDocument();
     expect(stage()).toBeNull();
     expect(layers()).toHaveLength(0);
-    expect(screen.getByTestId('language-switcher')).toBeVisible();
   });
 
   // Plays the whole ~91 s show frame by frame: CPU-bound (10x slower when other test runs share the machine), so far above the 5 s default.

@@ -2,7 +2,6 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ShowScenarioId } from '../data/retro';
 import { FakeShowRepository } from '../data/retro';
-import type { Locale } from '../i18n';
 import { forestTestIds } from '../shared/forest/testIds';
 
 // The Show case button in the meta bar (docs/retro/ARCHITECTURE.md §10): the shell offers it on a
@@ -27,9 +26,8 @@ function stubViewport(desktop: boolean) {
 
 async function renderApp({
   path = '/',
-  locale = 'en',
   desktop = true,
-}: { path?: string; locale?: Locale; desktop?: boolean } = {}) {
+}: { path?: string; desktop?: boolean } = {}) {
   window.history.replaceState(null, '', path);
   stubViewport(desktop);
   vi.resetModules();
@@ -37,7 +35,7 @@ async function renderApp({
   const { App } = await import('./App');
   const { AppProviders } = await import('./AppProviders');
   render(
-    <AppProviders locale={locale} retroMode="normal" showRepository={new FakeShowRepository()}>
+    <AppProviders locale="en" retroMode="normal" showRepository={new FakeShowRepository()}>
       <App />
     </AppProviders>,
   );
@@ -58,11 +56,11 @@ describe('App: the Show case button', () => {
     vi.unstubAllGlobals();
   });
 
-  it('is in the meta bar on / for English on a desktop viewport, before the switcher', async () => {
+  it('is in the meta bar on / on a desktop viewport', async () => {
     const metaBar = await renderApp();
     const button = metaBar.getByRole('button', { name: /Show case/ });
     expect(button).toHaveAttribute('data-testid', forestTestIds.showCase);
-    expect(button.nextElementSibling).toBe(metaBar.getByTestId('language-switcher'));
+    expect(button).toBeVisible();
   });
 
   it("starts /'s scenario when clicked", async () => {
@@ -74,21 +72,14 @@ describe('App: the Show case button', () => {
     expect(await screen.findByTestId(SHOW_STUB)).toHaveAttribute('data-scenario', 'retro-3');
   });
 
-  it('is hidden for Ukrainian', async () => {
-    const metaBar = await renderApp({ locale: 'uk' });
-    expect(metaBar.queryByTestId(forestTestIds.showCase)).not.toBeInTheDocument();
-    expect(metaBar.getByTestId('language-switcher')).toBeInTheDocument();
-  });
-
   it('is hidden below 1024 px', async () => {
     const metaBar = await renderApp({ desktop: false });
     expect(metaBar.queryByTestId(forestTestIds.showCase)).not.toBeInTheDocument();
   });
 
-  it("is in /new's meta bar before the switcher and starts /new's scenario", async () => {
+  it("is in /new's meta bar and starts /new's scenario", async () => {
     const metaBar = await renderApp({ path: '/new' });
     const button = metaBar.getByTestId(forestTestIds.showCase);
-    expect(button.nextElementSibling).toBe(metaBar.getByTestId('language-switcher'));
 
     await userEvent.click(button);
 

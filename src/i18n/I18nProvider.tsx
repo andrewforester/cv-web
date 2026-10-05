@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { I18nContext } from './I18nContext';
-import { initialLocale, storeLocale, type Locale } from './locale';
+import { initialLocale, type Locale } from './locale';
 
 interface I18nProviderProps {
   children: ReactNode;
@@ -15,16 +15,7 @@ export function I18nProvider({ children, initial }: I18nProviderProps) {
     document.documentElement.lang = locale;
   }, [locale]);
 
-  const value = useMemo(
-    () => ({
-      locale,
-      setLocale: (next: Locale) => {
-        storeLocale(next);
-        setLocale(next);
-      },
-    }),
-    [locale],
-  );
+  const value = useMemo(() => ({ locale, setLocale }), [locale]);
 
   return <I18nContext value={value}>{children}</I18nContext>;
 }

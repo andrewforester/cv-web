@@ -1,9 +1,6 @@
 import { useMemo } from 'react';
-import { useAgentTools } from '../agent';
-import { useLocale, type Locale } from '../i18n';
 import { CvRoute } from '../screens/cv/CvRoute';
 import { ProfileRoute } from '../screens/profile/ProfileRoute';
-import { LanguageSwitcher } from '../shared/LanguageSwitcher/LanguageSwitcher';
 import { ShowCaseButton } from '../shared/forest/ShowCaseButton';
 import styles from './App.module.css';
 import { pageFor } from './routes';
@@ -14,8 +11,8 @@ import { useShowCase } from './useShowCase';
 import { useShowCaseAvailable } from './useShowCaseAvailable';
 
 /**
- * App shell: the page for the URL (`/` the CV, `/new` the profile) with the Show case button and
- * the language switcher in its meta bar, and the floating AI chat. A page with a Retro Rebuild
+ * App shell: the page for the URL (`/` the CV, `/new` the profile) with the Show case button in
+ * its meta bar, and the floating AI chat. A page with a Retro Rebuild
  * scenario (`showScenarios.ts`) runs its show when started (`?retro=1`, or `useShowCase`'s `start`
  * for the Show case button) over the same tree (`data-retro-stage`), so the page never remounts;
  * the AI chat is off the page until the show's last step loads it. The show is a lazy chunk: at a
@@ -24,14 +21,6 @@ import { useShowCaseAvailable } from './useShowCaseAvailable';
  * tools.
  */
 export function App() {
-  const { locale, setLocale } = useLocale();
-  useAgentTools({
-    switchLanguage: ({ locale: next }) => {
-      setLocale(next as Locale);
-      return { ok: true };
-    },
-  });
-
   const page = pageFor(window.location.pathname);
   const scenario = showScenarioFor(page);
   const retroMode = useRetroMode();
@@ -41,13 +30,8 @@ export function App() {
   const { Chat, load } = useLazyChat(!showing && !pending);
   const loaders = useMemo(() => ({ 'ai-chat': load }), [load]);
 
-  // Both pages are Forest pages that lay themselves out; these controls end their meta bar.
-  const metaBarEnd = (
-    <>
-      {canShow && <ShowCaseButton onClick={start} />}
-      <LanguageSwitcher locale={locale} onChange={setLocale} />
-    </>
-  );
+  // Both pages are Forest pages that lay themselves out; this control ends their meta bar.
+  const metaBarEnd = canShow && <ShowCaseButton onClick={start} />;
 
   return (
     <>

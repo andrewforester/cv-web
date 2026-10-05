@@ -306,7 +306,6 @@ export async function expectEndsAsNormalSite(
 
   await expect.poll(() => leftovers(page)).toEqual([]);
   await expect(page.getByTestId('chat-fab')).toBeVisible();
-  await expect(page.getByTestId('language-switcher')).toBeVisible();
   await expect.poll(async () => differences(await snapshotPage(page), normal)).toEqual([]);
   if (screenshot) await page.screenshot({ path: `${SCREENSHOT_DIR}/${screenshot}` });
 

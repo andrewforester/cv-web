@@ -26,13 +26,6 @@ const cases = [
     deltas: ['Andrew built **Cync** and ', '**August Home**:\n\n- 1M+ users each'],
     answer: 'Andrew built Cync and August Home:',
   },
-  {
-    locale: 'uk',
-    browserLocale: 'uk-UA',
-    question: 'Над якими застосунками він працював?',
-    deltas: ['Андрій працював над **Cync** і ', '**August Home**.'],
-    answer: 'Андрій працював над Cync і August Home.',
-  },
 ] as const;
 
 for (const { locale, browserLocale, question, deltas, answer } of cases) {
@@ -80,7 +73,7 @@ for (const { locale, browserLocale, question, deltas, answer } of cases) {
                 chat: 'card',
                 activeSection: 'header',
                 highlighted: null,
-                tools: ['highlightElement', 'openContact', 'scrollToSection', 'switchLanguage'],
+                tools: ['highlightElement', 'openContact', 'scrollToSection'],
               },
             },
           ],
@@ -162,16 +155,6 @@ const profileCases = [
       'How does he work with coding agents?',
       'What impact has he had?',
       'Which apps has he worked on?',
-    ],
-  },
-  {
-    locale: 'uk',
-    browserLocale: 'uk-UA',
-    suggestions: [
-      'Що він створює з ШІ?',
-      'Як він працює з агентами для програмування?',
-      'Яких результатів він досяг?',
-      'Над якими застосунками він працював?',
     ],
   },
 ] as const;
