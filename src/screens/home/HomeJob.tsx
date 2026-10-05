@@ -42,7 +42,11 @@ export function HomeJob({ job, highlightedId }: HomeJobProps) {
           )}
         </div>
       </div>
-      {job.points.length > 0 && <HomePoints className={styles.points} points={job.points} />}
+      {job.points.length > 0 && (
+        <div className={styles.points}>
+          <HomePoints points={job.points} />
+        </div>
+      )}
       {job.projects && <HomeProjects projects={job.projects} highlightedId={highlightedId} />}
     </article>
   );

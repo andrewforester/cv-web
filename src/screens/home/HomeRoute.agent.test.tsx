@@ -59,12 +59,6 @@ describe('the page agent on the one page', () => {
     expect(registry.available()).toEqual([]);
   });
 
-  it('reports the section in view to the chat', async () => {
-    const { registry } = await renderHome();
-    stubSectionTops('impact');
-    expect(registry.view()).toEqual({ activeSection: 'impact', highlighted: null });
-  });
-
   it('puts every catalogue target on the page exactly once, and nothing else', async () => {
     const { page } = await renderHome();
     const ids = cvPageTargetIds(page);
@@ -136,5 +130,19 @@ describe('the page agent on the one page', () => {
       ['mailto:andriipanasiuk@gmail.com'],
       ['https://t.me/+380938977110'],
     ]);
+  });
+
+  it("offers the section in view and the highlighted target to the chat's snapshot", async () => {
+    stubSectionTops('impact');
+    const { registry, view } = await renderHome();
+    expect(registry.view()).toEqual({ activeSection: 'impact', highlighted: null });
+
+    await act(async () => {
+      await registry.execute(call('highlightElement', { target: 'impact:users' }));
+    });
+    expect(registry.view()).toEqual({ activeSection: 'impact', highlighted: 'impact:users' });
+
+    view.unmount();
+    expect(registry.view()).toEqual({ activeSection: null, highlighted: null });
   });
 });
