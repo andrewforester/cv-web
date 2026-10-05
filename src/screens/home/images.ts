@@ -10,7 +10,7 @@ import logoAttendify from './assets/home_logo_attendify.png';
 import logoIvi from './assets/home_logo_ivi.png';
 import logoRokkit from './assets/home_logo_rokkit.jpg';
 import logoRosfines from './assets/home_logo_rosfines.jpg';
-import logoSamsung from './assets/home_logo_samsung.svg';
+import logoSamsung from './assets/home_logo_samsung.png';
 import logoSmartling from './assets/home_logo_smartling.png';
 import logoTranscenda from './assets/home_logo_transcenda.png';
 import logoWisehouse from './assets/home_logo_wisehouse.png';

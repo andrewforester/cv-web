@@ -1,14 +1,17 @@
 .root {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-5);
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5) var(--cta-gap-x);
   padding: var(--cta-padding);
   background: var(--gradient-footer);
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-cta);
 }
 
 .title {
+  flex: 1 1 300px;
+  min-width: 0;
   font-size: var(--type-footer-title-size);
   font-weight: var(--type-footer-title-weight);
   line-height: var(--type-footer-title-line-height);
@@ -30,7 +33,10 @@
 }
 
 .arrow {
+  position: relative;
+  top: var(--cta-arrow-shift);
   flex: none;
+  margin-left: calc(-1 * var(--cta-arrow-shift));
   color: transparent;
   letter-spacing: 0;
   background: var(--gradient-brand-tile);
@@ -39,9 +45,9 @@
 
 .links {
   display: flex;
+  flex: 1 1 340px;
   flex-direction: column;
   gap: var(--space-2);
-  width: 100%;
   max-width: var(--cta-links-max-width);
   min-width: 0;
 }
@@ -72,7 +78,7 @@
 
 .email {
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2-5);
   min-height: var(--button-height);
   padding: var(--space-1-5) var(--space-1-5) var(--space-1-5) var(--space-5);
 }
@@ -97,7 +103,7 @@
 
 .pills {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2);
 }
 
