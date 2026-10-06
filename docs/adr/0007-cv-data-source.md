@@ -64,9 +64,9 @@ already async. Revisit B if edits must be live within seconds, if someone withou
 access edits the CV, or if the data outgrows a bundle (it is 12 KB).
 
 How the commit reaches `main` (a PR with CI, or a direct data-only commit) belongs to the editing
-backend's own ticket. Root `AGENTS.md` (main only via PRs) and CV-121 (production doesn't wait
-for CI yet) both point to a PR. Either way the backend runs the same data checks as the tests
-before it writes.
+backend's own ticket. Root `AGENTS.md` (main only via PRs) points to a PR. With CV-121
+(production deploys after green checks), CI gates the edit either way. The backend also runs
+the same data checks as the tests before it writes.
 
 ## Decision 2: Knowledge and prompt cache: invalidated by the deploy
 
