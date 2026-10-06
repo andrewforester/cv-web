@@ -5,6 +5,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "ignoreCommand": "bash scripts/vercel-ignore.sh",
+  "git": { "deploymentEnabled": { "main": false } },
   "redirects": [
     { "source": "/new", "destination": "/", "permanent": false },
     { "source": "/new/", "destination": "/", "permanent": false }
