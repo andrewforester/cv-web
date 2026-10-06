@@ -37,3 +37,7 @@ agent chat; here thin wrappers bind them to this screen's strings. Strings in `s
 Stubs and limits: the sheet media query is repeated in the CSS modules; the composer reserves a
 slot for a future voice button. The launcher's visible label is its accessible name (WCAG 2.5.3);
 its test id is still `chat-fab`.
+
+Content consistency: `suggestionPrerequisites.ts` gives each starter question (`suggestionN` in
+`strings.ts`) the CV data it needs; its test runs them on the real data and fails for a question
+without one. Add the prerequisite in the same change as a new question.
