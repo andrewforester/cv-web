@@ -16,7 +16,7 @@ import logoTranscenda from './assets/home_logo_transcenda.png';
 import logoWisehouse from './assets/home_logo_wisehouse.png';
 import photo from './assets/home_photo.jpg';
 
-/** Bundled images that the page's data refers to by id (`src/data/mock/cvPage.json`). */
+/** Bundled images that the page's data refers to by id (`src/data/cv/cvPage.json`). */
 const DATA_IMAGES: Record<string, string> = {
   photo,
   app_spoton: appSpoton,

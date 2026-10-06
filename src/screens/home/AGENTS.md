@@ -7,7 +7,7 @@ tree), skills, education, about me and a closing call to action. It replaced bot
 app shell shows it on every path, and `/new` redirects here on Vercel.
 
 Place in the architecture: the screen pattern of the root `AGENTS.md` over `CvPageRepository`
-(`src/data`, mocked by `src/data/mock/cvPage.json`, English only). The state holder loads the page
+(`src/data`, mocked by `src/data/cv/cvPage.json`, English only). The state holder loads the page
 and owns the page agent's highlight; the stateless screen renders the page's blocks with
 components that live in this folder (one screen uses them). All content about Andrew is data;
 section headings and fixed words (the handle, "Email me", ©) are this screen's strings. The look

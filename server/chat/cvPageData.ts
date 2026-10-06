@@ -1,5 +1,5 @@
 import type { CvPage } from '../../src/data/cvPage.js';
-import cvPageJson from '../../src/data/mock/cvPage.json' with { type: 'json' };
+import cvPageJson from '../../src/data/cv/cvPage.json' with { type: 'json' };
 
 /**
  * The one page (v4) as the server knows it: the same JSON the site renders (single source of

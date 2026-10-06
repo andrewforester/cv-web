@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { AgentToolRegistry, type AgentPageView } from '../../agent';
 import { AppProviders } from '../../app/AppProviders';
 import { buildCvPageToolSpecs, FakeChatRepository } from '../../data/chat';
-import { StaticCvRepository } from '../../data/mock/StaticCvRepository';
+import { StaticCvRepository } from '../../data/cv/StaticCvRepository';
 import { ChatRoute } from './ChatRoute';
 import { chatTestIds } from './testIds';
 import { answer, inList, renderOpenChat, toolTurn } from './chatTestHarness';

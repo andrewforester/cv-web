@@ -17,7 +17,8 @@ What to read for what:
 - ADRs: [`0001`](../adr/0001-ai-cv-chat.md) (why Vercel Functions, Claude, SSE, full-context
   knowledge before RAG), [`0002`](../adr/0002-page-agent-tools.md) (why our own tool use and a
   browser tool registry, not a framework), [`0004`](../adr/0004-page-aware-chat.md) (how the chat
-  knew its page; superseded), [`0006`](../adr/0006-one-page-v3.md) (one page, English only, v4).
+  knew its page; superseded), [`0006`](../adr/0006-one-page-v3.md) (one page, English only, v4),
+  [`0007`](../adr/0007-cv-data-source.md) (the CV JSON is the canonical data; edits ship as deploys).
 
 Rules for implementers: change the contract only through its own ticket and bump `v` for breaking
 changes; never call a real model in tests or CI; keep the code the server shares with `src/`

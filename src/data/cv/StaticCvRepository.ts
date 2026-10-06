@@ -4,7 +4,7 @@ import cvPage from './cvPage.json';
 
 const CV_PAGE: CvPage = cvPage;
 
-/** Mock repository over the bundled JSON of the one page (English). */
+/** Repository over the bundled JSON of the one page (English). */
 export class StaticCvRepository implements CvPageRepository {
   async getCvPage(): Promise<CvPage> {
     return CV_PAGE;

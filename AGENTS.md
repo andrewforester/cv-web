@@ -1,6 +1,6 @@
 # CV Andrew Panasiuk
 
-Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + React + TypeScript) on Vercel, one page in English (ADR-0006; `/new` redirects to `/`). CV data comes from a `CvPageRepository` (today a mock over bundled JSON in `src/data/mock/`); a backend for editing the CV will replace the mock later by swapping one binding in `src/app/AppProviders.tsx`. Visual style comes from the v3 design package `docs/design/v3/` (see **Design**).
+Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + React + TypeScript) on Vercel, one page in English (ADR-0006; `/new` redirects to `/`). CV data is the bundled JSON `src/data/cv/cvPage.json`, read by the page through a `CvPageRepository` and by the chat server through `server/chat/cvPageData.ts` (ADR-0007); a CV edit is a commit plus a deploy, and the future editing backend writes that file. Visual style comes from the v3 design package `docs/design/v3/` (see **Design**).
 
 ## Layout
 
@@ -10,7 +10,7 @@ Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + Rea
 | `src/app/` | App shell (`App.tsx`: the one page with the Show case button in its meta bar, the floating chat, the show) and `AppProviders.tsx` (data binding, agent registry). `/new` is a 307 redirect in `vercel.json`. |
 | `src/theme/` | Design tokens (`tokens.css`, CSS custom properties) and global styles. |
 | `src/i18n/` | EN-only typed strings: `defineStrings({ en })`, `useStrings`, the shared `common` namespace. |
-| `src/data/` | The `CvPage` model (`cvPage.ts`), the `CvPageRepository` interface and its context, `mock/` (`cvPage.json` + `StaticCvRepository`); `chat/contract.ts`: the `/api/chat` contract types shared with `server/`. |
+| `src/data/` | The `CvPage` model (`cvPage.ts`), the `CvPageRepository` interface and its context, `cv/` (`cvPage.json` + `StaticCvRepository`); `chat/contract.ts`: the `/api/chat` contract types shared with `server/`. |
 | `src/shared/` | Shared stateless components (`ShowCaseButton/`, `agentTarget/`, `chat/`). |
 | `src/screens/<screen>/` | One folder per screen: `home/` (the v3 CV page), `chat/`, `retro/`. |
 | `src/screens/retro/` | The Show case: the live-fix show (the CV opens as a broken 2000s page; an agent chat and a DevTools dock fix it step by step until it is today's CV). A lazy chunk started only by the Show case button or `?retro=1`; `harness/` is dev-only. |
@@ -63,7 +63,7 @@ Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `n
 ## Architecture & code quality
 
 - **Layers:** data (models, repository/API interfaces, mocks) → screen state holder (UI state + events) → stateless components (state in, callbacks out). UI never reads mocks or the network directly; it gets state.
-- **Boundaries are enforced by *lint*** (`no-restricted-imports` in `eslint.config.js`; each error message says what to do instead): screens, `src/shared` and `src/agent` don't import `src/data/mock` (tests may); a screen doesn't import another screen; `src/shared`, `src/agent`, `src/data`, `src/i18n` and `src/theme` don't import screens; nothing in `src/` imports `server/`, `api/` or `@anthropic-ai/*`; `server/` and `api/` import only `src/data` and `src/i18n`, never React. Non-test source files are capped at 250 lines (`max-lines`). Never silence these rules with `eslint-disable`: an error means the code belongs somewhere else. If a boundary really must change, that's a change to this file and `eslint.config.js`, raised in a PR comment.
+- **Boundaries are enforced by *lint*** (`no-restricted-imports` in `eslint.config.js`; each error message says what to do instead): no non-test code outside `src/data` imports `src/data/mock` (fixtures are for tests); `src/data/cv/cvPage.json` has exactly two readers, `StaticCvRepository.ts` and `server/chat/cvPageData.ts` (tests may); a screen doesn't import another screen; `src/shared`, `src/agent`, `src/data`, `src/i18n` and `src/theme` don't import screens; nothing in `src/` imports `server/`, `api/` or `@anthropic-ai/*`; `server/` and `api/` import only `src/data` and `src/i18n`, never React. Non-test source files are capped at 250 lines (`max-lines`). Never silence these rules with `eslint-disable`: an error means the code belongs somewhere else. If a boundary really must change, that's a change to this file and `eslint.config.js`, raised in a PR comment.
 - **Reference implementation:** `src/screens/home/` is the model screen (state holder → UI state → stateless screen → route, strings, test ids, tests). Follow its shape and naming rather than inventing a new one; for a new piece, find the closest existing one and match it.
 - **Unidirectional data flow:** immutable UI state, events as callbacks, no business logic in components.
 - **Small files:** one component per file; split a file when it grows past ≈200 lines or does two jobs (*lint* fails at 250). Components past ≈60 lines get split into named sub-components.
@@ -100,7 +100,7 @@ Each has one owner: a role, not a particular session. Two tasks touching the sam
 | `src/shared/**` | Theme | a component lives in its screen folder first; when a second screen needs it, a separate PR moves it |
 | Strings | each screen has its own `src/screens/<screen>/strings.ts` (namespace `<screen>`) | `src/i18n/common.ts` and the `src/i18n/` mechanism belong to Theme |
 | Images, icons | `src/screens/<screen>/assets/<screen>_*`; shared icons in `src/shared/icons/` belong to Theme | never rename other screens' resources |
-| `src/data/**` (`cvPage.ts`, `CvPageRepository.ts`, the frontend/backend contract) | the first screen that needs them, then Scaffold until a backend owner exists | a screen's mocks live in `src/data/mock/` under its own file names; contract changes go through their own task |
+| `src/data/**` (`cvPage.ts`, `CvPageRepository.ts`, the frontend/backend contract) | the first screen that needs them, then Scaffold until a backend owner exists | test fixtures live in `src/data/mock/` under their own file names; the CV JSON (`src/data/cv/`) is canonical data, the editing backend writes it; contract changes go through their own task |
 | `api/**`, `server/**`, `src/data/chat/contract.ts` (the `/api/chat` contract, `docs/chat/API.md`), `vercel.json` `functions` | Backend (Development) | contract changes go through their own task and a PR comment; breaking ones bump `v` |
 | `docs/**`, `AGENTS.md`/`CLAUDE.md` at the root, `.claude/skills/**`, `.claude/agents/**`, `.claude/settings.json`, `.github/pull_request_template.md` | coordinator or human | others propose changes in a PR |
 
