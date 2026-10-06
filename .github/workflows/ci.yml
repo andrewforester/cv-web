@@ -8,17 +8,31 @@ on:
     # The CI-watch PR (main -> ci-watch) only relays main's push runs to the QA session.
     branches-ignore: [ci-watch]
   workflow_dispatch:
+    inputs:
+      simulate_smoke_failure:
+        description: 'On main: deploy, then fail the production smoke on purpose to exercise the rollback'
+        type: boolean
+        default: false
 
+# main: runs queue, never cancel each other (a deploy or a rollback must not stop half-way; GitHub
+# keeps only the newest queued run, which the docs-only check below accounts for).
+# Other refs: a new push cancels the older run.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.ref == 'refs/heads/main' && 'main' || format('{0}-{1}', github.event_name, github.ref) }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
 
+env:
+  VERCEL_CLI_VERSION: 62.4.0
+
 # PRs run lint and tests plus a web build + Playwright e2e (job e2e); pushes to main run both too.
-# The web is deployed by Vercel's GitHub App (production = main, a preview per PR), not by CI. Pushes to feature
-# branches trigger nothing: sessions run lint and test locally, the PR re-checks it.
+# Production = main is deployed by this workflow (job deploy), only after both pass; Vercel's Git
+# integration no longer deploys main (vercel.json -> git.deploymentEnabled). The deploy is smoke
+# tested on the live domain and rolled back if the smoke fails. PR previews still come from
+# Vercel's GitHub App (scripts/vercel-ignore.sh). Pushes to feature branches trigger nothing:
+# sessions run lint and test locally, the PR re-checks it.
 # Draft PRs run nothing: the orchestrator opens the PR as a draft before work starts,
 # and CI runs once the developer marks it Ready for review (and on every push after that).
 jobs:
@@ -64,3 +78,145 @@ jobs:
             web-check/
             test-results/
           if-no-files-found: ignore
+
+  # Proves the Vercel token and the CLI build on a PR that changes the deploy path, without touching
+  # production. Only those PRs, so ordinary ones don't spend the Hobby deployment limit; only
+  # same-repo PRs, because forks get no secrets.
+  preview:
+    name: Vercel preview (CLI)
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Does the PR change the deploy path?
+        id: paths
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if git diff --name-only "$BASE_SHA" HEAD | grep -qE '^(\.github/workflows/|vercel\.json$|package(-lock)?\.json$)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No change to workflows, vercel.json or package*.json: no preview."
+          fi
+      - uses: actions/setup-node@v4
+        if: ${{ steps.paths.outputs.run == 'true' }}
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install Vercel CLI
+        if: ${{ steps.paths.outputs.run == 'true' }}
+        run: npm install --global "vercel@$VERCEL_CLI_VERSION"
+      - name: Build (preview)
+        if: ${{ steps.paths.outputs.run == 'true' }}
+        run: |
+          vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+          vercel build --token="$VERCEL_TOKEN"
+      - name: Deploy (preview, never --prod)
+        if: ${{ steps.paths.outputs.run == 'true' }}
+        run: |
+          url=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")
+          echo "Preview: $url"
+          echo "Preview deployment (CLI): $url" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Deploy production
+    needs: [checks, e2e]
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    outputs:
+      previous: ${{ steps.live.outputs.previous }}
+      promoting: ${{ steps.release.outputs.promoting }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # The live deployment is the rollback target. Its commit decides the docs-only skip: nothing
+      # but docs/, .claude/ and *.md changed since it (the rule of scripts/vercel-ignore.sh).
+      # Diffing against the live commit, not the push's `before`, also covers queued runs that
+      # GitHub dropped. Any doubt deploys; a manual run always deploys.
+      - name: Live production deployment
+        id: live
+        run: |
+          set -euo pipefail
+          prod=$(curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID?teamId=$VERCEL_ORG_ID" |
+            jq -c '.targets.production // {}')
+          previous=$(jq -r '.id // empty' <<< "$prod")
+          live_sha=$(jq -r '.meta.githubCommitSha // empty' <<< "$prod")
+          echo "Live: ${previous:-none} at ${live_sha:-unknown commit}"
+          echo "previous=$previous" >> "$GITHUB_OUTPUT"
+          deploy=true
+          if [ "$GITHUB_EVENT_NAME" = push ] && [ -n "$live_sha" ] &&
+            git merge-base --is-ancestor "$live_sha" HEAD 2> /dev/null; then
+            changed=$(git diff --name-only "$live_sha" HEAD)
+            if [ -n "$changed" ] && ! grep -qvE '^(docs/|\.claude/)|\.md$' <<< "$changed"; then
+              deploy=false
+              echo "Docs-only change since the live commit: nothing to deploy."
+            fi
+          fi
+          echo "deploy=$deploy" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        if: ${{ steps.live.outputs.deploy == 'true' }}
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install Vercel CLI
+        if: ${{ steps.live.outputs.deploy == 'true' }}
+        run: npm install --global "vercel@$VERCEL_CLI_VERSION"
+      - name: Build (production)
+        if: ${{ steps.live.outputs.deploy == 'true' }}
+        run: |
+          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          vercel build --prod --token="$VERCEL_TOKEN"
+      # --skip-domain + promote instead of a plain --prod: after a rollback Vercel stops assigning
+      # the production domain to new deployments, so only an explicit promote reliably goes live.
+      - name: Deploy and promote
+        id: release
+        if: ${{ steps.live.outputs.deploy == 'true' }}
+        run: |
+          set -euo pipefail
+          url=$(vercel deploy --prebuilt --prod --skip-domain --token="$VERCEL_TOKEN")
+          echo "Deployment: $url"
+          echo "promoting=true" >> "$GITHUB_OUTPUT"
+          vercel promote "$url" --yes --token="$VERCEL_TOKEN"
+          echo "Production: $url (commit $GITHUB_SHA)" >> "$GITHUB_STEP_SUMMARY"
+
+  smoke:
+    name: Production smoke
+    needs: deploy
+    if: ${{ needs.deploy.outputs.promoting == 'true' }}
+    uses: ./.github/workflows/prod-smoke.yml
+    with:
+      simulate_failure: ${{ github.event_name == 'workflow_dispatch' && inputs.simulate_smoke_failure }}
+
+  # A failed smoke (or a promote that failed half-way) puts the previous deployment back on the
+  # production domain. The run stays red: the failed job is still there.
+  rollback:
+    name: Roll back production
+    needs: [deploy, smoke]
+    if: ${{ !cancelled() && needs.deploy.outputs.promoting == 'true' && (needs.deploy.result == 'failure' || needs.smoke.result == 'failure') }}
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      PREVIOUS: ${{ needs.deploy.outputs.previous }}
+    steps:
+      - name: Install Vercel CLI
+        run: npm install --global "vercel@$VERCEL_CLI_VERSION"
+      - name: Roll back to the previous production deployment
+        run: |
+          set -euo pipefail
+          test -n "$PREVIOUS" || { echo "::error::No previous production deployment to roll back to"; exit 1; }
+          vercel rollback "$PREVIOUS" --yes --token="$VERCEL_TOKEN"
+          echo "Rolled back production to $PREVIOUS" >> "$GITHUB_STEP_SUMMARY"

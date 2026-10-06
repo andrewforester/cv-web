@@ -1,34 +1,32 @@
 name: Production smoke
 
-# Runs after every Vercel production deploy (Vercel's GitHub App creates a GitHub Deployment with
-# environment Production). deployment_status workflows run only from the default branch.
-# A failure is a red run, which the QA session follows. No rollback here (needs a Vercel token).
+# Checks the live production site. CI calls it right after its deploy job promotes a deployment
+# (ci.yml -> smoke); a failure there rolls production back and leaves the CI run red. It no
+# longer listens to deployment_status: production is deployed by CI, not by Vercel's Git
+# integration, so the smoke runs exactly once per deploy. workflow_dispatch smokes production
+# by hand (no rollback).
 on:
-  deployment_status:
+  workflow_call:
+    inputs:
+      simulate_failure:
+        description: Fail on purpose after the real checks (exercises the rollback in ci.yml)
+        type: boolean
+        default: false
   workflow_dispatch:
 
 permissions:
   contents: read
 
 env:
-  # The production domain, not deployment_status.target_url: per-deployment URLs may sit behind
-  # Vercel Authentication.
+  # The production domain, not a per-deployment URL: those may sit behind Vercel Authentication.
   PW_BASE_URL: https://cv-web-inky-five.vercel.app
 
 jobs:
   prod-smoke:
     name: prod-smoke
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production') }}
-    # Job level, so deployment_status events that fail the `if` (previews, queued statuses)
-    # never join the group and cancel a real production run.
-    concurrency:
-      group: prod-smoke
-      cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.deployment.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -46,6 +44,11 @@ jobs:
           cat "$out"
           test "$code" = 405
           jq -e . "$out" > /dev/null
+      - name: Simulated smoke failure
+        if: ${{ inputs.simulate_failure }}
+        run: |
+          echo "::error::simulate_smoke_failure=true: failing the smoke on purpose"
+          exit 1
       - name: Upload screenshots
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
