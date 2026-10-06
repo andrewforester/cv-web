@@ -94,7 +94,8 @@ What happens to an open conversation:
 
 Ids are the agent's contract with the page (`src/data/mock/AGENTS.md`: ids never change with the
 wording). An edit may add or remove an item, never rename an id. A test pins the target-id list,
-so a removed or renamed id shows up as a reviewed diff, not by accident.
+so a removed or renamed id shows up as a reviewed diff, not by accident. This decision is built
+with the editing backend (see When the editing backend is built).
 
 ## Decision 4: Lint: the CV file has exactly two readers
 
@@ -112,18 +113,24 @@ so a removed or renamed id shows up as a reviewed diff, not by accident.
    `src/screens/home/images.ts`. Delete `src/data/mock/` if nothing is left in it.
 2. `eslint.config.js` (Scaffold hot spot): Decision 4's two rules, with messages that say what
    to do instead.
-3. `server/chat/validateV4.ts`: an unknown `highlighted` becomes `null` and is logged (Decision
-   3), with a test; API.md → v4 gets one line on it.
-4. A test that pins `cvPageTargetIds(page)` (Decision 3), next to `cvPageIds.test.ts`.
-5. Doc comments: `cvPageData.ts`, `createCvPageKnowledgeLoader` and `LLM_TOOLS_V4` state the
-   invariant "data changes only with a deploy".
-6. Docs: root `AGENTS.md` (intro, Layout row, `src/data/**` hot spot: the editing backend writes
+3. Docs: root `AGENTS.md` (intro, Layout row, `src/data/**` hot spot: the editing backend writes
    the JSON, it doesn't replace a binding), `server/AGENTS.md`, `server/chat/knowledge/AGENTS.md`,
    `src/data/cv/AGENTS.md`, SYSTEM_DESIGN §1/§5 and API.md → v4 paths, `docs/chat/AGENTS.md`
    ADR list. Root `AGENTS.md` belongs to the coordinator: the task proposes it in its PR.
 
 Not in that ticket: the editing backend itself (its UI, auth, the GitHub write, PR or direct
 commit).
+
+## When the editing backend is built
+
+Until then the CV changes only with code deploys and rarely, so Decision 3 is decided now and
+built with the backend, in its ticket:
+
+1. `server/chat/validateV4.ts`: an unknown `highlighted` becomes `null` and is logged (Decision
+   3), with a test; API.md → v4 gets one line on it.
+2. A test that pins `cvPageTargetIds(page)` (Decision 3), next to `cvPageIds.test.ts`.
+3. Doc comments: `cvPageData.ts`, `createCvPageKnowledgeLoader` and `LLM_TOOLS_V4` state the
+   invariant "data changes only with a deploy".
 
 ## Consequences
 
