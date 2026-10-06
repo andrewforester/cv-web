@@ -33,3 +33,7 @@ Implementations: `HttpShowRepository` (the real one, over `/api/chat` `v: 3`, se
 
 Stubs and limits: EN only, by decision. Change the contract only through the ticket that owns
 it; breaking changes bump `v` or the scenario id.
+
+`scenarioContent.test.ts` keeps the scenario copy true to the CV data: every CV item the copy names
+(headline, contact buttons, book covers, icons, photo) is listed with the data it needs, and a
+listed phrase that left the copy fails too. Name a new CV item in the copy, add it there.
