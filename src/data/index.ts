@@ -20,4 +20,4 @@ export type {
 } from './cvPage';
 export type { CvPageRepository } from './CvPageRepository';
 export { CvPageRepositoryContext, useCvPageRepository } from './CvPageRepositoryContext';
-export { StaticCvRepository } from './mock/StaticCvRepository';
+export { StaticCvRepository } from './cv/StaticCvRepository';

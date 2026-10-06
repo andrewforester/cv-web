@@ -995,7 +995,7 @@ id and without the locale, with the v3 page's catalogue and knowledge.
 | `page` (request) | Removed (ignored if sent). |
 | `messages[].page` (snapshot) | `AgentPageStateV4`: v2's snapshot without `route` and `locale`. `activeSection` is one of `CV_SECTION_IDS` or `null`; `highlighted` one of the catalogue's targets or `null`; `tools` a sorted subset of the catalogue's names. Still at most 1,000 chars. |
 | Messages, tool loop, limits | As v2 (`CHAT_LIMITS_V2`: 40 messages, 10 questions, 3 calls per message, 2 tool rounds per turn, `providerState` echoed verbatim). |
-| Knowledge | `src/data/mock/cvPage.json` rendered by `renderCvPage` as `<document id="cv" title="CV">`; one block, so one cached prefix. |
+| Knowledge | `src/data/cv/cvPage.json` rendered by `renderCvPage` as `<document id="cv" title="CV">`; one block, so one cached prefix. |
 | Tools | `buildCvPageToolSpecs(page)`: three tools, below. No `switchLanguage`. |
 | System prompt | `INSTRUCTIONS` (text unchanged), `PAGE_TOOL_INSTRUCTIONS` (without "switch the language" and the `locale` in `<page_state>`), knowledge (cache marker), `Site language: English (en).`. `PROMPT_VERSION` bumped. |
 | SSE, errors | As v2. |

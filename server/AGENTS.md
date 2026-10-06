@@ -7,7 +7,7 @@ is the AI CV chat (`chat/`); a CV-editing backend is planned.
 Place in the architecture: `api/` (entries) → `server/` (logic) → external services (Claude).
 It shares a few framework-free files with the browser: the chat contract and the page-agent tool
 catalogue (`src/data/chat/`), the page type (`src/data/cvPage.ts`), the show's contract and scenario
-data (`src/data/retro/`) and the JSON the chat answers from (`src/data/mock/cvPage.json`). Those must stay free of React, DOM, Vite-only syntax and i18n runtime.
+data (`src/data/retro/`) and the JSON the chat answers from (`src/data/cv/cvPage.json`, read only in `chat/cvPageData.ts`; lint forbids any other server reader). Those must stay free of React, DOM, Vite-only syntax and i18n runtime.
 
 Areas: `chat/` (the chat pipeline), `dev/` (serves `/api/chat` in `npm run dev`, never deployed),
 `test/` (test setup that removes the API key and chat env so no test can reach a real model, plus

@@ -16,7 +16,7 @@ frontend tickets. The wire contract is [`API.md`](API.md), the decisions and alt
 | Kind | Requirement |
 |---|---|
 | Functional | Text Q&A about the professional profile, streamed. Answer in the visitor's language (EN/UK). Refuse off-topic and private questions politely. Never invent facts. |
-| Knowledge | Today: exactly what the visitor's page shows (`/`: `src/data/mock/cv.<locale>.json`; `/new`: `profile.<locale>.json`). Later: more professional material (detailed experience, case studies). Adding a source must be cheap. |
+| Knowledge | Today: exactly what the visitor's page shows (`/`: `src/data/cv/cvPage.json`; `/new`: `profile.<locale>.json`). Later: more professional material (detailed experience, case studies). Adding a source must be cheap. |
 | Security | The LLM key never reaches the browser. No web access. The only tools are the typed page tools of the page agent, executed in the browser (`AGENT.md`, `v: 2`). |
 | Evolution | Voice later (speech in/out) without rewriting the contract or the layers. |
 | Platform | Vercel Hobby, Vercel Functions (Node runtime) in `api/`, deployed with the site. Stateless server: the client sends the history each turn. |
@@ -75,7 +75,7 @@ Backend (new zone, backend ticket):
 | `server/chat/errors.ts` | `ChatError` factories, HTTP status per code, JSON error `Response`. |
 | `server/chat/config.ts` | Reads env once: `ANTHROPIC_API_KEY`, `CHAT_MODEL`, `CHAT_ENABLED`, `CHAT_DAILY_BUDGET_USD`, `CHAT_FAKE_LLM`, `VERCEL_ENV`. |
 | `server/chat/knowledge/KnowledgeSource.ts` | `KnowledgeSource` and `KnowledgeDocument` types. |
-| `server/chat/knowledge/CvKnowledgeSource.ts` | Loads `src/data/mock/cv.<locale>.json` (fallback `en`) and renders it with `renderCv`. |
+| `server/chat/knowledge/CvKnowledgeSource.ts` | Loads `src/data/cv/cvPage.json` (fallback `en`) and renders it with `renderCv`. |
 | `server/chat/knowledge/renderCv.ts` | `Cv` to deterministic Markdown (section 5). |
 | `server/chat/knowledge/assembleKnowledge.ts` | Loads all registered sources for a locale, wraps them in `<knowledge>`, memoizes per locale per instance. |
 | `server/chat/knowledge/sources.ts` | The registry: `[new CvKnowledgeSource()]`. Adding a source = one line here. |
@@ -100,7 +100,7 @@ Shared contract (backend ticket creates it, frontend imports it):
 | `src/data/chat/contract.ts` | The types and constants of `API.md`, verbatim. Framework-free. |
 
 The server imports from `src/` only `src/data/chat/contract.ts`, `src/data/models.ts` (types)
-and `src/data/mock/cv.*.json`: all three must stay free of React, DOM, Vite-only syntax
+and `src/data/cv/cvPage.json`: all three must stay free of React, DOM, Vite-only syntax
 (`import.meta.env`, `?raw`) and `src/i18n` runtime code. `ChatLocale` is declared in the contract
 instead of importing `Locale` from `src/i18n` (which touches `localStorage`); a type test keeps
 them equal.
@@ -162,9 +162,9 @@ interface KnowledgeSource {
 ```
 
 - **CV is the first source and the single source of truth.** `CvKnowledgeSource` imports the same
-  `src/data/mock/cv.<locale>.json` the site renders, falling back to `en` exactly like
-  `StaticCvRepository` (today `uk` has no JSON). When the planned CV-editing backend replaces the
-  JSON, only `CvKnowledgeSource.load` changes (it fetches the same `Cv`).
+  `src/data/cv/cvPage.json` the site renders, falling back to `en` exactly like
+  `StaticCvRepository` (today `uk` has no JSON). The server reads the file only through
+  `server/chat/cvPageData.ts`; lint allows no other reader besides `StaticCvRepository`.
 - **Where the CV data lives when editing exists:**
   [`../adr/0007-cv-data-source.md`](../adr/0007-cv-data-source.md). The bundled JSON stays the
   canonical data, an edit is a commit plus a deploy, and the knowledge is invalidated by the deploy.

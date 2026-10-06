@@ -7,8 +7,8 @@ Transcenda's projects, skills, education, about, footer CTA) behind `CvPageRepos
 
 Place in the architecture: the bottom layer. Screens reach it only through their state holders,
 via the repository interface provided in `src/app/AppProviders.tsx`. The repository is async on
-purpose so the planned CV-editing backend can replace today's bundled JSON (`mock/`) by adding an
-HTTP implementation and swapping one binding. `chat/` is the data layer of the AI chat and owns
+purpose so the page can later read from another store (ADR-0007: today `cv/`, the bundled JSON, is
+the canonical data and a CV edit is a commit plus a deploy). `chat/` is the data layer of the AI chat and owns
 the `/api/chat` contract shared with `server/`; `retro/` is the show's scenario data and `v: 3`
 contract.
 

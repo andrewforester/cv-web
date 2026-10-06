@@ -5,7 +5,7 @@ nothing else. That is what keeps answers grounded and stops the model from inven
 
 Place in the architecture: the chat pipeline (v4) and the show's replies (v3, `../show/`) ask it
 for the knowledge and place it in the system prompt (`../prompt/`). Its source today is the same
-JSON the site renders (`src/data/mock/cvPage.json`, via `../cvPageData.ts`), rendered as
+JSON the site renders (`src/data/cv/cvPage.json`, read only through `../cvPageData.ts`, ADR-0007), rendered as
 `<document id="cv" title="CV">`, so the page and its chat can never disagree. The page is English,
 so the loader takes no arguments and memoizes one text: one cached prefix for every request,
 whatever language the visitor writes in. New material (e.g. Markdown notes) is one more source in

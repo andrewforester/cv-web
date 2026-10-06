@@ -21,6 +21,18 @@ const noMocks = {
   message:
     'UI never reads mocks: get data from a repository hook (e.g. useCvRepository()) in the state holder. The mock is bound once in src/app/AppProviders.tsx.',
 };
+const noMocksBackend = {
+  regex: '(^|/)data/mock/',
+  message:
+    'Mock fixtures are for tests only. The server reads the CV through server/chat/cvPageData.ts.',
+};
+const noCvJson = [
+  {
+    selector: 'ImportDeclaration[source.value=/(^|\\/)data\\/cv\\/cvPage\\.json$/]',
+    message:
+      'The CV JSON has two readers: the page via CvPageRepository (src/data/cv/StaticCvRepository.ts) and the server via server/chat/cvPageData.ts. Get the data from the repository or from CV_PAGE.',
+  },
+];
 const noScreens = {
   regex: '(^|/)screens/',
   message:
@@ -77,7 +89,16 @@ export default tseslint.config(
     ignores: testFiles,
     rules: restrict(noServer, noAnthropicSdk, noMocks, noOtherScreen),
   },
-  { files: ['server/**/*.ts', 'api/**/*.ts'], rules: restrict(noFrontendLayers, noReact) },
+  {
+    files: ['server/**/*.ts', 'api/**/*.ts'],
+    rules: restrict(noFrontendLayers, noReact, noMocksBackend),
+  },
+  {
+    // ADR-0007: the CV file has exactly two readers (and tests).
+    files: ['src/**/*.{ts,tsx}', 'server/**/*.ts', 'api/**/*.ts'],
+    ignores: [...testFiles, 'src/data/cv/StaticCvRepository.ts', 'server/chat/cvPageData.ts'],
+    rules: { 'no-restricted-syntax': ['error', ...noCvJson] },
+  },
   {
     files: ['*.config.{ts,js}', 'e2e/**/*.ts', 'api/**/*.ts', 'server/**/*.ts'],
     languageOptions: { globals: globals.node },

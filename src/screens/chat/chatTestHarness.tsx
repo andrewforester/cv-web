@@ -7,7 +7,7 @@ import {
   type AgentToolCall,
   type ChatStreamEventV2,
 } from '../../data/chat';
-import { StaticCvRepository } from '../../data/mock/StaticCvRepository';
+import { StaticCvRepository } from '../../data/cv/StaticCvRepository';
 import { AgentExecutorContext } from './agentExecutor';
 import { FakeAgentExecutor } from './fakeAgentExecutor';
 import { ChatRoute } from './ChatRoute';

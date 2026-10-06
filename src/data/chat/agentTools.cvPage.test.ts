@@ -1,5 +1,5 @@
 import type { CvPage } from '../cvPage';
-import { StaticCvRepository } from '../mock/StaticCvRepository';
+import { StaticCvRepository } from '../cv/StaticCvRepository';
 import { buildCvPageToolSpecs, cvPageTargetIds } from './agentTools';
 import { CV_CONTACT_CHANNELS, CV_SECTION_IDS } from './contract';
 
