@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { HomeRoute } from '../screens/home/HomeRoute';
 import { ShowCaseButton } from '../shared/ShowCaseButton';
 import styles from './App.module.css';
+import { AppSpeedInsights } from './AppSpeedInsights';
 import { SHOW_SCENARIO } from './showScenarios';
 import { useLazyChat } from './useLazyChat';
 import { useRetroMode } from './useRetroMode';
@@ -35,6 +36,7 @@ export function App() {
         </main>
         {Chat && <Chat />}
       </div>
+      <AppSpeedInsights />
       {showing && Show && SHOW_SCENARIO && (
         <Show scenario={SHOW_SCENARIO} loaders={loaders} onDone={end} />
       )}
