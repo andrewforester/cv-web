@@ -165,6 +165,9 @@ interface KnowledgeSource {
   `src/data/mock/cv.<locale>.json` the site renders, falling back to `en` exactly like
   `StaticCvRepository` (today `uk` has no JSON). When the planned CV-editing backend replaces the
   JSON, only `CvKnowledgeSource.load` changes (it fetches the same `Cv`).
+- **Where the CV data lives when editing exists:**
+  [`../adr/0007-cv-data-source.md`](../adr/0007-cv-data-source.md). The bundled JSON stays the
+  canonical data, an edit is a commit plus a deploy, and the knowledge is invalidated by the deploy.
 - **One knowledge per page** (ADR-0004): the request's `page` picks the sources; `/new` has
   `ProfileKnowledgeSource` (`renderProfile` over `profile.<locale>.json`, `<document id="profile">`).
   On both pages the knowledge is what that page shows in the request's locale, so `/` stays
