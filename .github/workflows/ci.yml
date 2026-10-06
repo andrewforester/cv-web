@@ -33,25 +33,30 @@ env:
   # Promote and roll back go through the API, not the CLI: `vercel promote` / `vercel rollback`
   # first look up the token's user (GET /v2/user), which answers 404 "User not found" for this
   # team token (CV-132); the API calls name the team explicitly.
-  # vercel_api METHOD PATH: the response body on stdout; "METHOD path -> status" (no query, no
-  # token) and, on an error, Vercel's error JSON in the log.
+  # vercel_api METHOD PATH [BODY]: the response body on stdout; "METHOD path -> status" (no
+  # query, no token) and, on an error, Vercel's error JSON in the log. Anything but a 2xx fails,
+  # a network error (status 000) included.
   VERCEL_API_SH: |
     vercel_api() {
-      local out code
+      local out code ok=0
       out=$(mktemp)
       code=$(curl -sS -X "$1" -o "$out" -w '%{http_code}' \
         -H "Authorization: Bearer $VERCEL_TOKEN" -H 'Content-Type: application/json' \
-        ${3:+-d "$3"} "https://api.vercel.com$2")
-      echo "$1 ${2%%\?*} -> $code" >&2
-      if [ "$code" -ge 400 ]; then jq -c '.error // .' "$out" >&2 || true; return 1; fi
-      cat "$out"
+        ${3:+-d "$3"} "https://api.vercel.com$2") || true
+      echo "$1 ${2%%\?*} -> ${code:-000}" >&2
+      case $code in
+        2??) cat "$out" ;;
+        *) jq -c '.error // .' "$out" >&2 2> /dev/null || true; ok=1 ;;
+      esac
+      rm -f "$out"
+      return "$ok"
     }
     live_deployment() { vercel_api GET "/v13/deployments/$PRODUCTION_DOMAIN?teamId=$VERCEL_ORG_ID"; }
-    # Waits (up to 3 min) until the production domain serves deployment $1.
+    # Waits (up to 3 min) until the production domain serves deployment $1; a failed poll retries.
     wait_until_live() {
       local current
       for _ in $(seq 36); do
-        current=$(live_deployment | jq -r '.id // empty')
+        current=$(live_deployment | jq -r '.id // empty') || current=
         if [ "$current" = "$1" ]; then echo "The production domain serves $1"; return 0; fi
         sleep 5
       done
@@ -171,6 +176,7 @@ jobs:
     outputs:
       previous: ${{ steps.live.outputs.previous }}
       promoting: ${{ steps.release.outputs.promoting }}
+      promoted: ${{ steps.release.outputs.promoted }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -224,9 +230,11 @@ jobs:
           eval "$VERCEL_API_SH"
           url=$(vercel deploy --prebuilt --prod --skip-domain --token="$VERCEL_TOKEN")
           echo "Deployment: $url"
-          id=$(vercel_api GET "/v13/deployments/${url#https://}?teamId=$VERCEL_ORG_ID" | jq -r .id)
+          id=$(vercel_api GET "/v13/deployments/${url#https://}?teamId=$VERCEL_ORG_ID" | jq -er .id)
           echo "promoting=true" >> "$GITHUB_OUTPUT"
           vercel_api POST "/v10/projects/$VERCEL_PROJECT_ID/promote/$id?teamId=$VERCEL_ORG_ID" '{}' > /dev/null
+          # Accepted: from here on a failure must roll back, even if the domain hasn't moved yet.
+          echo "promoted=true" >> "$GITHUB_OUTPUT"
           wait_until_live "$id"
           echo "Production: $url ($id, commit $GITHUB_SHA)" >> "$GITHUB_STEP_SUMMARY"
 
@@ -239,8 +247,9 @@ jobs:
       simulate_failure: ${{ github.event_name == 'workflow_dispatch' && inputs.simulate_smoke_failure }}
 
   # A failed smoke (or a promote that failed half-way) puts the previous deployment back on the
-  # production domain; if the domain never left it, there is nothing to undo. The run stays red:
-  # the failed job is still there.
+  # production domain. Only when Vercel never accepted the promote and the domain still serves the
+  # previous deployment is there nothing to undo; an accepted promote may still land, so it is
+  # always rolled back. The run stays red: the failed job is still there.
   rollback:
     name: Roll back production
     needs: [deploy, smoke]
@@ -251,14 +260,15 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
       PREVIOUS: ${{ needs.deploy.outputs.previous }}
+      PROMOTED: ${{ needs.deploy.outputs.promoted }}
     steps:
       - name: Roll back to the previous production deployment
         run: |
           set -euo pipefail
           eval "$VERCEL_API_SH"
           test -n "$PREVIOUS" || { echo "::error::No previous production deployment to roll back to"; exit 1; }
-          if [ "$(live_deployment | jq -r '.id // empty')" = "$PREVIOUS" ]; then
-            echo "The production domain still serves $PREVIOUS: nothing to roll back."
+          if [ "$PROMOTED" != true ] && [ "$(live_deployment | jq -r '.id // empty')" = "$PREVIOUS" ]; then
+            echo "The promote was never accepted and the domain still serves $PREVIOUS: nothing to roll back."
             exit 0
           fi
           vercel_api POST "/v9/projects/$VERCEL_PROJECT_ID/rollback/$PREVIOUS?teamId=$VERCEL_ORG_ID" '{}' > /dev/null
