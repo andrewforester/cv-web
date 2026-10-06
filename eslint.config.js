@@ -28,7 +28,7 @@ const noMocksBackend = {
 };
 const noCvJson = [
   {
-    selector: 'ImportDeclaration[source.value=/(^|\\/)data\\/cv\\/cvPage\\.json$/]',
+    selector: 'ImportDeclaration[source.value=/(^|\\/)cv\\/cvPage\\.json$|^\\.\\/cvPage\\.json$/]',
     message:
       'The CV JSON has two readers: the page via CvPageRepository (src/data/cv/StaticCvRepository.ts) and the server via server/chat/cvPageData.ts. Get the data from the repository or from CV_PAGE.',
   },
