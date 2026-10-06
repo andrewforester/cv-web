@@ -16,7 +16,7 @@ export interface ShowUrls {
 /** The one page's show (docs/retro/ARCHITECTURE.md §11). */
 export const SHOW_URLS: ShowUrls = { show: SHOW_SITE, normal: NORMAL_SITE };
 
-/** Page errors and console errors; a web check fails on any. */
+/** Page errors and console errors (Chromium logs a CSP violation as one); a web check fails on any. */
 export function collectErrors(page: Page): string[] {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));

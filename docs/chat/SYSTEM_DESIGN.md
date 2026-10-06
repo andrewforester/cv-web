@@ -290,16 +290,20 @@ a hard money cap.
 | Request shape | API.md limits: 1,000 chars per question, 20 messages, 24,000 chars, 128 KiB | Every request |
 | Output cap | `max_tokens: 800`; 60 s deadline; abort on client disconnect | Every request |
 | Same-origin check | `Origin` must match the host; no CORS headers, so other sites' browsers can't call it | Casual cross-site use |
-| Vercel Firewall rate-limit rule (the one Hobby rule) | Condition: path equals `/api/chat` and method `POST`; fixed window **600 s**, limit **30**, key **IP**; action default `429` | Per IP, per region, all instances |
+| Vercel Firewall rate-limit rule (the one Hobby rule) | Condition: path equals `/api/chat` and method `POST`; fixed window **480 s**, limit **25**, key **IP**; action default `429` | Per IP, per region, all instances |
 | In-function limiter | Per IP: **8 / 60 s** and **100 / 24 h**; per instance: **600 requests / hour** in total, then `503 unavailable` | Per instance (best effort: Fluid compute reuses instances, so it bites in bursts; a cold instance starts empty) |
 | Anthropic spend limit | A dedicated Anthropic Console workspace for this key with a monthly **spend limit of $10** (raise if real traffic needs it) | Global, exact. Over the limit Anthropic rejects calls: `502 upstream_error` (`retryable: false`), the widget says the chat is unavailable right now |
 | Kill switch | `CHAT_ENABLED=false` in Vercel env + redeploy | Manual |
 
-Worst case one IP maxing the firewall rule with maximal requests on Haiku: 4,320 requests/day x
-~$0.014 = ~$60/day, which is why the spend limit is part of the design, not optional. The
+Worst case one IP maxing the firewall rule with maximal requests on Haiku: 25 requests per 480 s = 4,500 requests/day x
+~$0.014 = ~$63/day, which is why the spend limit is part of the design, not optional. The
 limiter keys only live in memory (a `Map`, capped at 10,000 keys, oldest evicted); IPs are never
 logged or stored. Vercel Runtime Cache as a cross-instance counter and HMAC-signed history were
 considered and deferred (ADR).
+
+Accepted: the client sends the whole history, so a visitor can forge earlier assistant turns or
+`tool_use` blocks (when `providerState` is absent). The data is public, tool calls are allowlisted
+against the catalogue, and `openContact` needs the visitor's confirmation.
 
 Setup (human or orchestrator, not code): create the firewall rule in the Vercel dashboard
 (Firewall, Configure, New Rule, Rate Limit) and start it on **Log** for a day before switching to
