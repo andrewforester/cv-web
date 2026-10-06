@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { AppSpeedInsights, isSpeedInsightsHost, SPEED_INSIGHTS_ROUTE } from './AppSpeedInsights';
+import { AppSpeedInsights } from './AppSpeedInsights';
+import { isSpeedInsightsHost, SPEED_INSIGHTS_ROUTE } from './speedInsights';
 
 const speedInsights = vi.hoisted(() => vi.fn(() => null));
 vi.mock('@vercel/speed-insights/react', () => ({ SpeedInsights: speedInsights }));
