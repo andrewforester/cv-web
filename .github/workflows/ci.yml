@@ -26,6 +26,8 @@ permissions:
 
 env:
   VERCEL_CLI_VERSION: 62.4.0
+  # The production domain (prod-smoke.yml smokes the same one).
+  PRODUCTION_DOMAIN: cv-web-inky-five.vercel.app
 
 # PRs run lint and tests plus a web build + Playwright e2e (job e2e); pushes to main run both too.
 # Production = main is deployed by this workflow (job deploy), only after both pass; Vercel's Git
@@ -80,11 +82,12 @@ jobs:
           if-no-files-found: ignore
 
   # Proves the Vercel token and the CLI build on a PR that changes the deploy path, without touching
-  # production. Only those PRs, so ordinary ones don't spend the Hobby deployment limit; only
-  # same-repo PRs, because forks get no secrets.
+  # production. Only those PRs, so ordinary ones don't spend the Hobby limit (100 deployments a
+  # day; each push to such a Ready PR spends one). Only when the secrets are there: forks and
+  # Dependabot PRs get none, and they skip instead of going red.
   preview:
     name: Vercel preview (CLI)
-    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository }}
+    if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -99,7 +102,9 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          if git diff --name-only "$BASE_SHA" HEAD | grep -qE '^(\.github/workflows/|vercel\.json$|package(-lock)?\.json$)'; then
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "No Vercel secrets in this run (fork or Dependabot PR): no preview."
+          elif git diff --name-only "$BASE_SHA" HEAD | grep -qE '^(\.github/workflows/|vercel\.json$|package(-lock)?\.json$)'; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "No change to workflows, vercel.json or package*.json: no preview."
@@ -140,7 +145,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      # The live deployment is the rollback target. Its commit decides the docs-only skip: nothing
+      # The deployment the production domain serves is the rollback target. Its commit decides the docs-only skip: nothing
       # but docs/, .claude/ and *.md changed since it (the rule of scripts/vercel-ignore.sh).
       # Diffing against the live commit, not the push's `before`, also covers queued runs that
       # GitHub dropped. Any doubt deploys; a manual run always deploys.
@@ -149,8 +154,7 @@ jobs:
         run: |
           set -euo pipefail
           prod=$(curl -fsS -H "Authorization: Bearer $VERCEL_TOKEN" \
-            "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID?teamId=$VERCEL_ORG_ID" |
-            jq -c '.targets.production // {}')
+            "https://api.vercel.com/v13/deployments/$PRODUCTION_DOMAIN?teamId=$VERCEL_ORG_ID")
           previous=$(jq -r '.id // empty' <<< "$prod")
           live_sha=$(jq -r '.meta.githubCommitSha // empty' <<< "$prod")
           echo "Live: ${previous:-none} at ${live_sha:-unknown commit}"
