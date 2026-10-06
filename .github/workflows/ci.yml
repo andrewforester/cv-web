@@ -28,7 +28,7 @@ env:
   VERCEL_CLI_VERSION: 62.4.0
   # The production domain (prod-smoke.yml smokes the same one).
   PRODUCTION_DOMAIN: cv-web-inky-five.vercel.app
-  # Vercel REST helpers for the deploy, rollback and preview steps (`eval "$VERCEL_API_SH"`; kept
+  # Vercel REST helpers for the deploy and rollback steps (`eval "$VERCEL_API_SH"`; kept
   # here because the workflow is the only file these jobs share without a checkout).
   # Promote and roll back go through the API, not the CLI: `vercel promote` / `vercel rollback`
   # first look up the token's user (GET /v2/user), which answers 404 "User not found" for this
@@ -152,17 +152,6 @@ jobs:
         run: |
           vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
           vercel build --token="$VERCEL_TOKEN"
-      # TEMPORARY (CV-132 diagnostic, removed before review): read-only calls plus promote/rollback
-      # of a deployment id that doesn't exist (proves auth and route, changes nothing).
-      - name: Vercel API access (diagnostic)
-        if: ${{ steps.paths.outputs.run == 'true' }}
-        run: |
-          eval "$VERCEL_API_SH"
-          vercel_api GET /v2/user > /dev/null || true
-          vercel_api GET "/v9/projects/$VERCEL_PROJECT_ID?teamId=$VERCEL_ORG_ID" > /dev/null || true
-          live_deployment | jq -c '{id, sha: .meta.githubCommitSha}' || true
-          vercel_api POST "/v10/projects/$VERCEL_PROJECT_ID/promote/dpl_doesnotexist?teamId=$VERCEL_ORG_ID" '{}' > /dev/null || true
-          vercel_api POST "/v9/projects/$VERCEL_PROJECT_ID/rollback/dpl_doesnotexist?teamId=$VERCEL_ORG_ID" '{}' > /dev/null || true
       - name: Deploy (preview, never --prod)
         if: ${{ steps.paths.outputs.run == 'true' }}
         run: |
