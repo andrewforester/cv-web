@@ -311,6 +311,10 @@ uncached; the ADR-0001 abuse math is unchanged in shape.
 ## 12. One page v3 (`v: 4`, CV-107)
 
 Decision: [`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md); contract: API.md → v4.
+Where the catalogue's data comes from once the CV is editable:
+[`../adr/0007-cv-data-source.md`](../adr/0007-cv-data-source.md) (one data version per deploy;
+with the editing backend, an unknown `highlighted` from a tab opened before the deploy becomes
+`null`, not `400`).
 
 - **Tools:** `highlightElement`, `openContact` (`confirm`), `scrollToSection`. `switchLanguage`
   is gone with the Ukrainian locale; "перемкни на українську" now gets "I can't do that" from the

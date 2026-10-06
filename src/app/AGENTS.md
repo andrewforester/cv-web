@@ -39,3 +39,7 @@ Rules and limits:
 - Entry point is `src/main.tsx` (global styles, providers, `App`).
 - Reduced motion is read by the show itself. The Show case button shows only with a scenario, on
   ≥ 1024 px (`useShowCaseAvailable`); the start seam itself checks only the scenario.
+- Real-user speed: `AppSpeedInsights` sends Core Web Vitals to Vercel Speed Insights (dashboard:
+  project `cv-web` → Speed Insights). Every view counts as route `/` (no `?retro=1` noise); it runs
+  only on the deployed site, not in dev or local preview. Same-origin `/_vercel/speed-insights/*`,
+  so the CSP in `vercel.json` needs no change.
