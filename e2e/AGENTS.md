@@ -39,3 +39,5 @@ them to the ticket.
 Known limit: Playwright is pinned to `~1.56.0` because the cloud container's preinstalled Chromium
 is revision 1194; bumping it needs `executablePath: '/opt/pw-browsers/chromium'` or a new container
 image.
+
+Security headers (`securityHeaders.spec.ts`): `vite preview` sends the production headers from `scripts/securityHeaders.ts`, so every web check runs under the enforcing CSP; Chromium logs a CSP violation as a console error, which `collectErrors` already fails on; a spec proves it. Another spec checks `vercel.json` → `headers` equals the module.
