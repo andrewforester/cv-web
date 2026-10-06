@@ -2,11 +2,14 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { chatApiPlugin } from './server/dev/chatApiPlugin.ts';
+import { SECURITY_HEADERS } from './scripts/securityHeaders.ts';
 
 // Vercel serves the site from the root of its domain.
 export default defineConfig({
   base: '/',
   plugins: [react(), chatApiPlugin()],
+  // `vite preview` (the web check) sends what Vercel sends in production.
+  preview: { headers: SECURITY_HEADERS },
   test: {
     globals: true,
     projects: [
