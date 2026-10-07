@@ -140,13 +140,28 @@ describe('Home screen', () => {
     await screen.findByTestId(homeTestIds.name);
 
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
+      'Skills',
       'Code craft × agentic process',
       'How I build with agents',
       'Selected impact',
       'Experience',
-      'Skills',
       'Write to me↗',
     ]);
+    const ids = [
+      'header',
+      'skills',
+      'craft',
+      'loop',
+      'impact',
+      'experience',
+      'education',
+      'about',
+      'footer',
+    ] as const;
+    const order = ids.map((id) => screen.getByTestId(homeTestIds[id]));
+    order.slice(1).forEach((node, i) => {
+      expect(order[i]?.compareDocumentPosition(node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
     expect(texts(homeTestIds.craftCard)).toEqual(['thenBy handOld way.', 'nowWith agentsNew way.']);
     expect(screen.getByTestId(homeTestIds.loop)).toHaveTextContent('system with feedback');
     expect(texts(homeTestIds.loopStep)).toEqual(['01Plan', '02Build']);

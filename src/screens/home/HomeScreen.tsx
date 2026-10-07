@@ -42,11 +42,11 @@ export function HomeScreen({ className, state, metaBarEnd }: HomeScreenProps) {
   return (
     <HomePage className={className}>
       <HomeTop page={page} metaBarEnd={metaBarEnd} highlightedId={highlightedId} />
+      <HomeSkills skills={page.skills} highlightedId={highlightedId} />
       <HomeCraft craft={page.craft} highlightedId={highlightedId} />
       <HomeLoop loop={page.loop} highlightedId={highlightedId} />
       <HomeImpact impact={page.impact} highlightedId={highlightedId} />
       <HomeExperience jobs={page.jobs} highlightedId={highlightedId} />
-      <HomeSkills skills={page.skills} highlightedId={highlightedId} />
       <div className={styles.cards}>
         <HomeEducation education={page.education} highlightedId={highlightedId} />
         <HomeAbout about={page.about} highlightedId={highlightedId} />
