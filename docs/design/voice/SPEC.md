@@ -450,3 +450,13 @@ For the build tickets or the human; each has the default above.
 3. **Agent wrap-up before 3:00**: could the agent be told at 2:30 to wrap up, so the hard stop doesn't cut a sentence? The design shows only the timer warning.
 4. **Mic in the chat composer**: add later (`voiceSlot`) or remove the stub? Default: unused.
 5. **First-visit hint text**: it mentions only typing; mention voice when the mic is shown? Default: unchanged.
+
+## Orchestrator decisions
+
+Override conflicting items above (2026-10-07).
+
+1. **Mute (Open question 1):** `VoiceCall` gets `setMuted(muted: boolean)` (the SDK's mic mute) in build ticket B (CV-150); the Mute button ships in D.
+2. **Busy (Open question 2):** default kept: any `start()` rejection after a token shows "The line is busy".
+3. **Wrap-up (Open question 3):** yes. At 2:30 the client sends the agent a contextual update ("30 seconds left: finish your answer and say goodbye") through the SDK; ticket D. The timer warning stays as designed.
+4. **Mic in the composer (Open question 4):** not in this scope; the `voiceSlot` stub stays unused.
+5. **First-visit hint (Open question 5):** unchanged.
