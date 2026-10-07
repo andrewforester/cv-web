@@ -286,12 +286,12 @@
     {
       "id": "android",
       "title": "Android",
-      "items": "Kotlin, Coroutines/Flow, Jetpack Compose, Hilt, Room, KMP, BLE, offline sync, custom UI & animations · fast ramp-up in unfamiliar codebases"
+      "items": "Kotlin, Coroutines/Flow, Jetpack Compose, Hilt, Room, KMP, RESTful, BLE, offline sync, custom UI & animations · fast ramp-up in unfamiliar codebases"
     },
     {
       "id": "architecture",
       "title": "Architecture & quality",
-      "items": "MVVM, MVI, Redux, Clean · JUnit, Mockk, Robolectric, Playwright, Vitest · GitHub Actions, CircleCI"
+      "items": "MVVM, MVI, Redux, Clean · JUnit, Mockk, Robolectric, Playwright, Vitest, E2E testing · GitHub Actions, CircleCI"
     },
     {
       "id": "ios",
