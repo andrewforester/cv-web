@@ -1,9 +1,14 @@
 # AI chat (web) — design package
 
+> **Look is v3** (`docs/design/v3/SPEC.md` → Decision 6: the "Ask my AI" pill and the panel in the
+> loop panel's dark colours; tokens in `src/theme/tokens.css`). This package is the chat's
+> behaviour spec: states, texts, interactions, accessibility, sizes and motion; its colours and
+> renders are the first look.
+
 ## Source
 
-- Designed from the brief of Linear **GRA-6** (29 Sep 2026). **No screenshot or Figma frame exists**: every block is drawn in the reference language of the CV page (`docs/design/cv/SPEC.md`, `src/theme/tokens.css`, Inter).
-- `mock.html`: static HTML/CSS mock over a simplified CV backdrop. It links the real `../../../src/theme/tokens.css`; the tokens proposed below are declared at the top of its `<style>` (block "New tokens"). Open it in a browser; `?state=launcher|empty|typing|streaming|errors|offline` and `&lang=en|uk` switch states.
+- Designed from the brief of Linear **GRA-6** (29 Sep 2026). **No screenshot or Figma frame exists**: every block was drawn in the reference language of the CV page of the time (`src/theme/tokens.css`, Inter).
+- `mock.html`: static HTML/CSS mock over a simplified CV backdrop. It links the real `../../../src/theme/tokens.css`; the tokens proposed below are declared at the top of its `<style>` (block "New tokens"). Open it in a browser; `?state=launcher|empty|typing|streaming|errors|offline` switch states.
 - Renders (1× scale, CSS px = image px), made by `render.sh` (headless Chrome, reduced motion so the frame is stable):
 
 | File | Viewport | Shows |
@@ -12,7 +17,6 @@
 | `screenshot-mobile.png` | 390 × 844 | same state as a full-screen sheet |
 | `state-launcher.png` | 1280 × 800 | closed: FAB + first-visit hint |
 | `state-empty.png` | 1280 × 800 | empty state: greeting + suggested questions |
-| `state-empty-uk-mobile.png` | 390 × 844 | empty state in Ukrainian (text length check) |
 | `state-typing.png` | 1280 × 800 | sent, waiting for the first token (typing indicator) |
 | `state-errors.png` | 1280 × 800 | error with Try again; rate-limited reply |
 | `state-offline-too-long.png` | 1280 × 800 | offline banner + input over the 500-character limit |
@@ -45,7 +49,7 @@ Existing tokens (`src/theme/tokens.css`) carry almost every role:
 | `--chat-shadow-fab` `0 4px 12px rgba(0,22,112,.3)` | **new** | FAB |
 | `--chat-shadow-panel` `0 12px 32px rgba(0,22,112,.16), 0 2px 8px rgba(0,22,112,.08)` | **new** | desktop panel |
 
-Bubble colours map to existing tokens on purpose: visitor = navy fill (`--color-text`) with white text, the same "selected" treatment as the active language-switcher option; assistant = white card with the green `--color-card-border`, the same treatment as a technology card (no shadow inside the panel).
+Bubble colours map to existing tokens on purpose: visitor = navy fill (`--color-text`) with white text; assistant = white card with the green `--color-card-border`, the same treatment as a technology card (no shadow inside the panel).
 
 ## Typography
 
@@ -60,7 +64,7 @@ All Inter, letter-spacing `--letter-spacing` (0.02em) as on the CV.
 | Chip, hint, offline banner, secondary button | `--font-card-body-*` 14 / 20 (button: weight 600) | |
 | Caption | **new** `--font-chat-caption-*` 12 / 16 / 400, `--color-text-secondary` | disclaimer, counter, limit message, "Try asking", "Answer stopped." |
 
-The caption is a new style because the nearest token (`--font-app-label`, 12/12) has no line-height for text that wraps (the Ukrainian disclaimer can wrap on 320 px).
+The caption is a new style because the nearest token (`--font-app-label`, 12/12) has no line-height for text that wraps (the disclaimer can wrap on 320 px).
 
 ## Layout
 
@@ -68,7 +72,7 @@ Spacing is the CV's 4 px grid (`--space-*`). All sizes in CSS px.
 
 ### 1. Launcher (panel closed)
 
-- **FAB**: `<button>` 56 × 56 circle (`--chat-fab-size`), fixed at `right: var(--space-6)` / `bottom: var(--space-6)` (24 px; 16 px = `--space-4` in the mobile layout), above page content (`z-index: var(--chat-z-index)`). Fill `--color-text`, icon `assets/icon_chat.svg` 24 px (`--chat-fab-icon-size`) in `--color-bg`, shadow `--chat-shadow-fab`. **AI ring**: 2 px `--gradient-ai` ring 4 px outside the button (outer diameter 64), masked like the *AI Tools* card border. Hover: fill `--color-text-secondary`. The language switcher sits top-right in the page flow, so the FAB never covers it.
+- **FAB**: `<button>` 56 × 56 circle (`--chat-fab-size`), fixed at `right: var(--space-6)` / `bottom: var(--space-6)` (24 px; 16 px = `--space-4` in the mobile layout), above page content (`z-index: var(--chat-z-index)`). Fill `--color-text`, icon `assets/icon_chat.svg` 24 px (`--chat-fab-icon-size`) in `--color-bg`, shadow `--chat-shadow-fab`. **AI ring**: 2 px `--gradient-ai` ring 4 px outside the button (outer diameter 64), masked like the *AI Tools* card border. Hover: fill `--color-text-secondary`.
 - **First-visit hint** (see Behaviour): a small card to the left of the FAB, vertically centred on it, 12 px gap (`--space-3`). Max width 240 px (`--chat-hint-max-width`), padding 12 8 12 16, white, 1 px `--color-card-border`, `--radius-card`, `--shadow-card`; text 14/20; dismiss button 24 × 24 with `icon_close.svg` at 16 px, top-right, 4 px gap from the text.
 - The page gets extra bottom space so the FAB never hides the last CV line: `.shell` `padding-bottom: calc(var(--chat-fab-size) + 2 * var(--space-6))` (app shell, done with the chat implementation; the CV design itself doesn't change).
 
@@ -102,7 +106,7 @@ Fixed card anchored to the FAB's corner (`right`/`bottom` 24 px). **The FAB is h
 
 **Empty state** (no messages yet), inside the list:
 1. Greeting: an assistant bubble with the greeting text (UI string, not part of the conversation sent to the API).
-2. Suggestions group, 12 px below: caption "Try asking" (4 px extra top margin), then 4 chips stacked, left-aligned, 8 px apart. **Chip** = `<button>` styled like a language-switcher option: white, 1 px `--color-card-border`, radius `--radius-logo` (9), padding 8 12, min height 36, text 14/20 `--color-text`, left-aligned, wraps if long. Hover: border `--color-text`.
+2. Suggestions group, 12 px below: caption "Try asking" (4 px extra top margin), then 4 chips stacked, left-aligned, 8 px apart. **Chip** = `<button>`: white, 1 px `--color-card-border`, radius `--radius-logo` (9), padding 8 12, min height 36, text 14/20 `--color-text`, left-aligned, wraps if long. Hover: border `--color-text`.
 
 **Composer** (105 = 1 divider + 12 + 56 + 8 + 16 + 12): `<form>`, top border 1 px `--chat-color-divider`, padding 12 16, column gap 8.
 - **Field**: row, `align-items: flex-end`, gap 8, padding 5 5 5 15, 1 px `--color-text-muted` border, radius 12, white. Focus-within: border `--color-text` + `box-shadow: 0 0 0 1px var(--color-text)` (2 px ring). Over limit: same in `--chat-color-error`.
@@ -122,42 +126,42 @@ Fixed card anchored to the FAB's corner (`right`/`bottom` 24 px). **The FAB is h
 
 ## Texts
 
-Namespace `chat` (`defineStrings({ en, uk })`). Apostrophes are typographic (’). The name in Ukrainian is **Андрій**.
+Namespace `chat` (`defineStrings({ en })`, English only). Apostrophes are typographic (’).
 
-| Key | EN | UK |
-|---|---|---|
-| `fabLabel` (aria-label) | Open chat with the AI assistant | Відкрити чат із ШІ-асистентом |
-| `hint` | Questions about Andrew’s experience? Ask the AI assistant. | Маєте питання про досвід Андрія? Запитайте ШІ-асистента. |
-| `hintDismiss` (aria-label) | Dismiss | Закрити підказку |
-| `title` | Ask about Andrew | Запитайте про Андрія |
-| `subtitle` | AI assistant · answers from this CV | ШІ-асистент · відповідає за резюме |
-| `close` (aria-label) | Close chat | Закрити чат |
-| `listLabel` (aria-label) | Conversation | Розмова |
-| `you` (sr-only prefix) | You: | Ви: |
-| `assistant` (sr-only prefix) | Assistant: | Асистент: |
-| `greeting` | Hi! I’m an AI assistant. Ask me about Andrew’s experience, skills and projects — I answer from his CV. | Привіт! Я ШІ-асистент. Запитайте мене про досвід, навички та проєкти Андрія — я відповідаю на основі його резюме. |
-| `tryAsking` | Try asking | Спробуйте запитати |
-| `suggestion1` | What is his experience with Android? | Який у нього досвід з Android? |
-| `suggestion2` | Which AI tools does he use? | Якими ШІ-інструментами він користується? |
-| `suggestion3` | Which apps has he worked on? | Над якими застосунками він працював? |
-| `suggestion4` | Has he led a team? | Чи керував він командою? |
-| `inputLabel` (aria-label) | Your question | Ваше запитання |
-| `placeholder` | Ask a question… | Поставте запитання… |
-| `send` (aria-label) | Send | Надіслати |
-| `stop` (aria-label) | Stop answer | Зупинити відповідь |
-| `disclaimer` | Answers are AI-generated and may contain mistakes. | Відповіді генерує ШІ, тож можливі помилки. |
-| `typing` (sr-only, live) | Assistant is typing… | Асистент пише… |
-| `stopped` | Answer stopped. | Відповідь зупинено. |
-| `error` | Sorry, I couldn’t answer. Please try again. | Вибачте, не вдалося відповісти. Спробуйте ще раз. |
-| `retry` | Try again | Спробувати ще раз |
-| `rateLimited` | I’m getting a lot of questions right now. Please try again in a minute. | Зараз надходить забагато запитань. Спробуйте ще раз за хвилину. |
-| `offline` | You’re offline. Connect to the internet to ask a question. | Немає з’єднання з інтернетом. Підключіться, щоб поставити запитання. |
-| `tooLong` | Shorten your question to 500 characters or fewer. | Скоротіть запитання до 500 символів. |
-| `counter` | `{count} / 500` | `{count} / 500` |
+| Key | EN |
+|---|---|
+| `fabLabel` (aria-label) | Open chat with the AI assistant |
+| `hint` | Questions about Andrew’s experience? Ask the AI assistant. |
+| `hintDismiss` (aria-label) | Dismiss |
+| `title` | Ask about Andrew |
+| `subtitle` | AI assistant · answers from this CV |
+| `close` (aria-label) | Close chat |
+| `listLabel` (aria-label) | Conversation |
+| `you` (sr-only prefix) | You: |
+| `assistant` (sr-only prefix) | Assistant: |
+| `greeting` | Hi! I’m an AI assistant. Ask me about Andrew’s experience, skills and projects — I answer from his CV. |
+| `tryAsking` | Try asking |
+| `suggestion1` | What is his experience with Android? |
+| `suggestion2` | Which AI tools does he use? |
+| `suggestion3` | Which apps has he worked on? |
+| `suggestion4` | Has he led a team? |
+| `inputLabel` (aria-label) | Your question |
+| `placeholder` | Ask a question… |
+| `send` (aria-label) | Send |
+| `stop` (aria-label) | Stop answer |
+| `disclaimer` | Answers are AI-generated and may contain mistakes. |
+| `typing` (sr-only, live) | Assistant is typing… |
+| `stopped` | Answer stopped. |
+| `error` | Sorry, I couldn’t answer. Please try again. |
+| `retry` | Try again |
+| `rateLimited` | I’m getting a lot of questions right now. Please try again in a minute. |
+| `offline` | You’re offline. Connect to the internet to ask a question. |
+| `tooLong` | Shorten your question to 500 characters or fewer. |
+| `counter` | `{count} / 500` |
 
-Suggestions come from the real CV: Android since 2012 / Transcenda; the *AI Tools* card (Copilot, Cursor IDE, agents.md, MCP); the *Apps* section (Cync, August Home, Savant); lead roles (RosFines Android Lead, ivi Teamlead). They follow the UI locale.
+Suggestions come from the real CV: Android since 2012 / Transcenda; the *AI Tools* card (Copilot, Cursor IDE, agents.md, MCP); the *Apps* section (Cync, August Home, Savant); lead roles (RosFines Android Lead, ivi Teamlead).
 
-Copy notes: the assistant speaks in first person ("I"), about Andrew in third person; errors say what happened and what to do; the rate-limit text avoids blame and technical words. UK uses the standard term **ШІ** (штучний інтелект); product names (Android, Copilot) stay in Latin. Ukrainian strings run ≈ 15–25 % longer: the header subtitle and chips were checked at 390 px (`state-empty-uk-mobile.png`).
+Copy notes: the assistant speaks in first person ("I"), about Andrew in third person; errors say what happened and what to do; the rate-limit text avoids blame and technical words.
 
 ## Icons
 
@@ -204,16 +208,13 @@ No mic icon yet. Inline the SVGs as components (or `mask-image` + `background: c
 - A new visitor message scrolls the list to the bottom. While streaming, the list follows the growing answer only if the visitor was within 48 px of the bottom; if they scrolled up to read, it doesn't jump.
 - Links in answers open in a new tab (`target="_blank" rel="noopener noreferrer"`); only `http:`, `https:`, `mailto:`, `tel:` become links.
 
-**Language**
-- Switching EN/UA while the chat is open changes all UI strings (title, greeting, chips, placeholders); messages already in the conversation stay as they are. Each request carries the UI locale; the assistant should answer in the language of the question (backend concern, noted for the API Issue).
-
 **Reduced motion** (`prefers-reduced-motion: reduce`): no transforms (open/close and hint are opacity only, 0–100 ms); typing dots static at 60 % opacity; caret doesn't blink; auto-scroll uses `behavior: 'auto'`.
 
 ## Accessibility (WCAG 2.1 AA)
 
 **Semantics**
 - FAB: `<button aria-label={fabLabel} aria-haspopup="dialog" aria-expanded aria-controls="chat-panel">`; while the hint is visible, `aria-describedby` points to the hint text.
-- Panel: `<section role="dialog" aria-modal="true" aria-labelledby={title id} aria-describedby={subtitle id}>`, `lang` = UI locale. Title is an `<h2>`.
+- Panel: `<section role="dialog" aria-modal="true" aria-labelledby={title id} aria-describedby={subtitle id}>`. Title is an `<h2>`.
 - Message list: `<ol aria-label={listLabel} tabindex="0">` (keyboard-scrollable); each `<li>` starts with a visually hidden "You:" / "Assistant:". Not `role="log"`: that would read every streamed token.
 - **Live region**: one visually hidden `<div aria-live="polite" aria-atomic="true">` inside the dialog. It announces: `typing` when a question is sent; the **complete answer** as plain text (markdown stripped) once the stream ends; `stopped`; the error / rate-limit text. Streaming tokens are never announced one by one.
 - Offline banner: `role="status"`. Limit message: part of the textarea's `aria-describedby` (the meta row), announced on focus; crossing the limit also pushes `tooLong` into the live region once.
@@ -290,39 +291,37 @@ Suggested split for the implementation (names only; the implement Issue decides 
 
 Shared with the CV page (reuse, don't copy):
 - the gradient-border technique of `TechnologyCardView .ai` (panel border, FAB ring) → worth moving to a shared class/mixin in `src/shared/` once the chat needs it;
-- the language-switcher option look for chips (same border, radius, padding family);
 - `RichTextLine` renders CV emphasis spans, but it is not a markdown renderer; the chat needs its own `MarkdownText`.
 
 ## Data (for the implementation / API Issues)
 
 - Messages: `{ id, role: 'visitor' | 'assistant', text, status: 'streaming' | 'done' | 'stopped' | 'error' | 'rateLimited' }`; UI state also holds `isOpen`, `hintVisible`, `input`, `online`, `pending`.
-- A `ChatRepository`-style interface in the data layer streams answer chunks for `(messages, locale)` and can be aborted (Stop); a mock returning canned streamed answers lets the UI ship before the backend. Error kinds needed by the UI: `rateLimited` (429), `network`, `server`.
+- A `ChatRepository`-style interface in the data layer streams answer chunks for `messages` and can be aborted (Stop); a mock returning canned streamed answers lets the UI ship before the backend. Error kinds needed by the UI: `rateLimited` (429), `network`, `server`.
 
 ## Decisions
 
 Conservative defaults taken without an answer; the orchestrator may change them.
 
-1. **FAB hides while the panel is open**; the panel sits in the same corner and has its own close button (no FAB-turns-into-× toggle).
-2. **First-visit hint: yes**, once per browser, after 2 s, no auto-hide, gone after dismiss or first open.
-3. **Desktop panel is modal for keyboard/SR** (`aria-modal`, focus trap, Esc) but the page stays visible and scrollable, with no scrim; an outside click closes it.
-4. **Panel border uses `--gradient-ai`** (like the *AI Tools* card) to mark the feature as AI; bubbles and chips use the regular green card border.
-5. **Stop button added**: Send turns into Stop while a reply is pending, so the visitor is never stuck waiting.
-6. **Limit 500 characters**, counter from 400, no hard `maxlength`.
-7. **Conversation kept in memory only** (survives close/reopen, not reload); no "new chat" or history.
-8. **Greeting is a UI string**, not a conversation message, and isn't sent to the API.
-9. **Rate-limit reply looks neutral** (not red) and still offers *Try again*.
-10. **UK copy uses "ШІ"** rather than "AI"; the name is "Андрій".
-11. **Answers are announced once, when complete** (plus "typing…"), not token by token.
-12. **Mobile open focuses the dialog, not the textarea**, to keep the keyboard from covering the chips.
-13. **Full-screen sheet also when the viewport is < 500 px tall** (landscape phones, 200 % zoom).
-14. **Renders** come from headless Chrome via `render.sh` instead of a Playwright script (this session's machine had no Playwright browser; the result is the same Chromium render), over a simplified static CV backdrop rather than the built site.
+- **1.** **FAB hides while the panel is open**; the panel sits in the same corner and has its own close button (no FAB-turns-into-× toggle).
+- **2.** **First-visit hint: yes**, once per browser, after 2 s, no auto-hide, gone after dismiss or first open.
+- **3.** **Desktop panel is modal for keyboard/SR** (`aria-modal`, focus trap, Esc) but the page stays visible and scrollable, with no scrim; an outside click closes it.
+- **4.** **Panel border uses `--gradient-ai`** (like the *AI Tools* card) to mark the feature as AI; bubbles and chips use the regular green card border.
+- **5.** **Stop button added**: Send turns into Stop while a reply is pending, so the visitor is never stuck waiting.
+- **6.** **Limit 500 characters**, counter from 400, no hard `maxlength`.
+- **7.** **Conversation kept in memory only** (survives close/reopen, not reload); no "new chat" or history.
+- **8.** **Greeting is a UI string**, not a conversation message, and isn't sent to the API.
+- **9.** **Rate-limit reply looks neutral** (not red) and still offers *Try again*.
+- **11.** **Answers are announced once, when complete** (plus "typing…"), not token by token.
+- **12.** **Mobile open focuses the dialog, not the textarea**, to keep the keyboard from covering the chips.
+- **13.** **Full-screen sheet also when the viewport is < 500 px tall** (landscape phones, 200 % zoom).
+- **14.** **Renders** come from headless Chrome via `render.sh` instead of a Playwright script (this session's machine had no Playwright browser; the result is the same Chromium render), over a simplified static CV backdrop rather than the built site.
 
 ### Orchestrator decisions (override the items above where they conflict)
 
 Aligned with the API contract `docs/chat/API.md` (merged in #17):
 
 - **O1. Limit:** 1,000 characters per question (`CHAT_LIMITS.maxUserMessageChars`), counted with `String.length`. The counter appears from 800. The `tooLong` and `counter` strings use 1000 / 1000 instead of 500. The rest of item 6 still applies: no hard `maxlength`, error styling over the limit.
-- **O2. Answer formatting:** a safe minimal subset only: paragraphs, `- ` bullet lists and `**bold**`. No italic, numbered lists, links or raw HTML: everything else renders as plain text. An email address or URL in an answer stays plain, selectable text, so the link rules in "States and behaviour" don't apply in v1.
-- **O3. New chat:** the contract allows 20 messages (10 questions). When a request would exceed that (or the API returns `conversation_limit`), show a neutral notice with a **"Start a new chat"** button that clears the conversation. Add the strings `conversationLimit` and `newChat` (EN + UK) in the same style as the other notices. The rest of item 7 still applies.
+- **O2. Answer formatting:** a safe minimal subset only: paragraphs, `- ` bullet lists and `**bold**`. No italic, numbered lists, links or raw HTML: everything else renders as plain text. An email address or URL in an answer stays plain, selectable text, so the link rules in "States and behaviour" don't apply.
+- **O3. New chat:** the contract allows 20 messages (10 questions). When a request would exceed that (or the API returns `conversation_limit`), show a neutral notice with a **"Start a new chat"** button that clears the conversation. Add the strings `conversationLimit` and `newChat` in the same style as the other notices. The rest of item 7 still applies.
 - **O4. Error texts:** one localized string per `ChatErrorCode` (the error notices above cover `rate_limited`, `upstream_error`/`internal_error`/`unavailable` as "server", and offline), plus a generic fallback. `unsupported_version` asks the visitor to reload the page.
-- Items 1–5 and 8–14 are confirmed as written; "ШІ" in the UK copy is fine.
+- Items 1–5, 8, 9 and 11–14 are confirmed as written.

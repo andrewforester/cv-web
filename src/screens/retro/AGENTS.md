@@ -7,7 +7,7 @@ right and the "agent" fixes the site live in its Console, its commentary typed a
 while the chat stays quiet: every command it types is what changes the page, until the page is
 today's page and the real AI chat button loads; the ✖ / ⚠ counters fall from 36 / 8 to 0. At the end
 DevTools collapses, the chat says "All good now." and then shrinks into the site's chat launcher.
-Design: `docs/design/retro/SPEC.md` (look, copy, timing; the 2001 look was designed for the retired `/new`; the current part is "v3 refit"); mechanism: `docs/retro/ARCHITECTURE.md`,
+Design: `docs/design/retro/SPEC.md` (look, copy, timing; the broken page is "The 2001 page", mapped onto the v3 page by "v3 refit"); mechanism: `docs/retro/ARCHITECTURE.md`,
 `docs/adr/0003-retro-live-fix-show.md`.
 
 Domain terms:

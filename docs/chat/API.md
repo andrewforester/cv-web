@@ -1,75 +1,178 @@
 # AI CV chat: API contract (v4 the page chat, v3 the show)
 
 The contract between the chat widget (`src/data/chat/**`, `src/screens/chat/**`) and the backend
-(`api/chat.ts` + `server/chat/**`), as of 2026-10-07. The site is one page, English only
-(ADR-0006). **The server serves exactly two versions** (since CV-114, 2026-10-05):
+(`api/chat.ts` + `server/chat/**`). The site is one page, English only (ADR-0006). **The server
+serves exactly two versions**:
 
 - **v4**: the chat of the one v3 CV page, with three page tools ([below](#v4-the-one-page-chat));
 - **v3**: the Show case's narration and agent chat ([below](#v3-the-show-dialect)).
 
-Any other `v` (the retired v1 and v2 included) gets `400 unsupported_version`. The sections after
-the two dialects (headers, limits, SSE, errors, versioning) are shared by both; they were first
-written for v1, so their examples use v1's words where the dialect sections don't override them.
-The v1 and v2 specifications are kept under [History](#history-v1-v2-and-the-page-aware-v2) for
-the record and as the base v4 builds on. If this file and `src/data/chat/contract.ts` /
-`src/data/retro/contract.ts` ever disagree, the code wins.
+Any other `v` gets `400 unsupported_version`. The [shared rules](#shared-rules-v3-and-v4)
+(request body, base types, headers, limits, SSE, errors, versioning) apply to both. If this file
+and `src/data/chat/contract.ts` / `src/data/retro/contract.ts` ever disagree, the code wins.
+Earlier versions (v1 text chat, v2 page tools on two pages): see git history of this file before
+CV-141; decisions in the ADRs below.
 
-Design context: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md); decisions:
-[`../adr/0001-ai-cv-chat.md`](../adr/0001-ai-cv-chat.md),
-[`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md) (one page, English only, v4),
-[`../adr/0004-page-aware-chat.md`](../adr/0004-page-aware-chat.md) (page awareness, superseded).
+Design context: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md), [`AGENT.md`](AGENT.md); decisions:
+[`../adr/0001-ai-cv-chat.md`](../adr/0001-ai-cv-chat.md) (the chat),
+[`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md) (page tools),
+[`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md) (one page, English only, v4).
 
 ## Summary
 
 | | |
 |---|---|
 | Endpoint | `POST /api/chat` (same origin as the site; no CORS) |
-| Request | JSON: `v` (4 or 3) and the whole conversation in `messages` (the server is stateless); v4: no `locale`, no `page`, the last user message carries a page snapshot; v3: `locale` `"en"`, `kind`, `scenario` |
+| Request | JSON: `v` (4 or 3) and the whole conversation in `messages` (the server is stateless); v4: each question carries a page snapshot; v3: `locale` `"en"`, `kind`, `scenario` |
 | Success | `200`, `text/event-stream`: `delta`\* (v3 `narrate`: `line`\*) then exactly one terminal event, `done` or `error`; v4 may also stream `tool_call` events and end with `stopReason: 'tool_use'` |
 | Failure before the stream | non-2xx with a JSON body `{ "error": ChatError }` |
 | Version | `v` in the body (3 or 4; see [Versioning](#versioning)); response header `X-Chat-Api-Version` with the same number |
-| Types | `src/data/chat/contract.ts` (shared parts and v4), `src/data/retro/contract.ts` (v3), shared by `src/` and `server/` |
+| Types | `src/data/chat/contract.ts` (shared parts and v4), `src/data/chat/agentTools.ts` (v4 catalogue), `src/data/retro/contract.ts` (v3), shared by `src/` and `server/` |
 
 ## v4: the one-page chat
 
-> Final (CV-107). Decision: [`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md) →
-> Decision 3. Built by CV-107's Data + backend task (server, contract, catalogue; its first commit
-> is the contract) and Chat task (widget). Types live in `src/data/chat/contract.ts` (wire) and
-> `src/data/chat/agentTools.ts` (catalogue); the blocks below are copies, the files win if they
-> ever differ.
+> Decision: [`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md) → Decision 3 (the tool
+> dialect itself: [`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md)). Types
+> live in `src/data/chat/contract.ts` (wire) and `src/data/chat/agentTools.ts` (catalogue); the
+> blocks below are copies, the files win if they ever differ.
 
-The site has one page (`/`; `/new` redirects to it) and one language (English). v4 is v2's tool
-dialect for that page: the same messages, tool loop, stream, limits and errors, without the page
-id and without the locale, with the v3 page's catalogue and knowledge.
+The site has one page (`/`; `/new` redirects to it) and one language (English). The visitor asks
+about Andrew and can ask the chat to operate the page; the model calls typed page tools that the
+browser runs (design: [`AGENT.md`](AGENT.md)). The tool dialect was first defined by v2 (retired),
+so its types keep the `V2` names.
 
-**Why a new version:** the enums an old client sends (sections, target kinds, contact channels,
-`switchLanguage`) no longer exist, and the request loses `page` and `locale`: breaking by
-[Versioning](#versioning). An old tab now gets `unsupported_version` and the widget's "reload"
-notice (v2 was retired in CV-114).
-
-### What changes from v2
-
-(v2 is under [History](#v2-page-agent-tools); v4 keeps its tool dialect.)
+### Request and messages
 
 | Area | v4 |
 |---|---|
 | `v` | `4`; response header `X-Chat-Api-Version: 4`. |
-| `locale` (request) | Removed (ignored if sent, like any unknown field). The knowledge is English; the model still replies in the language of the visitor's latest message (`INSTRUCTIONS`), with the fixed line `Site language: English (en).` as its fallback. |
-| `page` (request) | Removed (ignored if sent). |
-| `messages[].page` (snapshot) | `AgentPageStateV4`: v2's snapshot without `route` and `locale`. `activeSection` is one of `CV_SECTION_IDS` or `null`; `highlighted` one of the catalogue's targets or `null`; `tools` a sorted subset of the catalogue's names. Still at most 1,000 chars. |
-| Messages, tool loop, limits | As v2 (`CHAT_LIMITS_V2`: 40 messages, 10 questions, 3 calls per message, 2 tool rounds per turn, `providerState` echoed verbatim). |
+| Body | `v` and `messages`; other fields (e.g. a `locale` or `page` from an old client) are ignored. |
+| Question | `{ role: 'user', content, page }`: the visitor's text + the page snapshot at send time (`AgentPageStateV4`, kept in the history and echoed verbatim). `activeSection` is one of `CV_SECTION_IDS` or `null`; `highlighted` one of the catalogue's targets or `null`; `tools` a sorted subset of the catalogue's names; at most 1,000 chars as JSON. |
+| Tool-call turn | `{ role: 'assistant', content, toolCalls, providerState? }`: `content` may be empty when `toolCalls` is present; `providerState` is opaque and echoed verbatim. |
+| Tool results | `{ role: 'user', toolResults }`, right after the assistant message with `toolCalls`, one result per call id, same order. |
+| Roles | Alternate, start with a question, end with a `user` message (question or results). |
+| Limits | `CHAT_LIMITS_V2`: `maxMessages` **40** (`422 conversation_limit` above); at most **10** questions; per-question and total char limits as in the [shared rules](#conversation-rules-and-limits); `page` at most 1,000 chars as JSON; `providerState` at most 16,384 chars; at most 3 `toolCalls` per assistant message; at most 2 consecutive tool rounds after the last question (the server then answers with tools disabled). |
+| Tools | The server always sends the full catalogue (`buildCvPageToolSpecs`, below) to the model. The client never sends tool definitions. |
 | Knowledge | `src/data/cv/cvPage.json` rendered by `renderCvPage` as `<document id="cv" title="CV">`; one block, so one cached prefix. |
-| Tools | `buildCvPageToolSpecs(page)`: three tools, below. No `switchLanguage`. |
-| System prompt | `INSTRUCTIONS` (text unchanged), `PAGE_TOOL_INSTRUCTIONS` (without "switch the language" and the `locale` in `<page_state>`), knowledge (cache marker), `Site language: English (en).`. `PROMPT_VERSION` bumped. |
-| SSE, errors | As v2. |
-| Log line | As v2 without `page` and `locale`; `v: 4`. |
+| System prompt | `INSTRUCTIONS`, `PAGE_TOOL_INSTRUCTIONS`, knowledge (cache marker), `Site language: English (en).`. The model replies in the language of the visitor's latest message, English as the fallback. `PROMPT_VERSION` is bumped on every change. |
+| Errors | No codes of its own: shape violations are `400 invalid_request`; the daily budget stop is `503 unavailable` with `retryAfterSeconds`. |
+| Log line | `v: 4`, `locale: null` and the tool fields (`SYSTEM_DESIGN.md` §10). |
+
+**Why a version of its own:** v4 changed the enums of the earlier tool dialect (sections, target
+kinds, contact channels, tool names) and dropped `page` and `locale` from the request: breaking by
+[Versioning](#versioning). An old tab gets `unsupported_version` and the widget's "reload" notice.
+
+### Stream
+
+| Event | `data` | When |
+|---|---|---|
+| `delta` | `{ "text": string }` | Zero or more times, as in the [shared stream](#success-response-sse-stream) (usually one short sentence before a tool call). |
+| `tool_call` | `AgentToolCall` | Once per completed `tool_use` block, in order. |
+| `done` | `{ stopReason, usage, providerState? }` | Terminal. With `stopReason: 'tool_use'` the client executes the calls **after** `done`, then posts a follow-up with the assistant turn and the results appended. |
+| `error` | `ChatError` | Terminal, as in the shared stream. The client runs no tool from a stream that ended in `error`. |
 
 ### Types
 
-`src/data/chat/contract.ts`, added after the page-aware block (Cleanup later deletes the v1/v2-only
-parts, ADR-0006 → Decision 7):
+`src/data/chat/contract.ts`, after the shared block:
 
 ```ts
+/** The tool dialect's limits: the char limits above plus the tool-loop caps. */
+export const CHAT_LIMITS_V2 = {
+  ...CHAT_LIMITS,
+  maxMessages: 40,
+  /** Text `user` messages (questions) per conversation. */
+  maxUserQuestions: 10,
+  /** `JSON.stringify(page).length`. */
+  maxPageStateChars: 1_000,
+  maxProviderStateChars: 16_384,
+  maxToolCallsPerMessage: 3,
+  /** Assistant `toolCalls` messages after the last text `user` message; then tools are off. */
+  maxToolRoundsPerTurn: 2,
+} as const;
+
+/** Sorted, like the tool list the model gets. */
+export const AGENT_TOOL_NAMES = ['highlightElement', 'openContact', 'scrollToSection'] as const;
+export type AgentToolName = (typeof AGENT_TOOL_NAMES)[number];
+
+/** Target kinds on the page; item ids come from its JSON. `app` = a Transcenda project. */
+export const AGENT_TARGET_KINDS = [
+  'section',
+  'impact',
+  'experience',
+  'app',
+  'skill',
+  'book',
+  'contact',
+] as const;
+export type AgentTargetKind = (typeof AGENT_TARGET_KINDS)[number];
+
+/** `<kind>:<id>`, the value of the target element's `data-agent-id`. */
+export type AgentTargetId = `${AgentTargetKind}:${string}`;
+
+export const AGENT_VIEWPORTS = ['desktop', 'mobile'] as const;
+/** The chat widget's layout: floating card (desktop) or full-screen sheet (under 600 px). */
+export const AGENT_CHAT_LAYOUTS = ['card', 'sheet'] as const;
+
+/** One `tool_use` of the model, streamed as a `tool_call` event and echoed in `toolCalls`. */
+export interface AgentToolCall {
+  /** The model's `tool_use` id. */
+  id: string;
+  name: AgentToolName;
+  /** Validated by the client against the tool's JSON Schema before anything runs. */
+  input: Record<string, unknown>;
+}
+
+export const AGENT_TOOL_ERRORS = [
+  'not_available',
+  'unknown_target',
+  'invalid_params',
+  'declined',
+  'failed',
+] as const;
+export type AgentToolError = (typeof AGENT_TOOL_ERRORS)[number];
+
+/** Fixed enums only: no page text ever goes back to the model. */
+export type AgentToolResult = { ok: true } | { ok: false; error: AgentToolError };
+
+export interface AgentToolResultItem {
+  /** The `AgentToolCall.id` it answers. */
+  callId: string;
+  result: AgentToolResult;
+}
+
+/** Results of the preceding assistant message's `toolCalls`: one per call, same order. */
+export interface ChatToolResultsMessageV2 {
+  role: 'user';
+  toolResults: AgentToolResultItem[];
+}
+
+export interface ChatAssistantMessageV2 {
+  role: 'assistant';
+  /** May be empty when `toolCalls` is present. */
+  content: string;
+  toolCalls?: AgentToolCall[];
+  /** Opaque, from `done.providerState`; echoed verbatim, never parsed by the client. */
+  providerState?: string;
+}
+
+/** `tool_use`: the client runs the streamed calls, then posts the results in a follow-up. */
+export type ChatStopReasonV2 = ChatStopReason | 'tool_use';
+
+export interface ChatSsePayloadsV2 {
+  delta: { text: string };
+  tool_call: AgentToolCall;
+  done: { stopReason: ChatStopReasonV2; usage: ChatUsage; providerState?: string };
+  error: ChatError;
+}
+export type ChatSseEventNameV2 = keyof ChatSsePayloadsV2;
+
+/** Stream events for the app; tool calls run only after `done` with `stopReason: 'tool_use'`. */
+export type ChatStreamEventV2 =
+  | { type: 'delta'; text: string }
+  | ({ type: 'tool_call' } & AgentToolCall)
+  | { type: 'done'; stopReason: ChatStopReasonV2; usage: ChatUsage; providerState?: string }
+  | { type: 'error'; error: ChatError };
+
 export const CHAT_API_VERSION_V4 = 4;
 
 /** The page's sections in page order; `data-agent-id="section:<id>"`. */
@@ -90,17 +193,6 @@ export type CvSectionId = (typeof CV_SECTION_IDS)[number];
 export const CV_CONTACT_CHANNELS = ['email', 'whatsapp', 'linkedin'] as const;
 export type CvContactChannel = (typeof CV_CONTACT_CHANNELS)[number];
 
-/** Target kinds on the page (a subset of `AGENT_TARGET_KINDS`); `app` = a Transcenda project. */
-export const CV_TARGET_KINDS = [
-  'section',
-  'impact',
-  'experience',
-  'app',
-  'skill',
-  'book',
-  'contact',
-] as const;
-
 /** Page snapshot sent with each question: enums and booleans only, never text or values. */
 export interface AgentPageStateV4 {
   viewport: (typeof AGENT_VIEWPORTS)[number];
@@ -118,7 +210,7 @@ export interface ChatUserMessageV4 {
   page: AgentPageStateV4;
 }
 
-/** Tool results and assistant messages are v2's. */
+/** Tool results and assistant messages are the tool dialect's (`V2` names). */
 export type ChatMessageV4 = ChatUserMessageV4 | ChatToolResultsMessageV2 | ChatAssistantMessageV2;
 
 /** Roles alternate, start with a text `user` message and end with a `user` message. */
@@ -128,29 +220,61 @@ export interface ChatRequestV4 {
 }
 ```
 
-The stream types are v2's (`ChatSsePayloadsV2`, `ChatStreamEventV2`); the names stay (they name
-the tool dialect). In Cleanup `AGENT_TOOL_NAMES` loses `switchLanguage` and
-`AGENT_TARGET_KINDS` loses `technology`; the `V4` names stay.
-
-`src/data/chat/agentTools.ts`:
+`src/data/chat/agentTools.ts` holds the catalogue both sides use (framework-free; it imports with
+`.js` specifiers because `server/**` runs it on Node):
 
 ```ts
-import type { CvPage } from '../cvPage.js';
+/** One string parameter restricted to an enum of real ids. */
+export interface AgentToolEnumParam {
+  type: 'string';
+  description: string;
+  enum: string[];
+}
+
+/** Strict-compatible JSON Schema: an object, every property required, nothing extra. */
+export type AgentToolInputSchema = {
+  type: 'object';
+  properties: Record<string, AgentToolEnumParam>;
+  required: string[];
+  additionalProperties: false;
+};
+
+/** A tool as the model sees it; WebMCP's shape minus `execute`. */
+export interface AgentToolSpec {
+  name: AgentToolName;
+  /** For the model; English, one or two sentences. */
+  description: string;
+  inputSchema: AgentToolInputSchema;
+  /** Outward or irreversible: the chat asks the visitor before running it. */
+  confirm: boolean;
+}
+
+/** What the chat needs from the page: implemented by the browser registry, faked in tests. */
+export interface AgentToolExecutor {
+  /** The full catalogue, mounted or not. */
+  specs(): AgentToolSpec[];
+  /** Tools registered right now, sorted (`AgentPageStateV4.tools`). */
+  available(): AgentToolName[];
+  /** Never throws: invalid input → `invalid_params`, unmounted tool → `not_available`. */
+  execute(call: AgentToolCall): Promise<AgentToolResult>;
+}
 
 /**
- * Every highlightable target, `<kind>:<id>`: sections, then impact cards, jobs, Transcenda's
- * projects (`app:`), skill groups, books, contacts (header buttons), in data order. 37 today.
+ * Every highlightable target of the one page (v4), `<kind>:<id>`: sections, then impact cards,
+ * jobs, Transcenda's projects (`app:`), skill groups, books, contacts (header buttons), in data
+ * order. 37 today.
  */
 export declare function cvPageTargetIds(page: CvPage): AgentTargetId[];
 
-/** The page's catalogue: deterministic (sorted by name, ids in data order). */
+/** The one page's catalogue (v4): deterministic (sorted by name, ids in data order). */
 export declare function buildCvPageToolSpecs(page: CvPage): AgentToolSpec[];
 ```
 
-Server side (informational): `LLM_TOOLS_V4`, built once from `cvPage.json`; the knowledge loader
-for v4 takes no arguments; `validateV4` checks the snapshot against `CV_SECTION_IDS` and the
-catalogue's targets and names. The show (v3) grounds its replies in the same knowledge from the
-Show task on.
+Server side (informational): `LLM_TOOLS_V4`, built once from `cvPage.json`, maps each spec to an
+Anthropic tool as `{ name, description, input_schema: inputSchema, strict: true }` (`confirm`
+stays client-side); the knowledge loader for v4 takes no arguments; `validateV4` checks the
+snapshot against `CV_SECTION_IDS` and the catalogue's targets and names. The show (v3) grounds its
+replies in the same knowledge.
 
 ### Tool catalogue
 
@@ -165,15 +289,13 @@ Show task on.
 Item ids are the `id` fields of `ImpactCard`, `CvJob`, `CvProject`, `SkillGroup`, `Book` and
 `CvContact` (`src/data/cvPage.ts`, ADR-0006 → Decision 1), checked by `cvPageIds.test.ts`. On the
 page they are `data-agent-id` attributes the home screen sets (`agentTargetProps`); the
-`contact:` targets are the header's buttons, the footer's pills carry none.
+`contact:` targets are the header's buttons, the footer's pills carry none. A call with a value
+outside the enum (e.g. from a tab opened before a deploy that changed the data) gets
+`invalid_params` and nothing runs.
 
-**Telegram removed** (CV-124, the human, 2026-10-05): `telegram` left `CV_CONTACT_CHANNELS`, the
-CV data and the `openContact` description; `contact:` went from 4 targets to 3 (38 → 37). Client
-and server deploy together, so `v` stays `4`: a tab opened before the deploy that still asks for
-`openContact` `telegram` or `highlightElement` `contact:telegram` (or gets such a call from the
-model, which no longer offers it) gets the normal enum handling, `invalid_params`, and nothing opens.
+### Example: one tool round
 
-### Example: one question
+Request 1 (the visitor asks):
 
 ```json
 { "v": 4, "messages": [
@@ -183,11 +305,33 @@ model, which no longer offers it) gets the normal enum handling, `invalid_params
               "tools": ["highlightElement", "openContact", "scrollToSection"] } } ] }
 ```
 
-Response: `delta` "Scrolling to his selected impact." then `tool_call`
-`{"id":"toolu_01C","name":"scrollToSection","input":{"section":"impact"}}` then `done` with
-`tool_use`; the follow-up carries the tool result as in the v2 example, with `"v": 4`.
+Response 1:
 
-A v2 body after the Cleanup task:
+```text
+event: delta
+data: {"text":"Scrolling to his selected impact."}
+
+event: tool_call
+data: {"id":"toolu_01C","name":"scrollToSection","input":{"section":"impact"}}
+
+event: done
+data: {"stopReason":"tool_use","usage":{"inputTokens":3650,"outputTokens":48,"cacheReadInputTokens":0,"cacheCreationInputTokens":0}}
+
+```
+
+Request 2 (follow-up after the client scrolled):
+
+```json
+{ "v": 4, "messages": [
+  { "role": "user", "content": "Show his selected impact", "page": { "...": "as sent in request 1" } },
+  { "role": "assistant", "content": "Scrolling to his selected impact.",
+    "toolCalls": [ { "id": "toolu_01C", "name": "scrollToSection", "input": { "section": "impact" } } ] },
+  { "role": "user", "toolResults": [ { "callId": "toolu_01C", "result": { "ok": true } } ] } ] }
+```
+
+Response 2: `delta` "Here are his three selected results." then `done` with `end_turn`.
+
+A body with another `v` (here a stale tab on the retired v2):
 
 ```text
 HTTP/1.1 400 Bad Request
@@ -204,62 +348,58 @@ estimated at 3.5 chars/token (the knowledge loader's rule) until the real `count
 | Block | Chars | ≈ Tokens |
 |---|---|---|
 | Knowledge (`<knowledge>` with `<document id="cv" title="CV">`) | 7,005 | 2,000 |
-| Tools JSON (3 tools, 38 targets) | 1,981 | 570 |
+| Tools JSON (3 tools, 38 targets at the time) | 1,981 | 570 |
 | `INSTRUCTIONS` + `PAGE_TOOL_INSTRUCTIONS` + site-language line | 3,757 | 1,070 |
 
 Static prefix: about **12,750 chars ≈ 3,650 tokens**, plus Anthropic's tool-use system prompt
-(a few hundred tokens), so **≈ 4,000 tokens**, one per model (today: three). For comparison,
-`/new` EN on v2 is 11,088 chars. On Haiku 4.5 it is just under the 4,096-token cache minimum;
-the automatic marker caches it once the history passes that. About $0.004 per uncached request on
-Haiku. The exact count (`count_tokens`) and the golden check run with the real model when CV-45
-runs (ADR-0006 action 3).
+(a few hundred tokens), so **≈ 4,000 tokens**, one per model. On Haiku 4.5 it is just under the
+4,096-token cache minimum; the automatic marker caches it once the history passes that. About
+$0.004 per uncached request on Haiku. The exact count (`count_tokens`) and the golden check run
+with the real model when CV-45 runs (ADR-0006 action 3).
 
 
 ## v3: the show dialect
 
-> Final (GRA-41). Design: [`../retro/ARCHITECTURE.md`](../retro/ARCHITECTURE.md) §3–4, decision:
+> Design: [`../retro/ARCHITECTURE.md`](../retro/ARCHITECTURE.md) §3–4, decision:
 > [`../adr/0003-retro-live-fix-show.md`](../adr/0003-retro-live-fix-show.md). Types live in
-> `src/data/retro/contract.ts` (wire) and `src/data/retro/scenario.ts` (scenario manifest); the
-> blocks below are copies, the files win if they ever differ.
+> `src/data/retro/contract.ts` (wire), `src/data/retro/scenario.ts` and `scenarios.ts` (scenario
+> manifest); the blocks below are copies, the files win if they ever differ.
 
 The Retro Rebuild show (the CV opens as a broken 2000s site and an "agent" fixes it live) uses
 the same endpoint for its LLM parts: one **`narrate`** request per show for the commentary on
-every step, and one **`reply`** request per visitor message in the show's terminal chat. The fix
+every step, and one **`reply`** request per visitor message in the show's agent chat. The fix
 steps themselves are authored and never chosen by the model.
 
-**Why a new version:** v3 is a sibling dialect, not a successor of v2: the chat widget sent
-v2 when v3 was introduced (it sends v4 now); the server then served v1, v2 and v3 and serves v3 and
-v4 today. `v` is the discriminator the contract
-already versions by, so a deployment without v3 answers `400 unsupported_version` (the show then
-runs scripted) instead of silently treating a show request as a chat (unknown fields are ignored).
-Everything else is v1's: the endpoint, headers, Origin/size guards, rate limits, the kill switch,
-the error body and codes, SSE framing and stream guarantees. The response header is
-`X-Chat-Api-Version: 3`.
+**Why a version of its own:** v3 is a sibling dialect, not a successor of v4. `v` is the
+discriminator the contract versions by, so a deployment without v3 answers
+`400 unsupported_version` (the show then runs scripted) instead of silently treating a show
+request as a chat (unknown fields are ignored). Everything else is the
+[shared rules](#shared-rules-v3-and-v4): the endpoint, headers, Origin/size guards, rate limits,
+the kill switch, the error body and codes, SSE framing and stream guarantees. The response header
+is `X-Chat-Api-Version: 3`.
 
-### What changes from v1
-
-(v1 is under [History](#v1-request-body-types-and-example); the rest is the shared rules.)
+### Request
 
 | Area | v3 |
 |---|---|
 | `v` | `3` |
 | `locale` | Must be `"en"` (the show is English only); anything else: `400 invalid_request`. |
 | `kind` | `"narrate"` or `"reply"`; anything else or missing: `400 invalid_request`. |
-| `scenario` | A known scenario id, the one the page was built with: `retro-4` (the one v3 page, ADR-0006 → Decision 4; `retro-3` and `retro-new-1` are retired since CV-112) (`ShowScenarioId`, the keys of `SHOW_SCENARIOS` in `src/data/retro/scenarios.ts`). A string the server doesn't know (a tab opened before a deploy that changed the steps): `400 unsupported_version`. Not a string: `400 invalid_request`. |
+| `scenario` | A known scenario id, the one the page was built with: `retro-4` (`ShowScenarioId`, the keys of `SHOW_SCENARIOS` in `src/data/retro/scenarios.ts`). A string the server doesn't know (a tab opened before a deploy that changed the steps): `400 unsupported_version`. Not a string: `400 invalid_request`. |
 | `narrate` body | `v`, `locale`, `kind`, `scenario` only; other fields ignored. No conversation, no CV knowledge. |
-| `reply` body | Adds `step` (the step on screen when the message was sent: a step id of the scenario, or `null` before the first step and after the last), `stepsDone` (integer, `0` to the number of steps) and `messages` (v1 shape and rules: roles alternate, start and end with `user`). A bad `step` or `stepsDone`: `400 invalid_request`. |
-| Limits (`reply`) | `messages` 1 to **20** (10 visitor messages; more: `422 conversation_limit`); a `user` message at most **1,000** chars, an `assistant` message at most **1,000** chars (`413 too_long`); v1's total and body limits still apply. |
-| SSE | `narrate`: `line`\* then `done`/`error`. `reply`: `delta`\* then `done`/`error` (as v1). No `tool_call`. |
-| Errors | No new codes. |
+| `reply` body | Adds `step` (the step on screen when the message was sent: a step id of the scenario, or `null` before the first step and after the last), `stepsDone` (integer, `0` to the number of steps) and `messages` (the shared `ChatMessage` shape and conversation rules: roles alternate, start and end with `user`). A bad `step` or `stepsDone`: `400 invalid_request`. |
+| Limits (`reply`) | `messages` 1 to **20** (10 visitor messages; more: `422 conversation_limit`); a `user` message at most **1,000** chars, an `assistant` message at most **1,000** chars (`413 too_long`); the shared total and body limits still apply. |
+| SSE | `narrate`: `line`\* then `done`/`error`. `reply`: `delta`\* then `done`/`error` (the shared stream). No `tool_call`. |
+| Errors | No codes of its own. |
 
 ### Stream
 
 | Kind | Event | `data` | When |
 |---|---|---|---|
 | `narrate` | `line` | `{ "key": RetroNarrationKey, "text": string }` | Once per complete line the model wrote, in the model's order. `key` is a step id or `"finale"`; unknown keys and repeats (first occurrence wins) are dropped; `text` is plain text, trimmed, at most **200** chars. Some keys may never arrive. |
-| `reply` | `delta` | `{ "text": string }` | As v1: the next piece of the answer. |
-| both | `done` | `{ "stopReason": ChatStopReason, "usage": ChatUsage }` | Terminal, as v1. For `narrate`, `max_tokens` means the lines so far are all there is. |
-| both | `error` | `ChatError` | Terminal, as v1 (`upstream_error`, `internal_error`). Lines already streamed stay valid. |
+| `reply` | `delta` | `{ "text": string }` | As in the shared stream: the next piece of the answer. |
+| both | `done` | `{ "stopReason": ChatStopReason, "usage": ChatUsage }` | Terminal, as in the shared stream. For `narrate`, `max_tokens` means the lines so far are all there is. |
+| both | `error` | `ChatError` | Terminal (`upstream_error`, `internal_error`). Lines already streamed stay valid. |
 
 Client behaviour (the show never waits on the LLM):
 
@@ -274,19 +414,19 @@ Client behaviour (the show never waits on the LLM):
 
 Server side (informational): `narrate` asks for one line per step plus the finale, at most 20
 words each, `max_tokens` 800, 20 s deadline. `reply` answers in at most 60 words, grounded in the
-content of the scenario's page like the chat on that page (`/`: the CV, `/new`: the profile), with
-the show state (`step`, `stepsDone`, number of steps) passed to the model as data, `max_tokens`
-300, the normal deadline. The log line carries `v: 3`, the kind, the step id and
-the number of narration lines, never text.
+CV page's knowledge like the page chat, with the show state (`step`, `stepsDone`, number of steps)
+passed to the model as data, `max_tokens` 300, the normal deadline. The log line carries `v: 3`,
+the kind, the step id and the number of narration lines, never text.
 
 ### Types
 
 `src/data/retro/scenario.ts` and `scenarios.ts` (the ids; titles, intents and fallbacks are in the
-files; every scenario has the same step ids):
+files):
 
 ```ts
-export const RETRO_SCENARIO_ID = 'retro-3'; // `/`; `/new` is RETRO_NEW_SCENARIO_ID = 'retro-new-1'
-export type ShowScenarioId = keyof typeof SHOW_SCENARIOS; // 'retro-3' | 'retro-new-1'
+/** Bump whenever the steps change: the server answers an unknown id with `unsupported_version`. */
+export const RETRO_SCENARIO_ID = 'retro-4';
+export type ShowScenarioId = keyof typeof SHOW_SCENARIOS; // 'retro-4'
 
 export const RETRO_STEP_IDS = [
   'fonts', 'colours', 'layout', 'images', 'cards', 'spacing', 'chrome', 'links',
@@ -297,7 +437,8 @@ export const RETRO_NARRATION_KEYS = [...RETRO_STEP_IDS, 'finale'] as const;
 export type RetroNarrationKey = (typeof RETRO_NARRATION_KEYS)[number];
 ```
 
-`src/data/retro/contract.ts` (`ChatError`, `ChatMessage`, `ChatStopReason`, `ChatUsage` are v1's):
+`src/data/retro/contract.ts` (`ChatError`, `ChatMessage`, `ChatStopReason`, `ChatUsage` are the
+[shared types](#types-shared)):
 
 ```ts
 export const CHAT_API_VERSION_V3 = 3;
@@ -353,20 +494,20 @@ export type ShowReplyStreamEvent =
 Request 1, when the show starts:
 
 ```json
-{ "v": 3, "locale": "en", "kind": "narrate", "scenario": "retro-3" }
+{ "v": 3, "locale": "en", "kind": "narrate", "scenario": "retro-4" }
 ```
 
 Response 1:
 
 ```text
 event: line
-data: {"key":"fonts","text":"Starting with typography: replacing the system fonts of the time with the current typeface and type scale."}
+data: {"key":"fonts","text":"Starting with typography: the current typeface and type scale, so the headline, the stats and the impact figures read at a glance."}
 
 event: line
 data: {"key":"layout","text":"Layout: replacing the fixed-width table layout, standard practice at the time, with a centred column and grids."}
 
 event: line
-data: {"key":"chrome","text":"Removing the navigation bar, marquee and footer badges of the original build, and restoring the language switcher."}
+data: {"key":"chrome","text":"Removing the navigation bar, marquee and footer badges of the original build, and restoring the meta bar."}
 
 event: line
 data: {"key":"finale","text":"All changes are applied. The site is up to date; the chat button in the bottom right corner answers questions about Andrew."}
@@ -376,11 +517,11 @@ data: {"stopReason":"end_turn","usage":{"inputTokens":1480,"outputTokens":92,"ca
 
 ```
 
-Request 2, the visitor writes during step 2:
+Request 2, the visitor writes during step 3:
 
 ```json
-{ "v": 3, "locale": "en", "kind": "reply", "scenario": "retro-3",
-  "step": "layout", "stepsDone": 1,
+{ "v": 3, "locale": "en", "kind": "reply", "scenario": "retro-4",
+  "step": "layout", "stepsDone": 2,
   "messages": [ { "role": "user", "content": "wow, a marquee! haven't seen one in 20 years" } ] }
 ```
 
@@ -389,195 +530,28 @@ Response 2: `delta` "It belongs to the 2002 layout. It goes in the cleanup step,
 
 ## Shared rules (v3 and v4)
 
-Headers, limits, framing and errors below apply to both served versions unless a dialect section
-overrides them (v4: `CHAT_LIMITS_V2`, 40 messages and 10 questions; v3 `reply`: see its table).
-They are written in v1's terms: read "the body" as the v4 or v3 body of the dialect section; the v1
-body is under [History](#history-v1-v2-and-the-page-aware-v2).
+Request body, base types, headers, limits, framing and errors below apply to both served versions
+unless a dialect section overrides them (v4: `CHAT_LIMITS_V2`, 40 messages and 10 questions, plus
+the `tool_call` event; v3 `reply`: see its table).
 
-### Request headers
+### Request body
 
-```http
-POST /api/chat HTTP/1.1
-Content-Type: application/json
-Accept: text/event-stream
-Origin: https://cv-web-inky-five.vercel.app
-```
-
-| Header | Rule |
+| Field | Rule |
 |---|---|
-| `Content-Type` | Required, must start with `application/json`, else `415 unsupported_media_type`. |
-| `Origin` | Required, its host must equal the request host (`X-Forwarded-Host`, else `Host`), else `403 forbidden_origin`. Browsers send it on every `fetch` POST; for `curl`, add it by hand. |
-| `Accept` | Optional. The response is always SSE on success. |
+| `v` | Missing or not a number: `400 invalid_request`. A number other than `3` or `4`: `400 unsupported_version`. |
+| `messages` | The whole conversation, oldest first, in the dialect's shapes; rules below. |
+| `messages[].content` | Plain text; a visitor's text must be non-empty after trimming. |
+| other fields | Ignored (forward compatibility: a newer client may send additive fields). |
 
-### Conversation rules and limits (v1 base)
+### Types (shared)
 
-v3 `reply` uses these with the changes in its table; v4 widens them to `CHAT_LIMITS_V2` (see its section).
-
-(`400 invalid_request` unless stated otherwise):
-
-1. `messages` has 1 to **20** items (10 visitor turns). More than 20: `422 conversation_limit`.
-2. Roles alternate, starting and ending with `user`.
-3. The client sends only assistant messages that finished with a `done` event (any `stopReason`),
-   with the text exactly as streamed. An answer that ended in `error` is dropped from the history;
-   the retry re-sends the same history ending with the same `user` message.
-
-Limits (lengths are JavaScript `String.length`; `413 too_long` when exceeded):
-
-| Limit | Value | Client behaviour |
-|---|---:|---|
-| One `user` message | **1,000** chars | Composer `maxLength` 1000. |
-| One `assistant` message | **4,000** chars | Never reached by real answers (`max_tokens` 800). |
-| All `content` together | **24,000** chars | The client starts a new chat past 20 messages first. |
-| Request body | **131,072** bytes (128 KiB) | Checked from `Content-Length` and while reading. |
-
-### Success response: SSE stream
-
-```http
-HTTP/1.1 200 OK
-Content-Type: text/event-stream; charset=utf-8
-Cache-Control: no-cache, no-transform
-X-Accel-Buffering: no
-X-Chat-Api-Version: 4
-X-Request-Id: 3f0c9a4e-6d2b-4a47-9a55-0d8f1c2b7e11
-```
-
-Framing is standard [Server-Sent Events](https://html.spec.whatwg.org/multipage/server-sent-events.html):
-each event is `event: <name>` + one `data: <json>` line + a blank line. The body is read with
-`fetch` + `ReadableStream` (not `EventSource`, which cannot POST). Lines starting with `:` are
-comments (the server may send `: ping` keep-alives); clients ignore them and any unknown event
-name or unknown JSON field.
-
-| Event | `data` payload | When |
-|---|---|---|
-| `delta` | `{ "text": string }` | Zero or more times: the next piece of the answer, to append as is. |
-| `done` | `{ "stopReason": ChatStopReason, "usage": ChatUsage }` | Terminal. The answer is complete. |
-| `error` | `ChatError` | Terminal. The stream failed after it started. |
-
-Stream guarantees:
-
-- Exactly one terminal event (`done` or `error`), then the server closes the stream.
-- A stream that ends without a terminal event (network drop, function timeout) is treated by the
-  client as `error` with code `upstream_error`, `retryable: true`.
-- `stopReason`:
-  - `end_turn`: a normal, complete answer.
-  - `max_tokens`: the answer hit the 800-token cap. The text so far is kept in the history; the
-    UI may show a "shortened" hint.
-  - `refusal`: the model's safety system declined. The UI shows a localized polite notice; the
-    message is kept in the history as streamed (it may be empty).
-- `usage` is informational (the widget does not show it); tests and dev tools may.
-
-### Error response (before the stream)
-
-Any non-2xx response. The body is JSON unless it came from the platform (see the last rows).
-
-```http
-HTTP/1.1 429 Too Many Requests
-Content-Type: application/json; charset=utf-8
-Cache-Control: no-store
-Retry-After: 42
-X-Chat-Api-Version: 4
-X-Request-Id: 9b1d...
-
-{ "error": { "code": "rate_limited", "message": "Too many messages. Try again in a minute.", "retryable": true, "retryAfterSeconds": 42, "requestId": "9b1d..." } }
-```
-
-`message` is English, for logs and developers only. The widget shows its own localized text per
-`code` (strings in `src/screens/chat/strings.ts`).
-
-| Status | `code` | `retryable` | Cause |
-|---:|---|---|---|
-| 400 | `invalid_request` | false | Malformed JSON, schema or conversation-rule violation. |
-| 400 | `unsupported_version` | false | `v` is a number other than `3` or `4` (an outdated tab after a breaking release). The widget asks to reload the page. |
-| 403 | `forbidden_origin` | false | `Origin` missing or not the site's host. |
-| 405 | `method_not_allowed` | false | Not `POST` (header `Allow: POST`). |
-| 413 | `too_long` | false | A length or body limit above. |
-| 415 | `unsupported_media_type` | false | `Content-Type` is not JSON. |
-| 422 | `conversation_limit` | false | More than 20 messages. The widget offers "Start a new chat". |
-| 429 | `rate_limited` | true | Per-IP limit (see below). `Retry-After` header (seconds) and `retryAfterSeconds`. |
-| 500 | `internal_error` | true | Unexpected server bug. |
-| 502 | `upstream_error` | per cause | Claude failed before the first byte: `true` for Anthropic 429/5xx/529, network, timeout; `false` for 4xx (bad key, bad model, spend limit reached). |
-| 503 | `unavailable` | true | Chat switched off (`CHAT_ENABLED=false`), `ANTHROPIC_API_KEY` missing, or the per-instance hourly cap is hit. `Retry-After` when known. |
-| 429 (platform) | none (non-JSON) | true | The Vercel Firewall rate-limit rule. The client maps any `429` without a parsable body to `rate_limited` and reads `Retry-After` if present (default 60 s). |
-| 5xx (platform) | none (non-JSON) | true | E.g. `504 FUNCTION_INVOCATION_TIMEOUT`. The client maps any unparsable non-2xx to `upstream_error` (`retryable: true` for 5xx, `false` otherwise). |
-
-Mid-stream `error` events use only `upstream_error` and `internal_error`.
-
-Rate limits behind `rate_limited` (all per client IP, best effort; details in `SYSTEM_DESIGN.md`):
-Vercel Firewall rule 30 requests / 10 min; in-function 8 requests / 60 s and 100 requests / 24 h.
-All `POST`s count, valid or not.
-
-### Versioning
-
-- The version lives in the body (`v`) and the `X-Chat-Api-Version` response header; the path
-  stays `/api/chat`. The site and the function deploy together, so skew only comes from tabs
-  opened before a deploy (Vercel Skew Protection is not on Hobby).
-- **Additive, non-breaking** changes keep `v: 1`: new optional request fields (the server ignores
-  unknown ones), new response fields, new SSE event names, new error codes (clients map unknown
-  codes to a generic "Something went wrong" and treat them as `retryable: false`).
-- **Breaking** changes bump `v`. The server then accepts the new and the previous version for at
-  least one release and answers others with `400 unsupported_version`.
-
-| `v` | What | Served | Sent by |
-|---|---|---|---|
-| 1 | Answers, no tools; knowledge of `/` | no (CV-114) | none |
-| 2 | Page-agent tools; optional `page` (`cv` = `/`, `profile` = `/new`) | no (CV-114) | none |
-| 3 | The show dialect (`narrate`, `reply`) | yes | the Show case |
-| 4 | The one-page chat (ADR-0006): v2's tools and stream, no `page`, no `locale`, the v3 page's catalogue | yes | the chat widget |
-
-A stale v1/v2 tab gets `400 unsupported_version` ("The chat has been updated. Please reload the
-page."). Retired in CV-114; the v1/v2 sections are under History.
-
-## History: v1, v2 and the page-aware v2
-
-> Not served since CV-114 (2026-10-05): a v1 or v2 request gets `400 unsupported_version`. Kept as
-> the record of the first designs and as the base v4 builds on (v4 reuses v2's tool dialect and
-> types). The text is as it was written; "Everything above" in these sections means the v1 parts
-> that follow here and the shared rules above. The two-page and Ukrainian parts (`/new`, `locale: "uk"`,
-> `switchLanguage`) no longer exist on the site.
-
-### v1: request body, types and example
-
-#### Request body (v1)
-
-```json
-{
-  "v": 1,
-  "locale": "uk",
-  "messages": [
-    { "role": "user", "content": "What does Andrew do?" },
-    { "role": "assistant", "content": "Andrew is a Senior Android Engineer..." },
-    { "role": "user", "content": "Які мобільні застосунки він робив?" }
-  ]
-}
-```
-
-| Field | Type | Rule |
-|---|---|---|
-| `v` | number | Must be `1`. Missing or not a number: `400 invalid_request`. Another number: `400 unsupported_version`. |
-| `locale` | `"en"` \| `"uk"` | The site language at send time. Used for the knowledge locale and as the reply language when the visitor's message language is unclear. Anything else: `400 invalid_request`. |
-| `messages` | array | The whole conversation, oldest first. See the rules below. |
-| `messages[].role` | `"user"` \| `"assistant"` | Anything else: `400 invalid_request`. |
-| `messages[].content` | string | Plain text. Must be non-empty after trimming. |
-| other fields | any | Ignored (forward compatibility: a newer client may send additive fields). |
-
-#### TypeScript types
-
-File: `src/data/chat/contract.ts`. Framework-free (no React, DOM, Vite or Node imports), because
-`server/chat/**` imports it too. Copy verbatim.
+`src/data/chat/contract.ts`, framework-free (no React, DOM, Vite or Node imports) because
+`server/chat/**` imports it too:
 
 ```ts
-/**
- * AI CV chat API contract, v1 and v2 (docs/chat/API.md). Shared by the widget (`src/data/chat/**`) and the
- * backend (`server/chat/**`). Keep it framework-free: no React, DOM, Vite or Node imports.
- */
-
 export const CHAT_API_PATH = '/api/chat';
-export const CHAT_API_VERSION = 1;
 export const CHAT_API_VERSION_HEADER = 'X-Chat-Api-Version';
 export const CHAT_REQUEST_ID_HEADER = 'X-Request-Id';
-
-export const CHAT_LOCALES = ['en', 'uk'] as const;
-export type ChatLocale = (typeof CHAT_LOCALES)[number];
 
 /** Request limits; lengths are `String.length`. Exceeding one is `too_long` (or `conversation_limit`). */
 export const CHAT_LIMITS = {
@@ -590,17 +564,11 @@ export const CHAT_LIMITS = {
 
 export type ChatRole = 'user' | 'assistant';
 
+/** A plain text message (the show's `reply` conversation). */
 export interface ChatMessage {
   role: ChatRole;
   /** Plain text, non-empty after trimming. */
   content: string;
-}
-
-/** `POST /api/chat` body. Roles alternate, starting and ending with `user`. */
-export interface ChatRequest {
-  v: typeof CHAT_API_VERSION;
-  locale: ChatLocale;
-  messages: ChatMessage[];
 }
 
 export type ChatStopReason = 'end_turn' | 'max_tokens' | 'refusal';
@@ -639,70 +607,81 @@ export interface ChatError {
 export interface ChatErrorBody {
   error: ChatError;
 }
-
-/** SSE event names and the JSON in their `data:` line. */
-export interface ChatSsePayloads {
-  delta: { text: string };
-  done: { stopReason: ChatStopReason; usage: ChatUsage };
-  error: ChatError;
-}
-export type ChatSseEventName = keyof ChatSsePayloads;
-
-/** What `ChatRepository` yields to the app: one SSE event, or a pre-stream/transport error. */
-export type ChatStreamEvent =
-  | { type: 'delta'; text: string }
-  | { type: 'done'; stopReason: ChatStopReason; usage: ChatUsage }
-  | { type: 'error'; error: ChatError };
 ```
 
-#### Example exchange
+### Request headers
 
-Request (second turn, Ukrainian site, visitor switches to Ukrainian):
-
-```json
-{
-  "v": 1,
-  "locale": "uk",
-  "messages": [
-    { "role": "user", "content": "Hi! What is Andrew's current role?" },
-    { "role": "assistant", "content": "Andrew is a Senior Android Engineer with iOS experience. His latest role was Senior Android Developer at Transcenda (Feb 2021 - Feb 2026)." },
-    { "role": "user", "content": "Над якими застосунками він працював?" }
-  ]
-}
+```http
+POST /api/chat HTTP/1.1
+Content-Type: application/json
+Accept: text/event-stream
+Origin: https://cv-web-inky-five.vercel.app
 ```
 
-Response:
+| Header | Rule |
+|---|---|
+| `Content-Type` | Required, must start with `application/json`, else `415 unsupported_media_type`. |
+| `Origin` | Required, its host must equal the request host (`X-Forwarded-Host`, else `Host`), else `403 forbidden_origin`. Browsers send it on every `fetch` POST; for `curl`, add it by hand. |
+| `Accept` | Optional. The response is always SSE on success. |
 
-```text
+### Conversation rules and limits
+
+The base (`CHAT_LIMITS`); v3 `reply` uses it with the changes in its table, v4 widens it to
+`CHAT_LIMITS_V2` (see its section).
+
+(`400 invalid_request` unless stated otherwise):
+
+1. `messages` has 1 to **20** items (10 visitor turns). More than 20: `422 conversation_limit`.
+2. Roles alternate, starting and ending with `user`.
+3. The client sends only assistant messages that finished with a `done` event (any `stopReason`),
+   with the text exactly as streamed. An answer that ended in `error` is dropped from the history;
+   the retry re-sends the same history ending with the same `user` message.
+
+Limits (lengths are JavaScript `String.length`; `413 too_long` when exceeded):
+
+| Limit | Value | Client behaviour |
+|---|---:|---|
+| One `user` message | **1,000** chars | Composer `maxLength` 1000. |
+| One `assistant` message | **4,000** chars | Never reached by real answers (`max_tokens` 800). |
+| All `content` together | **24,000** chars | The client offers a new chat at the message cap first. |
+| Request body | **131,072** bytes (128 KiB) | Checked from `Content-Length` and while reading. |
+
+### Success response: SSE stream
+
+```http
 HTTP/1.1 200 OK
 Content-Type: text/event-stream; charset=utf-8
 Cache-Control: no-cache, no-transform
-X-Chat-Api-Version: 1
+X-Accel-Buffering: no
+X-Chat-Api-Version: 4
 X-Request-Id: 3f0c9a4e-6d2b-4a47-9a55-0d8f1c2b7e11
-
-event: delta
-data: {"text":"Андрій відповідав за ключові функції "}
-
-event: delta
-data: {"text":"застосунків для розумного дому Cync і August Home, "}
-
-event: delta
-data: {"text":"кожен з яких має понад 1 млн користувачів."}
-
-event: done
-data: {"stopReason":"end_turn","usage":{"inputTokens":2014,"outputTokens":61,"cacheReadInputTokens":0,"cacheCreationInputTokens":0}}
-
 ```
 
-The same request with an 1,001-character last message:
+Framing is standard [Server-Sent Events](https://html.spec.whatwg.org/multipage/server-sent-events.html):
+each event is `event: <name>` + one `data: <json>` line + a blank line. The body is read with
+`fetch` + `ReadableStream` (not `EventSource`, which cannot POST). Lines starting with `:` are
+comments (the server may send `: ping` keep-alives); clients ignore them and any unknown event
+name or unknown JSON field.
 
-```text
-HTTP/1.1 413 Payload Too Large
-Content-Type: application/json; charset=utf-8
-X-Chat-Api-Version: 1
+| Event | `data` payload | When |
+|---|---|---|
+| `delta` | `{ "text": string }` | Zero or more times: the next piece of the answer, to append as is. |
+| `done` | `{ "stopReason": ChatStopReason, "usage": ChatUsage }` | Terminal. The answer is complete. |
+| `error` | `ChatError` | Terminal. The stream failed after it started. |
 
-{"error":{"code":"too_long","message":"messages[2].content exceeds 1000 characters","retryable":false,"requestId":"..."}}
-```
+Stream guarantees:
+
+- Exactly one terminal event (`done` or `error`), then the server closes the stream.
+- A stream that ends without a terminal event (network drop, function timeout) is treated by the
+  client as `error` with code `upstream_error`, `retryable: true`.
+- `stopReason`:
+  - `end_turn`: a normal, complete answer.
+  - `max_tokens`: the answer hit the 800-token cap. The text so far is kept in the history; the
+    UI may show a "shortened" hint.
+  - `refusal`: the model's safety system declined. The UI shows a polite notice; the message is
+    kept in the history as streamed (it may be empty).
+  - `tool_use` (v4 only): see the v4 stream.
+- `usage` is informational (the widget does not show it); tests and dev tools may.
 
 A stream that fails midway ends with:
 
@@ -712,475 +691,71 @@ data: {"code":"upstream_error","message":"Upstream stream failed: overloaded","r
 
 ```
 
----
+### Error response (before the stream)
 
-### v2: page-agent tools
+Any non-2xx response. The body is JSON unless it came from the platform (see the last rows).
 
-> Final (GRA-32). Design: [`AGENT.md`](AGENT.md), decision:
-> [`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md). Everything above stays the
-> v1 contract. Types live in `src/data/chat/contract.ts` (wire) and `src/data/chat/agentTools.ts`
-> (tool catalogue); the blocks below are copies, the files win if they ever differ. The
-> [page-aware section](#page-aware-chat-v2--page) adds `page` and widens `AgentPageState`,
-> `AGENT_TARGET_KINDS` and `ChatRequestV2`; read the blocks below together with it.
+```http
+HTTP/1.1 429 Too Many Requests
+Content-Type: application/json; charset=utf-8
+Cache-Control: no-store
+Retry-After: 42
+X-Chat-Api-Version: 4
+X-Request-Id: 9b1d...
 
-**Why a new version:** messages gain new shapes and a stream can now end with
-`stopReason: 'tool_use'`, which a v1 widget can't handle. Per Versioning, the server serves
-`v: 1` exactly as above (no tools) and `v: 2` as below, both for at least one release.
+{ "error": { "code": "rate_limited", "message": "Too many messages. Try again in a minute.", "retryable": true, "retryAfterSeconds": 42, "requestId": "9b1d..." } }
+```
 
-#### What changes from v1
+`message` is English, for logs and developers only. The widget shows its own text per `code`
+(strings in `src/screens/chat/strings.ts`).
 
-| Area | v2 |
-|---|---|
-| `v` | `2` |
-| Tools | The server always sends the full tool catalogue (`buildAgentToolSpecs`) to the model. The client never sends tool definitions. |
-| User message | `{ role: 'user', content, page }`: text + the page snapshot at send time (kept in the history and echoed verbatim). |
-| Tool-call turn | `{ role: 'assistant', content, toolCalls, providerState? }`: `content` may be empty when `toolCalls` is present. |
-| Tool results | `{ role: 'user', toolResults }`, right after the assistant message with `toolCalls`, one result per call id, same order. |
-| Roles | Still alternate, start with a text `user` message, end with a `user` message (text or results). |
-| Limits | `maxMessages` **40** (`422 conversation_limit` above); at most **10** text `user` messages; per-question and total char limits as v1; `page` at most 1,000 chars as JSON; `providerState` at most 16,384 chars; at most 3 `toolCalls` per assistant message; at most 2 consecutive tool rounds after the last text `user` message (the server then answers with tools disabled). |
-| SSE | New event `tool_call`; `done.stopReason` adds `'tool_use'`; `done` may carry `providerState`. |
-| Errors | No new codes: v2 shape violations are `400 invalid_request`; budget stop is `503 unavailable` with `retryAfterSeconds`. |
+| Status | `code` | `retryable` | Cause |
+|---:|---|---|---|
+| 400 | `invalid_request` | false | Malformed JSON, schema or conversation-rule violation. |
+| 400 | `unsupported_version` | false | `v` is a number other than `3` or `4` (an outdated tab after a breaking release). The widget asks to reload the page. |
+| 403 | `forbidden_origin` | false | `Origin` missing or not the site's host. |
+| 405 | `method_not_allowed` | false | Not `POST` (header `Allow: POST`). |
+| 413 | `too_long` | false | A length or body limit above. |
+| 415 | `unsupported_media_type` | false | `Content-Type` is not JSON. |
+| 422 | `conversation_limit` | false | More messages than the dialect allows (v4: 40 messages or an 11th question; v3 `reply`: 20). The widget offers "Start a new chat". |
+| 429 | `rate_limited` | true | Per-IP limit (see below). `Retry-After` header (seconds) and `retryAfterSeconds`. |
+| 500 | `internal_error` | true | Unexpected server bug. |
+| 502 | `upstream_error` | per cause | Claude failed before the first byte: `true` for Anthropic 429/5xx/529, network, timeout; `false` for 4xx (bad key, bad model, spend limit reached). |
+| 503 | `unavailable` | true | Chat switched off (`CHAT_ENABLED=false`), `ANTHROPIC_API_KEY` missing, the per-instance hourly cap is hit, or the daily budget is spent. `Retry-After` when known. |
+| 429 (platform) | none (non-JSON) | true | The Vercel Firewall rate-limit rule. The client maps any `429` without a parsable body to `rate_limited` and reads `Retry-After` if present (default 60 s). |
+| 5xx (platform) | none (non-JSON) | true | E.g. `504 FUNCTION_INVOCATION_TIMEOUT`. The client maps any unparsable non-2xx to `upstream_error` (`retryable: true` for 5xx, `false` otherwise). |
 
-#### Stream
+The same question with an 1,001-character text:
 
-| Event | `data` | When |
+```text
+HTTP/1.1 413 Payload Too Large
+Content-Type: application/json; charset=utf-8
+X-Chat-Api-Version: 4
+
+{"error":{"code":"too_long","message":"messages[0].content exceeds 1000 characters","retryable":false,"requestId":"..."}}
+```
+
+Mid-stream `error` events use only `upstream_error` and `internal_error`.
+
+Rate limits behind `rate_limited` (all per client IP, best effort; details in `SYSTEM_DESIGN.md`):
+Vercel Firewall rule 30 requests / 10 min; in-function 8 requests / 60 s and 100 requests / 24 h.
+All `POST`s count, valid or not.
+
+### Versioning
+
+- The version lives in the body (`v`) and the `X-Chat-Api-Version` response header; the path
+  stays `/api/chat`. The site and the function deploy together, so skew only comes from tabs
+  opened before a deploy (Vercel Skew Protection is not on Hobby).
+- **Additive, non-breaking** changes keep `v`: new optional request fields (the server ignores
+  unknown ones), new response fields, new SSE event names, new error codes (clients map unknown
+  codes to a generic "Something went wrong" and treat them as `retryable: false`).
+- **Breaking** changes bump `v`. The server then accepts the new and the previous version for at
+  least one release and answers others with `400 unsupported_version`.
+
+| `v` | What | Sent by |
 |---|---|---|
-| `delta` | `{ "text": string }` | As v1 (usually one short sentence before a tool call). |
-| `tool_call` | `AgentToolCall` | Once per completed `tool_use` block, in order. |
-| `done` | `{ stopReason, usage, providerState? }` | Terminal. With `stopReason: 'tool_use'` the client executes the calls **after** `done`, then posts a follow-up. |
-| `error` | `ChatError` | Terminal, as v1. The client runs no tool from a stream that ended in `error`. |
-
-#### Types
-
-`src/data/chat/contract.ts`, after the v1 block:
-
-```ts
-export const CHAT_API_VERSION_V2 = 2;
-
-/** v2 limits: v1's char limits plus the tool-loop caps. */
-export const CHAT_LIMITS_V2 = {
-  ...CHAT_LIMITS,
-  maxMessages: 40,
-  /** Text `user` messages (questions) per conversation. */
-  maxUserQuestions: 10,
-  /** `JSON.stringify(page).length`. */
-  maxPageStateChars: 1_000,
-  maxProviderStateChars: 16_384,
-  maxToolCallsPerMessage: 3,
-  /** Assistant `toolCalls` messages after the last text `user` message; then tools are off. */
-  maxToolRoundsPerTurn: 2,
-} as const;
-
-/** Sorted, like the tool list the model gets. */
-export const AGENT_TOOL_NAMES = [
-  'highlightElement',
-  'openContact',
-  'scrollToSection',
-  'switchLanguage',
-] as const;
-export type AgentToolName = (typeof AGENT_TOOL_NAMES)[number];
-
-/** CV page sections in page order; `data-agent-id="section:<id>"`. */
-export const AGENT_SECTION_IDS = [
-  'header',
-  'summary',
-  'technologies',
-  'latest-experience',
-  'apps',
-  'education',
-  'about',
-  'previous-experience',
-] as const;
-export type AgentSectionId = (typeof AGENT_SECTION_IDS)[number];
-
-/** Contact channels of the CV header (`Contacts`); `data-agent-id="contact:<channel>"`. */
-export const AGENT_CONTACT_CHANNELS = ['email', 'whatsapp', 'linkedin'] as const;
-export type AgentContactChannel = (typeof AGENT_CONTACT_CHANNELS)[number];
-
-/** Target kinds; item ids (`technology`, `experience`, `app`, `book`) come from the CV JSON. */
-export const AGENT_TARGET_KINDS = [
-  'section',
-  'technology',
-  'experience',
-  'app',
-  'book',
-  'contact',
-] as const;
-export type AgentTargetKind = (typeof AGENT_TARGET_KINDS)[number];
-
-/** `<kind>:<id>`, the value of the target element's `data-agent-id`. */
-export type AgentTargetId = `${AgentTargetKind}:${string}`;
-
-export const AGENT_VIEWPORTS = ['desktop', 'mobile'] as const;
-/** The chat widget's layout: floating card (desktop) or full-screen sheet (under 600 px). */
-export const AGENT_CHAT_LAYOUTS = ['card', 'sheet'] as const;
-
-/** Page snapshot sent with each question: enums and booleans only, never text or values. */
-export interface AgentPageState {
-  route: '/';
-  locale: ChatLocale;
-  viewport: (typeof AGENT_VIEWPORTS)[number];
-  chat: (typeof AGENT_CHAT_LAYOUTS)[number];
-  activeSection: AgentSectionId | null;
-  highlighted: AgentTargetId | null;
-  /** Tools registered (mounted) right now, sorted. */
-  tools: AgentToolName[];
-}
-
-/** One `tool_use` of the model, streamed as a `tool_call` event and echoed in `toolCalls`. */
-export interface AgentToolCall {
-  /** The model's `tool_use` id. */
-  id: string;
-  name: AgentToolName;
-  /** Validated by the client against the tool's JSON Schema before anything runs. */
-  input: Record<string, unknown>;
-}
-
-export const AGENT_TOOL_ERRORS = [
-  'not_available',
-  'unknown_target',
-  'invalid_params',
-  'declined',
-  'failed',
-] as const;
-export type AgentToolError = (typeof AGENT_TOOL_ERRORS)[number];
-
-/** Fixed enums only: no page text ever goes back to the model. */
-export type AgentToolResult = { ok: true } | { ok: false; error: AgentToolError };
-
-export interface AgentToolResultItem {
-  /** The `AgentToolCall.id` it answers. */
-  callId: string;
-  result: AgentToolResult;
-}
-
-/** A visitor question with the page snapshot taken when it was sent. */
-export interface ChatUserMessageV2 {
-  role: 'user';
-  /** Plain text, non-empty after trimming. */
-  content: string;
-  page: AgentPageState;
-}
-
-/** Results of the preceding assistant message's `toolCalls`: one per call, same order. */
-export interface ChatToolResultsMessageV2 {
-  role: 'user';
-  toolResults: AgentToolResultItem[];
-}
-
-export interface ChatAssistantMessageV2 {
-  role: 'assistant';
-  /** May be empty when `toolCalls` is present. */
-  content: string;
-  toolCalls?: AgentToolCall[];
-  /** Opaque, from `done.providerState`; echoed verbatim, never parsed by the client. */
-  providerState?: string;
-}
-
-export type ChatMessageV2 = ChatUserMessageV2 | ChatToolResultsMessageV2 | ChatAssistantMessageV2;
-
-/** Roles alternate, start with a text `user` message and end with a `user` message. */
-export interface ChatRequestV2 {
-  v: typeof CHAT_API_VERSION_V2;
-  locale: ChatLocale;
-  messages: ChatMessageV2[];
-}
-
-/** `tool_use`: the client runs the streamed calls, then posts the results in a follow-up. */
-export type ChatStopReasonV2 = ChatStopReason | 'tool_use';
-
-export interface ChatSsePayloadsV2 {
-  delta: { text: string };
-  tool_call: AgentToolCall;
-  done: { stopReason: ChatStopReasonV2; usage: ChatUsage; providerState?: string };
-  error: ChatError;
-}
-export type ChatSseEventNameV2 = keyof ChatSsePayloadsV2;
-
-/** v2 stream events for the app; tool calls run only after `done` with `stopReason: 'tool_use'`. */
-export type ChatStreamEventV2 =
-  | { type: 'delta'; text: string }
-  | ({ type: 'tool_call' } & AgentToolCall)
-  | { type: 'done'; stopReason: ChatStopReasonV2; usage: ChatUsage; providerState?: string }
-  | { type: 'error'; error: ChatError };
-```
-
-`src/data/chat/agentTools.ts` holds the catalogue both sides use (framework-free; it imports with
-`.js` specifiers because `server/**` runs it on Node):
-
-```ts
-/** One string parameter restricted to an enum of real ids. */
-export interface AgentToolEnumParam {
-  type: 'string';
-  description: string;
-  enum: string[];
-}
-
-/** Strict-compatible JSON Schema: an object, every property required, nothing extra. */
-export type AgentToolInputSchema = {
-  type: 'object';
-  properties: Record<string, AgentToolEnumParam>;
-  required: string[];
-  additionalProperties: false;
-};
-
-/** A tool as the model sees it; WebMCP's shape minus `execute`. */
-export interface AgentToolSpec {
-  name: AgentToolName;
-  /** For the model; English, one or two sentences. */
-  description: string;
-  inputSchema: AgentToolInputSchema;
-  /** Outward or irreversible: the chat asks the visitor before running it. */
-  confirm: boolean;
-}
-
-/** What the chat needs from the page: implemented by the browser registry, faked in tests. */
-export interface AgentToolExecutor {
-  /** The full catalogue, mounted or not. */
-  specs(): AgentToolSpec[];
-  /** Tools registered right now, sorted (`AgentPageState.tools`). */
-  available(): AgentToolName[];
-  /** Never throws: invalid input → `invalid_params`, unmounted tool → `not_available`. */
-  execute(call: AgentToolCall): Promise<AgentToolResult>;
-}
-
-/** Every highlightable target, `<kind>:<id>`: sections, CV items in data order, contacts. */
-export declare function agentTargetIds(cv: Cv): AgentTargetId[];
-
-/** Deterministic: sorted by name, ids in CV data order, the same in every locale. */
-export declare function buildAgentToolSpecs(cv: Cv): AgentToolSpec[];
-```
-
-#### Tool catalogue
-
-`buildAgentToolSpecs(cv)` returns these four specs, each with one required string parameter
-restricted to an enum:
-
-| Tool | Parameter | Enum | `confirm` |
-|---|---|---|---|
-| `highlightElement` | `target` | `section:<AgentSectionId>` (8), then `technology:`, `experience:` (latest, then previous), `app:`, `book:` with the CV ids in data order, then `contact:<channel>` (3) | `false` |
-| `openContact` | `channel` | `email`, `whatsapp`, `linkedin` | `true` |
-| `scrollToSection` | `section` | `AGENT_SECTION_IDS` in page order | `false` |
-| `switchLanguage` | `locale` | `en`, `uk` | `false` |
-
-Item ids are the `id` fields of `TechnologyCard`, `ExperienceEntry`, `AppCard` and `Book`
-(`src/data/models.ts`): lowercase slugs (`kotlin`, `august-home`), equal in every locale's JSON,
-so the catalogue is byte-identical across locales. The server maps a spec to an Anthropic tool as
-`{ name, description, input_schema: inputSchema, strict: true }`; `confirm` stays client-side.
-
-#### Example: one tool round
-
-Request 1 (the visitor asks):
-
-```json
-{ "v": 2, "locale": "en", "messages": [
-  { "role": "user", "content": "Show me his apps",
-    "page": { "route": "/", "locale": "en", "viewport": "desktop", "chat": "card",
-              "activeSection": "header", "highlighted": null,
-              "tools": ["highlightElement", "openContact", "scrollToSection", "switchLanguage"] } } ] }
-```
-
-Response 1:
-
-```text
-event: delta
-data: {"text":"Scrolling to his apps."}
-
-event: tool_call
-data: {"id":"toolu_01A","name":"scrollToSection","input":{"section":"apps"}}
-
-event: done
-data: {"stopReason":"tool_use","usage":{"inputTokens":3510,"outputTokens":48,"cacheReadInputTokens":0,"cacheCreationInputTokens":0}}
-
-```
-
-Request 2 (follow-up after the client scrolled):
-
-```json
-{ "v": 2, "locale": "en", "messages": [
-  { "role": "user", "content": "Show me his apps", "page": { "...": "as sent in request 1" } },
-  { "role": "assistant", "content": "Scrolling to his apps.",
-    "toolCalls": [ { "id": "toolu_01A", "name": "scrollToSection", "input": { "section": "apps" } } ] },
-  { "role": "user", "toolResults": [ { "callId": "toolu_01A", "result": { "ok": true } } ] } ] }
-```
-
-Response 2: `delta` "Here they are: Cync, August Home and Savant." then `done` with `end_turn`.
-
-
-### Page-aware chat (v2 + `page`)
-
-> **Superseded by [v4](#v4-the-one-page-chat)** (ADR-0006): served until CV-107's Cleanup task,
-> then removed with v2.
-
-> Final (CV-94). Decision: [`../adr/0004-page-aware-chat.md`](../adr/0004-page-aware-chat.md).
-> Amends the v2 contract above; types live in `src/data/chat/contract.ts` (wire) and
-> `src/data/chat/agentTools.ts` (catalogues); the blocks below are copies, the files win if they
-> ever differ.
-
-The chat runs on both pages: `/` (the CV, `Cv`) and `/new` (the profile, `Profile`). A request
-says which page it comes from; the server answers from that page's content, in the request's
-locale, with that page's tool catalogue.
-
-**Why no new version:** the change is additive (API.md → Versioning): one new optional request
-field and wider enums; responses, SSE, limits and errors don't change. The version stays `v: 2`
-(`X-Chat-Api-Version: 2`). A v2 request **without** `page` is a `/` request and gets today's
-behaviour byte for byte, so tabs opened before the release keep working. v1 is unchanged (CV only;
-`page` ignored like any unknown field). v3 (the show) is unchanged on the wire; since CV-99 its `reply` grounds in the knowledge of the scenario's page (`retro-3` → the CV, `retro-new-1` → the profile).
-
-#### What changes in v2
-
-| Area | Change |
-|---|---|
-| `page` (request) | Optional, `"cv"` or `"profile"`; absent = `"cv"`. Anything else: `400 invalid_request`. The widget always sends it. |
-| `messages[].page.route` | `"/"` for `cv`, `"/new"` for `profile` (`CHAT_PAGE_ROUTES`). Every question's `route` must match the request's page, else `400 invalid_request`. |
-| `messages[].page.activeSection` | One of the page's sections (`AGENT_PAGE_SECTIONS[page]`) or `null`. |
-| `messages[].page.highlighted` | `<kind>:<id>`; kinds add `impact` and `skill`. |
-| Knowledge | The page's content in the request's `locale`: `cv` → `cv.en.json` for both locales (no UK CV yet, as on the site); `profile` → `profile.<locale>.json`, as `<document id="profile" title="Profile">`. Only that page. |
-| Tools | The page's catalogue: `buildAgentToolSpecs(cv)` (unchanged) or `buildProfileToolSpecs(profile)` (below). |
-| System prompt | Unchanged blocks and text on both pages (`PROMPT_VERSION` bumped). |
-| Log line | Adds `page`. |
-
-#### Types
-
-`src/data/chat/contract.ts`, added after the v2 block:
-
-```ts
-/** The pages the chat runs on; `pageFor` (src/app/routes.ts) returns the same ids. */
-export const CHAT_PAGES = ['cv', 'profile'] as const;
-export type ChatPage = (typeof CHAT_PAGES)[number];
-
-/** Each page's path, sent as `AgentPageState.route`. */
-export const CHAT_PAGE_ROUTES = { cv: '/', profile: '/new' } as const satisfies Record<
-  ChatPage,
-  string
->;
-export type AgentRoute = (typeof CHAT_PAGE_ROUTES)[ChatPage];
-
-/** `/new` sections in page order; `data-agent-id="section:<id>"`. */
-export const PROFILE_SECTION_IDS = [
-  'header',
-  'impact',
-  'loop',
-  'experience',
-  'apps',
-  'skills',
-  'education',
-  'about',
-  'footer',
-] as const;
-export type ProfileSectionId = (typeof PROFILE_SECTION_IDS)[number];
-
-/** `/new` contact channels (`Profile.contacts` ids); the "Live AI CV" (`ai-chat`) row is not one. */
-export const PROFILE_CONTACT_CHANNELS = ['email', 'phone'] as const;
-export type ProfileContactChannel = (typeof PROFILE_CONTACT_CHANNELS)[number];
-
-/** Sections of each page (`AGENT_SECTION_IDS` stays the CV's list). */
-export const AGENT_PAGE_SECTIONS = {
-  cv: AGENT_SECTION_IDS,
-  profile: PROFILE_SECTION_IDS,
-} as const satisfies Record<ChatPage, readonly string[]>;
-
-/** Contact channels of each page (`AGENT_CONTACT_CHANNELS` stays the CV's list). */
-export const AGENT_PAGE_CONTACT_CHANNELS = {
-  cv: AGENT_CONTACT_CHANNELS,
-  profile: PROFILE_CONTACT_CHANNELS,
-} as const satisfies Record<ChatPage, readonly string[]>;
-```
-
-Changed in the v2 block (wider, so existing code still compiles):
-
-```ts
-/** Target kinds; item ids come from the page's JSON. `impact` and `skill` exist on `/new` only. */
-export const AGENT_TARGET_KINDS = [
-  'section',
-  'technology',
-  'experience',
-  'app',
-  'book',
-  'contact',
-  'impact',
-  'skill',
-] as const;
-
-export interface AgentPageState {
-  /** The page's path, `CHAT_PAGE_ROUTES[page]`. */
-  route: AgentRoute;
-  locale: ChatLocale;
-  viewport: (typeof AGENT_VIEWPORTS)[number];
-  chat: (typeof AGENT_CHAT_LAYOUTS)[number];
-  activeSection: AgentSectionId | ProfileSectionId | null;
-  highlighted: AgentTargetId | null;
-  /** Tools registered (mounted) right now, sorted. */
-  tools: AgentToolName[];
-}
-
-/** Roles alternate, start with a text `user` message and end with a `user` message. */
-export interface ChatRequestV2 {
-  v: typeof CHAT_API_VERSION_V2;
-  locale: ChatLocale;
-  /** The page the chat is on; absent = `'cv'` (clients before CV-94). */
-  page?: ChatPage;
-  messages: ChatMessageV2[];
-}
-```
-
-`src/data/chat/agentTools.ts`, added next to the CV functions (which don't change):
-
-```ts
-/**
- * Every highlightable target of `/new`, `<kind>:<id>`: sections, then impact cards, jobs
- * (`experience:`, jobs then earlier jobs), apps, skill groups, books, contacts, in data order.
- */
-export declare function profileTargetIds(profile: Profile): AgentTargetId[];
-
-/** The `/new` catalogue: deterministic (sorted by name, ids in data order), the same in every locale. */
-export declare function buildProfileToolSpecs(profile: Profile): AgentToolSpec[];
-```
-
-Server side (informational): `LLM_TOOLS_BY_PAGE: Record<ChatPage, readonly LlmTool[]>`, built
-once from the English JSON of each page; the knowledge loader takes `(page, locale)`; the
-validated request carries the resolved `page`.
-
-#### Tool catalogue per page
-
-`cv`: as in [v2 → Tool catalogue](#tool-catalogue), unchanged.
-
-`profile` (`buildProfileToolSpecs(profile)`), each with one required string parameter restricted
-to an enum:
-
-| Tool | Description (for the model) | Parameter | Enum | `confirm` |
-|---|---|---|---|---|
-| `highlightElement` | Scroll to a section or item of the page and briefly highlight it, e.g. an impact card, a job, an app, a skill group, a book or a contact. | `target` (The element to highlight.) | `section:<ProfileSectionId>` (9), then `impact:` (4), `experience:` (jobs 7, then earlier 2), `app:` (3), `skill:` (6), `book:` (3) with the `Profile` ids in data order, then `contact:email`, `contact:phone`: 36 today | `false` |
-| `openContact` | Open a contact channel of Andrew (email or phone). The visitor confirms first. | `channel` (The contact channel.) | `email`, `phone` | `true` |
-| `scrollToSection` | Scroll the profile page to a section. | `section` (The section to scroll to. impact = "Selected impact", loop = "How I build with agents", footer = the closing call to action.) | `PROFILE_SECTION_IDS` in page order | `false` |
-| `switchLanguage` | Switch the page language: en = English, uk = Ukrainian. | `locale` (The language to switch to.) | `en`, `uk` | `false` |
-
-Item ids are the `id` fields of `ImpactCard`, `Job`, `EarlierJob`, `ProfileApp`, `SkillGroup` and
-`Book` (`src/data/profile.ts`), equal in every locale's JSON (`profileIds.test.ts`), so the
-catalogue is byte-identical across locales. On the page, the targets are `data-agent-id`
-attributes the screen passes to the Forest components (ADR-0004 → Decision 4).
-
-#### Example: a question on `/new`
-
-```json
-{ "v": 2, "locale": "uk", "page": "profile", "messages": [
-  { "role": "user", "content": "Покажи його вибрані результати",
-    "page": { "route": "/new", "locale": "uk", "viewport": "desktop", "chat": "card",
-              "activeSection": null, "highlighted": null,
-              "tools": ["highlightElement", "openContact", "scrollToSection", "switchLanguage"] } } ] }
-```
-
-Response: `delta` "Прокручую до вибраних результатів." then `tool_call`
-`{"id":"toolu_01B","name":"scrollToSection","input":{"section":"impact"}}` then `done` with
-`tool_use`; the follow-up carries the same `page: "profile"`, as in the v2 example.
-
-The same body without `"page"` (and with `"route": "/"`) is a `/` request: CV knowledge, the CV
-catalogue. With `"page": "profile"` and `"route": "/"`:
-
-```text
-HTTP/1.1 400 Bad Request
-X-Chat-Api-Version: 2
-
-{"error":{"code":"invalid_request","message":"messages[0].page.route must be \"/new\"","retryable":false,"requestId":"..."}}
-```
-
+| 3 | The show dialect (`narrate`, `reply`) | the Show case |
+| 4 | The one-page chat (ADR-0006): page tools, no `page`, no `locale` | the chat widget |
+
+v1 and v2 were retired in CV-114: a stale v1/v2 tab gets `400 unsupported_version` ("The chat has
+been updated. Please reload the page.").
