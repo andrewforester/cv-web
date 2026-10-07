@@ -2,8 +2,8 @@
 // a dynamic `import()`, so they form a lazy chunk; the two worklets are emitted as same-origin
 // assets, so the SDK never falls back to `blob:` scripts and CSP `script-src 'self'` holds.
 import type { DisconnectionDetails, VoiceConversation } from '@elevenlabs/client';
-import audioConcatProcessorUrl from '@elevenlabs/client/worklets/audioConcatProcessor.js?url';
-import rawAudioProcessorUrl from '@elevenlabs/client/worklets/rawAudioProcessor.js?url';
+import audioConcatProcessorUrl from '@elevenlabs/client/worklets/audioConcatProcessor.js?url&no-inline';
+import rawAudioProcessorUrl from '@elevenlabs/client/worklets/rawAudioProcessor.js?url&no-inline';
 import { AGENT_TOOL_NAMES, type AgentToolName } from '../chat/contract';
 import type { VoiceSessionResponse } from './contract';
 import type {

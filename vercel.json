@@ -11,7 +11,8 @@
     { "source": "/new/", "destination": "/", "permanent": false }
   ],
   "functions": {
-    "api/chat.ts": { "maxDuration": 60, "supportsCancellation": true }
+    "api/chat.ts": { "maxDuration": 60, "supportsCancellation": true },
+    "api/voice-session.ts": { "maxDuration": 30 }
   },
   "headers": [
     {
@@ -19,7 +20,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://api.elevenlabs.io wss://api.elevenlabs.io https://livekit.rtc.elevenlabs.io wss://livekit.rtc.elevenlabs.io; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
         },
         {
           "key": "X-Content-Type-Options",
@@ -31,7 +32,7 @@
         },
         {
           "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=(), payment=()"
+          "value": "camera=(), microphone=(self), geolocation=(), payment=()"
         },
         {
           "key": "X-Frame-Options",
