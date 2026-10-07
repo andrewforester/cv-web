@@ -23,6 +23,7 @@ export const homeTestIds = {
   education: 'home-education',
   about: 'home-about',
   footer: 'home-footer',
+  copyright: 'home-copyright',
   // Items
   craftCard: 'home-craft-card',
   loopStep: 'home-loop-step',

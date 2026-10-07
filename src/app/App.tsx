@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { HomeRoute } from '../screens/home/HomeRoute';
 import { ShowCaseButton } from '../shared/ShowCaseButton';
+import { ShowCaseLink } from '../shared/ShowCaseLink';
 import styles from './App.module.css';
 import { AppSpeedInsights } from './AppSpeedInsights';
 import { SHOW_SCENARIO } from './showScenarios';
@@ -14,7 +15,7 @@ import { useShowCaseAvailable } from './useShowCaseAvailable';
 const SHOW_CASE_BUTTON_ENABLED = false;
 
 /**
- * App shell: the one CV page on every path, with the (currently hidden) Show case button at the end of its meta bar,
+ * App shell: the one CV page on every path, with the (currently hidden) Show case button at the end of its meta bar and the Show case link after the footer copyright,
  * and the floating AI chat. When the page has a Retro Rebuild scenario (`showScenarios.ts`) the
  * show runs when started (`?retro=1`, or `useShowCase`'s `start` for the Show case button) over
  * the same tree (`data-retro-stage`), so the page never remounts; the AI chat is off the page until
@@ -24,7 +25,8 @@ const SHOW_CASE_BUTTON_ENABLED = false;
 export function App() {
   const retroMode = useRetroMode();
   const { showing, pending, Show, start, end } = useShowCase(SHOW_SCENARIO, retroMode === 'show');
-  const canShow = useShowCaseAvailable(SHOW_SCENARIO) && SHOW_CASE_BUTTON_ENABLED;
+  const showAvailable = useShowCaseAvailable(SHOW_SCENARIO);
+  const canShow = showAvailable && SHOW_CASE_BUTTON_ENABLED;
   // Today's site loads the chat at start; after a show it is already there (or loads if it failed).
   const { Chat, load } = useLazyChat(!showing && !pending);
   const loaders = useMemo(() => ({ 'ai-chat': load }), [load]);
@@ -36,7 +38,10 @@ export function App() {
         data-retro-stage={showing ? '' : undefined}
       >
         <main>
-          <HomeRoute metaBarEnd={canShow && <ShowCaseButton onClick={start} />} />
+          <HomeRoute
+            metaBarEnd={canShow && <ShowCaseButton onClick={start} />}
+            copyrightEnd={showAvailable && <ShowCaseLink onClick={start} />}
+          />
         </main>
         {Chat && <Chat />}
       </div>
