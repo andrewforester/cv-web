@@ -1,12 +1,13 @@
 # api
 
 Why it exists: the public door of the site's backend. Each file here is one Vercel Function, so
-this folder decides which URLs the backend has; today one, `POST /api/chat`, which lets a visitor
-ask the AI about Andrew's CV (contract: `docs/chat/API.md`).
+this folder decides which URLs the backend has; today two: `POST /api/chat`, which lets a visitor
+ask the AI about Andrew's CV (contract: `docs/chat/API.md`), and `POST /api/voice-session`, which
+hands the voice mode an ElevenLabs conversation token (contract: `docs/voice/API.md`).
 
 Place in the architecture: thin entry files only. They wire production dependencies and hand the
 request to the framework-free logic in `server/`; nothing here is worth unit-testing on its own.
-Locally the same entry is served by `npm run dev` (`server/dev/`); `vite preview` and the web
+Locally the same entries are served by `npm run dev` (`server/dev/`); `vite preview` and the web
 check don't mount it.
 
 Rules and limits:

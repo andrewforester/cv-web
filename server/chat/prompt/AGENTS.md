@@ -13,6 +13,11 @@ tool catalogue shared with the browser (`src/data/chat/agentTools.ts`: three too
 switch), a fixed `Site language: English (en).` line (ADR-0006) and the conversation. The
 messages are rendered in the tool dialect first defined by v2 (`renderMessagesV2.ts`).
 
+Shared with the voice agent: the knowledge, scope and safety rules are exported blocks of
+`systemPrompt.ts`; `server/voice/prompt/` builds the spoken prompt from them, so a change to one
+of them changes both prompts (both golden checks). `INSTRUCTIONS` is pinned byte for byte by its
+test.
+
 Rules and limits:
 - Every prompt change bumps `PROMPT_VERSION` (it is logged) and needs the golden-question check
   with the real model before release; that check is not in CI.
