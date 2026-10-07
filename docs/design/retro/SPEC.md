@@ -1,5 +1,13 @@
 # Retro Rebuild show (web) — design package
 
+> **Current state (CV-137, 2026-10-07).** The site is one page, `/` (the v3 CV; `/new` is a 307
+> redirect), English only (ADR-0006), and the show runs once on it (`retro-4`). Mentions below of
+> the language switcher, of `/new` and of the 2001 `/new` scenario (sections marked `/new`, the
+> Forest-era `/` text, `retro-3`, `retro-new-1`) are **history**. The current sections are
+> **v3 refit (`retro-4`, CV-112)**, the Revision notes CV-112/CV-114 and the show's own UI
+> sections (Agent chat panel, DevTools console, Show what changed, End of the show, Tokens, Texts);
+> the code in `src/screens/retro/` is the source where they differ.
+
 The look of the show. The mechanism (damage layers, decorations, runner, LLM, shell) is `docs/retro/ARCHITECTURE.md` (GRA-39, as built: §9); this package follows its model and vocabulary and only adds what it leaves to the design: retro values, layer contents, copy, the panels, timing and motion, the fix list.
 
 **Revision GRA-49 (30 Sep 2026)**, from the human's notes on the POC: the agent fixes the page in **atomic chunks** (one visible change each: a short code chunk typed, applied right after its last character, then a beat), page changes **transition smoothly**, the visitor **sees what changed** (a highlight on the target, scrolling to it), and the windows **close smoothly** at the end. The fonts stay as they are (the terminal font included). Sections changed by it: Source, Timeline, Damage layers, Terminal chat (font), Live-fix console, The fix list (atomic), Chunk rhythm and timing budget, Transitions, Show what changed, End of the show, tokens, texts, Decisions 12–22.

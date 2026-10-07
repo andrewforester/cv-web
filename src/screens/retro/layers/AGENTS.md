@@ -2,8 +2,8 @@
 
 Why it exists: the broken 2002 look of the show, one concern in one place per file, drawn over
 the one CV page (v3) on its `home-*` hooks and v3 tokens (`--color-*`, `--type-*`, `--font-*`,
-`--gradient-*`). The 32 files of `retro-4` (docs/retro/ARCHITECTURE.md §11): `/new`'s look
-(`docs/design/retro/SPEC.md` → 2001 `/new` → Damage layers) refitted to the v3 page (SPEC → v3
+`--gradient-*`). The 32 files of `retro-4` (docs/retro/ARCHITECTURE.md §11): the 2001 look, originally designed for the retired `/new`
+(`docs/design/retro/SPEC.md` → Damage layers (`/new`)), refitted to the v3 page (SPEC → v3
 refit lists every selector that moved and the rules added for the v3 blocks). Each file is both
 applied (injected as `<style data-retro-layer>`) and shown (typed into the console as one chunk),
 so it is written to read well, kept short (≤ ~8 lines, a few up to 16) and formatted by Prettier.
