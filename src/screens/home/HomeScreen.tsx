@@ -20,10 +20,12 @@ interface HomeScreenProps {
   state: HomeUiState;
   /** Controls at the end of the meta bar (the Show case button). */
   metaBarEnd?: ReactNode;
+  /** Control after the copyright line (the Show case link). */
+  copyrightEnd?: ReactNode;
 }
 
 /** The one CV page, top to bottom as in docs/design/v3 (SPEC → Structure). */
-export function HomeScreen({ className, state, metaBarEnd }: HomeScreenProps) {
+export function HomeScreen({ className, state, metaBarEnd, copyrightEnd }: HomeScreenProps) {
   const common = useStrings(commonStrings);
   const strings = useStrings(homeStrings);
 
@@ -52,7 +54,10 @@ export function HomeScreen({ className, state, metaBarEnd }: HomeScreenProps) {
         <HomeAbout about={page.about} highlightedId={highlightedId} />
       </div>
       <HomeFooter footer={page.footer} contacts={page.contacts} highlightedId={highlightedId} />
-      <div className={styles.copyright}>{strings.copyright}</div>
+      <div className={styles.copyright}>
+        <span data-testid={homeTestIds.copyright}>{strings.copyright}</span>
+        {copyrightEnd}
+      </div>
     </HomePage>
   );
 }

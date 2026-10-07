@@ -1,0 +1,21 @@
+/* Reads as text next to the copyright: a notch smaller, muted, underlined on hover/focus. */
+.root {
+  padding: 0;
+  font: inherit;
+  font-size: var(--type-tag-size);
+  color: var(--color-ink-4);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.root:hover,
+.root:focus-visible {
+  color: var(--color-ink-3);
+  text-decoration: underline;
+}
+
+.root:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
