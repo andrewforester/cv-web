@@ -44,7 +44,7 @@ The orchestrator launches each task as a new session **of the same kind as itsel
 - **Didn't work (Sept 2026), don't retry:** the `Agent` tool with `isolation: "remote"` silently runs in a local worktree; starting a cloud session through a Routine (`RemoteTrigger` / `fire_trigger`) is denied in auto mode or starts an unrelated session.
 
 ## Design reference
-Claude Design project https://claude.ai/design/p/c02bb441-acb3-4cdb-ab65-ef32c1327b65, file "CV Senior Product Engineer v3" (since 2026-10-05), exported to `docs/design/v3/`; read it with DesignSync `get_file` after `/design-login`. Before it: "CV AI Product Engineer Forest" (`docs/design/forest/`, history). Older: Figma `Power-Place` (https://www.figma.com/design/ehr6aIVaitNHH1KafRlVQW/Power-Place), frames `2550:474`, `2550:572`, `2550:659` (`docs/design/cv/`); Starter plan, about 6 MCP calls a month, 3 spent in Sept 2026. Re-export only for real design changes, one frame per call.
+Claude Design project https://claude.ai/design/p/c02bb441-acb3-4cdb-ab65-ef32c1327b65, file "CV Senior Product Engineer v3" (since 2026-10-05), exported to `docs/design/v3/`; read it with DesignSync `get_file` after `/design-login`. Earlier references (Forest, Figma `Power-Place`) are retired; their packages are only in git history. Figma: Starter plan, about 6 MCP calls a month. Re-export only for real design changes, one frame per call.
 
 ## Notifications
 - To the human: chat message + `PushNotification` (reaches the phone only while Remote Control is connected). Anything the human must do (a key, a setting, a DNS record) also goes into a ticket comment with **Needs human**: the Linear app notifies the phone.
