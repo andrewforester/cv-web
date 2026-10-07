@@ -63,6 +63,18 @@ env:
       echo "::error::The production domain still serves ${current:-nothing}, not $1"
       return 1
     }
+  # GitHub Deployments helpers (gh with GH_TOKEN, jobs with `deployments: write`). Vercel's GitHub
+  # App records only Git-triggered deployments, so CI records its own in the Production
+  # environment (CV-165). gh_deployment_status ID STATE [DESCRIPTION]: environment_url is the
+  # production domain, log_url this run.
+  GH_DEPLOYMENTS_SH: |
+    gh_deployment_status() {
+      jq -n --arg state "$2" --arg description "${3:-}" \
+        --arg url "https://$PRODUCTION_DOMAIN" \
+        --arg log "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+        '{$state, $description, environment_url: $url, log_url: $log}' |
+        gh api "repos/$GITHUB_REPOSITORY/deployments/$1/statuses" --input - > /dev/null
+    }
 
 # PRs run lint and tests plus a web build + Playwright e2e (job e2e); pushes to main run both too.
 # Production = main is deployed by this workflow (job deploy), only after both pass; Vercel's Git
@@ -175,12 +187,18 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      deployments: write
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      GH_TOKEN: ${{ github.token }}
     outputs:
       previous: ${{ steps.live.outputs.previous }}
+      previous_sha: ${{ steps.live.outputs.previous_sha }}
+      github_deployment: ${{ steps.github.outputs.id }}
       promoting: ${{ steps.release.outputs.promoting }}
       promoted: ${{ steps.release.outputs.promoted }}
     steps:
@@ -202,6 +220,7 @@ jobs:
           live_sha=$(jq -r '.meta.githubCommitSha // empty' <<< "$prod")
           echo "Live: ${previous:-none} at ${live_sha:-unknown commit}"
           echo "previous=$previous" >> "$GITHUB_OUTPUT"
+          echo "previous_sha=$live_sha" >> "$GITHUB_OUTPUT"
           deploy=true
           if [ "$GITHUB_EVENT_NAME" = push ] && [ -n "$live_sha" ] &&
             git merge-base --is-ancestor "$live_sha" HEAD 2> /dev/null; then
@@ -226,6 +245,19 @@ jobs:
         run: |
           vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
           vercel build --prod --token="$VERCEL_TOKEN"
+      # The GitHub Deployment for this commit (environment Production), only when CI really
+      # deploys; its status follows the deploy below and the rollback job.
+      - name: GitHub deployment
+        id: github
+        if: ${{ steps.live.outputs.deploy == 'true' }}
+        run: |
+          set -euo pipefail
+          eval "$GH_DEPLOYMENTS_SH"
+          id=$(jq -n --arg ref "$GITHUB_SHA" \
+            '{$ref, environment: "Production", auto_merge: false, required_contexts: []}' |
+            gh api "repos/$GITHUB_REPOSITORY/deployments" --input - --jq .id)
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+          gh_deployment_status "$id" in_progress
       # --skip-domain + promote instead of a plain --prod: after a rollback Vercel stops assigning
       # the production domain to new deployments, so only an explicit promote reliably goes live.
       # The smoke starts only once the domain serves the new deployment.
@@ -244,6 +276,15 @@ jobs:
           echo "promoted=true" >> "$GITHUB_OUTPUT"
           wait_until_live "$id"
           echo "Production: $url ($id, commit $GITHUB_SHA)" >> "$GITHUB_STEP_SUMMARY"
+      # The smoke may still fail it: the rollback job then marks it failed.
+      - name: GitHub deployment status
+        if: ${{ always() && steps.github.outputs.id }}
+        env:
+          ID: ${{ steps.github.outputs.id }}
+          STATE: ${{ steps.release.outcome == 'success' && 'success' || 'failure' }}
+        run: |
+          eval "$GH_DEPLOYMENTS_SH"
+          gh_deployment_status "$ID" "$STATE"
 
   smoke:
     name: Production smoke
@@ -263,12 +304,18 @@ jobs:
     if: ${{ !cancelled() && needs.deploy.outputs.promoting == 'true' && (needs.deploy.result == 'failure' || needs.smoke.result == 'failure') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      deployments: write
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      GH_TOKEN: ${{ github.token }}
       PREVIOUS: ${{ needs.deploy.outputs.previous }}
+      PREVIOUS_SHA: ${{ needs.deploy.outputs.previous_sha }}
       PROMOTED: ${{ needs.deploy.outputs.promoted }}
+      GITHUB_DEPLOYMENT: ${{ needs.deploy.outputs.github_deployment }}
     steps:
       - name: Roll back to the previous production deployment
         run: |
@@ -282,3 +329,18 @@ jobs:
           vercel_api POST "/v9/projects/$VERCEL_PROJECT_ID/rollback/$PREVIOUS?teamId=$VERCEL_ORG_ID" '{}' > /dev/null
           wait_until_live "$PREVIOUS"
           echo "Rolled back production to $PREVIOUS" >> "$GITHUB_STEP_SUMMARY"
+      # GitHub's Production environment shows what is live again: this commit failed, the previous
+      # production commit's latest deployment is active (best effort, never fails the job).
+      - name: GitHub deployments after the rollback
+        if: ${{ always() }}
+        run: |
+          eval "$GH_DEPLOYMENTS_SH"
+          if [ -n "$GITHUB_DEPLOYMENT" ]; then
+            gh_deployment_status "$GITHUB_DEPLOYMENT" failure 'Production smoke failed: rolled back' || true
+          fi
+          if [ -n "$PREVIOUS_SHA" ]; then
+            prev=$(gh api "repos/$GITHUB_REPOSITORY/deployments?environment=Production&sha=$PREVIOUS_SHA&per_page=1" --jq '.[0].id // empty') || prev=
+            if [ -n "$prev" ]; then
+              gh_deployment_status "$prev" success 'Restored by rollback' || true
+            fi
+          fi
