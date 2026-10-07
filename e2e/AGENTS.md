@@ -27,8 +27,8 @@ What it guarantees today:
 
 Production smoke: tests titled `@prod` (the home page and `/new`; `/new` must end on `/`) also run
 against the live site right after CI deploys production (`.github/workflows/prod-smoke.yml`, called
-by the `deploy` → `smoke` jobs in `ci.yml`, plus a manual `workflow_dispatch`), with a `curl` that
-`GET /api/chat` answers `405` JSON. A failed smoke rolls production back to the previous
+by the `deploy` → `smoke` jobs in `ci.yml`, plus a manual `workflow_dispatch`), with `curl`s that
+`GET /api/chat` and `GET /api/voice-session` answer `405` JSON. A failed smoke rolls production back to the previous
 deployment and leaves the CI run red. Locally: `npm run web-check:prod` (`PW_BASE_URL` overrides
 the production domain; any `PW_BASE_URL` makes Playwright start no server). Never tag a test
 `@prod` unless it makes no `/api/chat` call or mocks it.
@@ -44,4 +44,7 @@ Known limit: Playwright is pinned to `~1.56.0` because the cloud container's pre
 is revision 1194; bumping it needs `executablePath: '/opt/pw-browsers/chromium'` or a new container
 image.
 
-Security headers (`securityHeaders.spec.ts`): `vite preview` sends the production headers from `scripts/securityHeaders.ts`, so every web check runs under the enforcing CSP; Chromium logs a CSP violation as a console error, which `collectErrors` already fails on; a spec proves it. Another spec checks `vercel.json` → `headers` equals the module.
+Security headers (`securityHeaders.spec.ts`): `vite preview` sends the production headers from `scripts/securityHeaders.ts`, so every web check runs under the enforcing CSP; Chromium logs a CSP violation as a console error, which `collectErrors` already fails on; a spec proves it. Another spec checks `vercel.json` → `headers` equals the module. The voice agent's part
+(docs/voice/SYSTEM_DESIGN.md §10): `connect-src` is `'self'` plus exactly the ElevenLabs and LiveKit
+origins, `script-src` stays `'self'`, Chromium allows the microphone on the page and still blocks the
+camera, and `api/voice-session.ts` gets `maxDuration: 30`.
