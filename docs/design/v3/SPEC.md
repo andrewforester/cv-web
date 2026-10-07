@@ -113,8 +113,9 @@ separate layout.
 From CV-107 ([ADR-0006](../../adr/0006-one-page-v3.md); it wins where this list is short).
 
 - **Telegram removed as a channel** (2026-10-05, the human, CV-124): no header button, no
-  footer pill, no `telegram` contact in the data or the chat contract. `design.dc.html` and the
-  handoff still show it; this note wins.
+  footer pill, no `telegram` contact in the data or the chat contract. The handoff still shows
+  it; this note wins. `design.dc.html` and the print layout dropped it with the old number
+  (2026-10-07).
 - **English only** (the human, 2026-10-05). This overrides Orchestrator decisions 2 and 3 and the
   language-switcher part of 7: no UK translation, no Cyrillic font, no switcher. Figtree and
   JetBrains Mono are latin only. The meta bar's end holds only the Show case button.

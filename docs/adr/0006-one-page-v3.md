@@ -111,7 +111,7 @@ export interface CvProject {
   - `cv_app_savant.png` is not used.
   - SpotOn has no `icon`: the screen draws the initials tile from the name's first letter.
 - Contacts follow the design: `mailto:andriipanasiuk@gmail.com`, `https://wa.me/48519457129`,
-  `https://t.me/+380938977110`, `https://www.linkedin.com/in/andriipanasiuk/`. The email
+  `https://www.linkedin.com/in/andriipanasiuk/`. The email
   contact's `label` is the address (the footer pill shows it). The other labels are the channel
   names. The header button says "Email me" (a string).
 - Not in the data: the phone number (the design has none), the "Live AI CV" row, apps outside
