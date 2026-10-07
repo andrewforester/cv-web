@@ -1,5 +1,4 @@
 import { render, screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { FakeShowRepository, SHOW_SCENARIOS, type ShowScenarioId } from '../data/retro';
 import { homeTestIds } from '../screens/home/testIds';
 import { showCaseTestId } from '../shared/ShowCaseButton';
@@ -65,20 +64,10 @@ describe('App: the Show case button', () => {
     expect(metaBar.queryByTestId(showCaseTestId)).not.toBeInTheDocument();
   });
 
-  it('is at the end of the meta bar on a desktop viewport when the page has a show', async () => {
+  it('is hidden on a desktop viewport even when the page has a show (CV-144)', async () => {
     const metaBar = await renderApp();
-    const button = metaBar.getByRole('button', { name: /Show case/ });
-    expect(button).toHaveAttribute('data-testid', showCaseTestId);
-    expect(button).toBeVisible();
-  });
-
-  it("starts the page's scenario when clicked", async () => {
-    const metaBar = await renderApp();
+    expect(metaBar.queryByTestId(showCaseTestId)).not.toBeInTheDocument();
     expect(screen.queryByTestId(SHOW_STUB)).toBeNull();
-
-    await userEvent.click(metaBar.getByTestId(showCaseTestId));
-
-    expect(await screen.findByTestId(SHOW_STUB)).toHaveAttribute('data-scenario', A_SCENARIO);
   });
 
   it('is hidden below 1024 px', async () => {

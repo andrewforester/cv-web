@@ -53,18 +53,11 @@ test('with motion on the show ends on the normal page within its time budget', a
   expect(showMs).toBeGreaterThan(MIN_SHOW_MS);
 });
 
-test('the Show case button starts the show over the page', async ({ page }) => {
+test('the Show case button is hidden on the normal page (CV-144)', async ({ page }) => {
   const errors = collectErrors(page);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.clock.install();
   await page.goto(SHOW_URLS.normal);
+  await expect(page.getByTestId('home-name')).toBeVisible();
+  await expect(page.getByTestId('show-case')).toHaveCount(0);
   await expect(page.locator(stageSelector)).toHaveCount(0);
-  await page.getByTestId('home-meta-bar').getByTestId('show-case').click();
-
-  await expect(page.locator(stageSelector)).toHaveCount(1);
-  await expect(page.locator('style[data-retro-layer="panel-colors"]')).toBeAttached();
-  await page.clock.runFor(3_500);
-  await expect(page.getByTestId('retro-console')).toBeVisible();
-  await expect(page.getByTestId('retro-console-errors')).toHaveText('36');
   expect(errors).toEqual([]);
 });
