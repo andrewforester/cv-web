@@ -38,7 +38,7 @@ mobile() { # <out.png> <state>
 
 desktop screenshot.png listening
 for s in launcher mic-states connecting listening speaking muted tool confirm warning ended \
-  error-denied error-failed error-dropped error-callcap error-monthly offline; do
+  error-denied error-failed error-busy error-ratelimited error-dropped error-callcap error-monthly offline; do
   desktop "assets/voice_state_${s}_desktop.png" "$s"
   mobile "assets/voice_state_${s}_mobile.png" "$s"
 done

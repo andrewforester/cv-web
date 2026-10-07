@@ -3,8 +3,8 @@
   Static mock of the voice mode (docs/design/voice/SPEC.md). Not product code.
   Open directly in a browser. Query params:
     state = launcher | mic-states | connecting | listening (default) | speaking | muted | tool |
-            confirm | warning | ended | error-denied | error-failed | error-dropped |
-            error-callcap | error-monthly | offline
+            confirm | warning | ended | error-denied | error-failed | error-busy |
+            error-ratelimited | error-dropped | error-callcap | error-monthly | offline
   Desktop layout at >= 600 px wide, phone layout below. The page behind is a screenshot of
   production (assets/voice_backdrop_*), so the fog is judged over the real CV.
   Screenshots: render.sh next to this file.
@@ -556,6 +556,14 @@
       .caption.visitor {
         color: var(--color-ink-3);
       }
+      .privacy {
+        max-width: var(--voice-caption-max-width);
+        margin: var(--space-6) 0 0;
+        font-family: var(--font-mono);
+        font-size: var(--type-label-size);
+        line-height: var(--chat-caption-line-height);
+        color: var(--color-ink-3);
+      }
 
       /* ---- Controls ---- */
       .controls {
@@ -1075,7 +1083,7 @@
           conversation({
             cls: 'connecting',
             level: 0,
-            stage: `${orb}<p class="status">Connecting…</p><p class="caption visitor">Allow the microphone when your browser asks.</p>`,
+            stage: `${orb}<p class="status">Connecting…</p><p class="caption visitor">Allow the microphone when your browser asks.</p><p class="privacy">Calls are processed by ElevenLabs. AI answers may contain mistakes.</p>`,
             ctl: controls({ connecting: true }),
           }),
         listening: () =>
@@ -1083,7 +1091,7 @@
             cls: 'listening',
             level: 0.35,
             elapsed: 42,
-            stage: `${orb}<p class="status">Listening</p><p class="caption visitor">What did he build at Transcenda…</p>`,
+            stage: `${orb}<p class="status">Listening</p><p class="caption visitor">What did he build at Transcenda?</p>`,
           }),
         speaking: () =>
           conversation({
@@ -1117,8 +1125,8 @@
               <div class="card" role="group" aria-label="Open a WhatsApp chat with Andrew?">
                 <h2>Open a WhatsApp chat with Andrew?</h2>
                 <p class="detail">wa.me/48519457129</p>
-                <div class="buttons"><button class="btn primary" type="button">Yes, open it</button><button class="btn" type="button">No</button></div>
-                <p class="say">or just say “yes” or “no”</p>
+                <div class="buttons"><button class="btn primary" type="button">Open WhatsApp</button><button class="btn" type="button">Cancel</button></div>
+                <p class="say">Your browser needs a tap to open it.</p>
               </div>`,
           }),
         warning: () =>
@@ -1181,6 +1189,22 @@
             'This month’s voice time is used up. The text chat still works.',
             'Type instead',
             'Close',
+          ),
+        'error-busy': () =>
+          errorView(
+            'alert',
+            'The line is busy',
+            'Someone else is talking to the AI right now. Try again in a few minutes, or type your question.',
+            'Try again',
+            'Type instead',
+          ),
+        'error-ratelimited': () =>
+          errorView(
+            'timer',
+            'Too many calls',
+            'You’ve started several calls in a short time. Try again in a minute, or type your question.',
+            'Try again',
+            'Type instead',
           ),
         offline: () =>
           errorView(
