@@ -20,8 +20,8 @@ with the editing backend, an unknown `highlighted` from a tab opened before the 
 - **Tools:** `highlightElement`, `openContact` (`confirm`), `scrollToSection`. A request no tool
   fits (e.g. "switch the language", "fill the form") gets "I can't do that" from the model. The
   model answers in the visitor's language.
-- **Sections** (`CV_SECTION_IDS`, page order): `header`, `craft`, `loop`, `impact`, `experience`,
-  `skills`, `education`, `about`, `contacts`.
+- **Sections** (`CV_SECTION_IDS`): `header`, `skills`, `craft`, `loop`, `impact`, `experience`,
+  `education`, `about`, `contacts` (page order: `docs/design/v3/SPEC.md` → Structure).
 - **Targets** (37): the 9 sections, `impact:` (3), `experience:` (9 jobs; Transcenda's article
   includes its project tree), `app:` (Transcenda's 3 projects: `spoton`, `cync`, `august-home`),
   `skill:` (6), `book:` (4), `contact:` (3, the header buttons: `email`, `whatsapp`, `linkedin`).

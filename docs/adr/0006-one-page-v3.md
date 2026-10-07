@@ -141,7 +141,7 @@ no longer needs a page id.
   chat's launcher: a restyle of `ChatLauncher`, still owned by the chat. It is not a link.
 - **Agent targets** (`data-agent-id`, set with `agentTargetProps`):
   - Sections, in page order (`CV_SECTION_IDS`): `header` (meta bar, header, stats, contact
-    buttons), `craft`, `loop`, `impact`, `experience`, `skills`, `education`, `about`, `contacts`
+    buttons), `skills`, `craft`, `loop`, `impact`, `experience`, `education`, `about`, `contacts`
     (the footer call to action).
   - Items: `impact:<id>`, `experience:<id>` (the job's article; for Transcenda it includes the
     project tree), `app:<id>` (the three Transcenda projects), `skill:<id>`, `book:<id>`, and
@@ -153,7 +153,7 @@ no longer needs a page id.
   the show's layers (Decision 4), so they are fixed here:
   - Page parts: `home` (root), `home-meta-bar`, `home-header`, `home-photo`, `home-name`,
     `home-headline`, `home-summary`, `home-stat`, `home-contact`.
-  - Sections: `home-craft`, `home-loop`, `home-impact`, `home-experience`, `home-skills`,
+  - Sections: `home-skills`, `home-craft`, `home-loop`, `home-impact`, `home-experience`,
     `home-education`, `home-about`, `home-footer`.
   - Items: `home-craft-card`, `home-loop-step`, `home-impact-card`, `home-job`, `home-project`,
     `home-skill`, `home-book`, `home-footer-link`.
