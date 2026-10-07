@@ -35,6 +35,7 @@ describe('renderCvPage', () => {
       ...CV_PAGE.summary,
       '- 12+: years shipping apps in code',
       '- Email: andriipanasiuk@gmail.com',
+      '- Phone: +48 519 457 129',
       '- LinkedIn: https://www.linkedin.com/in/andriipanasiuk/',
       '### now → with agents: The process is the product I engineer',
       '6. Retro → rule changes',

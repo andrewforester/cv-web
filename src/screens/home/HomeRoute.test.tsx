@@ -1,6 +1,6 @@
-import { render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import { AppProviders } from '../../app/AppProviders';
-import type { CvPage, CvPageRepository } from '../../data';
+import { StaticCvRepository, type CvPage, type CvPageRepository } from '../../data';
 import { HomeRoute } from './HomeRoute';
 import { homeTestIds } from './testIds';
 
@@ -21,6 +21,7 @@ const FAKE_PAGE: CvPage = {
     { id: 'whatsapp', label: 'WhatsApp', href: 'https://wa.example.com/1' },
     { id: 'linkedin', label: 'LinkedIn', href: 'https://in.example.com/1' },
   ],
+  phone: '+48 111 222 333',
   craft: [
     { id: 'c1', label: 'then', title: 'By hand', text: 'Old way.' },
     { id: 'c2', label: 'now', title: 'With agents', text: 'New way.' },
@@ -118,6 +119,20 @@ describe('Home screen', () => {
     expect(contacts[0]).not.toHaveAttribute('target');
     expect(contacts[2]).toHaveAttribute('href', 'https://in.example.com/1');
     expect(contacts[2]).toHaveAttribute('target', '_blank');
+  });
+
+  it('never shows the phone number: it is for the chat only', async () => {
+    renderHome(repositoryOf(() => Promise.resolve(FAKE_PAGE)));
+    await screen.findByTestId(homeTestIds.name);
+    expect(document.body).not.toHaveTextContent(FAKE_PAGE.phone);
+    expect(document.querySelector('a[href^="tel:"]')).toBeNull();
+
+    cleanup();
+    const real = await new StaticCvRepository().getCvPage();
+    renderHome(repositoryOf(() => Promise.resolve(real)));
+    await screen.findByTestId(homeTestIds.name);
+    expect(document.body).not.toHaveTextContent(real.phone);
+    expect(document.querySelector('a[href^="tel:"]')).toBeNull();
   });
 
   it('renders every section in the design order', async () => {
