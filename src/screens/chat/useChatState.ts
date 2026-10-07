@@ -11,6 +11,7 @@ import { exceedsConversationLimits } from './conversation';
 import { useAskHash } from './useAskHash';
 import { useChatConversation } from './useChatConversation';
 import { useChatHint } from './useChatHint';
+import { useChatHistoryEntry } from './useChatHistoryEntry';
 import { CHAT_SHEET_QUERY, useMediaQuery } from './useMediaQuery';
 import { useOnlineStatus } from './useOnlineStatus';
 import { chatStrings } from './strings';
@@ -40,6 +41,7 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
   useAskHash(open);
   const sheet = useMediaQuery(CHAT_SHEET_QUERY);
   const closeSheet = useCallback(() => setOpen(false), []);
+  useChatHistoryEntry(isOpen, sheet, closeSheet);
   const conversation = useChatConversation({ announce, sheet, closeSheet });
   const { turns, busy } = conversation;
 
