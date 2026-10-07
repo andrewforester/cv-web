@@ -75,7 +75,7 @@ describe('voice page tools', () => {
     expect(voiceMode()).toHaveAttribute('data-phase', 'contact');
     expect(card).toHaveTextContent('Open Andrew’s LinkedIn profile?');
     const link = within(card).getByRole('link', { name: 'Open LinkedIn' });
-    expect(link).toHaveFocus();
+    await waitFor(() => expect(link).toHaveFocus());
     expect(link).toHaveAttribute('target', '_blank');
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
     link.addEventListener('click', (event) => event.preventDefault());
