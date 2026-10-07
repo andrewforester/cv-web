@@ -13,6 +13,8 @@ and `src/data/chat/contract.ts` / `src/data/retro/contract.ts` ever disagree, th
 Earlier versions (v1 text chat, v2 page tools on two pages): see git history of this file before
 CV-141; decisions in the ADRs below.
 
+Voice calls don't use this endpoint: see [Voice](#voice-post-apivoice-session).
+
 Design context: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md), [`AGENT.md`](AGENT.md); decisions:
 [`../adr/0001-ai-cv-chat.md`](../adr/0001-ai-cv-chat.md) (the chat),
 [`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md) (page tools),
@@ -527,6 +529,14 @@ Request 2, the visitor writes during step 3:
 
 Response 2: `delta` "It belongs to the 2002 layout. It goes in the cleanup step, with the hit counter." then `done` with `end_turn`.
 
+
+## Voice: `POST /api/voice-session`
+
+The voice mode (ADR-0008) talks to an ElevenLabs agent over WebRTC, not to `/api/chat`. Its own
+endpoint, `POST /api/voice-session` (`{ "v": 1 }` → `{ v, conversationToken, maxCallSeconds }`,
+errors in the `ChatError` shape with voice codes such as `quota_exhausted`), is specified in
+[`../voice/API.md`](../voice/API.md). `v: 4` is unchanged: the voice turns appear in the chat but
+are not sent to `/api/chat` (`../voice/SYSTEM_DESIGN.md` §8).
 
 ## Shared rules (v3 and v4)
 
