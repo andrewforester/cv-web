@@ -105,16 +105,36 @@
         background: currentColor;
         mask: var(--src) center / contain no-repeat;
       }
-      .i-mic { --src: url(assets/voice_icon_mic.svg); }
-      .i-mic-off { --src: url(assets/voice_icon_mic_off.svg); }
-      .i-end { --src: url(assets/voice_icon_end.svg); }
-      .i-offline { --src: url(assets/voice_icon_offline.svg); }
-      .i-alert { --src: url(assets/voice_icon_alert.svg); }
-      .i-timer { --src: url(assets/voice_icon_timer.svg); }
-      .i-chat { --src: url(../../../src/shared/chat/assets/chat_icon_chat.svg); }
-      .i-sparkle { --src: url(../../../src/shared/chat/assets/chat_icon_sparkle.svg); }
-      .i-close { --src: url(../../../src/shared/chat/assets/chat_icon_close.svg); }
-      .i-send { --src: url(../../../src/shared/chat/assets/chat_icon_send.svg); }
+      .i-mic {
+        --src: url(assets/voice_icon_mic.svg);
+      }
+      .i-mic-off {
+        --src: url(assets/voice_icon_mic_off.svg);
+      }
+      .i-end {
+        --src: url(assets/voice_icon_end.svg);
+      }
+      .i-offline {
+        --src: url(assets/voice_icon_offline.svg);
+      }
+      .i-alert {
+        --src: url(assets/voice_icon_alert.svg);
+      }
+      .i-timer {
+        --src: url(assets/voice_icon_timer.svg);
+      }
+      .i-chat {
+        --src: url(../../../src/shared/chat/assets/chat_icon_chat.svg);
+      }
+      .i-sparkle {
+        --src: url(../../../src/shared/chat/assets/chat_icon_sparkle.svg);
+      }
+      .i-close {
+        --src: url(../../../src/shared/chat/assets/chat_icon_close.svg);
+      }
+      .i-send {
+        --src: url(../../../src/shared/chat/assets/chat_icon_send.svg);
+      }
 
       .badge {
         flex: none;
@@ -443,7 +463,11 @@
         overflow: hidden;
         border-radius: 50%;
         box-shadow: var(--voice-orb-shadow);
-        background: radial-gradient(circle at 50% 60%, var(--color-brand-violet), var(--color-accent));
+        background: radial-gradient(
+          circle at 50% 60%,
+          var(--color-brand-violet),
+          var(--color-accent)
+        );
       }
       /* The swirl: the brand colours on a turning conic gradient, blurred so it flows without a
          centre point. */
@@ -877,7 +901,9 @@
             calc(var(--space-7) + env(safe-area-inset-bottom));
         }
         .action {
-          top: calc(var(--space-4) + env(safe-area-inset-top) + var(--pill-height) + var(--space-3));
+          top: calc(
+            var(--space-4) + env(safe-area-inset-top) + var(--pill-height) + var(--space-3)
+          );
         }
         .controls {
           gap: var(--space-3);
@@ -949,7 +975,9 @@
         <button class="mic" type="button" aria-label="Talk to my AI by voice">
           <span class="icon i-mic"></span>
         </button>
-        <button class="pill" type="button"><span class="badge"><span class="icon i-sparkle"></span></span>Ask my AI</button>
+        <button class="pill" type="button">
+          <span class="badge"><span class="icon i-sparkle"></span></span>Ask my AI
+        </button>
       </div>
     </template>
 

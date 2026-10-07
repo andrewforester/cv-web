@@ -42,3 +42,10 @@ for s in launcher mic-states connecting listening speaking muted tool confirm wa
   desktop "assets/voice_state_${s}_desktop.png" "$s"
   mobile "assets/voice_state_${s}_mobile.png" "$s"
 done
+
+# Optional: shrink the renders (the fog's gradients need dithering, so pngquant, not a plain
+# palette). Set PNGQUANT=/path/to/pngquant if it is not on PATH.
+PNGQUANT="${PNGQUANT:-$(command -v pngquant || true)}"
+if [[ -n "$PNGQUANT" ]]; then
+  "$PNGQUANT" --quality=80-98 --speed 1 --force --ext .png screenshot.png assets/voice_state_*.png
+fi
