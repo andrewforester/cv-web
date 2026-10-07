@@ -412,7 +412,7 @@ export const AGENT_SECTION_IDS = [
 export type AgentSectionId = (typeof AGENT_SECTION_IDS)[number];
 
 /** Contact channels of the CV header (`Contacts`); `data-agent-id="contact:<channel>"`. */
-export const AGENT_CONTACT_CHANNELS = ['email', 'phone', 'whatsapp', 'telegram'] as const;
+export const AGENT_CONTACT_CHANNELS = ['email', 'whatsapp', 'linkedin'] as const;
 export type AgentContactChannel = (typeof AGENT_CONTACT_CHANNELS)[number];
 
 /** Target kinds; item ids (`technology`, `experience`, `app`, `book`) come from the CV JSON. */
@@ -576,8 +576,8 @@ restricted to an enum:
 
 | Tool | Parameter | Enum | `confirm` |
 |---|---|---|---|
-| `highlightElement` | `target` | `section:<AgentSectionId>` (8), then `technology:`, `experience:` (latest, then previous), `app:`, `book:` with the CV ids in data order, then `contact:<channel>` (4) | `false` |
-| `openContact` | `channel` | `email`, `phone`, `whatsapp`, `telegram` | `true` |
+| `highlightElement` | `target` | `section:<AgentSectionId>` (8), then `technology:`, `experience:` (latest, then previous), `app:`, `book:` with the CV ids in data order, then `contact:<channel>` (3) | `false` |
+| `openContact` | `channel` | `email`, `whatsapp`, `linkedin` | `true` |
 | `scrollToSection` | `section` | `AGENT_SECTION_IDS` in page order | `false` |
 | `switchLanguage` | `locale` | `en`, `uk` | `false` |
 

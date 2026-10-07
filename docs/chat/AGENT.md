@@ -21,7 +21,7 @@ the record of v2; §12 says what changes.
 
 At design time the site was one route (`/`; `/new` came with CV-84): the CV as one scrolling page (`src/screens/cv/CvScreen.tsx`) with a
 header bar (language switcher) and the chat widget. Sections in order: **header** (name, photo,
-contacts: email, phone, WhatsApp, Telegram), **summary**, **technologies** (9 cards),
+contacts: email, WhatsApp, LinkedIn), **summary**, **technologies** (9 cards),
 **latest experience** (Transcenda), **apps** (Cync, August Home, Savant), **education**,
 **about** (books, interests), **previous experience** (7 entries). There are no forms, filters,
 tabs, collapsibles or other routes. CV items have no ids today (`src/data/models.ts`).
@@ -31,7 +31,7 @@ tabs, collapsibles or other routes. CV items have no ids today (`src/data/models
 | `scrollToSection` | Yes: 8 sections. Also updates the URL hash, which covers "navigate to an anchor". |
 | `highlightElement` | Yes: any section or CV item (technology card, experience entry, app, book, contact). This is also the CV-specific "focus a technology card / experience entry by id" tool: one tool with namespaced typed ids instead of near-identical `focusTechnology` / `focusExperience` tools (fewer tool tokens, one executor, same accuracy because the ids are enums). |
 | `switchLanguage` | Yes: `en` / `uk` (the header switcher's `setLocale`). |
-| `openContact` | Yes, **with confirmation**: email / phone / WhatsApp / Telegram from the CV data (the model never supplies a URL). |
+| `openContact` | Yes, **with confirmation**: email / WhatsApp / LinkedIn from the CV data (the model never supplies a URL). |
 | `navigateTo` (route) | No target: one route. Anchors are covered by `scrollToSection`. |
 | expand / collapse | No target: nothing collapses today. |
 | `fillFormField`, `setFilters`, `switchTab` | No target, and none are planned for this site. |
@@ -60,9 +60,9 @@ the DOM carries `data-agent-id="<kind>:<id>"`, e.g. `data-agent-id="technology:k
 | Tool | Params (all required) | Result | Registered by (scope) | Confirm |
 |---|---|---|---|---|
 | `scrollToSection` | `section`: `header` \| `summary` \| `technologies` \| `latest-experience` \| `apps` \| `education` \| `about` \| `previous-experience` | `ok` \| `not_available` \| `unknown_target` | `CvRoute` while mounted and `ready` | No |
-| `highlightElement` | `target`: enum of `section:*`, `technology:<id>` (9), `experience:<id>` (8: transcenda, wisehouse, attendify, rosfines, smartling, rokkit, ivi, samsung), `app:<id>` (3), `book:<id>` (4), `contact:<channel>` (4) | same | `CvRoute` while mounted and `ready` | No |
+| `highlightElement` | `target`: enum of `section:*`, `technology:<id>` (9), `experience:<id>` (8: transcenda, wisehouse, attendify, rosfines, smartling, rokkit, ivi, samsung), `app:<id>` (3), `book:<id>` (4), `contact:<channel>` (3) | same | `CvRoute` while mounted and `ready` | No |
 | `switchLanguage` | `locale`: `en` \| `uk` | `ok` (also when already active) | App shell (`App.tsx`), always | No |
-| `openContact` | `channel`: `email` \| `phone` \| `whatsapp` \| `telegram` | `ok` \| `declined` \| `not_available` | `CvRoute` while mounted and `ready` | **Yes** (outward action) |
+| `openContact` | `channel`: `email` \| `whatsapp` \| `linkedin` | `ok` \| `declined` \| `not_available` | `CvRoute` while mounted and `ready` | **Yes** (outward action) |
 
 Result type: `{ ok: true } | { ok: false; error: 'not_available' | 'unknown_target' |
 'invalid_params' | 'declined' | 'failed' }`. No page text ever goes back in a result.
@@ -76,8 +76,8 @@ Behaviour:
 - **Mobile sheet** (chat full-screen under 600 px): a visual action closes the sheet (the
   conversation is kept, like closing today) so the visitor sees the result (Q2).
 - `openContact`: the chat shows a confirmation card whose text is built by the client from the
-  spec and the page's data ("Open Telegram chat with Andrew? t.me/…"), never from model text. The
-  Confirm click is the user gesture that opens `mailto:` / `tel:` / the URL (`noopener`).
+  spec and the page's data ("Open a WhatsApp chat with Andrew? wa.me/…"), never from model text. The
+  Confirm click is the user gesture that opens `mailto:` / the URL (`noopener`).
   Cancel returns `declined`.
 - Unknown tool name or params that fail validation: `invalid_params`, nothing runs. Tool not
   mounted: `not_available`. Missing `data-agent-id` element: `unknown_target`.
