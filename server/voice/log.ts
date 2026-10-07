@@ -31,6 +31,8 @@ export interface VoiceLogEntry {
 export interface VoiceSyncLogEntry {
   evt: 'voice_sync';
   outcome: AgentSyncOutcome;
+  /** The voice prompt version this instance syncs to; `null` if building the config failed. */
+  promptVersion: string | null;
   changed: string[];
   error: string | null;
 }

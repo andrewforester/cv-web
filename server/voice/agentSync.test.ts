@@ -5,6 +5,7 @@ import { createAgentSync, sameTool, syncAgent } from './agentSync.js';
 import { ElevenLabsError, type ClientToolConfig, type StoredTool } from './ElevenLabsApi.js';
 import { FakeElevenLabsApi } from './FakeElevenLabsApi.js';
 import { CV_PAGE } from '../chat/cvPageData.js';
+import { VOICE_PROMPT_VERSION } from './prompt/voicePrompt.js';
 
 const wanted = buildVoiceAgentConfig('<knowledge>\nCV\n</knowledge>', CV_PAGE);
 
@@ -56,6 +57,16 @@ describe('syncAgent', () => {
     const api = syncedApi();
     expect(await syncAgent(api, 'agent_x', wanted)).toEqual([]);
     expect(api.calls.sort()).toEqual(['getAgent', 'listTools']);
+  });
+
+  it('treats fields ElevenLabs leaves out as its defaults (no re-patch on every cold start)', async () => {
+    const api = syncedApi();
+    for (const tool of api.state.tools) {
+      delete tool.config.execution_mode;
+      delete tool.config.pre_tool_speech;
+      delete tool.config.interruption_mode;
+    }
+    expect(await syncAgent(api, 'agent_x', wanted)).toEqual([]);
   });
 
   it('patches only the agent fields that differ', async () => {
@@ -130,7 +141,15 @@ describe('createAgentSync', () => {
     expect(await Promise.all([sync(), sync()])).toEqual(['unchanged', 'unchanged']);
     expect(await sync()).toBe('unchanged');
     expect(api.calls.filter((call) => call === 'getAgent')).toHaveLength(1);
-    expect(logs).toEqual([{ evt: 'voice_sync', outcome: 'unchanged', changed: [], error: null }]);
+    expect(logs).toEqual([
+      {
+        evt: 'voice_sync',
+        outcome: 'unchanged',
+        promptVersion: VOICE_PROMPT_VERSION,
+        changed: [],
+        error: null,
+      },
+    ]);
   });
 
   it('logs what it patched', async () => {
@@ -146,7 +165,11 @@ describe('createAgentSync', () => {
     api.state.failures.getAgent = new ElevenLabsError('get_agent', 'http', 500);
     const { sync, logs } = setup(api);
     expect(await sync()).toBe('failed');
-    expect(logs[0]).toMatchObject({ outcome: 'failed', error: 'ElevenLabsError: get_agent 500' });
+    expect(logs[0]).toMatchObject({
+      outcome: 'failed',
+      promptVersion: VOICE_PROMPT_VERSION,
+      error: 'ElevenLabsError: get_agent 500',
+    });
     delete api.state.failures.getAgent;
     expect(await sync()).toBe('unchanged');
   });

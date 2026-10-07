@@ -2,7 +2,7 @@ import { buildCvPageToolSpecs, type AgentToolSpec } from '../../src/data/chat/ag
 import type { CvPage } from '../../src/data/cvPage.js';
 import { VOICE_MAX_CALL_SECONDS } from '../../src/data/voice/contract.js';
 import type { ClientToolConfig } from './ElevenLabsApi.js';
-import { buildVoicePrompt } from './prompt/voicePrompt.js';
+import { buildVoicePrompt, VOICE_PROMPT_VERSION } from './prompt/voicePrompt.js';
 
 /** English; the agent switches language once the visitor speaks (§6). */
 export const VOICE_FIRST_MESSAGE =
@@ -14,6 +14,8 @@ const CONFIRM_RESPONSE_TIMEOUT_SECS = 40;
 
 /** Everything of the agent the code owns (ADR-0008 → Decision 4). */
 export interface VoiceAgentConfig {
+  /** `VOICE_PROMPT_VERSION`: logged with the sync, never sent to ElevenLabs. */
+  promptVersion: string;
   prompt: string;
   firstMessage: string;
   maxDurationSeconds: number;
@@ -48,6 +50,7 @@ export function toClientTool(spec: AgentToolSpec): ClientToolConfig {
 /** The agent as this deployment wants it: built from the one page, deterministic. */
 export function buildVoiceAgentConfig(knowledge: string, page: CvPage): VoiceAgentConfig {
   return {
+    promptVersion: VOICE_PROMPT_VERSION,
     prompt: buildVoicePrompt(knowledge),
     firstMessage: VOICE_FIRST_MESSAGE,
     maxDurationSeconds: VOICE_MAX_CALL_SECONDS,

@@ -70,6 +70,8 @@
   --color-dark-number: #ff7acb;
   --color-dark-note: rgba(255, 255, 255, 0.85);
 
+  --color-brand-pink: #ff4fb8;
+  --color-brand-violet: #8b5cf6;
   --gradient-brand: linear-gradient(90deg, #ff4fb8, #8b5cf6);
   --gradient-brand-tile: linear-gradient(135deg, #ff4fb8, #8b5cf6);
   --gradient-dark: linear-gradient(150deg, #2a1f3d 0%, #16131c 45%, #0e0c12 100%);
@@ -303,4 +305,46 @@
   --devtools-code-font-size: 11px;
   --devtools-code-line-height: 16px;
   --devtools-plate-shadow: 0 1px 4px rgba(0, 0, 0, 0.24);
+
+  /* Voice mode (docs/design/voice/SPEC.md) */
+  --voice-z-index: 1002;
+  --voice-mic-size: var(--pill-height);
+  --voice-mic-icon-size: 22px;
+  --voice-control-size: 56px;
+  --voice-control-icon-size: 24px;
+  --voice-orb-size: clamp(160px, 44vw, 200px);
+  --voice-orb-size-compact: 88px;
+  --voice-orb-size-error: 120px;
+  --voice-orb-blur: 18px;
+  --voice-orb-gradient: conic-gradient(
+    var(--color-brand-pink),
+    var(--color-accent),
+    var(--color-brand-violet),
+    var(--color-dark-number),
+    var(--color-brand-pink)
+  );
+  --voice-orb-shadow: 0 30px 80px -20px rgba(139, 92, 246, 0.55);
+  --voice-veil-top: rgba(242, 238, 248, 0.35);
+  --voice-veil-bottom: rgba(242, 238, 248, 0.8);
+  --voice-veil-clear: rgba(242, 238, 248, 0.06);
+  --voice-veil-blur: 8px;
+  --voice-fog-height: 40vh;
+  --voice-fog-height-low: 22vh;
+  --voice-fog-blur: 48px;
+  --voice-fog-pink: rgba(255, 79, 184, 0.7);
+  --voice-fog-violet: rgba(139, 92, 246, 0.7);
+  --voice-fog-light: rgba(255, 122, 203, 0.6);
+  --voice-fog-deep: rgba(138, 63, 224, 0.55);
+  --voice-caption-max-width: 640px;
+  --voice-card-max-width: 440px;
+  --voice-timer-ring-size: 20px;
+  --voice-enter-duration: 600ms;
+  --voice-exit-duration: 300ms;
+  --voice-fog-shift-duration: 400ms;
+  --voice-level-smoothing: 100ms;
+  --voice-spin-listening: 12s;
+  --voice-spin-speaking: 6s;
+  --voice-breathe: 3.2s;
+  --voice-drift: 11s;
+  --voice-mic-sheen: 6s;
 }

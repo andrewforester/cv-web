@@ -1,6 +1,6 @@
 import { KNOWLEDGE_RULES, SAFETY_RULES, SCOPE_RULES } from '../../chat/prompt/systemPrompt.js';
 
-/** Bump on every change of the voice prompt (logged by the agent sync's diff). */
+/** Bump on every change of the voice prompt (logged with each agent sync, `voice_sync`). */
 export const VOICE_PROMPT_VERSION = '2026-10-07.1';
 
 const VOICE_INTRO = `You are the voice assistant on Andrew Panasiuk's CV website. Visitors are mostly recruiters and engineers. You answer questions about Andrew's professional profile, speaking about him in the third person.`;

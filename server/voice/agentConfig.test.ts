@@ -11,6 +11,7 @@ import {
   SCOPE_RULES,
 } from '../chat/prompt/systemPrompt.js';
 import { buildVoiceAgentConfig, VOICE_FIRST_MESSAGE } from './agentConfig.js';
+import { VOICE_PROMPT_VERSION } from './prompt/voicePrompt.js';
 
 const knowledge = await createCvPageKnowledgeLoader(CV_PAGE_KNOWLEDGE_SOURCES)();
 const config = buildVoiceAgentConfig(knowledge, CV_PAGE);
@@ -35,8 +36,9 @@ describe('buildVoiceAgentConfig', () => {
     expect(config.prompt).toContain('Shall I open his LinkedIn?');
   });
 
-  it('caps the call at 180 s and opens in English', () => {
+  it('caps the call at 180 s, opens in English and carries the prompt version', () => {
     expect(config.maxDurationSeconds).toBe(180);
+    expect(config.promptVersion).toBe(VOICE_PROMPT_VERSION);
     expect(config.firstMessage).toBe(VOICE_FIRST_MESSAGE);
   });
 
