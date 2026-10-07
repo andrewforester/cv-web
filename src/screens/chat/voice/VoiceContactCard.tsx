@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { useStrings } from '../../../i18n';
 import { chatStrings, formatString } from '../strings';
 import { chatTestIds } from '../testIds';
@@ -24,7 +24,8 @@ export function VoiceContactCard({
 }: VoiceContactCardProps) {
   const strings = useStrings(chatStrings);
   const openRef = useRef<HTMLAnchorElement>(null);
-  useEffect(() => openRef.current?.focus(), []);
+  // Layout effect: focus lands in the commit that shows the card, not in a later passive flush.
+  useLayoutEffect(() => openRef.current?.focus(), []);
   return (
     <div
       className={className ? `${styles.card} ${className}` : styles.card}
