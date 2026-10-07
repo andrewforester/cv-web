@@ -5,9 +5,8 @@
 > narration speak **`v: 3`**; no other `v` is served. The chat has three page tools
 > (`highlightElement`, `openContact` with confirmation, `scrollToSection`) and the contacts are
 > email, WhatsApp, LinkedIn. Where this file and the code disagree, the code on `main` wins
-> (`src/data/chat/contract.ts`, `src/data/retro/contract.ts`, `server/chat/**`). Earlier designs
-> (v1 text chat, v2 two pages with Ukrainian): see git history of this file before CV-141 and the
-> ADRs.
+> (`src/data/chat/contract.ts`, `src/data/retro/contract.ts`, `server/chat/**`). Earlier
+> designs: see git history of this file before CV-141 and the ADRs.
 
 A floating chat icon on the CV page (`/`) opens a panel where a visitor asks about Andrew
 Panasiuk's professional profile and can ask the chat to operate the page (scroll, highlight,

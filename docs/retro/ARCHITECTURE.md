@@ -726,7 +726,7 @@ re-composed, the chat restyle) was merged into this branch. What changed for the
   `type-family` → `--forest-font-{display,text,mono}` + the h1 letter spacing, `type-scale-*` →
   `--forest-type-<role>-size/line-height` (headings: name, h1, label; text: lead, body; cards:
   skills, period; details: title, role, meta bar). Guard 1 treats `--forest-font-*` as structural
-  (morph). The `docs/design/retro/layers/` copies still showed the old CV's selectors until R23.
+  (morph). The design package's layer copies (since deleted) still showed the old CV's selectors until R23.
 
 **For R23** (done in CV-90, *Round 7*; mechanical refit only: these hit little or the wrong thing on Forest):
 - `experience-heads`: only `display: block` on the job head (Forest jobs have no logo to float);

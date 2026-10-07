@@ -8,8 +8,7 @@ sees pixels, never parses the DOM and never gets CSS selectors. Decision records
 [`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md) (tools),
 [`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md) (one page, v4); wire contract: the
 **v4** section of [`API.md`](API.md); the chat itself: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md).
-Earlier designs (v2: two pages, Ukrainian, `switchLanguage`): see git history of this file before
-CV-141.
+Earlier designs: see git history of this file before CV-141.
 
 ## 1. The page agent today
 
@@ -19,7 +18,7 @@ with the editing backend, an unknown `highlighted` from a tab opened before the 
 `null`, not `400`).
 
 - **Tools:** `highlightElement`, `openContact` (`confirm`), `scrollToSection`. A request no tool
-  fits (e.g. "switch to Ukrainian", "fill the form") gets "I can't do that" from the model. The
+  fits (e.g. "switch the language", "fill the form") gets "I can't do that" from the model. The
   model answers in the visitor's language.
 - **Sections** (`CV_SECTION_IDS`, page order): `header`, `craft`, `loop`, `impact`, `experience`,
   `skills`, `education`, `about`, `contacts`.

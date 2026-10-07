@@ -58,8 +58,8 @@ so its types keep the `V2` names.
 | Errors | No codes of its own: shape violations are `400 invalid_request`; the daily budget stop is `503 unavailable` with `retryAfterSeconds`. |
 | Log line | `v: 4`, `locale: null` and the tool fields (`SYSTEM_DESIGN.md` §10). |
 
-**Why a version of its own:** the enums of the two-page v2 (sections, target kinds, contact
-channels, `switchLanguage`) no longer exist, and the request lost `page` and `locale`: breaking by
+**Why a version of its own:** v4 changed the enums of the earlier tool dialect (sections, target
+kinds, contact channels, tool names) and dropped `page` and `locale` from the request: breaking by
 [Versioning](#versioning). An old tab gets `unsupported_version` and the widget's "reload" notice.
 
 ### Stream
