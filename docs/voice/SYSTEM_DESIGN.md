@@ -279,22 +279,27 @@ the page to be visible: the voice mode gets out of the way while it runs, as
 are answered by the SDK at once with an error result, so the agent doesn't wait for a timeout.
 
 **`openContact` by voice.** The agent asks first and calls the tool after a spoken yes (prompt
-rule, §6). That yes is the visitor's confirmation. The executor then opens the contact at once
-if the browser lets it (`mailto:` in place; `window.open(url, '_blank', 'noopener')` for
-WhatsApp and LinkedIn). Browsers allow a new tab only right after a tap, so when `window.open`
-returns `null` the voice mode shows the same confirmation card as the chat (text built from the
-CV data, never from the model) with "Open <contact>" and Cancel. The tap opens it → `ok`; Cancel
-or 30 s without a tap → `declined`. The confirmation logic lives in `useVoiceCall` next to the
-chat's `useConfirmationDecisions`; `src/agent/` doesn't change.
+rule, §6). That yes is the visitor's confirmation. The voice mode then opens the contact at once
+if the browser lets it: `mailto:` in place through the page's own tool; WhatsApp and LinkedIn
+with `window.open(url, '_blank')` in the chat screen (`useVoiceTools`), because the page's tool
+can't report a blocked tab and `'noopener'` makes `window.open` always return `null`; the opened
+tab's `opener` is cleared at once. Browsers allow a new tab only right after a tap, so when
+`window.open` returns `null` the voice mode shows a card (text built from the CV data, never from
+the model) with an "Open <contact>" link and Cancel. The tap opens it → `ok`; Cancel or 30 s
+without a tap → `declined`. `src/agent/` doesn't change.
 
 ## 8. Transcript into the chat
 
-- **Model.** The chat's conversation becomes an ordered list of entries: a text turn (today's
-  `ChatTurn`) or a **voice call** `{ id, status: 'connecting' | 'live' | 'ended', endReason?,
-  error?, lines: { id, role: 'visitor' | 'agent', text, actions: ChatActionCall[] }[] }`. The
+- **Model.** The chat's conversation is an ordered list of entries: a text turn (`ChatTurn`,
+  `kind: 'turn'`) or a **voice call** (`ChatVoiceCall`, `src/screens/chat/voice/callReducer.ts`):
+  `{ kind: 'call', id, status: 'live' | 'ended', endReason?, durationSec?, items }`, where
+  `items` are the call's final lines `{ id, role, text }` and its tool chips (`ChatActionCall`)
+  in the order they happened (a tool call usually comes before the agent line it belongs to).
+  The entry is created when the call goes live; a call that never connects leaves none. The
   reducer in `conversation.ts` gains the call actions (`callStart`, `callLine`,
-  `callCorrection`, `callAction`, `callEnd`). Only final lines are stored; a `correction`
-  replaces an agent line's text with what was actually spoken before the interruption.
+  `callCorrection`, `callAction`, `callActionPatch`, `callEnd`). Only final lines are stored; a
+  `correction` replaces an agent line's text with what was actually spoken before the
+  interruption.
 - **Marked as voice.** The chat renders a call entry with its own marker (mic icon, "Voice call ·
   1:42") from `docs/design/voice/`; lines use the chat's message rows.
 - **The text model doesn't see voice turns.** `buildHistory` keeps sending text turns only, so

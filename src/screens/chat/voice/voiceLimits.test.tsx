@@ -86,6 +86,19 @@ describe('voice mode errors and limits', () => {
     );
   });
 
+  it('going offline mid-call ends it as dropped', async () => {
+    const { client } = await startCall();
+    await waitFor(() => expect(client.call).not.toBeNull());
+    client.emit({ type: 'status', status: 'live' });
+    const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    act(() => {
+      window.dispatchEvent(new Event('offline'));
+    });
+    expect(client.call?.ended).toBe('visitor');
+    expect(await screen.findByRole('alert')).toHaveAttribute('data-error', 'dropped');
+    online.mockRestore();
+  });
+
   it('Reload page reloads on the "Voice was updated" card; Close closes it', async () => {
     const sessions = new StubSessionRepository(sessionError('unsupported_version'));
     const reload = vi.fn();

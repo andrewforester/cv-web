@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef, useState, type Dispatch } from 'react';
+import { useCallback, useReducer, useRef, useState, type Dispatch } from 'react';
 import {
   useVoiceClient,
   useVoiceSessionRepository,
@@ -9,11 +9,17 @@ import {
 import { useStrings } from '../../../i18n';
 import type { ConversationAction } from '../conversation';
 import { chatStrings } from '../strings';
-import { useOnlineStatus } from '../useOnlineStatus';
 import { sessionErrorKind } from './voiceErrorKind';
 import { initialVoiceModel, toVoiceUiState, voiceReducer } from './voiceReducer';
-import { closeSession, liveSeconds, newCallSession, type CallSession } from './voiceSession';
+import {
+  closeSession,
+  liveSeconds,
+  newCallSession,
+  sessionLevel,
+  type CallSession,
+} from './voiceSession';
 import type { VoiceActions, VoiceAnnouncement, VoiceErrorKind, VoiceUiState } from './VoiceUiState';
+import { useCallGuards } from './useCallGuards';
 import { useVoiceTimer, WRAP_UP_UPDATE } from './useVoiceTimer';
 import { useVoiceTools } from './useVoiceTools';
 
@@ -38,7 +44,6 @@ export function useVoiceCall({ record, openChat }: VoiceCallOptions): {
   const client = useVoiceClient();
   const sessions = useVoiceSessionRepository();
   const strings = useStrings(chatStrings);
-  const online = useOnlineStatus();
   const [model, dispatch] = useReducer(voiceReducer, initialVoiceModel);
   const [announcement, setAnnouncement] = useState<VoiceAnnouncement | null>(null);
   const announce = useCallback((text: string) => {
@@ -155,24 +160,20 @@ export function useVoiceCall({ record, openChat }: VoiceCallOptions): {
     }
   }, [client, sessions, fail, onEvent, tools, finish]);
 
-  // Going offline mid-call ends it as dropped.
-  useEffect(() => {
-    const session = current.current;
-    if (online || !session?.call || session.finished) return;
-    session.endAsError = true;
-    hangUp(session, 'visitor');
-  }, [online, hangUp]);
-
-  // Leaving the page (unmount) hangs up.
-  useEffect(
-    () => () => {
+  useCallGuards({
+    onOffline: () => {
+      const session = current.current;
+      if (!session?.call || session.finished) return;
+      session.endAsError = true;
+      hangUp(session, 'visitor');
+    },
+    onLeave: () => {
       const session = current.current;
       if (!session) return;
       closeSession(session);
       void session.call?.end('visitor');
     },
-    [],
-  );
+  });
 
   useVoiceTimer({
     session: current,
@@ -215,13 +216,7 @@ export function useVoiceCall({ record, openChat }: VoiceCallOptions): {
     reload: () => window.location.reload(),
     contactOpened: () => current.current?.decide?.(true),
     contactCancelled: () => current.current?.decide?.(false),
-    level: () => {
-      const session = current.current;
-      const levels = session?.call?.levels();
-      if (!session || !levels) return 0;
-      if (session.mode === 'speaking') return levels.output;
-      return session.muted ? 0 : levels.input;
-    },
+    level: () => (current.current ? sessionLevel(current.current) : 0),
   };
 
   return { state: client ? toVoiceUiState(model, announcement) : null, actions };

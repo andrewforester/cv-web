@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useStrings } from '../../../i18n';
 import chat from '../../../shared/chat/chat.module.css';
 import { chatStrings } from '../strings';
@@ -41,6 +41,15 @@ export function VoiceMode({ className, state, actions, closing }: VoiceModeProps
     onOutsidePointerDown: noop,
   });
   useVoiceLevel(dialogRef, actions.level);
+  // The dialog locks the page's scroll; the scrollbar's gutter stays, so nothing shifts.
+  useEffect(() => {
+    const root = document.documentElement.style;
+    const { scrollbarGutter } = root;
+    root.scrollbarGutter = 'stable';
+    return () => {
+      root.scrollbarGutter = scrollbarGutter;
+    };
+  }, []);
 
   const onErrorButton = (button: VoiceErrorButton) => {
     if (button === 'retry') actions.start();

@@ -71,3 +71,11 @@ export function closeSession(session: CallSession): void {
 /** Seconds the call has been live. */
 export const liveSeconds = (session: CallSession, now = Date.now()): number =>
   session.liveAt === null ? 0 : Math.floor((now - session.liveAt) / 1000);
+
+/** The orb's loudness: the agent's output while it speaks, else the mic (0 when muted). */
+export function sessionLevel(session: CallSession): number {
+  const levels = session.call?.levels();
+  if (!levels) return 0;
+  if (session.mode === 'speaking') return levels.output;
+  return session.muted ? 0 : levels.input;
+}
