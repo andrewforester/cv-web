@@ -27,6 +27,8 @@ Domain terms:
   (after the visitor confirms in the chat).
 
 Stubs and limits:
+- `HomeRoute` takes two slots from the shell: `metaBarEnd` (meta bar) and `copyrightEnd` (after the
+  footer copyright; the Show case link).
 - Type and layout values are theme tokens (`src/theme/tokens.css`, checked against
   `docs/design/v3/design.dc.html` and its 2026-10-05 handoff). Jobs and Transcenda's projects share
   one layout: head, then the tag line and the dot points from the logo's left edge.

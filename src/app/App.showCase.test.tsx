@@ -1,7 +1,8 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { FakeShowRepository, SHOW_SCENARIOS, type ShowScenarioId } from '../data/retro';
 import { homeTestIds } from '../screens/home/testIds';
 import { showCaseTestId } from '../shared/ShowCaseButton';
+import { showCaseLinkTestId } from '../shared/ShowCaseLink';
 
 // The Show case button at the end of the page's meta bar (docs/retro/ARCHITECTURE.md §11): the
 // shell offers it while the page has a scenario, on a desktop viewport. The wiring is checked with
@@ -73,5 +74,37 @@ describe('App: the Show case button', () => {
   it('is hidden below 1024 px', async () => {
     const metaBar = await renderApp({ desktop: false });
     expect(metaBar.queryByTestId(showCaseTestId)).not.toBeInTheDocument();
+  });
+});
+
+describe('App: the footer Show case link (CV-148)', () => {
+  beforeAll(() => import('../screens/chat/ChatRoute'));
+  beforeEach(() => {
+    vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+  });
+  afterEach(() => {
+    vi.doUnmock(SHOW_MODULE);
+    vi.doUnmock(SCENARIOS_MODULE);
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('sits next to the copyright and starts the show', async () => {
+    await renderApp();
+    const link = screen.getByTestId(showCaseLinkTestId);
+    expect(screen.getByTestId(homeTestIds.copyright).parentElement).toContainElement(link);
+    expect(screen.queryByTestId(SHOW_STUB)).toBeNull();
+    fireEvent.click(link);
+    expect(await screen.findByTestId(SHOW_STUB)).toBeInTheDocument();
+  });
+
+  it('is hidden while the page has no show', async () => {
+    await renderApp({ scenario: null });
+    expect(screen.queryByTestId(showCaseLinkTestId)).not.toBeInTheDocument();
+  });
+
+  it('is hidden below 1024 px', async () => {
+    await renderApp({ desktop: false });
+    expect(screen.queryByTestId(showCaseLinkTestId)).not.toBeInTheDocument();
   });
 });
