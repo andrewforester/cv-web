@@ -6,6 +6,8 @@ import type {
   ChatErrorCode,
   ChatStopReason,
 } from '../../data/chat';
+import type { ChatVoiceCall } from './voice/callReducer';
+import type { VoiceActions, VoiceUiState } from './voice/VoiceUiState';
 
 /** Text the visitor reads on a confirmation card; built by the client, never from model text. */
 export interface ChatConfirmation {
@@ -39,6 +41,7 @@ export interface ChatToolRound {
  * Stop; `error`: failed (`error`), partial text dropped from the history.
  */
 export interface ChatTurn {
+  readonly kind: 'turn';
   readonly id: string;
   readonly question: string;
   /** The page snapshot taken when the question was sent (kept so history stays append-only). */
@@ -50,6 +53,9 @@ export interface ChatTurn {
   readonly stopReason?: ChatStopReason;
   readonly error?: ChatError;
 }
+
+/** One item of the conversation, in order: a text turn or a voice call (docs/voice/ §8). */
+export type ChatEntry = ChatTurn | ChatVoiceCall;
 
 /** What the polite live region says; `id` changes on every announcement. */
 export type ChatAnnouncement = { readonly id: number } & (
@@ -67,7 +73,7 @@ export interface ChatUiState {
   readonly isOpen: boolean;
   readonly hintVisible: boolean;
   readonly online: boolean;
-  readonly turns: readonly ChatTurn[];
+  readonly entries: readonly ChatEntry[];
   /** A reply is pending or streaming: Send shows as Stop. */
   readonly busy: boolean;
   readonly input: string;
@@ -86,6 +92,8 @@ export interface ChatUiState {
   readonly suggestions: readonly string[];
   /** The page's example commands; empty while its tools aren't mounted. */
   readonly commands: readonly string[];
+  /** The voice mode and its mic button; `null` when voice is off (no client bound). */
+  readonly voice: VoiceUiState | null;
 }
 
 export interface ChatActions {
@@ -105,4 +113,5 @@ export interface ChatActions {
   confirmAction(callId: string): void;
   /** Cancel button of a confirmation card: the model gets `declined`. */
   declineAction(callId: string): void;
+  readonly voice: VoiceActions;
 }

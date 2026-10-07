@@ -5,7 +5,9 @@ the corner (with a first-visit hint) opens a chat where the visitor asks about A
 and gets answers streamed from the page's content. Suggested questions help start; the chat can
 also act on the page: "show his selected impact" scrolls there, "highlight his work at Transcenda" marks
 the job, and opening a contact asks for confirmation first. A link to `#ask` anywhere on the site
-opens it too. Behaviour: `docs/design/chat/SPEC.md` (with "Orchestrator decisions"); look:
+opens it too. With the voice flag on, a mic beside the pill starts a voice call (`voice/`, its
+own `AGENTS.md`) whose transcript lands in the same conversation. Behaviour:
+`docs/design/chat/SPEC.md` (with "Orchestrator decisions"); look:
 `docs/design/v3/SPEC.md` → Decision 6 (the pill; the panel in the loop panel's dark colours); API:
 `docs/chat/API.md` → v4; page agent: `docs/chat/AGENT.md`; copy and labels: ADR-0006 → Decision 3.
 
@@ -13,7 +15,8 @@ What the visitor can rely on:
 - A card on desktop, a full-screen sheet on small screens that stays above the on-screen keyboard.
 - Stop at any time; Try again after a failure; clear, neutral notices for rate limits, offline,
   refusals and a full conversation ("Start a new chat").
-- The conversation survives closing and reopening, not a reload.
+- The conversation (text turns and voice calls, in order) survives closing and reopening, not a
+  reload; the text model is sent the text turns only.
 - Each page action shows as a chip (running / done / failed) and is announced to screen readers.
   Confirmation texts come from the app and the page's data, never from the model; tools never
   re-run on Try again.

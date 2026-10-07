@@ -1,0 +1,47 @@
+/* docs/design/voice/SPEC.md → Layout 2 (timer chip). */
+.timer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--pill-height);
+  padding: var(--space-1-5) var(--space-4) var(--space-1-5) var(--space-3-5);
+  font-family: var(--font-mono);
+  font-size: var(--type-meta-size);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-3);
+  background: var(--color-card);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-launcher);
+}
+
+.ring {
+  flex: none;
+  width: var(--voice-timer-ring-size);
+  height: var(--voice-timer-ring-size);
+  transform: rotate(-90deg);
+  fill: none;
+}
+
+.track {
+  stroke: var(--color-line);
+}
+
+.progress {
+  stroke: var(--color-accent);
+  stroke-linecap: round;
+}
+
+.value {
+  font-weight: var(--type-medium-weight);
+  color: var(--color-ink);
+}
+
+.warning,
+.warning .value {
+  color: var(--color-accent-pink);
+}
+
+.warning .progress {
+  stroke: var(--color-accent-pink);
+}

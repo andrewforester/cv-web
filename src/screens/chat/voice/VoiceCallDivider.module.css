@@ -1,0 +1,26 @@
+/* docs/design/voice/SPEC.md → Layout 6: a mono caption between two hairlines. */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-top: var(--border-card) solid var(--color-dark-line);
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.icon {
+  width: var(--chat-action-icon-size);
+  height: var(--chat-action-icon-size);
+  color: var(--color-dark-number);
+}

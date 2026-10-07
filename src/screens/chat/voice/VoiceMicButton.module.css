@@ -1,0 +1,83 @@
+/* docs/design/voice/SPEC.md → Layout 1: a 48 px gradient circle with a gloss and a slow sheen. */
+.mic {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  flex: none;
+  width: var(--voice-mic-size);
+  height: var(--voice-mic-size);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--color-on-accent);
+  background: var(--gradient-brand-tile);
+  border: 0;
+  border-radius: 50%;
+  box-shadow: var(--shadow-launcher);
+  cursor: pointer;
+  transition:
+    transform var(--chat-transition),
+    box-shadow var(--chat-transition);
+}
+
+/* Sheen: a soft light sweep turning inside the circle. */
+.mic::before {
+  content: '';
+  position: absolute;
+  inset: -25%;
+  z-index: -1;
+  background: conic-gradient(
+    from 200deg,
+    transparent 0 55%,
+    color-mix(in srgb, var(--color-card) 22%, transparent) 70%,
+    transparent 85%
+  );
+  animation: sheen var(--voice-mic-sheen) linear infinite;
+}
+
+/* Gloss: the light source top-left, as on the orb. */
+.mic::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 30% 25%,
+    color-mix(in srgb, var(--color-card) 18%, transparent),
+    transparent 55%
+  );
+}
+
+.mic:hover {
+  transform: scale(1.06);
+  box-shadow: var(--shadow-cta), var(--shadow-launcher);
+}
+
+.mic:active {
+  transform: scale(0.94);
+  transition-duration: 80ms;
+}
+
+.mic:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.icon {
+  width: var(--voice-mic-icon-size);
+  height: var(--voice-mic-icon-size);
+}
+
+@keyframes sheen {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mic::before {
+    animation: none;
+    display: none;
+  }
+}

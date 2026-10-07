@@ -5,7 +5,8 @@ import {
   type ChatMessageV4,
   type ChatStopReason,
 } from '../../data/chat';
-import type { ChatActionCall, ChatToolRound, ChatTurn } from './ChatUiState';
+import type { ChatActionCall, ChatEntry, ChatToolRound, ChatTurn } from './ChatUiState';
+import { callReducer, startCall, type CallAction } from './voice/callReducer';
 
 export type ConversationAction =
   | { type: 'ask'; id: string; question: string; page: AgentPageStateV4 }
@@ -19,28 +20,58 @@ export type ConversationAction =
   | { type: 'done'; id: string; stopReason: ChatStopReason }
   | { type: 'stop'; id: string }
   | { type: 'fail'; id: string; error: ChatError }
-  | { type: 'reset' };
+  | { type: 'reset' }
+  | CallAction;
+
+type TurnAction = Exclude<ConversationAction, CallAction | { type: 'ask' | 'reset' }>;
+
+const isTurn = (entry: ChatEntry): entry is ChatTurn => entry.kind === 'turn';
 
 const isActive = (turn: ChatTurn) =>
   turn.status === 'pending' || turn.status === 'streaming' || turn.status === 'acting';
 
-/** Pure transitions of the conversation; events for a turn that is no longer active are ignored. */
+/**
+ * Pure transitions of the conversation (text turns and voice calls, in order); events for a turn
+ * that is no longer active, or a call that has ended, are ignored.
+ */
 export function conversationReducer(
-  turns: readonly ChatTurn[],
+  entries: readonly ChatEntry[],
   action: ConversationAction,
-): readonly ChatTurn[] {
-  if (action.type === 'reset') return [];
-  if (action.type === 'ask') {
-    const { id, question, page } = action;
-    return [...turns, { id, question, page, rounds: [], answer: '', status: 'pending' }];
+): readonly ChatEntry[] {
+  switch (action.type) {
+    case 'reset':
+      return [];
+    case 'ask': {
+      const { id, question, page } = action;
+      const turn: ChatTurn = {
+        kind: 'turn',
+        id,
+        question,
+        page,
+        rounds: [],
+        answer: '',
+        status: 'pending',
+      };
+      return [...entries, turn];
+    }
+    case 'callStart':
+      return [...entries, startCall(action.id)];
+    case 'callLine':
+    case 'callCorrection':
+    case 'callAction':
+    case 'callActionPatch':
+    case 'callEnd':
+      return entries.map((entry) =>
+        entry.kind === 'call' && entry.id === action.id ? callReducer(entry, action) : entry,
+      );
+    default:
+      return entries.map((entry) =>
+        isTurn(entry) && entry.id === action.id ? updateTurn(entry, action) : entry,
+      );
   }
-  return turns.map((turn) => (turn.id === action.id ? updateTurn(turn, action) : turn));
 }
 
-function updateTurn(
-  turn: ChatTurn,
-  action: Exclude<ConversationAction, { type: 'ask' | 'reset' }>,
-): ChatTurn {
+function updateTurn(turn: ChatTurn, action: TurnAction): ChatTurn {
   if (action.type === 'retry') {
     // Finished rounds stay: the retry continues after them and never runs their tools again.
     return turn.status === 'error'
@@ -85,8 +116,13 @@ function updateLastRound(
   return [...rounds.slice(0, -1), { ...last, actions }];
 }
 
-export function isBusy(turns: readonly ChatTurn[]): boolean {
-  return turns.some(isActive);
+/** The text turns of a conversation, without its voice calls. */
+export function textTurns(entries: readonly ChatEntry[]): ChatTurn[] {
+  return entries.filter(isTurn);
+}
+
+export function isBusy(entries: readonly ChatEntry[]): boolean {
+  return textTurns(entries).some(isActive);
 }
 
 /** The model messages of a turn's tool rounds: the assistant message, then its results. */
@@ -116,10 +152,10 @@ export function turnMessages(turn: ChatTurn): ChatMessageV4[] {
 /**
  * The history to send: completed turns only (a `done` answer with text, exactly as streamed, after
  * its tool rounds; stopped and failed turns are dropped with their question so roles keep
- * alternating).
+ * alternating). Voice calls are never sent (docs/voice/SYSTEM_DESIGN.md §8).
  */
-export function buildHistory(history: readonly ChatTurn[]): ChatMessageV4[] {
-  return history
+export function buildHistory(history: readonly ChatEntry[]): ChatMessageV4[] {
+  return textTurns(history)
     .filter((turn) => turn.status === 'done' && turn.answer.trim() !== '')
     .flatMap((turn) => [
       ...turnMessages(turn),
@@ -128,7 +164,7 @@ export function buildHistory(history: readonly ChatTurn[]): ChatMessageV4[] {
 }
 
 export function buildMessages(
-  history: readonly ChatTurn[],
+  history: readonly ChatEntry[],
   question: string,
   page: AgentPageStateV4,
 ): ChatMessageV4[] {
@@ -136,7 +172,10 @@ export function buildMessages(
 }
 
 /** Whether sending `question` after `history` would break the API's conversation limits. */
-export function exceedsConversationLimits(history: readonly ChatTurn[], question: string): boolean {
+export function exceedsConversationLimits(
+  history: readonly ChatEntry[],
+  question: string,
+): boolean {
   const messages = buildHistory(history);
   const questions = messages.filter((message) => 'page' in message).length + 1;
   const chars = messages.reduce(

@@ -1,0 +1,27 @@
+/* docs/design/voice/SPEC.md → Layout 2 (shell), 7 (phone, short). */
+.mode {
+  --voice-level: 0;
+
+  position: fixed;
+  inset: 0;
+  z-index: var(--voice-z-index);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: var(--space-6) var(--space-6) var(--space-9);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  outline: none;
+}
+
+@media (max-width: 599px) {
+  .mode {
+    padding: calc(var(--space-4) + env(safe-area-inset-top)) var(--space-4)
+      calc(var(--space-7) + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-height: 560px) {
+  .mode {
+    padding-block: var(--space-3) var(--space-4);
+  }
+}
