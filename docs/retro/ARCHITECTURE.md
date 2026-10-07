@@ -1,5 +1,14 @@
 # Retro Rebuild: architecture of the live-fix show
 
+> **Current state (CV-137, 2026-10-07).** The site is one page, `/` (the v3 CV; `/new` is a 307
+> redirect), English only (ADR-0006). The show is one scenario, `retro-4`, started by the Show
+> case button in the page's meta bar or by `?retro=1`, over the v3 page (`src/screens/home/`); its
+> code is `src/screens/retro/`, its data `src/data/retro/`, its narration `/api/chat` **`v: 3`**.
+> **§11 is the current design** and `src/screens/retro/AGENTS.md` the current rules; §0–10 are the
+> round-by-round record of how the show was built when the site still had two pages and a language
+> switcher (`/` and `/new`, `src/screens/cv/`, `LanguageSwitcher`, `retro-3`, `retro-new-1`).
+> Passages about those are history; they are labelled where they would otherwise read as current.
+
 > GRA-39. Decision record: [`../adr/0003-retro-live-fix-show.md`](../adr/0003-retro-live-fix-show.md).
 > The look (retro values, copy, the full fix list, `--retro-*` tokens) is the design package
 > `docs/design/retro/` (GRA-38); this file is the mechanism.
@@ -39,7 +48,7 @@ EN only, desktop only; replay/skip later.
   background from tokens too (`src/theme/global.css`).
 - CSS Module class names are hashed in production builds: they are **not** a stable hook.
 - Stable hooks already exist, because tests and the page agent depend on them:
-  `data-testid` (`src/screens/cv/testIds.ts`: `cv`, `cv-summary`, `cv-app-card`, …) and
+  `data-testid` (history: `src/screens/cv/testIds.ts`, `cv-summary`, … ; today `src/screens/home/testIds.ts`, `homeTestIds`: `home`, `home-header`, `home-photo`, …) and
   `data-agent-id` on every section and item (`section:<id>`, `technology:<id>`, `experience:<id>`,
   `app:<id>`, `book:<id>`, `contact:<channel>`; `docs/chat/AGENT.md`).
 - The CV is one route (`CvRoute`), all content from data; images come from bundled assets.
@@ -340,6 +349,10 @@ round 1.
 
 ## 6. App integration
 
+> History (round 1): this describes the first shell, with the language switcher and the
+> first-visit auto-start. Today `src/app/App.tsx` shows the one page, the Show case button starts
+> the show and `?retro=1` starts it at load (§9 → Trigger, §11).
+
 ### Modes and composition
 
 - `src/app/` decides the mode once per page load: **show** when `?retro=1`, or when there is no
@@ -349,7 +362,7 @@ round 1.
 - The shell keeps **one tree shape in both modes** so `CvRoute` never remounts:
   ```tsx
   <div className={styles.shell} data-retro-stage={showing ? '' : undefined}>
-    <header data-testid="app-header"><LanguageSwitcher … /></header>   {/* hidden by a layer */}
+    <header data-testid="app-header"><LanguageSwitcher … /></header>   {/* history: round 1; the language switcher no longer exists */}
     <main className={styles.main}><CvRoute /></main>
     {chatLoaded && <LazyChatRoute />}
   </div>
@@ -440,7 +453,7 @@ Resolved: the defaults below stand; final answers are in section 9 → Decisions
 | # | Question | Default taken |
 |---|---|---|
 | Q1 | Visitor message analytics: Vercel Hobby has no custom events and 1-hour logs. Keep it in the backlog, or allow a Vercel Blob store (no new account; 2,000 writes/month; a dependency `@vercel/blob`)? | Backlog (your decision); round 1 stores no message text. |
-| Q2 | Who gets the show: every new browser session on desktop in English; visitors whose site language is Ukrainian see the normal site? | Yes: EN + desktop + once per session; `?retro=1` forces it, `?retro=0` skips it. |
+| Q2 | Who gets the show: every new browser session on desktop in English; visitors whose site language is Ukrainian see the normal site? (History: the site has been English only since ADR-0006, so the question is moot.) | Yes: EN + desktop + once per session; `?retro=1` forces it, `?retro=0` skips it. |
 | Q3 | Once per session or once per browser (localStorage)? | Once per session (a new tab replays it). |
 | Q4 | `prefers-reduced-motion`: show without typing animation, or skip the show? | Show it without typing. |
 | Q5 | The damage CSS (`src/screens/retro/layers/*.css`) hardcodes retro colours and fonts on purpose, as displayed code. OK as the one exception to "tokens only"? (It needs a line in the root `AGENTS.md`.) | Yes, only in `layers/`. |
@@ -601,7 +614,7 @@ That is the "code piles up, then it all changes" the human saw.
 - **Blink keyframes:** `@keyframes retro-blink` lives in the layer host's `<style data-retro-host>`
   inside `@media (prefers-reduced-motion: no-preference)` (the bursts layer no longer carries them).
 - **Reduced motion:** no class, no view transition, no leave: the round-1 behaviour.
-- **Nothing in `src/screens/cv/` changes.** All motion rules live in the show's CSS, keyed on the
+- **Nothing in the CV screen changes** (then `src/screens/cv/`, now `src/screens/home/`). All motion rules live in the show's CSS, keyed on the
   stage attribute and the two classes, and go with the show.
 
 #### Highlight and camera (GRA-52)
@@ -876,6 +889,10 @@ refit, The fix list and Decisions 46–52; the mechanism is unchanged.
   drop it with the next contract change.
 
 ## 10. Per-page scenarios (designed in CV-95, built in CV-98, CV-99, CV-100)
+
+> **History.** Retired by ADR-0006 and CV-112: there is one page and one scenario now (§11). Paths
+> below named `src/screens/cv/`, `ProfileRoute`, `LanguageSwitcher`, `/new`, `retro-3` and
+> `retro-new-1` no longer exist.
 
 > **As built:** the plan below is what shipped. `/` runs `retro-3`, `/new` runs `retro-new-1`;
 > adding a page's show is a manifest in `src/data/retro/scenarios.ts`, a source in
