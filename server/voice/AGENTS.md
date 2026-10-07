@@ -35,3 +35,4 @@ Rules and limits:
   1, 20 a day), which hold across instances. The log line never holds the IP or the token.
 - The sync's PATCH sends only our fields and relies on ElevenLabs merging them into the agent's
   config; a failed sync never blocks a token (the next request retries).
+- `contract.test.ts` runs the real `HttpVoiceSessionRepository` against the real handler (fake ElevenLabs, no network): a change to the contract on either side fails it.
