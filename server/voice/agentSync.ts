@@ -27,6 +27,13 @@ async function listAllTools(api: ElevenLabsApi): Promise<StoredTool[]> {
   throw new Error(`more than ${MAX_TOOL_PAGES} pages of tools`);
 }
 
+/** ElevenLabs' defaults for tool fields it may leave out of a stored config (= ours). */
+const ELEVENLABS_TOOL_DEFAULTS: Record<string, unknown> = {
+  execution_mode: 'immediate',
+  pre_tool_speech: 'auto',
+  interruption_mode: 'allow',
+};
+
 /** Order-free JSON: objects with sorted keys, so stored and built configs compare by content. */
 function canonical(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonical);
@@ -45,7 +52,9 @@ function canonical(value: unknown): unknown {
 export function sameTool(stored: StoredTool['config'], wanted: ClientToolConfig): boolean {
   const storedParams = (stored.parameters ?? {}) as Partial<ClientToolConfig['parameters']>;
   const projected = {
-    ...Object.fromEntries(Object.keys(wanted).map((key) => [key, stored[key]])),
+    ...Object.fromEntries(
+      Object.keys(wanted).map((key) => [key, stored[key] ?? ELEVENLABS_TOOL_DEFAULTS[key]]),
+    ),
     parameters: {
       type: storedParams.type,
       required: [...(storedParams.required ?? [])].sort(),
@@ -128,20 +137,27 @@ export function createAgentSync(
 ): AgentSync {
   let running: Promise<AgentSyncOutcome> | undefined;
   return () => {
-    running ??= wanted()
-      .then((config) => syncAgent(api, agentId, config))
-      .then(
-        (changed): AgentSyncOutcome => {
-          const outcome = changed.length > 0 ? 'patched' : 'unchanged';
-          log({ evt: 'voice_sync', outcome, changed, error: null });
-          return outcome;
-        },
-        (error: unknown): AgentSyncOutcome => {
-          running = undefined;
-          log({ evt: 'voice_sync', outcome: 'failed', changed: [], error: String(error) });
-          return 'failed';
-        },
-      );
+    running ??= (async (): Promise<AgentSyncOutcome> => {
+      let promptVersion: string | null = null;
+      try {
+        const config = await wanted();
+        promptVersion = config.promptVersion;
+        const changed = await syncAgent(api, agentId, config);
+        const outcome = changed.length > 0 ? 'patched' : 'unchanged';
+        log({ evt: 'voice_sync', outcome, promptVersion, changed, error: null });
+        return outcome;
+      } catch (error) {
+        running = undefined;
+        log({
+          evt: 'voice_sync',
+          outcome: 'failed',
+          promptVersion,
+          changed: [],
+          error: String(error),
+        });
+        return 'failed';
+      }
+    })();
     return running;
   };
 }

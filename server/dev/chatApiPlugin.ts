@@ -18,10 +18,10 @@ const SERVER_ENV_KEYS = [
 ];
 
 /** The functions served in dev: request path → entry file in `api/`. */
-const ENTRIES: Record<string, string> = {
-  [CHAT_API_PATH]: '/api/chat.ts',
-  [VOICE_API_PATH]: '/api/voice-session.ts',
-};
+const ENTRIES = new Map([
+  [CHAT_API_PATH, '/api/chat.ts'],
+  [VOICE_API_PATH, '/api/voice-session.ts'],
+]);
 
 interface FunctionModule {
   default: { fetch(request: Request): Promise<Response> };
@@ -97,7 +97,7 @@ export function chatApiPlugin(): Plugin {
       }
       server.middlewares.use((req, res, next) => {
         const path = (req.originalUrl ?? req.url ?? '').split('?')[0];
-        const entry = path === undefined ? undefined : ENTRIES[path];
+        const entry = path === undefined ? undefined : ENTRIES.get(path);
         if (!entry) return next();
         handle(server, entry, req, res).catch((error: unknown) => {
           server.config.logger.error(`[api] ${path} ${String(error)}`);
