@@ -341,7 +341,7 @@ or the Vercel MCP `get_runtime_logs`), no visitor content:
  "anthropicRequestId":"req_...","country":"UA","limiter":"ok"}
 ```
 
-`locale` is `null` for v4 (the show, `v: 3`, logs `en`). Since v2 lines also carry `toolCalls`, `toolNames`, `toolRound`, `toolChoice`, `providerStateBytes` and
+`locale` is `null` for v4 (the show, `v: 3`, logs `en`). Lines also carry `toolCalls`, `toolNames`, `toolRound`, `toolChoice`, `providerStateBytes` and
 `dayCostUsd` (this instance's estimated spend for the UTC day); daily total: sum `costUsd` in the
 logs or read the Anthropic Console (`AGENT.md` §6, README → Talk to the page).
 
