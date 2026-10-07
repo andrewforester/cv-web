@@ -12,7 +12,19 @@ import stop from './assets/chat_icon_stop.svg';
 import timer from './assets/chat_icon_timer.svg';
 import styles from './ChatIcon.module.css';
 
-const ICONS = { alert, chat, close, end, mic, micOff, offline, send, sparkle, stop, timer } as const;
+const ICONS = {
+  alert,
+  chat,
+  close,
+  end,
+  mic,
+  micOff,
+  offline,
+  send,
+  sparkle,
+  stop,
+  timer,
+} as const;
 
 export type ChatIconName = keyof typeof ICONS;
 
