@@ -65,16 +65,16 @@ Page: card max-width 1120, padding `0 clamp(14px,3vw,42px)`, section gap `clamp(
    h1 "Senior Software **Product** Engineer" (variant A; variant B is not used); summary (5
    lines, `<br>`-separated); 2×2 stat tiles (12+, 1M+, 2, AI — the last on the gradient); contact
    buttons: Email me ↗ (gradient), WhatsApp, LinkedIn (no Telegram, see Architecture notes).
-3. **Code craft × agentic process**: two cards (before AI / with agents).
-4. **How I build with agents** (+ mono "system with feedback"): dark panel, lead sentence, 6 loop
+3. **Skills**: 6 groups, 3 columns on desktop, 1 px top rules.
+4. **Code craft × agentic process**: two cards (before AI / with agents).
+5. **How I build with agents** (+ mono "system with feedback"): dark panel, lead sentence, 6 loop
    steps 01–06, footnote "↺ every retro lands as a PR to the rules…".
-5. **Selected impact**: 3 cards (1M+, 3 days, 1 day) on lilac / pink / neutral.
-6. **Experience**: 9 jobs, each: logo tile 44 px (Samsung: plain logo, no tile), company + period,
+6. **Selected impact**: 3 cards (1M+, 3 days, 1 day) on lilac / pink / neutral.
+7. **Experience**: 9 jobs, each: logo tile 44 px (Samsung: plain logo, no tile), company + period,
    role, optional store meta (ivi); below, from the logo's left edge: tag (`product`, Samsung `tool`) +
    one-line about, then dot bullets (handoff §2, §4).
    Transcenda has **projects** (SpotOn, Cync, August Home) on a dotted tree: icon, name, domain
    pill, meta (stars "★"), about, bullets. The first job "AI-powered CV" uses the photo as logo.
-7. **Skills**: 6 groups, 3 columns on desktop, 1 px top rules.
 8. **Education** (lilac card) + **About me** (neutral card: 4 book covers, "Reading on systems",
    "Off-screen").
 9. **Footer CTA**: two columns (handoff §6b): left "Let's build something ↗" (hover: gradient
@@ -88,6 +88,8 @@ separate layout.
 
 ## Orchestrator decisions
 
+- **Section order is the human's call** (2026-10-07, CV-145): Skills right after the header. A
+  redesign keeps it unless the human says otherwise.
 1. **One page, one URL.** `/` shows this page. `/new` stays reachable and shows the same page
    (old links keep working); there is no second page any more. How (alias vs redirect) is the
    architecture's call.
@@ -130,6 +132,6 @@ From CV-107 ([ADR-0006](../../adr/0006-one-page-v3.md); it wins where this list 
   `--font-sans`/`--font-mono`, `--type-<role>-*`, `--radius-*`, `--page-*`). The table is in
   ADR-0006 → Decision 5.
 - **Chat:** `/api/chat` `v: 4` (`docs/chat/API.md` → v4). The page's sections are `header`,
-  `craft`, `loop`, `impact`, `experience`, `skills`, `education`, `about`, `contacts`. There are
+  `skills`, `craft`, `loop`, `impact`, `experience`, `education`, `about`, `contacts`. There are
   three tools. The "Ask my AI" pill is the chat's launcher.
 - **Show case:** one scenario, `retro-4` (`docs/retro/ARCHITECTURE.md` §11).

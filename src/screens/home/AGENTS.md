@@ -1,9 +1,9 @@
 # home
 
 Why it exists: the one CV page of the site (design `docs/design/v3/`, ADR-0006): Andrew as a
-Senior Software Product Engineer, with the stats and contacts up top, code craft × agentic
-process, how he builds with agents, selected impact, experience (Transcenda's client projects on a
-tree), skills, education, about me and a closing call to action. It replaced both older pages: the
+Senior Software Product Engineer, with the stats and contacts up top, skills (right after the
+header: the human's call, CV-145; a test locks the order), code craft × agentic process, how he
+builds with agents, selected impact, experience (Transcenda's client projects on a tree), education, about me and a closing call to action. It replaced both older pages: the
 app shell shows it on every path, and `/new` redirects here on Vercel.
 
 Place in the architecture: the screen pattern of the root `AGENTS.md` over `CvPageRepository`
@@ -19,8 +19,8 @@ Domain terms:
 - **Hooks**: the `home-*` test ids (`testIds.ts`, ADR-0006 → Decision 2). The Show case's damage
   layers select them, so they are a contract with `src/screens/retro`.
 - **Page agent** (ADR-0002): every section and item the chat can point at carries
-  `data-agent-id`. Sections `header` (meta bar + header), `craft`, `loop`, `impact`, `experience`,
-  `skills`, `education`, `about`, `contacts` (the closing call to action); items `impact:`,
+  `data-agent-id`. Sections `header` (meta bar + header), `skills`, `craft`, `loop`, `impact`, `experience`,
+  `education`, `about`, `contacts` (the closing call to action); items `impact:`,
   `experience:` (with Transcenda's tree), `app:` (its projects), `skill:`, `book:`, and
   `contact:<channel>` on the header buttons. Each id appears once (`cvPageTargetIds`, 37). While
   the page is shown it offers scroll, highlight (fades after a few seconds) and open contact
