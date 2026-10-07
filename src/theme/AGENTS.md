@@ -39,3 +39,5 @@ Tokens (`docs/design/v3/SPEC.md`, ADR-0006 Decision 5; look-neutral role names):
 - The show (`docs/design/retro/SPEC.md`): `--retro-*` (dock, highlight fills, motion timings) and
   `--devtools-*` (the DevTools panel's Chrome-light surfaces, text, badge and syntax colours,
   fonts, plate shadow); damage values live in the screen's layers.
+- Voice mode (`docs/design/voice/SPEC.md`, ADR-0008): `--color-brand-{pink,violet}` (the brand
+  gradient's stops) and `--voice-*` (orb, veil, fog, sizes, motion durations, z-index).
