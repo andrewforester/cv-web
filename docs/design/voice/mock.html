@@ -1,0 +1,1151 @@
+<!doctype html>
+<!--
+  Static mock of the voice mode (docs/design/voice/SPEC.md). Not product code.
+  Open directly in a browser. Query params:
+    state = launcher | mic-states | connecting | listening (default) | speaking | muted | tool |
+            confirm | warning | ended | error-denied | error-failed | error-dropped |
+            error-callcap | error-monthly | offline
+  Desktop layout at >= 600 px wide, phone layout below. The page behind is a screenshot of
+  production (assets/voice_backdrop_*), so the fog is judged over the real CV.
+  Screenshots: render.sh next to this file.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Voice mock</title>
+    <!-- Real tokens. The theme self-hosts Figtree / JetBrains Mono under Vite; Google Fonts here. -->
+    <link rel="stylesheet" href="../../../src/theme/tokens.css" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=block"
+    />
+    <style>
+      /* ---- New tokens proposed in SPEC → New tokens (the build task adds them to tokens.css) ---- */
+      :root {
+        --color-brand-pink: #ff4fb8;
+        --color-brand-violet: #8b5cf6;
+        --voice-z-index: 1002;
+        --voice-mic-size: var(--pill-height);
+        --voice-mic-icon-size: 22px;
+        --voice-control-size: 56px;
+        --voice-control-icon-size: 24px;
+        --voice-orb-size: clamp(160px, 44vw, 200px);
+        --voice-orb-size-compact: 88px;
+        --voice-orb-size-error: 120px;
+        --voice-orb-gradient: conic-gradient(
+          var(--color-brand-pink),
+          var(--color-accent),
+          var(--color-brand-violet),
+          var(--color-dark-number),
+          var(--color-brand-pink)
+        );
+        --voice-orb-blur: 18px;
+        --voice-orb-shadow: 0 30px 80px -20px rgba(139, 92, 246, 0.55);
+        --voice-veil-top: rgba(242, 238, 248, 0.35);
+        --voice-veil-bottom: rgba(242, 238, 248, 0.8);
+        --voice-veil-clear: rgba(242, 238, 248, 0.06);
+        --voice-veil-blur: 8px;
+        --voice-fog-height: 40vh;
+        --voice-fog-height-low: 22vh;
+        --voice-fog-blur: 48px;
+        --voice-fog-pink: rgba(255, 79, 184, 0.7);
+        --voice-fog-violet: rgba(139, 92, 246, 0.7);
+        --voice-fog-light: rgba(255, 122, 203, 0.6);
+        --voice-fog-deep: rgba(138, 63, 224, 0.55);
+        --voice-caption-max-width: 640px;
+        --voice-card-max-width: 440px;
+        --voice-timer-ring-size: 20px;
+        --voice-enter-duration: 600ms;
+        --voice-exit-duration: 300ms;
+        --voice-fog-shift-duration: 400ms;
+        --voice-level-smoothing: 100ms;
+        --voice-spin-listening: 12s;
+        --voice-spin-speaking: 6s;
+        --voice-breathe: 3.2s;
+        --voice-drift: 11s;
+        --voice-mic-sheen: 6s;
+      }
+
+      /* ---- global.css equivalent ---- */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+      body {
+        font-family: var(--font-sans);
+        color: var(--color-ink);
+        -webkit-font-smoothing: antialiased;
+        background: var(--color-page);
+      }
+      button {
+        font: inherit;
+      }
+
+      /* ---- The real page (a screenshot of production) ---- */
+      .page {
+        position: fixed;
+        inset: 0;
+        background: var(--color-page) no-repeat top center / 100% auto;
+      }
+
+      .icon {
+        display: block;
+        flex: none;
+        width: var(--chat-icon-size);
+        height: var(--chat-icon-size);
+        background: currentColor;
+        mask: var(--src) center / contain no-repeat;
+      }
+      .i-mic { --src: url(assets/voice_icon_mic.svg); }
+      .i-mic-off { --src: url(assets/voice_icon_mic_off.svg); }
+      .i-end { --src: url(assets/voice_icon_end.svg); }
+      .i-offline { --src: url(assets/voice_icon_offline.svg); }
+      .i-alert { --src: url(assets/voice_icon_alert.svg); }
+      .i-timer { --src: url(assets/voice_icon_timer.svg); }
+      .i-chat { --src: url(../../../src/shared/chat/assets/chat_icon_chat.svg); }
+      .i-sparkle { --src: url(../../../src/shared/chat/assets/chat_icon_sparkle.svg); }
+      .i-close { --src: url(../../../src/shared/chat/assets/chat_icon_close.svg); }
+      .i-send { --src: url(../../../src/shared/chat/assets/chat_icon_send.svg); }
+
+      .badge {
+        flex: none;
+        width: var(--chat-badge-size);
+        height: var(--chat-badge-size);
+        display: grid;
+        place-items: center;
+        color: var(--color-on-accent);
+        background: var(--gradient-brand-tile);
+        border-radius: 50%;
+      }
+
+      /* ---- Launcher: [mic] [Ask my AI] (the pill is today's ChatLauncher) ---- */
+      .launcher {
+        position: fixed;
+        right: var(--space-4);
+        bottom: var(--space-4);
+        z-index: var(--chat-z-index);
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+      }
+      .pill {
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--chat-launcher-padding);
+        font-size: var(--type-body-size);
+        line-height: var(--chat-launcher-line-height);
+        font-weight: var(--type-button-weight);
+        white-space: nowrap;
+        color: var(--color-ink);
+        background: var(--color-card);
+        border: 0;
+        border-radius: var(--radius-pill);
+        box-shadow: var(--shadow-launcher);
+      }
+
+      .mic {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        flex: none;
+        width: var(--voice-mic-size);
+        height: var(--voice-mic-size);
+        display: grid;
+        place-items: center;
+        padding: 0;
+        color: var(--color-on-accent);
+        background: var(--gradient-brand-tile);
+        border: 0;
+        border-radius: 50%;
+        box-shadow: var(--shadow-launcher);
+        cursor: pointer;
+        transition:
+          transform var(--chat-transition),
+          box-shadow var(--chat-transition);
+      }
+      .mic .icon {
+        width: var(--voice-mic-icon-size);
+        height: var(--voice-mic-icon-size);
+      }
+      /* Shimmer: a soft light sweep turning inside the circle. */
+      .mic::before {
+        content: '';
+        position: absolute;
+        inset: -25%;
+        z-index: -1;
+        background: conic-gradient(
+          from 200deg,
+          transparent 0 55%,
+          rgba(255, 255, 255, 0.22) 70%,
+          transparent 85%
+        );
+        animation: spin var(--voice-mic-sheen) linear infinite;
+      }
+      /* Gloss: the light source top-left, as on the orb. */
+      .mic::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.18), transparent 55%);
+      }
+      .mic:hover,
+      .mic.is-hover {
+        transform: scale(1.06);
+        box-shadow: var(--shadow-cta), var(--shadow-launcher);
+      }
+      .mic:active,
+      .mic.is-pressed {
+        transform: scale(0.94);
+        transition-duration: 80ms;
+      }
+      .mic:focus-visible,
+      .mic.is-focus {
+        outline: var(--focus-ring);
+        outline-offset: var(--focus-ring-offset);
+      }
+
+      /* ---- Mic button specimen board (state=mic-states) ---- */
+      .specimens {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        gap: var(--space-8);
+        background: var(--color-page);
+      }
+      .specimens h1 {
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: var(--type-meta-size);
+        font-weight: 400;
+        color: var(--color-ink-3);
+        text-align: center;
+      }
+      .specimen-row {
+        display: grid;
+        grid-template-columns: repeat(3, auto);
+        gap: var(--space-8) var(--space-9);
+        zoom: 1.5;
+      }
+      .specimen {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: var(--space-2);
+      }
+      .specimen .launcher {
+        position: static;
+      }
+      .specimen p {
+        margin: 0;
+        align-self: center;
+        font-family: var(--font-mono);
+        font-size: var(--type-tag-size);
+        color: var(--color-accent);
+      }
+
+      /* ---- Voice mode ---- */
+      .voice {
+        --voice-level: 0.35;
+        position: fixed;
+        inset: 0;
+        z-index: var(--voice-z-index);
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        padding: var(--space-6) var(--space-6) var(--space-9);
+      }
+
+      .fog {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .veil {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, var(--voice-veil-top), var(--voice-veil-bottom));
+        backdrop-filter: blur(var(--voice-veil-blur));
+        transition:
+          background var(--voice-fog-shift-duration) var(--chat-motion-easing),
+          backdrop-filter var(--voice-fog-shift-duration) var(--chat-motion-easing);
+      }
+      .band {
+        position: absolute;
+        left: -15%;
+        right: -15%;
+        bottom: 0;
+        height: calc(var(--voice-fog-height) + var(--voice-level) * 10vh);
+        filter: blur(var(--voice-fog-blur));
+        transition: height var(--voice-level-smoothing) linear;
+      }
+      .blob {
+        position: absolute;
+        bottom: -35%;
+        height: 120%;
+        border-radius: 50%;
+        animation: drift var(--voice-drift) ease-in-out infinite alternate;
+      }
+      .blob.a {
+        left: 2%;
+        width: 48%;
+        background: radial-gradient(closest-side, var(--voice-fog-pink), transparent);
+      }
+      .blob.b {
+        left: 30%;
+        width: 52%;
+        background: radial-gradient(closest-side, var(--voice-fog-violet), transparent);
+        animation-duration: calc(var(--voice-drift) * 1.2);
+        animation-direction: alternate-reverse;
+      }
+      .blob.c {
+        right: 2%;
+        width: 44%;
+        background: radial-gradient(closest-side, var(--voice-fog-light), transparent);
+        animation-duration: calc(var(--voice-drift) * 0.85);
+      }
+      .blob.d {
+        left: 38%;
+        width: 26%;
+        bottom: -55%;
+        background: radial-gradient(closest-side, var(--voice-fog-deep), transparent);
+        animation-duration: calc(var(--voice-drift) * 1.4);
+      }
+      /* The lit bottom edge (Android assistant). */
+      .edge {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: var(--space-1);
+        background: var(--gradient-brand);
+        filter: blur(var(--space-0-75));
+        opacity: 0.9;
+      }
+
+      .top {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-2);
+      }
+      .chip {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: var(--pill-height);
+        padding: var(--space-1-5) var(--space-4) var(--space-1-5) var(--space-1-5);
+        font-size: var(--type-body-size);
+        font-weight: var(--type-button-weight);
+        line-height: var(--chat-launcher-line-height);
+        white-space: nowrap;
+        background: var(--color-card);
+        border-radius: var(--radius-pill);
+        box-shadow: var(--shadow-launcher);
+      }
+      .timer {
+        padding: var(--space-1-5) var(--space-4) var(--space-1-5) var(--space-3-5);
+        font-family: var(--font-mono);
+        font-size: var(--type-meta-size);
+        font-weight: 400;
+        color: var(--color-ink-3);
+        font-variant-numeric: tabular-nums;
+      }
+      .timer svg {
+        width: var(--voice-timer-ring-size);
+        height: var(--voice-timer-ring-size);
+        transform: rotate(-90deg);
+      }
+      .timer .track {
+        stroke: var(--color-line);
+      }
+      .timer .done {
+        stroke: var(--color-accent);
+        stroke-linecap: round;
+      }
+      .timer b {
+        font-weight: 500;
+        color: var(--color-ink);
+      }
+      .timer.warn,
+      .timer.warn b {
+        color: var(--color-accent-pink);
+      }
+      .timer.warn .done {
+        stroke: var(--color-accent-pink);
+      }
+      .close {
+        width: var(--chat-control-size);
+        height: var(--chat-control-size);
+        display: grid;
+        place-items: center;
+        padding: 0;
+        color: var(--color-ink);
+        background: var(--color-card);
+        border: 0;
+        border-radius: 50%;
+        box-shadow: var(--shadow-launcher);
+      }
+
+      .stage {
+        position: relative;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      /* ---- The orb ---- */
+      /* Room for the largest level scale (1.2) above and below, so the label never moves. */
+      .orb {
+        --orb: var(--voice-orb-size);
+        position: relative;
+        flex: none;
+        width: var(--orb);
+        height: var(--orb);
+        margin-block: calc(var(--orb) * 0.1);
+        transform: scale(calc(1 + var(--voice-level) * 0.12));
+        transition: transform var(--voice-level-smoothing) linear;
+      }
+      .orb .glow {
+        position: absolute;
+        inset: -22%;
+        border-radius: 50%;
+        background: radial-gradient(
+          closest-side,
+          var(--voice-fog-pink),
+          var(--voice-fog-violet) 55%,
+          transparent
+        );
+        filter: blur(var(--space-6));
+        opacity: calc(0.45 + var(--voice-level) * 0.5);
+        animation: breathe var(--voice-breathe) ease-in-out infinite alternate;
+      }
+      .orb .body {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        border-radius: 50%;
+        box-shadow: var(--voice-orb-shadow);
+        background: radial-gradient(circle at 50% 60%, var(--color-brand-violet), var(--color-accent));
+      }
+      /* The swirl: the brand colours on a turning conic gradient, blurred so it flows without a
+         centre point. */
+      .orb .swirl {
+        position: absolute;
+        inset: -30%;
+        background: var(--voice-orb-gradient);
+        filter: blur(var(--voice-orb-blur));
+        animation: spin var(--voice-spin-listening) linear infinite;
+      }
+      /* Shimmer: light streaks turning the other way, screened on top. */
+      .orb .shimmer {
+        position: absolute;
+        inset: -20%;
+        background: conic-gradient(
+          from 90deg,
+          transparent,
+          rgba(255, 255, 255, 0.6) 10%,
+          transparent 26%,
+          transparent 50%,
+          rgba(255, 255, 255, 0.45) 62%,
+          transparent 78%
+        );
+        filter: blur(var(--space-4));
+        mix-blend-mode: soft-light;
+        animation: spin calc(var(--voice-spin-listening) * 0.6) linear infinite reverse;
+      }
+      /* Depth: the gloss top-left and a soft shade at the bottom (counter-rotated by .shade). */
+      .orb .shade {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.75), transparent 38%),
+          radial-gradient(circle at 50% 120%, rgba(42, 31, 61, 0.35), transparent 60%);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+      }
+      .speaking .orb {
+        transform: scale(calc(1 + var(--voice-level) * 0.2));
+      }
+      .speaking .orb .swirl {
+        animation-duration: var(--voice-spin-speaking);
+      }
+      .speaking .orb .shimmer {
+        animation-duration: calc(var(--voice-spin-speaking) * 0.6);
+      }
+      .speaking .orb .glow {
+        inset: -32%;
+      }
+      .connecting .orb {
+        transform: scale(0.82);
+      }
+      .connecting .orb .body,
+      .muted .orb .body {
+        filter: saturate(0.45);
+        opacity: 0.85;
+      }
+      .muted .orb .glow,
+      .connecting .orb .glow {
+        opacity: 0.35;
+      }
+
+      .status {
+        margin: var(--space-3) 0 0;
+        font-family: var(--font-mono);
+        font-size: var(--type-label-size);
+        letter-spacing: var(--type-label-letter-spacing);
+        color: var(--color-accent);
+      }
+      .caption {
+        max-width: var(--voice-caption-max-width);
+        margin: var(--space-3) 0 0;
+        font-size: var(--type-loop-lead-size);
+        line-height: var(--type-loop-lead-line-height);
+        letter-spacing: var(--type-loop-lead-letter-spacing);
+        color: var(--color-ink);
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .caption.visitor {
+        color: var(--color-ink-3);
+      }
+
+      /* ---- Controls ---- */
+      .controls {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--space-4);
+        padding-top: var(--space-6);
+      }
+      .round {
+        width: var(--voice-control-size);
+        height: var(--voice-control-size);
+        display: grid;
+        place-items: center;
+        padding: 0;
+        color: var(--color-ink);
+        background: var(--color-card);
+        border: 0;
+        border-radius: 50%;
+        box-shadow: var(--shadow-launcher);
+        cursor: pointer;
+      }
+      .round .icon,
+      .end .icon {
+        width: var(--voice-control-icon-size);
+        height: var(--voice-control-icon-size);
+      }
+      .round[aria-pressed='true'] {
+        color: var(--color-on-accent);
+        background: var(--color-ink);
+      }
+      .round:disabled {
+        color: var(--color-ink-4);
+        box-shadow: none;
+        background: var(--color-surface);
+      }
+      .end {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        height: var(--voice-control-size);
+        padding: 0 var(--space-6) 0 var(--space-5);
+        font-size: var(--type-button-size);
+        font-weight: var(--type-button-weight);
+        color: var(--color-on-accent);
+        background: var(--color-ink);
+        border: 0;
+        border-radius: var(--radius-pill);
+        box-shadow: var(--shadow-launcher);
+      }
+
+      /* ---- Tool running: the fog parts ---- */
+      .tool .veil {
+        background: var(--voice-veil-clear);
+        backdrop-filter: none;
+      }
+      .tool .band {
+        height: calc(var(--voice-fog-height-low) + var(--voice-level) * 4vh);
+      }
+      .tool .stage {
+        justify-content: flex-end;
+      }
+      .tool .orb {
+        --orb: var(--voice-orb-size-compact);
+      }
+      /* Under the top bar, centred: what the agent is doing on the page. */
+      .action {
+        position: absolute;
+        top: calc(var(--space-6) + var(--pill-height) + var(--space-3));
+        left: 50%;
+        transform: translateX(-50%);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        white-space: nowrap;
+        padding: var(--space-2) var(--space-4);
+        font-family: var(--font-mono);
+        font-size: var(--type-meta-size);
+        color: var(--color-ink);
+        background: var(--color-card);
+        border-radius: var(--radius-pill);
+        box-shadow: var(--shadow-launcher);
+      }
+      .action .icon {
+        width: var(--chat-action-icon-size);
+        height: var(--chat-action-icon-size);
+        color: var(--color-accent);
+      }
+
+      /* ---- Cards: confirmation, error ---- */
+      .card {
+        width: 100%;
+        max-width: var(--voice-card-max-width);
+        margin-top: var(--space-3);
+        padding: var(--card-padding);
+        text-align: left;
+        background: var(--color-card);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card), var(--shadow-launcher);
+      }
+      .card .head {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+      }
+      .card .glyph {
+        flex: none;
+        width: var(--logo-size);
+        height: var(--logo-size);
+        display: grid;
+        place-items: center;
+        color: var(--color-accent);
+        background: var(--color-surface-lilac);
+        border-radius: var(--radius-logo);
+      }
+      .card h2 {
+        margin: 0;
+        font-size: var(--type-card-title-size);
+        font-weight: var(--type-card-title-weight);
+        letter-spacing: var(--type-card-title-letter-spacing);
+      }
+      .card p {
+        margin: var(--space-3) 0 0;
+        font-size: var(--type-body-size);
+        line-height: var(--type-body-line-height);
+        color: var(--color-ink-3);
+      }
+      .card .detail {
+        margin-top: var(--space-1);
+        font-family: var(--font-mono);
+        font-size: var(--type-label-size);
+        color: var(--color-accent);
+      }
+      .card .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin-top: var(--space-5);
+      }
+      .btn {
+        flex: 1 1 140px;
+        min-height: var(--button-height);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 var(--space-5);
+        font-size: var(--type-button-size);
+        font-weight: var(--type-button-weight);
+        color: var(--color-ink);
+        background: var(--color-surface);
+        border: 0;
+        border-radius: var(--radius-pill);
+      }
+      .btn.primary {
+        color: var(--color-on-accent);
+        background: var(--gradient-brand);
+        box-shadow: var(--shadow-cta);
+      }
+      .card .say {
+        margin-top: var(--space-3);
+        font-family: var(--font-mono);
+        font-size: var(--type-label-size);
+        color: var(--color-ink-3);
+        text-align: center;
+      }
+
+      .error .orb,
+      .confirm .orb {
+        --orb: var(--voice-orb-size-error);
+      }
+      .error .orb {
+        transform: none;
+      }
+      .error .orb .swirl,
+      .error .orb .shimmer {
+        animation: none;
+      }
+      .error .orb .body {
+        filter: grayscale(1);
+        opacity: 0.35;
+      }
+      .error .orb .glow {
+        display: none;
+      }
+      .error .band {
+        height: var(--voice-fog-height-low);
+        opacity: 0.6;
+      }
+
+      /* ---- Chat panel with the transcript (state=ended) ---- */
+      .panel {
+        position: fixed;
+        right: var(--space-4);
+        bottom: var(--space-4);
+        z-index: var(--chat-z-index);
+        width: var(--chat-panel-width);
+        height: min(var(--chat-panel-height), calc(100dvh - 2 * var(--space-4)));
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        color: var(--color-dark-ink);
+        background: var(--gradient-dark);
+        border: var(--border-card) solid var(--color-dark-line);
+        border-radius: var(--radius-card);
+        box-shadow: var(--chat-shadow-panel);
+      }
+      .p-head {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-2) var(--space-3) var(--space-5);
+        border-bottom: var(--border-card) solid var(--color-dark-line);
+      }
+      .p-titles {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .p-title {
+        font-size: var(--chat-title-size);
+        line-height: var(--chat-ui-line-height);
+        font-weight: var(--type-card-title-weight);
+        letter-spacing: var(--type-card-title-letter-spacing);
+      }
+      .cap {
+        font-family: var(--font-mono);
+        font-size: var(--chat-caption-size);
+        line-height: var(--chat-caption-line-height);
+        color: var(--chat-ink-2);
+      }
+      .p-x {
+        width: var(--chat-control-size);
+        height: var(--chat-control-size);
+        display: grid;
+        place-items: center;
+        color: var(--color-dark-ink);
+        background: none;
+        border: 0;
+      }
+      .p-list {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: var(--space-3);
+        padding: var(--space-4) var(--space-5);
+        overflow: hidden;
+      }
+      .bubble {
+        max-width: var(--chat-bubble-max-width);
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--chat-text-size);
+        line-height: var(--chat-text-line-height);
+        border-radius: var(--radius-tile);
+      }
+      .bubble.me {
+        align-self: flex-end;
+        color: var(--color-ink);
+        background: var(--color-surface-lilac);
+        border-bottom-right-radius: var(--chat-radius-tail);
+      }
+      .bubble.ai {
+        align-self: flex-start;
+        max-width: 100%;
+        padding-inline: calc(var(--space-4) - var(--border-card));
+        border: var(--border-card) solid var(--color-dark-line);
+        border-bottom-left-radius: var(--chat-radius-tail);
+      }
+      .p-chip {
+        align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-1) var(--space-3);
+        font-family: var(--font-mono);
+        font-size: var(--chat-caption-size);
+        line-height: var(--chat-caption-line-height);
+        border: var(--border-card) solid var(--color-dark-line);
+        border-radius: var(--radius-pill);
+      }
+      .p-chip .icon {
+        width: var(--chat-action-icon-size);
+        height: var(--chat-action-icon-size);
+        color: var(--color-dark-number);
+      }
+      /* New: the call divider. Mono caption between two hairlines. */
+      .divider {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        text-align: center;
+      }
+      .divider::before,
+      .divider::after {
+        content: '';
+        flex: 1;
+        border-top: var(--border-card) solid var(--color-dark-line);
+      }
+      .divider .icon {
+        width: var(--chat-action-icon-size);
+        height: var(--chat-action-icon-size);
+        color: var(--color-dark-number);
+      }
+      .divider span {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1-5);
+      }
+      .p-composer {
+        padding: var(--space-3) var(--space-5) var(--space-4);
+        border-top: var(--border-card) solid var(--color-dark-line);
+      }
+      .p-field {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 5px 5px 5px 15px;
+        color: var(--chat-ink-2);
+        font-size: var(--chat-text-size);
+        background: var(--chat-fill);
+        border: var(--border-card) solid var(--color-dark-number);
+        box-shadow: 0 0 0 var(--border-card) var(--color-dark-number);
+        border-radius: var(--radius-card);
+      }
+      .p-field span {
+        flex: 1;
+      }
+      .p-send {
+        width: var(--chat-control-size);
+        height: var(--chat-control-size);
+        display: grid;
+        place-items: center;
+        color: var(--color-ink-4);
+        background: var(--chat-fill-hover);
+        border-radius: 50%;
+      }
+      .p-meta {
+        margin-top: var(--space-2);
+      }
+
+      /* ---- Phone ---- */
+      @media (max-width: 599px) {
+        .voice {
+          padding: calc(var(--space-4) + env(safe-area-inset-top)) var(--space-4)
+            calc(var(--space-7) + env(safe-area-inset-bottom));
+        }
+        .action {
+          top: calc(var(--space-4) + env(safe-area-inset-top) + var(--pill-height) + var(--space-3));
+        }
+        .controls {
+          gap: var(--space-3);
+        }
+        .caption {
+          -webkit-line-clamp: 4;
+        }
+        .panel {
+          inset: 0;
+          width: auto;
+          height: 100dvh;
+          border: 0;
+          border-radius: 0;
+        }
+        .p-head {
+          padding-left: var(--space-4);
+        }
+        .p-list,
+        .p-composer {
+          padding-inline: var(--space-4);
+        }
+        .specimen-row {
+          zoom: 1;
+          grid-template-columns: auto;
+          gap: var(--space-6);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(1turn);
+        }
+      }
+      @keyframes breathe {
+        to {
+          transform: scale(1.06);
+        }
+      }
+      @keyframes drift {
+        from {
+          transform: translateX(-6%) scale(1);
+        }
+        to {
+          transform: translateX(6%) scale(1.08);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .mic::before,
+        .orb .swirl,
+        .orb .shimmer,
+        .orb .glow,
+        .blob {
+          animation: none;
+        }
+        .orb,
+        .band {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page" id="page"></div>
+    <div id="root"></div>
+
+    <template id="t-launcher">
+      <div class="launcher">
+        <button class="mic" type="button" aria-label="Talk to my AI by voice">
+          <span class="icon i-mic"></span>
+        </button>
+        <button class="pill" type="button"><span class="badge"><span class="icon i-sparkle"></span></span>Ask my AI</button>
+      </div>
+    </template>
+
+    <script>
+      const q = new URLSearchParams(location.search);
+      const state = q.get('state') || 'listening';
+      const phone = innerWidth < 600;
+      const vp = phone ? 'mobile' : 'desktop';
+      const page = document.getElementById('page');
+      const root = document.getElementById('root');
+      const backdrop = state === 'tool' ? 'tool' : 'top';
+      page.style.backgroundImage = `url(assets/voice_backdrop_${backdrop}_${vp}.png)`;
+
+      const icon = (name) => `<span class="icon i-${name}" aria-hidden="true"></span>`;
+      const CALL = 180;
+      const ring = (elapsed, warn) => {
+        const c = 2 * Math.PI * 8;
+        const done = c * (elapsed / CALL);
+        return `<svg viewBox="0 0 20 20" aria-hidden="true"><circle class="track" cx="10" cy="10" r="8" fill="none" stroke-width="2.5"/><circle class="done" cx="10" cy="10" r="8" fill="none" stroke-width="2.5" stroke-dasharray="${done} ${c}"/></svg>`;
+      };
+      const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+      const timer = (elapsed) => {
+        const left = CALL - elapsed;
+        const warn = left <= 30;
+        const text = warn ? `<b>${fmt(left)}</b> left` : `<b>${fmt(elapsed)}</b> / 3:00`;
+        return `<div class="chip timer${warn ? ' warn' : ''}" role="timer">${ring(elapsed, warn)}<span>${text}</span></div>`;
+      };
+      const title = `<div class="chip"><span class="badge">${icon('sparkle')}</span>Voice chat</div>`;
+      const fog = `<div class="fog" aria-hidden="true"><div class="veil"></div><div class="band"><div class="blob a"></div><div class="blob b"></div><div class="blob c"></div><div class="blob d"></div></div><div class="edge"></div></div>`;
+      const orb = `<div class="orb" aria-hidden="true"><div class="glow"></div><div class="body"><div class="swirl"></div><div class="shimmer"></div></div><div class="shade"></div></div>`;
+      const controls = ({ muted = false, connecting = false } = {}) => `
+        <div class="controls">
+          <button class="round" type="button" aria-pressed="${muted}" ${connecting ? 'disabled' : ''} aria-label="${muted ? 'Unmute microphone' : 'Mute microphone'}">${icon(muted ? 'mic-off' : 'mic')}</button>
+          <button class="end" type="button">${icon('end')}End</button>
+          <button class="round" type="button" aria-label="Switch to text chat">${icon('chat')}</button>
+        </div>`;
+
+      const conversation = ({ cls, level, elapsed, stage, ctl = controls(), top, extra = '' }) => `
+        <section class="voice ${cls}" role="dialog" aria-modal="true" aria-label="Voice chat with Andrew’s AI" style="--voice-level:${level}">
+          ${fog}
+          <div class="top">${title}${top ?? (elapsed == null ? '' : timer(elapsed))}</div>
+          <div class="stage">${stage}</div>
+          ${ctl}${extra}
+        </section>`;
+
+      const errorCard = (glyph, heading, body, primary, secondary) => `
+        <div class="card" role="alert">
+          <div class="head"><span class="glyph">${icon(glyph)}</span><h2>${heading}</h2></div>
+          <p>${body}</p>
+          <div class="buttons"><button class="btn primary" type="button">${primary}</button><button class="btn" type="button">${secondary}</button></div>
+        </div>`;
+      const errorView = (...card) =>
+        conversation({
+          cls: 'error',
+          level: 0,
+          top: `<button class="close" type="button" aria-label="Close voice chat">${icon('close')}</button>`,
+          stage: `${orb}${errorCard(...card)}`,
+          ctl: '',
+        });
+
+      const views = {
+        launcher: () => document.getElementById('t-launcher').innerHTML,
+        'mic-states': () => {
+          const one = (label, cls) => `
+            <div class="specimen">
+              <div class="launcher">
+                ${cls === 'off' ? '' : `<button class="mic ${cls}" type="button" aria-label="Talk to my AI by voice">${icon('mic')}</button>`}
+                <button class="pill" type="button"><span class="badge">${icon('sparkle')}</span>Ask my AI</button>
+              </div>
+              <p>${label}</p>
+            </div>`;
+          return `<div class="specimens"><h1>Mic button · beside “Ask my AI”</h1><div class="specimen-row">
+            ${one('idle', '')}${one('hover', 'is-hover')}${one('focus-visible', 'is-focus')}${one('pressed', 'is-pressed')}${one('flag off', 'off')}
+          </div></div>`;
+        },
+        connecting: () =>
+          conversation({
+            cls: 'connecting',
+            level: 0,
+            stage: `${orb}<p class="status">Connecting…</p><p class="caption visitor">Allow the microphone when your browser asks.</p>`,
+            ctl: controls({ connecting: true }),
+          }),
+        listening: () =>
+          conversation({
+            cls: 'listening',
+            level: 0.35,
+            elapsed: 42,
+            stage: `${orb}<p class="status">Listening</p><p class="caption visitor">What did he build at Transcenda…</p>`,
+          }),
+        speaking: () =>
+          conversation({
+            cls: 'speaking',
+            level: 0.75,
+            elapsed: 78,
+            stage: `${orb}<p class="status">Speaking</p><p class="caption">At Transcenda Andrew shipped three smart-home and restaurant apps: SpotOn, Cync and August Home, each with a million-plus users.</p>`,
+          }),
+        muted: () =>
+          conversation({
+            cls: 'muted',
+            level: 0,
+            elapsed: 64,
+            stage: `${orb}<p class="status">Mic off</p><p class="caption visitor">Your microphone is off. Unmute to talk.</p>`,
+            ctl: controls({ muted: true }),
+          }),
+        tool: () =>
+          conversation({
+            cls: 'tool speaking',
+            level: 0.5,
+            elapsed: 96,
+            stage: orb,
+            extra: `<p class="action" role="status">${icon('sparkle')}Showing Transcenda</p>`,
+          }),
+        confirm: () =>
+          conversation({
+            cls: 'confirm listening',
+            level: 0.2,
+            elapsed: 125,
+            stage: `${orb}
+              <div class="card" role="group" aria-label="Open a WhatsApp chat with Andrew?">
+                <h2>Open a WhatsApp chat with Andrew?</h2>
+                <p class="detail">wa.me/48519457129</p>
+                <div class="buttons"><button class="btn primary" type="button">Yes, open it</button><button class="btn" type="button">No</button></div>
+                <p class="say">or just say “yes” or “no”</p>
+              </div>`,
+          }),
+        warning: () =>
+          conversation({
+            cls: 'speaking',
+            level: 0.6,
+            elapsed: 156,
+            stage: `${orb}<p class="status">Speaking</p><p class="caption">He’s open to new roles — remote or B2B across the EU. Want me to open his email?</p>`,
+          }),
+        ended: () => `
+          <section class="panel" role="dialog" aria-label="Ask about Andrew">
+            <div class="p-head"><span class="badge">${icon('sparkle')}</span><div class="p-titles"><span class="p-title">Ask about Andrew</span><span class="cap">AI assistant · answers from this page</span></div><button class="p-x" type="button" aria-label="Close chat">${icon('close')}</button></div>
+            <div class="p-list">
+              <div class="divider cap"><span>${icon('mic')}Voice call</span></div>
+              <div class="bubble me">What did he build at Transcenda?</div>
+              <div class="p-chip">${icon('sparkle')}Showing Transcenda</div>
+              <div class="bubble ai">He shipped SpotOn, Cync and August Home there: apps with a million-plus users.</div>
+              <div class="bubble me">Is he open to new roles?</div>
+              <div class="bubble ai">Yes: remote or B2B across the EU.</div>
+              <div class="divider cap"><span>Call ended · 2:14</span></div>
+            </div>
+            <div class="p-composer"><div class="p-field"><span>Ask a question…</span><span class="p-send">${icon('send')}</span></div><div class="p-meta cap">Answers are AI-generated and may contain mistakes.</div></div>
+          </section>`,
+        'error-denied': () =>
+          errorView(
+            'mic-off',
+            'Microphone is blocked',
+            'Allow the microphone for this site in your browser’s address bar, then try again. Or type your question.',
+            'Try again',
+            'Type instead',
+          ),
+        'error-failed': () =>
+          errorView(
+            'alert',
+            'Couldn’t start the call',
+            'The voice service didn’t answer. Try again in a moment, or type your question.',
+            'Try again',
+            'Type instead',
+          ),
+        'error-dropped': () =>
+          errorView(
+            'alert',
+            'The call dropped',
+            'The connection was lost. Everything said so far is in the chat.',
+            'Call again',
+            'Open chat',
+          ),
+        'error-callcap': () =>
+          errorView(
+            'timer',
+            'That’s the 3-minute limit',
+            'Calls are capped at 3 minutes. Everything said is in the chat.',
+            'Call again',
+            'Open chat',
+          ),
+        'error-monthly': () =>
+          errorView(
+            'timer',
+            'Voice is resting this month',
+            'This month’s voice time is used up. The text chat still works.',
+            'Type instead',
+            'Close',
+          ),
+        offline: () =>
+          errorView(
+            'offline',
+            'You’re offline',
+            'Connect to the internet to talk to the AI.',
+            'Try again',
+            'Close',
+          ),
+      };
+      root.innerHTML = (views[state] || views.listening)();
+    </script>
+  </body>
+</html>
