@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef, type Dispatch } from 'react';
 import {
   CHAT_API_VERSION_V4,
   CHAT_LIMITS_V2,
@@ -13,13 +13,15 @@ import { useCvPageRepository } from '../../data';
 import { useAgentRegistry } from '../../agent';
 import { useStrings } from '../../i18n';
 import { useAgentExecutor } from './agentExecutor';
-import type { ChatAnnouncementInput, ChatTurn } from './ChatUiState';
+import type { ChatAnnouncementInput, ChatEntry } from './ChatUiState';
 import {
   buildHistory,
   buildMessages,
   conversationReducer,
   isBusy,
+  textTurns,
   turnMessages,
+  type ConversationAction,
 } from './conversation';
 import { loadPageContent } from './pageContent';
 import { useConfirmationDecisions } from './useConfirmationDecisions';
@@ -27,7 +29,8 @@ import { runToolCalls, VISUAL_TOOLS } from './runToolCalls';
 import { chatStrings } from './strings';
 
 export interface Conversation {
-  turns: readonly ChatTurn[];
+  /** Text turns and voice calls, in order. */
+  entries: readonly ChatEntry[];
   busy: boolean;
   /** Page tools are mounted right now. */
   commandsAvailable: boolean;
@@ -37,6 +40,8 @@ export interface Conversation {
   reset(): void;
   confirmAction(callId: string): void;
   declineAction(callId: string): void;
+  /** Records a voice call's events (the voice mode's state holder writes its transcript here). */
+  record: Dispatch<ConversationAction>;
 }
 
 interface ConversationOptions {
@@ -75,7 +80,7 @@ export function useChatConversation({
   const executor = useAgentExecutor();
   const registry = useAgentRegistry();
   const strings = useStrings(chatStrings);
-  const [turns, dispatch] = useReducer(conversationReducer, []);
+  const [entries, dispatch] = useReducer(conversationReducer, []);
   const controller = useRef<AbortController | null>(null);
   const nextId = useRef(0);
   const commandsAvailable = executor.available().length > 0;
@@ -183,7 +188,7 @@ export function useChatConversation({
     [repository, cvPageRepository, executor, strings, announce, waitForDecision],
   );
 
-  const busy = isBusy(turns);
+  const busy = isBusy(entries);
 
   const ask = useCallback(
     (question: string) => {
@@ -192,35 +197,46 @@ export function useChatConversation({
       const snapshot = pageState();
       dispatch({ type: 'ask', id, question, page: snapshot });
       announce({ kind: 'typing' });
-      void run(id, buildMessages(turns, question, snapshot), 0);
+      void run(id, buildMessages(entries, question, snapshot), 0);
     },
-    [busy, turns, pageState, run, announce],
+    [busy, entries, pageState, run, announce],
   );
 
   const retry = useCallback(() => {
-    const last = turns.at(-1);
-    if (!last || last.status !== 'error') return;
+    const last = entries.at(-1);
+    if (last?.kind !== 'turn' || last.status !== 'error') return;
     dispatch({ type: 'retry', id: last.id });
     announce({ kind: 'typing' });
     void run(
       last.id,
-      [...buildHistory(turns.slice(0, -1)), ...turnMessages(last)],
+      [...buildHistory(entries.slice(0, -1)), ...turnMessages(last)],
       last.rounds.length,
     );
-  }, [turns, run, announce]);
+  }, [entries, run, announce]);
 
   const stop = useCallback(() => {
-    const active = turns.find((turn) => isBusy([turn]));
+    const active = textTurns(entries).find((turn) => isBusy([turn]));
     if (!active) return;
     controller.current?.abort();
     dispatch({ type: 'stop', id: active.id });
     announce({ kind: 'stopped' });
-  }, [turns, announce]);
+  }, [entries, announce]);
 
   const reset = useCallback(() => {
     controller.current?.abort();
     dispatch({ type: 'reset' });
   }, []);
 
-  return { turns, busy, commandsAvailable, ask, retry, stop, reset, confirmAction, declineAction };
+  return {
+    entries,
+    busy,
+    commandsAvailable,
+    ask,
+    retry,
+    stop,
+    reset,
+    confirmAction,
+    declineAction,
+    record: dispatch,
+  };
 }

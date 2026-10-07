@@ -68,7 +68,7 @@ export function ChatPanel({ className, state, actions, closing, onKeyboardClose 
       {!state.online && <OfflineNotice />}
       <MessageList
         greeting={state.greeting}
-        turns={state.turns}
+        entries={state.entries}
         conversationFull={state.conversationFull}
         suggestions={state.suggestions}
         commands={state.commands}

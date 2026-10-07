@@ -5,6 +5,7 @@ import {
   buildMessages,
   conversationReducer,
   exceedsConversationLimits,
+  textTurns,
   turnMessages,
 } from './conversation';
 
@@ -22,7 +23,16 @@ const turn = (
   answer: string,
   status: ChatTurn['status'] = 'done',
   rounds: ChatToolRound[] = [],
-): ChatTurn => ({ id, question, page, rounds, answer, status, stopReason: 'end_turn' });
+): ChatTurn => ({
+  kind: 'turn',
+  id,
+  question,
+  page,
+  rounds,
+  answer,
+  status,
+  stopReason: 'end_turn',
+});
 
 const call = { id: 'toolu_1', name: 'scrollToSection', input: { section: 'apps' } } as const;
 const action: ChatActionCall = {
@@ -110,14 +120,17 @@ describe('conversation', () => {
       actions: [running],
     });
     expect(turns[0]).toMatchObject({ answer: '', status: 'acting' });
-    expect(turns[0]?.rounds[0]).toMatchObject({ text: 'Scrolling.', providerState: 'p' });
+    expect(textTurns(turns)[0]?.rounds[0]).toMatchObject({
+      text: 'Scrolling.',
+      providerState: 'p',
+    });
     turns = conversationReducer(turns, {
       type: 'action',
       id: 't',
       callId: 'toolu_1',
       patch: { status: 'finished', result: { ok: true } },
     });
-    expect(turns[0]?.rounds[0]?.actions[0]).toMatchObject({
+    expect(textTurns(turns)[0]?.rounds[0]?.actions[0]).toMatchObject({
       status: 'finished',
       result: { ok: true },
     });
@@ -126,6 +139,61 @@ describe('conversation', () => {
     // A stopped turn ignores late tool events.
     turns = conversationReducer(turns, { type: 'stop', id: 't' });
     turns = conversationReducer(turns, { type: 'round', id: 't', actions: [running] });
-    expect(turns[0]?.rounds).toHaveLength(1);
+    expect(textTurns(turns)[0]?.rounds).toHaveLength(1);
+  });
+
+  it('records a voice call in order and never sends it to the text model', () => {
+    let entries = conversationReducer([turn('1', 'Q1', 'A1')], { type: 'callStart', id: 'c' });
+    const line = (id: string, role: 'visitor' | 'agent', text: string) =>
+      ({ type: 'callLine', id: 'c', line: { id, role, text } }) as const;
+    entries = conversationReducer(entries, line('visitor-1', 'visitor', 'Show his impact'));
+    entries = conversationReducer(entries, {
+      type: 'callAction',
+      id: 'c',
+      action: { call, status: 'running' },
+    });
+    entries = conversationReducer(entries, {
+      type: 'callActionPatch',
+      id: 'c',
+      callId: 'toolu_1',
+      patch: { status: 'finished', result: { ok: true } },
+    });
+    entries = conversationReducer(
+      entries,
+      line('agent-2', 'agent', 'Here is his impact, and more'),
+    );
+    entries = conversationReducer(entries, {
+      type: 'callCorrection',
+      id: 'c',
+      lineId: 'agent-2',
+      text: 'Here is his impact',
+    });
+    entries = conversationReducer(entries, {
+      type: 'callEnd',
+      id: 'c',
+      reason: 'visitor',
+      durationSec: 42,
+    });
+    // An ended call ignores late lines.
+    entries = conversationReducer(entries, line('agent-3', 'agent', 'late'));
+
+    expect(entries[1]).toEqual({
+      kind: 'call',
+      id: 'c',
+      status: 'ended',
+      endReason: 'visitor',
+      durationSec: 42,
+      items: [
+        { kind: 'line', id: 'visitor-1', role: 'visitor', text: 'Show his impact' },
+        { kind: 'action', action: { call, status: 'finished', result: { ok: true } } },
+        { kind: 'line', id: 'agent-2', role: 'agent', text: 'Here is his impact' },
+      ],
+    });
+    expect(buildMessages(entries, 'Q2', page)).toEqual([
+      { role: 'user', content: 'Q1', page },
+      { role: 'assistant', content: 'A1' },
+      { role: 'user', content: 'Q2', page },
+    ]);
+    expect(conversationReducer(entries, { type: 'reset' })).toEqual([]);
   });
 });
