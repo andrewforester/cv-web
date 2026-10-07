@@ -17,7 +17,10 @@ What to read for what:
   knowledge before RAG), [`0002`](../adr/0002-page-agent-tools.md) (why our own tool use and a
   browser tool registry, not a framework), [`0006`](../adr/0006-one-page-v3.md) (one page,
   English only, v4), [`0007`](../adr/0007-cv-data-source.md) (the CV JSON is the canonical data;
-  edits ship as deploys).
+  edits ship as deploys), [`0008`](../adr/0008-voice-agent-elevenlabs.md) (voice through an
+  ElevenLabs agent).
+- Voice: [`../voice/`](../voice/AGENTS.md). A voice call runs on an ElevenLabs agent, not on
+  `/api/chat`; its lines land in this chat's conversation but are not sent to the text model.
 
 Rules for implementers: change the contract only through its own ticket and bump `v` for breaking
 changes; never call a real model in tests or CI; keep the code the server shares with `src/`
