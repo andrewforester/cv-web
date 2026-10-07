@@ -189,7 +189,7 @@ describe('chat page tools', () => {
 describe('chat confirmation card', () => {
   it.each([
     ['email', 'Write an email to Andrew?', 'andriipanasiuk@gmail.com'],
-    ['whatsapp', 'Open a WhatsApp chat with Andrew?', 'wa.me/380938977110'],
+    ['whatsapp', 'Open a WhatsApp chat with Andrew?', 'wa.me/48519457129'],
     ['linkedin', 'Open Andrew’s LinkedIn profile?', 'www.linkedin.com/in/andriipanasiuk'],
   ])('confirms %s with the page’s contact', async (channel, title, detail) => {
     const { repository, user } = await renderOpenChat({ withTools: true });
@@ -210,7 +210,7 @@ describe('chat confirmation card', () => {
 
     const card = await screen.findByTestId(chatTestIds.confirmation);
     expect(card).toHaveTextContent('Open a WhatsApp chat with Andrew?');
-    expect(card).toHaveTextContent('wa.me/380938977110');
+    expect(card).toHaveTextContent('wa.me/48519457129');
     expect(executor.executed).toHaveLength(0);
     expect(repository.requests).toHaveLength(1);
     expect(screen.getByTestId(chatTestIds.announcer)).toHaveTextContent(
