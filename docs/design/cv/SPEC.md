@@ -53,7 +53,7 @@ Spacing / radii: `--radius-card: 12px` (Figma 8), `--radius-logo: 9px` (Figma 6,
    - Left: name `Andrew Panasiuk` (`--font-name`); headline `Senior Android Engineer with iOS experience` (body); 20 px gap; tagline `Creating Android apps since 2012` (body, italic).
    - Right, right-aligned: photo `assets/photo.jpg`, 120 × 120 circle (`object-fit: cover`, crop centred on the face as in the render). Below it two contact rows, 8 px apart, icons 18 px:
      - `assets/icon_gmail.png` + `andriipanasiuk@gmail.com` → `mailto:` link.
-     - `assets/icon_whatsapp.png` + `assets/icon_telegram.png` + `+38 093 897-71-10` → phone `tel:+380938977110`; WhatsApp icon → `https://wa.me/380938977110`; Telegram icon → `https://t.me/+380938977110`.
+     - `assets/icon_whatsapp.png` + `assets/icon_telegram.png` + `+48 519 457 129` → phone `tel:+48519457129`; WhatsApp icon → `https://wa.me/48519457129`; Telegram icon: no link (Telegram removed, CV-124; the old number was replaced everywhere, 2026-10-07).
    - Under 600 px: photo on top-right stays, contacts wrap under the left column.
 2. **Summary** — section title, then paragraph lines (each on its own line on desktop):
    - Product-minded **Senior Android Engineer** (Medium 500) with 12+ years of experience.
