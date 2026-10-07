@@ -73,11 +73,7 @@
   --color-brand-pink: #ff4fb8;
   --color-brand-violet: #8b5cf6;
   --gradient-brand: linear-gradient(90deg, #ff4fb8, #8b5cf6);
-  --gradient-brand-tile: linear-gradient(
-    135deg,
-    var(--color-brand-pink),
-    var(--color-brand-violet)
-  );
+  --gradient-brand-tile: linear-gradient(135deg, #ff4fb8, #8b5cf6);
   --gradient-dark: linear-gradient(150deg, #2a1f3d 0%, #16131c 45%, #0e0c12 100%);
   --gradient-footer: linear-gradient(135deg, #fbe3f2, #ece3fd);
 
