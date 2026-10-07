@@ -1,21 +1,53 @@
 # AI CV chat as a page agent: system design
 
-The floating AI chat (GRA-8, [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md)) also controls the page in
-natural language: "show me his Kotlin experience", "перемкни на українську", "scroll to the apps".
+> **Current state (CV-137, 2026-10-07).** The site is one page, `/` (the v3 CV; `/new` is a 307
+> redirect), English only (ADR-0006). The floating chat controls that page in natural language
+> ("show his selected impact", "scroll to the apps") with **three tools** (`highlightElement`,
+> `openContact` with confirmation, `scrollToSection`) over contract **`v: 4`**; contacts are email,
+> WhatsApp and LinkedIn. §12 below is the current design; §1–11 are the record of the v2 design
+> (two pages, Ukrainian, `switchLanguage`) and stay as history, with the protocol, safety and cost
+> reasoning that v4 reuses.
+
 The model calls **pre-declared, strictly typed frontend tools** that run in the browser; it never
-sees pixels, never parses the DOM and never gets CSS selectors. Decision record:
-[`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md); wire contract: the **v2**
-section of [`API.md`](API.md). Status: shipped (design GRA-31; contract GRA-32, server GRA-33, registry
-GRA-34, chat UI GRA-35, README + e2e GRA-36, chat bound to the registry GRA-37).
+sees pixels, never parses the DOM and never gets CSS selectors. Decision records:
+[`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md) (tools),
+[`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md) (one page, v4); wire contract: the
+**v4** section of [`API.md`](API.md); the chat itself: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md).
 
-Since CV-94 the chat runs on both pages, `/` (the CV) and `/new` (the profile), and the agent
-operates the page it is on: each page has its own sections, targets and catalogue
-([`../adr/0004-page-aware-chat.md`](../adr/0004-page-aware-chat.md), API.md → Page-aware chat).
-§1 and the examples below describe `/`; `/new`'s targets are in ADR-0004 → Decision 4.
+## 12. The page agent today (`v: 4`, CV-107)
 
-Since CV-107 (ADR-0006) the site is **one page, English only**: the agent works on the v3 page
-through `v: 4`, with three tools (no `switchLanguage`) and the targets in §12. Sections 1–11 are
-the record of v2; §12 says what changes.
+Decision: [`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md); contract: API.md → v4.
+Where the catalogue's data comes from once the CV is editable:
+[`../adr/0007-cv-data-source.md`](../adr/0007-cv-data-source.md) (one data version per deploy;
+with the editing backend, an unknown `highlighted` from a tab opened before the deploy becomes
+`null`, not `400`).
+
+- **Tools:** `highlightElement`, `openContact` (`confirm`), `scrollToSection`. `switchLanguage`
+  is gone with the Ukrainian locale; a request to switch the language gets "I can't do that" from the
+  model (no tool fits), as any unsupported request does. The model still answers in the visitor's
+  language.
+- **Sections** (`CV_SECTION_IDS`, page order): `header`, `craft`, `loop`, `impact`, `experience`,
+  `skills`, `education`, `about`, `contacts`.
+- **Targets** (37): the 9 sections, `impact:` (3), `experience:` (9 jobs; Transcenda's article
+  includes its project tree), `app:` (Transcenda's 3 projects: `spoton`, `cync`, `august-home`),
+  `skill:` (6), `book:` (4), `contact:` (3, the header buttons: `email`, `whatsapp`, `linkedin`;
+  Telegram removed by CV-124, 2026-10-05). Not targets: stats, craft cards, loop steps, the meta
+  bar, the footer pills.
+- **`openContact`** opens `mailto:` in place and `https://` links (WhatsApp, LinkedIn) in
+  a new tab, after the visitor confirms; the confirmation names the contact's label from the data.
+- **Snapshot** (`AgentPageStateV4`): `viewport`, `chat`, `activeSection`, `highlighted`, `tools`; no route, no locale; `activeSection` from `useAgentPageView` over
+  `CV_SECTION_IDS`.
+- **Unchanged:** the protocol (client-executed tools, stateless server, `providerState`), the
+  safety rules (§5), the limits, the cost model (§6; one cached prefix); these sections are history for the rest.
+- **Example commands** offered in the chat: "Show his selected impact" (`scrollToSection`
+  `impact`), "Highlight his work at Transcenda" (`highlightElement` `experience:transcenda`),
+  "Scroll to his contacts" (`scrollToSection` `contacts`).
+
+## History: the v2 design (§1–11)
+
+> Written for v2 (GRA-31..37, CV-94). It describes `/` and `/new`, the `switchLanguage` tool, the
+> Ukrainian locale, `src/screens/cv/` and a four-channel contact list; none of that exists now.
+> Read §12 first. The protocol (§4), safety (§5) and cost control (§6) still hold.
 
 ## 1. Findings: what the page can be told to do
 
@@ -307,32 +339,3 @@ uncached; the ADR-0001 abuse math is unchanged in shape.
   nothing about real cost.
 - **Not built:** `GET /api/chat-usage`, a global exact budget, the WebMCP wiring
   (`src/agent/webmcp.ts` only converts).
-
-## 12. One page v3 (`v: 4`, CV-107)
-
-Decision: [`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md); contract: API.md → v4.
-Where the catalogue's data comes from once the CV is editable:
-[`../adr/0007-cv-data-source.md`](../adr/0007-cv-data-source.md) (one data version per deploy;
-with the editing backend, an unknown `highlighted` from a tab opened before the deploy becomes
-`null`, not `400`).
-
-- **Tools:** `highlightElement`, `openContact` (`confirm`), `scrollToSection`. `switchLanguage`
-  is gone with the Ukrainian locale; "перемкни на українську" now gets "I can't do that" from the
-  model (no tool fits), as any unsupported request does. The model still answers in the visitor's
-  language.
-- **Sections** (`CV_SECTION_IDS`, page order): `header`, `craft`, `loop`, `impact`, `experience`,
-  `skills`, `education`, `about`, `contacts`.
-- **Targets** (37): the 9 sections, `impact:` (3), `experience:` (9 jobs; Transcenda's article
-  includes its project tree), `app:` (Transcenda's 3 projects: `spoton`, `cync`, `august-home`),
-  `skill:` (6), `book:` (4), `contact:` (3, the header buttons: `email`, `whatsapp`, `linkedin`;
-  Telegram removed by CV-124, 2026-10-05). Not targets: stats, craft cards, loop steps, the meta
-  bar, the footer pills.
-- **`openContact`** opens `mailto:` in place and `https://` links (WhatsApp, LinkedIn) in
-  a new tab, after the visitor confirms; the confirmation names the contact's label from the data.
-- **Snapshot:** v2's without `route` and `locale`; `activeSection` from `useAgentPageView` over
-  `CV_SECTION_IDS`.
-- **Unchanged:** the protocol (client-executed tools, stateless server, `providerState`), the
-  safety rules (§5), the limits, the cost model (§6; one cached prefix instead of three).
-- **Example commands** offered in the chat: "Show his selected impact" (`scrollToSection`
-  `impact`), "Highlight his work at Transcenda" (`highlightElement` `experience:transcenda`),
-  "Scroll to his contacts" (`scrollToSection` `contacts`).
