@@ -24,6 +24,7 @@ Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + Rea
 | `scripts/` | Repo helpers: Vercel's ignore step, `audit-pr.sh` (the orchestrator's audit), `session-usage.sh` (token counts). |
 | `docs/retro/` | The show's design record: `AGENTS.md` (read first), `ARCHITECTURE.md` (what is built, rules, how to add a fix chunk); the look is `docs/design/retro/`. |
 | `docs/chat/`, `docs/adr/` | AI chat system design, API contract (`API.md`) and decisions. |
+| `docs/voice/` | The voice agent's design (ADR-0008): ElevenLabs call flow, the `POST /api/voice-session` contract (`API.md`), limits, the agent checklist and the build split. |
 | `docs/design/<name>/` | Design packages (`SPEC.md`, `screenshot.png`, `assets/`). Build from them; don't call design-tool MCPs. |
 
 ## Commands

@@ -6,5 +6,6 @@ export const commonStrings = defineStrings({
     loading: 'Loading…',
     loadError: 'Could not load the CV.',
     showCase: 'Show case',
+    showCaseLink: 'Show old version with some fun',
   },
 });

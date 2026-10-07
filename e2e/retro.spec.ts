@@ -53,6 +53,16 @@ test('with motion on the show ends on the normal page within its time budget', a
   expect(showMs).toBeGreaterThan(MIN_SHOW_MS);
 });
 
+test('the footer link starts the show (CV-148)', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.goto(SHOW_URLS.normal);
+  await expect(page.getByTestId('home-copyright')).toBeVisible();
+  await page.getByTestId('show-case-link').click();
+  await expect(page.locator(stageSelector)).toHaveCount(1);
+  await expect(page.locator('style[data-retro-layer]')).toHaveCount(32);
+  expect(errors).toEqual([]);
+});
+
 test('the Show case button is hidden on the normal page (CV-144)', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto(SHOW_URLS.normal);

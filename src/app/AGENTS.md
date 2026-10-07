@@ -1,7 +1,7 @@
 # app
 
 Why it exists: the shell that turns the pieces into the site: the one CV page (ADR-0006) on every
-path, with the Show case button at the end of its meta bar, and the floating AI chat over it. When
+path, with the Show case link after the footer copyright, and the floating AI chat over it. When
 the page has a show it starts the Retro Rebuild show (the page turns into a broken 2002 site and
 an "agent" fixes it live) when asked, and otherwise shows today's site. It is also the single
 place where the app decides which data sources it uses.
@@ -37,8 +37,10 @@ Rules and limits:
 - One page, no router: every path renders `HomeRoute`; production redirects `/new` to `/`
   (`vercel.json`), Vite dev/preview fall back to `index.html` by themselves.
 - Entry point is `src/main.tsx` (global styles, providers, `App`).
-- The Show case button is hidden (`SHOW_CASE_BUTTON_ENABLED = false` in `App.tsx`, CV-144); the show
-  still starts with `?retro=1`. Set the constant to `true` to bring the button back.
+- The show starts from the footer Show case link (`ShowCaseLink`, CV-148; `useShowCaseAvailable`:
+  a scenario and ≥ 1024 px) and with `?retro=1`.
+- The Show case button is hidden (`SHOW_CASE_BUTTON_ENABLED = false` in `App.tsx`, CV-144); the footer link
+  is not gated by it. Set the constant to `true` to bring the button back.
 - Reduced motion is read by the show itself. The Show case button shows only with a scenario, on
   ≥ 1024 px (`useShowCaseAvailable`); the start seam itself checks only the scenario.
 - Real-user speed: `AppSpeedInsights` sends Core Web Vitals to Vercel Speed Insights (dashboard:
