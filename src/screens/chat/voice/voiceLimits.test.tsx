@@ -99,6 +99,18 @@ describe('voice mode errors and limits', () => {
     online.mockRestore();
   });
 
+  it('going offline while connecting shows the offline card', async () => {
+    const sessions = new StubSessionRepository();
+    sessions.create = () => new Promise(() => undefined);
+    await startCall(new ManualVoiceClient(), sessions);
+    const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    act(() => {
+      window.dispatchEvent(new Event('offline'));
+    });
+    expect(await screen.findByRole('alert')).toHaveAttribute('data-error', 'offline');
+    online.mockRestore();
+  });
+
   it('Reload page reloads on the "Voice was updated" card; Close closes it', async () => {
     const sessions = new StubSessionRepository(sessionError('unsupported_version'));
     const reload = vi.fn();

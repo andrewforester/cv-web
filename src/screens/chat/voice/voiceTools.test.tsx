@@ -101,6 +101,20 @@ describe('voice page tools', () => {
     expect(await timedOut).toEqual({ ok: false, error: 'declined' });
   });
 
+  it('ending the call while the card waits declines it, in the chat too', async () => {
+    vi.spyOn(window, 'open').mockReturnValue(null);
+    const { client, user } = await liveCall();
+    const pending = client.tool(linkedin);
+    await screen.findByTestId(chatTestIds.voiceContact);
+    await user.click(screen.getByRole('button', { name: 'End call' }));
+
+    expect(await pending).toEqual({ ok: false, error: 'declined' });
+    // No lines were said, so the chat stays closed: open it to read the call.
+    await user.click(await screen.findByTestId(chatTestIds.fab));
+    const list = within(await screen.findByTestId(chatTestIds.list));
+    expect(list.getByTestId(chatTestIds.actionChip)).toHaveTextContent('Cancelled');
+  });
+
   it('email goes through the page’s own tool (mailto: opens in place)', async () => {
     const open = vi.spyOn(window, 'open');
     const { client, executor } = await liveCall();

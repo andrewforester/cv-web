@@ -168,6 +168,12 @@ describe('conversation', () => {
       lineId: 'agent-2',
       text: 'Here is his impact',
     });
+    const waiting = { ...call, id: 'toolu_2', name: 'openContact' as const };
+    entries = conversationReducer(entries, {
+      type: 'callAction',
+      id: 'c',
+      action: { call: waiting, status: 'awaiting' },
+    });
     entries = conversationReducer(entries, {
       type: 'callEnd',
       id: 'c',
@@ -187,6 +193,11 @@ describe('conversation', () => {
         { kind: 'line', id: 'visitor-1', role: 'visitor', text: 'Show his impact' },
         { kind: 'action', action: { call, status: 'finished', result: { ok: true } } },
         { kind: 'line', id: 'agent-2', role: 'agent', text: 'Here is his impact' },
+        // A card still waiting when the call ended is settled as declined.
+        {
+          kind: 'action',
+          action: { call: waiting, status: 'finished', result: { ok: false, error: 'declined' } },
+        },
       ],
     });
     expect(buildMessages(entries, 'Q2', page)).toEqual([

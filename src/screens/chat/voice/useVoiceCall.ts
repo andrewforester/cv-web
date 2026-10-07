@@ -124,6 +124,8 @@ export function useVoiceCall({ record, openChat }: VoiceCallOptions): {
     (session: CallSession, reason: 'visitor' | 'time_limit') => {
       const { call } = session;
       if (!call) return finish(session, reason);
+      if (session.hangingUp) return;
+      session.hangingUp = true;
       // The `ended` event normally finishes it; this covers a client that never sends one.
       void call.end(reason).finally(() => finish(session, reason));
     },
@@ -163,7 +165,9 @@ export function useVoiceCall({ record, openChat }: VoiceCallOptions): {
   useCallGuards({
     onOffline: () => {
       const session = current.current;
-      if (!session?.call || session.finished) return;
+      if (!session || session.finished) return;
+      // Still connecting: no call to drop yet, so the offline card says why.
+      if (!session.call) return fail(session, 'offline');
       session.endAsError = true;
       hangUp(session, 'visitor');
     },

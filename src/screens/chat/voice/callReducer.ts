@@ -83,6 +83,7 @@ export function callReducer(
     case 'callEnd':
       return {
         ...call,
+        items: call.items.map(settleAction),
         status: 'ended',
         endReason: action.reason,
         durationSec: action.durationSec,
@@ -90,6 +91,15 @@ export function callReducer(
   }
 }
 
-/** The lines of a call, without its chips. */
-export const callLines = (call: ChatVoiceCall): ChatVoiceLine[] =>
-  call.items.filter((item): item is ChatVoiceLine => item.kind === 'line');
+/**
+ * A tool still running or waiting for a tap when the call ends never reports back: its chip
+ * shows the outcome the agent got (a waiting card is declined) instead of running forever.
+ */
+function settleAction(item: ChatVoiceItem): ChatVoiceItem {
+  if (item.kind !== 'action' || item.action.result) return item;
+  const error = item.action.status === 'awaiting' ? 'declined' : 'failed';
+  return {
+    kind: 'action',
+    action: { ...item.action, status: 'finished', result: { ok: false, error } },
+  };
+}

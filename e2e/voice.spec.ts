@@ -8,6 +8,7 @@ import { collectErrors, NORMAL_SITE, SCREENSHOT_DIR } from './support';
 
 const VOICE_SITE = `${NORMAL_SITE}&voice=fake`;
 const STEP_MS = 1500;
+const CLOCK_START = new Date('2026-10-07T10:00:00Z');
 
 test.use({ locale: 'en-US' });
 
@@ -62,7 +63,9 @@ for (const { name, size } of viewports) {
       page,
     }) => {
       const errors = collectErrors(page);
-      await page.clock.install();
+      // Paused: the script moves only when the test runs the clock (a running clock races on CI).
+      await page.clock.install({ time: CLOCK_START });
+      await page.clock.pauseAt(new Date(CLOCK_START.getTime() + 1000));
       await mockSession(page);
       await page.goto(VOICE_SITE);
 

@@ -19,6 +19,8 @@ export interface CallSession {
   endAsError: boolean;
   /** The visitor asked for the text chat: it opens after the call ends. */
   toChat: boolean;
+  /** `end()` was asked for: later timer ticks and taps don't ask again. */
+  hangingUp: boolean;
   /** The 2:30 warning went out. */
   warned: boolean;
   maxCallSeconds: number;
@@ -41,6 +43,7 @@ export function newCallSession(): CallSession {
     finished: false,
     endAsError: false,
     toChat: false,
+    hangingUp: false,
     warned: false,
     maxCallSeconds: VOICE_MAX_CALL_SECONDS,
     toolAt: null,
