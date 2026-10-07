@@ -114,7 +114,7 @@ for (const { name, size } of viewports) {
 
       const dialog = page.getByRole('dialog');
       await expect(dialog).toBeVisible();
-      await expect(page).toHaveURL(/\/$/);
+      await expect(page).toHaveURL(/\/(#chat)?$/);
       // Let the open animation finish so the screenshot shows the final look.
       await dialog.evaluate((panel) =>
         Promise.all(panel.getAnimations().map((animation) => animation.finished)),
@@ -140,4 +140,21 @@ test('offers the page’s first questions', async ({ page }) => {
     'Is he open to new roles?',
   ]);
   expect(errors).toEqual([]);
+});
+
+test.describe('chat on a phone: system Back', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test('closes the full-screen chat and stays on the page', async ({ page }) => {
+    const errors = collectErrors(page);
+    await page.goto(NORMAL_SITE);
+    await page.getByTestId('chat-fab').click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page).toHaveURL(/#chat$/);
+
+    await page.goBack();
+    await expect(page.getByRole('dialog')).toBeHidden();
+    await expect(page).toHaveURL(/\/\?retro=0$/);
+    expect(errors).toEqual([]);
+  });
 });

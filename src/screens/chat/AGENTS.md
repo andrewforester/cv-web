@@ -13,6 +13,8 @@ own `AGENTS.md`) whose transcript lands in the same conversation. Behaviour:
 
 What the visitor can rely on:
 - A card on desktop, a full-screen sheet on small screens that stays above the on-screen keyboard.
+  The open sheet owns one history entry (`#chat`), so the system Back closes the chat and
+  stays on the page; desktop history is untouched.
 - Stop at any time; Try again after a failure; clear, neutral notices for rate limits, offline,
   refusals and a full conversation ("Start a new chat").
 - The conversation (text turns and voice calls, in order) survives closing and reopening, not a
