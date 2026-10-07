@@ -308,9 +308,13 @@
         left: -15%;
         right: -15%;
         bottom: 0;
-        height: calc(var(--voice-fog-height) + var(--voice-level) * 10vh);
+        height: var(--voice-fog-height);
         filter: blur(var(--voice-fog-blur));
-        transition: height var(--voice-level-smoothing) linear;
+        transform: scaleY(calc(1 + var(--voice-level) * 0.25));
+        transform-origin: bottom;
+        transition:
+          transform var(--voice-level-smoothing) linear,
+          height var(--voice-fog-shift-duration) var(--chat-motion-easing);
       }
       .blob {
         position: absolute;
@@ -610,7 +614,7 @@
         backdrop-filter: none;
       }
       .tool .band {
-        height: calc(var(--voice-fog-height-low) + var(--voice-level) * 4vh);
+        height: var(--voice-fog-height-low);
       }
       .tool .stage {
         justify-content: flex-end;
@@ -929,6 +933,20 @@
           zoom: 1;
           grid-template-columns: auto;
           gap: var(--space-6);
+        }
+      }
+
+      /* Landscape phones, 200 % zoom: a small orb and two caption lines. */
+      @media (max-height: 560px) {
+        :root {
+          --voice-orb-size: var(--voice-orb-size-compact);
+          --voice-orb-size-error: var(--voice-orb-size-compact);
+        }
+        .voice {
+          padding-block: var(--space-3) var(--space-4);
+        }
+        .caption {
+          -webkit-line-clamp: 2;
         }
       }
 
