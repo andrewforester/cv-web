@@ -25,6 +25,7 @@ jobs:
   prod-smoke:
     name: prod-smoke
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -33,6 +34,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Install Chromium
+        timeout-minutes: 5
         run: npx playwright install --with-deps chromium
       - name: Playwright @prod subset
         run: npm run web-check:prod
