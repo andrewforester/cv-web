@@ -175,7 +175,7 @@ interface KnowledgeSource {
   knowledge is what the v3 page shows, in English. The show (`v: 3`) answers from the show's own
   state, not from CV knowledge (`docs/retro/ARCHITECTURE.md`).
 - `renderCvPage(page)` turns `CvPage` into compact Markdown of what the page shows: name and
-  headline, summary, contacts (email, WhatsApp, LinkedIn), the page's sections and items.
+  headline, summary, contacts (email, WhatsApp, LinkedIn) and the phone number (chat only, not on the page), the page's sections and items.
   Rich text is flattened to plain text; image refs are dropped. Output is deterministic (same
   input, same bytes), which prompt caching needs. Today it is about 1,000 tokens.
 - `assembleKnowledge` wraps each document as `<document id="cv" title="CV">...</document>` inside

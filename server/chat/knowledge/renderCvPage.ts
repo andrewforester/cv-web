@@ -48,6 +48,7 @@ export function renderCvPage(page: CvPage): string {
       (contact) =>
         `- ${CONTACT_NAMES[contact.id] ?? contact.id}: ${contact.href.replace(/^mailto:/, '')}`,
     ),
+    `- Phone: ${page.phone}`,
     '',
     '## Code craft × agentic process',
     ...page.craft.flatMap((card) => [`### ${card.label}: ${card.title}`, card.text]),

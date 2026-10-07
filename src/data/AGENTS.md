@@ -3,7 +3,7 @@
 Why it exists: everything the site knows about Andrew's CV and where it comes from. The CV is
 content, not UI text: the one page v3 (`docs/design/v3/`, ADR-0006) is `CvPage` (`cvPage.ts`,
 English only: meta bar, header with stats and contacts, craft cards, the loop, impact, jobs with
-Transcenda's projects, skills, education, about, footer CTA) behind `CvPageRepository.getCvPage()`.
+Transcenda's projects, skills, education, about, footer CTA, and a `phone` only the chat knowledge uses, never the UI) behind `CvPageRepository.getCvPage()`.
 
 Place in the architecture: the bottom layer. Screens reach it only through their state holders,
 via the repository interface provided in `src/app/AppProviders.tsx`. The repository is async on

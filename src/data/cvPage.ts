@@ -17,6 +17,8 @@ export interface CvPage {
   stats: Stat[];
   /** Header buttons in order; ids are `CV_CONTACT_CHANNELS`. */
   contacts: CvContact[];
+  /** For the chat only (it may give it on request): no UI renders it, it is not a channel. */
+  phone: string;
   craft: CraftCard[];
   loop: AgentLoop;
   impact: ImpactCard[];
