@@ -58,7 +58,7 @@ transcripts; it only mints tokens, counts minutes and keeps the agent's config i
 |---|---|---|
 | Contract | `src/data/voice/contract.ts` | `API.md` types and constants, framework-free, shared with `server/`. |
 | Data | `src/data/voice/VoiceClient.ts` | The interface below; no SDK types leak out of it. |
-| Data | `src/data/voice/ElevenLabsVoiceClient.ts` | The only importer of `@elevenlabs/client` (dynamic `import()`, so the SDK and `livekit-client` form a lazy chunk). Maps SDK callbacks to `VoiceCallEvent`s, registers one client tool per catalogue name, self-hosts the audio worklets (`workletPaths` with Vite `?url` imports of `@elevenlabs/client/worklets/*`, so CSP `script-src 'self'` stays). |
+| Data | `src/data/voice/ElevenLabsVoiceClient.ts` | The only importer of `@elevenlabs/client` (dynamic `import()`, so the SDK and `livekit-client` form a lazy chunk). Maps SDK callbacks to `VoiceCallEvent`s, registers one client tool per catalogue name, self-hosts the audio worklets (`workletPaths` with Vite `?url&no-inline` imports of `@elevenlabs/client/worklets/*`: a plain `?url` inlines these small files as `data:` URLs, which CSP `script-src 'self'` blocks). |
 | Data | `src/data/voice/FakeVoiceClient.ts` | Scripted calls for unit tests, e2e and `?voice=fake`: greeting, a visitor line, a tool call, an answer, an interruption correction, an end; no network, no microphone. |
 | Data | `src/data/voice/HttpVoiceSessionRepository.ts` (+ context) | `POST /api/voice-session`; never throws: `{ ok: true, session } \| { ok: false, error }`, non-JSON platform errors mapped like `HttpChatRepository`. |
 | App | `src/app/voiceMode.ts`, `src/app/AppProviders.tsx` | Reads the flag (§9) and binds `ElevenLabsVoiceClient`, `FakeVoiceClient` or none (no mic button). |
@@ -77,7 +77,7 @@ transcripts; it only mints tokens, counts minutes and keeps the agent's config i
 export type VoiceCallEvent =
   | { type: 'status'; status: 'connecting' | 'live' }
   | { type: 'mode'; mode: 'listening' | 'speaking' }
-  /** A final transcript line; `id` is ElevenLabs' event id. */
+  /** A final transcript line; `id` is `visitor-<event id>` / `agent-<event id>`. */
   | { type: 'line'; line: { id: string; role: 'visitor' | 'agent'; text: string } }
   /** The visitor interrupted: the agent line was cut to what was actually spoken. */
   | { type: 'correction'; id: string; text: string }
@@ -90,15 +90,21 @@ export interface VoiceCallHandlers {
 }
 
 export interface VoiceCall {
-  end(): Promise<void>;
+  /** Hangs up; `ended` carries the reason (End button, or the client timer). */
+  end(reason?: 'visitor' | 'time_limit'): Promise<void>;
   /** 0..1 input and output loudness for the orb, polled per animation frame. */
   levels(): { input: number; output: number };
+  /** The SDK's mic mute (design: Mute button); the call stays live. */
+  setMuted(muted: boolean): void;
+  /** The SDK's contextual update, e.g. the 2:30 wrap-up hint (design: Orchestrator decision 3). */
+  sendContextualUpdate(text: string): void;
 }
 
 export interface VoiceClient {
-  /** Asks for the microphone (call from the mic tap). */
+  /** Asks for the microphone (call from the mic tap); also starts fetching the SDK chunk. */
   requestMicrophone(): Promise<'granted' | 'denied'>;
-  /** Connects with a fresh token; rejects (→ `ended: error`) if the connection fails. */
+  /** Connects with a fresh token; rejects if the connection fails, with no `ended` event
+   *  after it: the caller ends the call as `error`. */
   start(session: VoiceSessionResponse, handlers: VoiceCallHandlers): Promise<VoiceCall>;
 }
 ```
@@ -117,7 +123,7 @@ export interface VoiceClient {
    `levels()`); every final `onMessage` (`role: 'user' | 'agent'`) becomes a `line`;
    `onAgentResponseCorrection` becomes a `correction`; client tool calls go to `onToolCall` (§7).
 5. The call ends when the visitor taps End (`reason: visitor`), the timer reaches 0
-   (`time_limit`; the client calls `end()`, and the agent's own `max_duration_seconds: 180` ends
+   (`time_limit`; the state holder calls `end('time_limit')`, and the agent's own `max_duration_seconds: 180` ends
    it on ElevenLabs' side anyway), the agent hangs up (`end_call` tool, silence timeout) or the
    connection fails (`error`). The voice mode closes; the call stays in the chat as an entry with
    its lines and how it ended.
@@ -269,8 +275,8 @@ validates and executes). The handler returns `JSON.stringify(result)`, i.e. `{"o
 `{"ok":false,"error":"not_available"}`, which the agent reads. Each call appears as an action
 chip in the call's transcript, as in the text chat. A visual action (scroll, highlight) needs
 the page to be visible: the voice mode gets out of the way while it runs, as
-`docs/design/voice/` specifies. Unknown tool names reach `onUnhandledClientToolCall`: logged in
-dev, otherwise ignored (the agent times out).
+`docs/design/voice/` specifies. Unknown tool names (an agent tool the client doesn't register)
+are answered by the SDK at once with an error result, so the agent doesn't wait for a timeout.
 
 **`openContact` by voice.** The agent asks first and calls the tool after a spoken yes (prompt
 rule, §6). That yes is the visitor's confirmation. The executor then opens the contact at once

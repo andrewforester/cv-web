@@ -16,6 +16,23 @@ const noAnthropicSdk = {
   group: ['@anthropic-ai/*'],
   message: 'The model is called only by server/chat/llm. The browser talks to POST /api/chat.',
 };
+// ADR-0008: one adapter file owns the voice SDK; everything else sees the VoiceClient interface.
+const ELEVENLABS_ADAPTER = 'src/data/voice/ElevenLabsVoiceClient.ts';
+const noElevenLabsSdk = {
+  group: ['@elevenlabs/*'],
+  message: `@elevenlabs/* is imported only by ${ELEVENLABS_ADAPTER}. Use the VoiceClient interface from src/data/voice (bound in AppProviders).`,
+};
+const noElevenLabsServer = {
+  group: ['@elevenlabs/*'],
+  message:
+    'The server talks to ElevenLabs with plain fetch (server/voice), never through the browser SDK.',
+};
+const noElevenLabsDynamic = [
+  {
+    selector: 'ImportExpression[source.value=/^@elevenlabs\\//]',
+    message: `@elevenlabs/* is loaded only by ${ELEVENLABS_ADAPTER}. Use the VoiceClient interface from src/data/voice.`,
+  },
+];
 const noMocks = {
   regex: '(^|/)data/mock/',
   message:
@@ -74,30 +91,38 @@ export default tseslint.config(
     ignores: testFiles,
     rules: { 'max-lines': ['error', { max: 250, skipBlankLines: true, skipComments: true }] },
   },
-  { files: ['src/**/*.{ts,tsx}'], rules: restrict(noServer, noAnthropicSdk) },
+  { files: ['src/**/*.{ts,tsx}'], rules: restrict(noServer, noAnthropicSdk, noElevenLabsSdk) },
   {
     files: ['src/{data,i18n,theme}/**/*.{ts,tsx}'],
-    rules: restrict(noServer, noAnthropicSdk, noScreens),
+    rules: restrict(noServer, noAnthropicSdk, noScreens, noElevenLabsSdk),
   },
   {
     files: ['src/{shared,agent}/**/*.{ts,tsx}'],
     ignores: testFiles,
-    rules: restrict(noServer, noAnthropicSdk, noScreens, noMocks),
+    rules: restrict(noServer, noAnthropicSdk, noScreens, noMocks, noElevenLabsSdk),
   },
   {
     files: ['src/screens/**/*.{ts,tsx}'],
     ignores: testFiles,
-    rules: restrict(noServer, noAnthropicSdk, noMocks, noOtherScreen),
+    rules: restrict(noServer, noAnthropicSdk, noMocks, noOtherScreen, noElevenLabsSdk),
   },
   {
     files: ['server/**/*.ts', 'api/**/*.ts'],
-    rules: restrict(noFrontendLayers, noReact, noMocksBackend),
+    rules: restrict(noFrontendLayers, noReact, noMocksBackend, noElevenLabsServer),
   },
   {
     // ADR-0007: the CV file has exactly two readers (and tests).
     files: ['src/**/*.{ts,tsx}', 'server/**/*.ts', 'api/**/*.ts'],
     ignores: [...testFiles, 'src/data/cv/StaticCvRepository.ts', 'server/chat/cvPageData.ts'],
-    rules: { 'no-restricted-syntax': ['error', ...noCvJson] },
+    rules: { 'no-restricted-syntax': ['error', ...noCvJson, ...noElevenLabsDynamic] },
+  },
+  {
+    // The voice SDK's one importer (static types, worklet URLs and the lazy `import()`).
+    files: [ELEVENLABS_ADAPTER],
+    rules: {
+      ...restrict(noServer, noAnthropicSdk, noScreens),
+      'no-restricted-syntax': ['error', ...noCvJson],
+    },
   },
   {
     files: ['*.config.{ts,js}', 'e2e/**/*.ts', 'api/**/*.ts', 'server/**/*.ts'],

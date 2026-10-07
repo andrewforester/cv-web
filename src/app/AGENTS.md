@@ -15,14 +15,20 @@ Domain terms:
   today's site stays until the show's chunk has loaded, then the page scrolls to the top and turns
   broken in one commit. The AI chat is off the page while the show runs (its open conversation is
   lost) until the show's last step loads it.
+- **Voice mode** (`voiceMode.ts`, docs/voice/SYSTEM_DESIGN.md §9): `off`, `real` or `fake` at page
+  load. `?voice=1` turns the mic button on and remembers it in `localStorage` (`cv.voice`),
+  `?voice=0` forgets it, `?voice=fake` uses the scripted client for that load only. Off by default;
+  not a security layer (the server's `VOICE_ENABLED` is).
 - **Stage:** the shell's wrapper (page + chat) carrying `data-retro-stage` while the show runs;
   the show's damage layers select only under it.
 
 Place in the architecture: the top of the tree. `AppProviders` wires the data bindings
 (one static repository over the bundled JSON for the page; the chat repository, the real
-`/api/chat` `v: 4`; the show repository, `/api/chat` `v: 3`) and the page-agent tool registry
+`/api/chat` `v: 4`; the show repository, `/api/chat` `v: 3`; the voice session repository,
+`/api/voice-session`, and the voice client the flag picks, `null` = no mic button) and the
+page-agent tool registry
 (`src/agent/`, whose one catalogue comes from `CvPage`). Swapping the mock for a backend is one
-line there. Tests pass fakes and a fixed `retroMode` through its props.
+line there. Tests pass fakes, a fixed `retroMode` and a `voiceClient` through its props.
 
 Both modes render one tree shape, so the page never remounts: the show (`RetroShowRoute`, from
 `src/screens/retro`) mounts next to the shell and portals its windows into `body`. The AI chat

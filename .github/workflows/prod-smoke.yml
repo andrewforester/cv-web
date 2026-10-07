@@ -44,6 +44,14 @@ jobs:
           cat "$out"
           test "$code" = 405
           jq -e . "$out" > /dev/null
+      - name: /api/voice-session rejects GET with 405 JSON
+        run: |
+          set -euo pipefail
+          out=$(mktemp)
+          code=$(curl -sS -o "$out" -w '%{http_code}' "$PW_BASE_URL/api/voice-session")
+          cat "$out"
+          test "$code" = 405
+          jq -e . "$out" > /dev/null
       - name: Simulated smoke failure
         if: ${{ inputs.simulate_failure }}
         run: |
