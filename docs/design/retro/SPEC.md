@@ -1,52 +1,20 @@
 # Retro Rebuild show (web) — design package
 
-> **Current state (CV-137, 2026-10-07).** The site is one page, `/` (the v3 CV; `/new` is a 307
-> redirect), English only (ADR-0006), and the show runs once on it (`retro-4`). Mentions below of
-> the language switcher, of `/new` and of the 2001 `/new` scenario (sections marked `/new`, the
-> Forest-era `/` text, `retro-3`, `retro-new-1`) are **history**. The current sections are
-> **v3 refit (`retro-4`, CV-112)**, the Revision notes CV-112/CV-114 and the show's own UI
-> sections (Agent chat panel, DevTools console, Show what changed, End of the show, Tokens, Texts);
-> the code in `src/screens/retro/` is the source where they differ.
-
-The look of the show. The mechanism (damage layers, decorations, runner, LLM, shell) is `docs/retro/ARCHITECTURE.md` (GRA-39, as built: §9); this package follows its model and vocabulary and only adds what it leaves to the design: retro values, layer contents, copy, the panels, timing and motion, the fix list.
-
-**Revision GRA-49 (30 Sep 2026)**, from the human's notes on the POC: the agent fixes the page in **atomic chunks** (one visible change each: a short code chunk typed, applied right after its last character, then a beat), page changes **transition smoothly**, the visitor **sees what changed** (a highlight on the target, scrolling to it), and the windows **close smoothly** at the end. The fonts stay as they are (the terminal font included). Sections changed by it: Source, Timeline, Damage layers, Terminal chat (font), Live-fix console, The fix list (atomic), Chunk rhythm and timing budget, Transitions, Show what changed, End of the show, tokens, texts, Decisions 12–22.
-
-**Revision GRA-54 (1 Oct 2026, round 4)**, the human's final decisions on the show's **own UI** (the broken page, the damage layers, the scenario and the timing model stay): the agent chat takes **the site's AI chat look**; the live console becomes **Chrome DevTools (light theme), Console tab**, printing **console commands** with live ✖/⚠ counters instead of the Win98 progress bar; the highlight becomes **the Elements-tab selection** (box model + a size plate); the layout is **DevTools docked** to the right with the chat floating at the bottom right; the show **ends** with DevTools sliding out and the chat shrinking into the site's chat launcher. **New copy is professional and composed** (human, scope note on GRA-54): no irony, no exclamation marks; the existing narration lines are reworded later in GRA-58. Sections changed: Source, References, Screen layout, Timeline, Agent chat panel (was Terminal chat), DevTools console (was Live-fix console), the fix list's `Chars`/`s` columns, Chunk rhythm, Highlight, End of the show, Tokens, Texts, Assets, States, Shared components, Screenshot vs reference, Mock vs the real site, Decisions 23–40. **Superseded by GRA-54:** everything Win98, IRC, VGA and Paint below that isn't rewritten is history, not spec.
-
-**Revision GRA-58 (1 Oct 2026)**: the show reads as a showcase of a developer's work, not a joke. Every agent line (greeting, hand-off, step narration, finale, scripted reply, notices, the LLM's voice) is reworded in a calm, professional tone that respects the 2002 build (Texts → Tone). Wording only: keys, structure and timing model unchanged; the old page's in-world texts stay.
-
-**Revision CV-90 (2 Oct 2026, R23)**: the site under the show is now the **Forest `/`** (`docs/design/forest/SPEC.md`), so the broken page is refitted to it: the same 2002 homepage (star tile, 640 px cream table, Verdana/Times/Comic, bevels, marquee, "NEW!", blue links, broken images, footer furniture), drawn over Forest's hooks and tokens, and every chunk moves it toward the Forest page. Still 8 steps, 36 chunks, 32 layers, 3 decorations; step ids unchanged (`retro-3`). Sections changed: Source, Screen layout (meta bar), Damage layers (Forest refit), Decorations (note anchor), Per section, The fix list, Chunk rhythm budget, Texts (intents, fallbacks, labels), Decisions 46–52. Where this file still names the pre-Forest CV (`cv-name`, Inter, navy, logos, renders 01–12), that is history.
-
-**Revision CV-112/CV-114 (5 Oct 2026)**: the show now runs once, on the **one v3 page** (`retro-4`, ADR-0006; see "v3 refit"). `layers/`, `new/layers/` and `new/render.mjs` were deleted in CV-114, so `mock.html` and `render.sh` no longer render: they and the PNGs here are history. The code (`src/screens/retro/layers/`) is the source.
-
-**Revision CV-95 (2 Oct 2026)**: the show also runs on **`/new`** (the Forest profile), over its own 2001 version: part **2001 `/new`** at the end of this file (direction, per-section look, damage layers, decorations, the 8 steps of 36 chunks with targets, console commands, timing, copy, decisions 53–64), its layer files in `new/layers/` and its render in `new/`. The mechanism per page is `docs/retro/ARCHITECTURE.md` §10. `/`'s show (everything above) is unchanged; only the Show case button section now covers both pages.
+> The site is one page, `/` (the v3 CV; `/new` is a 307 redirect), English only (ADR-0006), and
+> the show runs on it as `retro-4`. This package is the look of the show: the panels (agent chat,
+> DevTools), timing and motion, the highlight, the close, tokens and texts (first half), and the
+> broken page itself (**The 2001 page**, with its **v3 refit** at the end). The mechanism (damage
+> layers, decorations, runner, LLM, shell) is `docs/retro/ARCHITECTURE.md`. The code in
+> `src/screens/retro/` is the source where they differ. Earlier looks (the Win98 panels of rounds
+> 1–3, the pre-v3 and Forest `/` scenarios, the mock and its renders): see git history of this
+> folder before CV-141.
 
 ## Source
 
-- Designed from the brief of Linear **GRA-38** and the project *Retro Rebuild* (30 Sep 2026); revised by **GRA-49**. **No screenshot or Figma frame exists.** The end state is today's design unchanged (`docs/design/cv/SPEC.md`, `src/theme/tokens.css`); the retro look comes from 1998–2006 references (below).
-- `layers/*.css`: the **damage layers, one per chunk** (32 files), a copy of `src/screens/retro/layers/` as refitted to Forest in CV-90 (the code is the source; keep the copy in step when a layer changes). They select only the architecture's hook contract (`[data-retro-stage]`, `data-testid`, `data-agent-id`, element types) and redefine only existing token names. They are the "old code" the console types, so they are written to read well, and they are Prettier-formatted as they will be in `src/`.
-- `mock.html`: a static mock of the **pre-Forest CV** (history since CV-90: its markup has the old hooks, so the refitted layers no longer hit it; the Forest show's reference renders are the web-check screenshots on CV-90: broken start, mid-show, end). It renders today's CV with the **same element types and hooks** as `src/screens/cv` (styled by the real `src/theme/tokens.css` plus approximations of the CSS Modules), injects `layers/*.css` as `<link data-retro-layer>` at the end of `<head>`, draws the decorations and the target highlight in a portal, and generates the console commands from the layer files and the live `tokens.css` values, as the runner does. The round-4 tokens (Tokens below) are declared at the top of its `<style>` until the theme task lands them. Query params: `?state=broken|chat|console|step1-mid|step1|colours-mid|step2-mid|step2|rest-mid|finale|closing|end`, `&dock=0`, `&vh=<px>` (the viewport height the `body` plate prints; headless Chrome reports a shorter one). It reads files with XHR, so open it over http (`python3 -m http.server` in the repo root → `/docs/design/retro/mock.html`) or use `render.sh`. It shows moments, not motion: transitions are described below, not mocked (`closing` is one static frame of the close).
+- Designed from the brief of Linear **GRA-38** and the project *Retro Rebuild* (30 Sep 2026); revised by GRA-49 (atomic chunks, motion, highlight), GRA-54 (the panels as today's site chat and Chrome DevTools), GRA-58 (tone), CV-95 (the 2001 page) and CV-112 (v3 refit). **No screenshot or Figma frame exists.** The end state is today's design unchanged (`docs/design/v3/`, `src/theme/tokens.css`); the retro look comes from 1998–2006 references (below).
+- The damage layers live in `src/screens/retro/layers/*.css` (32 files, one per chunk); there is no copy here. They select only the architecture's hook contract and redefine only existing token names. They are the "old code" the console types, so they are written to read well, Prettier-formatted.
 - `ref/`: the human's reference screenshots (GRA-54), 2× retina: `devtools-panel.png` (DevTools in a custom pink Chrome theme: tab strip, error/warning badges) and `devtools-elements-highlight.png` (a page with `body` selected in the Elements tab: blue overlay and the `body 971×735` plate). They show *what* it looks like; values come from the site's tokens or, where the site has no role, from Chrome's **default** light theme (blue accent), not the pink theme of the screenshot.
-- Renders are 1× (CSS px = image px), made by `render.sh` (headless Chrome, reduced motion, so marquee and carets hold still). **Render on macOS or Windows:** the retro faces (Verdana, Times New Roman, Comic Sans MS, Arial) are the "core fonts for the web", the console font is Menlo/Consolas, and Linux substitutes them.
-
-| File | Viewport | Shows |
-|---|---|---|
-| `01-broken.png` | 1280 × 800 | t = 0: the broken 2002 page alone |
-| `02-chat.png` | 1280 × 800 | page + **agent chat alone** (greeting, one exchange, visitor typing; focused composer) |
-| `03-console.png` | 1280 × 800 | DevTools open (✖ 36 ⚠ 8), chunk 1 (`type-faces`) typing into the prompt row; the headings carry the box-model highlight, plate `h1.name × 8`; narration streaming |
-| `04-step1-mid.png` | 1280 × 800 | fonts step mid-way: `type-scale-text` typing its `setProperty` lines, highlight on the summary |
-| `05-after-step1.png` | 1280 × 800 | after *fonts* and *colours*: Inter, navy on white, still the 640 px table; steps 1–2 collapsed to `✓ 1/8 fonts`, `✓ 2/8 colours` |
-| `06-step2-mid.png` | 1280 × 800 | **beat after a chunk**: `header-layout` just applied (`<· undefined`, `✓ header-layout removed`), the header's highlight with the content flash, plate `header.hdr 672 × 188` |
-| `07-after-step2.png` | 1280 × 800 | after *layout* |
-| `08-rest-mid.png` | 1280 × 800 | **box highlight on cards**: beat after `tech-cells`, every card in view highlighted (content blue, padding green), plate `div.card × 9` |
-| `09-finale.png` | 1280 × 800 | finale: no damage left, switcher back, counters ✖ 0 ⚠ 0 (grey), `✓ All fixes applied.`; the panels close 3 s later |
-| `10-colours-mid.png` | 1280 × 800 | beat after a **page-wide** chunk (`base-colors`): the page-area tint and plate `body 880 × 800` |
-| `11-closing.png` | 1280 × 800 | one frame ≈ 60 % into the close: DevTools gone right, the chat card shrinking into the launcher, the page re-centring |
-| `12-end.png` | 1280 × 800 | **end state**: today's site re-centred, the AI chat launcher bottom right |
-| `full-broken.png`, `full-after-step2.png` | 1280 × 3000 | whole page without the dock |
-
-`12-end.png` approximates today's site; the real site is the reference for the end state. Mock class names (`h1.name`, `div.card`, `header.hdr`) stand in for the CSS Module names the plate shows on the real site (Highlight → Plate).
+- Visual reference of the running show: the *web check* screenshots `web-check/retro-*.png` (`npm run build && npm run web-check`). Retro faces (Verdana, Times New Roman, Comic Sans MS, Arial) are the "core fonts for the web" and the console font is Menlo/Consolas: compare on macOS or Windows; Linux substitutes them.
 
 ## References and direction
 
@@ -66,14 +34,10 @@ Real pages and collections from about 1996–2006, checked 30 Sep 2026:
 | 10 | [Web badge, Wikipedia](https://en.wikipedia.org/wiki/Web_badge) | 88 × 31 buttons: "best viewed at 800×600", "sign my guestbook". |
 | 11 | [Microsoft FrontPage in 1996, Web Design Museum](https://www.webdesignmuseum.org/gallery/microsoft-frontpage-1996) | The WYSIWYG-editor look: centred headings, bevelled buttons, default blue underlined links. |
 | 12 | [Golden Age of Web Design 2000–2005](https://www.webdesignmuseum.org/golden-age-of-web-design) and [00s styles](https://www.webdesignmuseum.org/styles/00s), Web Design Museum | Era check: Verdana 10–11 px body, Times headings, 640–760 px fixed tables. |
-| 13 | [98.css (Jordan Scales, MIT)](https://jdan.github.io/98.css/) | Reference for the Windows 98 window chrome of the panels (bevel colours, title gradient). Not imported; the chrome is a few lines of CSS. |
-| 14 | MS Paint's rectangle selection (Windows 95–XP) | The dashed "selection" line of the target highlight (GRA-49). **Superseded by GRA-54.** |
 | 15 | Chrome DevTools, Console panel, default light theme; the human's `ref/devtools-panel.png` | The docked panel (GRA-54): tab strip with the active-tab underline, error/warning counters, the Console filter bar, prompt `›`, return values `<· undefined`, grouped messages, light syntax colours. |
 | 16 | Chrome DevTools, Elements panel element highlight; the human's `ref/devtools-elements-highlight.png` | The highlight (GRA-54): content/padding/border/margin overlay and the tag + size plate. Chrome's colours: content `rgba(111,168,220,.66)`, padding `rgba(147,196,125,.55)`, border `rgba(255,229,153,.66)`, margin `rgba(246,178,107,.66)`; ours are lighter. |
 
-Row 13 (98.css) is superseded by GRA-54 too: the panels are no longer Win98 windows.
-
-**Direction: "a 2002 personal homepage, made in FrontPage, hosted on GeoCities".** One coherent page, not a collage: a fixed 640 px table hard against the left edge on a star tile; Verdana 11 px body, Times New Roman headings in red, a purple name; a bevelled nav bar, a Comic Sans marquee, blinking "NEW!" bursts, an `<hr>` under every heading, default blue underlined links; images that don't load; a footer with a construction sign, hit counter, badges and a webring. The CV text stays exactly the same (a job-seeker's CV: the jokes are in the furniture, never in the content). **The agent's tools (GRA-54) are today's tools**: Chrome DevTools docked to the right, its Console running the commands that change the page, the Elements-style highlight showing where, and a chat in the site's own AI-chat look. The page is 2002; everything the agent touches it with is current, so the contrast tells the story of a careful modernisation. (Round 1–3 had Win98 windows with terminals; superseded.)
+**Direction: "a 2002 personal homepage, made in FrontPage, hosted on GeoCities".** One coherent page, not a collage: a fixed 640 px table hard against the left edge on a star tile; Verdana 11 px body, Times New Roman headings in red, a purple name; a bevelled nav bar, a Comic Sans marquee, blinking "NEW!" bursts, an `<hr>` under every heading, default blue underlined links; images that don't load; a footer with a construction sign, hit counter, badges and a webring. The CV text stays exactly the same (a job-seeker's CV: the jokes are in the furniture, never in the content). **The agent's tools (GRA-54) are today's tools**: Chrome DevTools docked to the right, its Console running the commands that change the page, the Elements-style highlight showing where, and a chat in the site's own AI-chat look. The page is 2002; everything the agent touches it with is current, so the contrast tells the story of a careful modernisation.
 
 ## Screen layout during the show (1280 × 800, desktop only; GRA-54)
 
@@ -97,8 +61,8 @@ x: 0                                              880                       1280
 - **Page area**: while the dock is shown, `body` gets `padding-right: var(--retro-dock-width)` (400 px; was 416 = width + 2 × inset): show styling, not a damage layer. The page lays out in 880 px and the dock never covers content. The broken page is left-aligned, so reserving the space moves nothing. After `page-frame` the 672 px column centres in the 880 px (x ≈ 104–776). At the end the reserve goes and the page re-centres in the full viewport (End of the show).
 - The page scrolls under the fixed dock. The show scrolls it to a chunk's target when the target is out of view (Show what changed → Scrolling).
 - **Highlight overlay**: show-owned, drawn in the portal over the page and under the dock; the **plate** sits on the first target's bottom-left corner (the page area's corner for a page-wide chunk).
-- **Shorter viewports** (desktop ≥ 1024 wide, any height): the chat card height is `min(var(--retro-chat-height), 100dvh - 280px)` so at least ≈ 200 px of console stays visible (e.g. 700 px tall → chat 392, console ≈ 220; 600 px tall → chat 320, console ≈ 192). Width is fixed; the show doesn't run below 1024 px (ARCHITECTURE Q2).
-- **During the show there's no AI chat button and no meta bar** (the Forest meta bar with `andrew.panasiuk / cv`, the Show case button and the language switcher is hidden by the `hide-meta-bar` layer; CV-90, was the app header's `hide-header`). Both come back through fix chunks.
+- **Shorter viewports** (desktop ≥ 1024 wide, any height): the chat card height is `min(var(--retro-chat-height), 100dvh - 280px)` so at least ≈ 200 px of console stays visible (e.g. 700 px tall → chat 392, console ≈ 220; 600 px tall → chat 320, console ≈ 192). Width is fixed; the show doesn't run below 1024 px (desktop only).
+- **During the show there's no AI chat button and no meta bar** (the page's meta bar with the Show case button is hidden by the `hide-meta-bar` layer). Both come back through fix chunks.
 
 ## Timeline
 
@@ -106,7 +70,7 @@ Round 5 (GRA-87) flow. Timings are the runner's (`timing.ts`); the design values
 
 | t | What happens |
 |---|---|
-| start | The show starts only when asked: `?retro=1` (dev, e2e) or the app shell's start function (the coming **Show case** button). From today's site the show's chunk loads first (today's site stays on screen meanwhile), then in one frame the page scrolls to the top and turns into the broken 2002 page. Nothing starts on its own any more (no first-visit auto-start, no once-per-session rule); a replay is another start. |
+| start | The show starts only when asked: `?retro=1` (dev, e2e) or the app shell's start function (the **Show case** button). From today's site the show's chunk loads first (today's site stays on screen meanwhile), then in one frame the page scrolls to the top and turns into the broken 2002 page. Nothing starts on its own; a replay is another start. |
 | 0 s | Page alone, fully broken. Marquee scrolls (18 s loop), "NEW!" bursts blink (1 s steps). |
 | 1 s | **Our chat opens**: the agent chat card appears with the site panel's open motion (fade + `translateY(8px) scale(.98)` → none, 200 ms `--chat-motion-duration`, `--chat-motion-easing`, origin bottom right) and streams **"That's how this CV would look like in 2001."** at 40 chars/s with the streaming caret. The composer works from now on; focus is **not** moved into it. |
 | + 1 s pause | The agent streams **"Now let's fix it."** |
@@ -122,66 +86,15 @@ Round 5 (GRA-87) flow. Timings are the runner's (`timing.ts`); the design values
 
 ## The broken page
 
+The page under the show is the v3 CV drawn as a 2001 FrontPage/GeoCities homepage: what each section looks like, the 32 damage layers, the decorations' anchors and copy and the fix list are in **The 2001 page** below, mapped onto the v3 page by its **v3 refit**. The rules here hold for every layer.
+
 ### Damage layers (`layers/*.css`)
 
-Each layer is one file and one chunk: the fix list below says what each holds, in show order. Token layers (`:root`) only redefine names in `src/theme/tokens.css` and print as `-`/`+` diffs; rule layers only use hooks and print verbatim. Retro literals are allowed in layer files (ARCHITECTURE Q5).
+Each layer is one file and one chunk, in show order (The 2001 page → The fix list). Token layers (`:root`) only redefine names in `src/theme/tokens.css` and print as `style.setProperty` commands; rule layers only use hooks. Retro literals are allowed in layer files (ARCHITECTURE Q5).
 
-Round 1 → GRA-49 split (old file → new files, same retro values unless noted):
+Rules for every layer: one concern in one place; no two layers set the same property on the same element (so the cascade doesn't depend on the order layers are removed); only hooks; retro literals only here; every rule changes something visible.
 
-| Round 1 | GRA-49 |
-|---|---|
-| `tokens-type` | `type-family`, `type-scale-headings`, `type-scale-text`, `type-scale-cards`, `type-scale-details` |
-| `tokens-colors` | `base-colors` (bg, text, secondary, muted), `card-colors` (card border, highlight, app accent, app border); `--color-app-text` dropped (`#202124` → `#000000` wasn't visible) |
-| `type-faces` | `type-faces` (unchanged) |
-| `page-colors` | `page-background` (tile + cream table), `heading-colors` (name, section titles), `tech-fills` (cell colours); the app card fill moved into `app-cells` |
-| `layout-shift` | `page-frame`, `header-layout`, `tech-grid`, `experience-heads`, `app-stack`; the books' 12 px gap moved into `about-spacing` |
-| `broken-images` | `broken-photo`, `squashed-logos`, `broken-icon`, `broken-cover`. **Transcenda's logo is now squashed like the other logos**, not broken (3 broken images instead of 4) |
-| `table-cells` | `tech-cells` (with the hidden star and AI gradient), `app-cells` (with the app fill and square icons), `book-frames`; experience logos' radius comes from `squashed-logos` |
-| `old-rhythm` | `heading-rules`, `bullets`, `experience-rhythm`, `about-spacing` (with the About subtitles) |
-| `new-bursts` | `new-bursts`: 40 × 20 box by padding; `@keyframes retro-blink` comes from the layer host (defined only when motion is allowed), not from the file |
-| `decor-room`, `hide-header` | unchanged |
-| `old-links` | `link-style` (link colour, hidden icons), `contact-labels` (`E-mail me:`, `Phone:`) |
-
-With every layer on, the page is the round-1 broken page except for Transcenda's logo (squashed instead of broken). No two layers set the same property on the same element, so the cascade doesn't depend on the order layers are removed.
-
-**Forest refit (CV-90).** The table above is the GRA-49 history. On the Forest `/` the layers keep their ids and steps except three renames, and hit Forest's hooks (`forest-*` test ids, `cv-*` section test ids, `data-agent-id`, element types) and tokens (`--forest-*`):
-
-| Layer | Holds on Forest (retro → Forest) |
-|---|---|
-| `type-faces` | name, `h2`, `h3` in Times New Roman bold; skill titles in Arial |
-| `type-family` | `--forest-font-display`/`-text` Verdana, `-mono` Courier New, h1 letter spacing normal |
-| `type-scale-headings` | name 34, **hero headline 15/18** (Forest's 84 px h1 becomes the small 2002 headline), subtitle 13, section labels 24 |
-| `type-scale-text` | summary 12/16, body (bullets, card text) 11/15 |
-| `type-scale-cards` | skill title 12, items 11/14, periods 11 |
-| `type-scale-details` | company and education titles 13, roles 11, **footer CTA 13** |
-| `page-background` | `body` `#000033` + star tile, `main` `#FFFFCC` |
-| `base-colors` | `--forest-bg` `#FFFFCC`, ink `#000000`, ink-2 `#008000`, ink-3 `#808080` |
-| `heading-colors` | name `#800080`, `h2` `#CC0000`; **gradient text flat** (the headline's `.`, *AI Tools*, the CTA's ↗ take the text colour: 2002 had no gradient text) |
-| `tech-fills` | skill cells `#CCFFFF`, *Product mindset* `#FFFF00`, *AI Tools* `#FFCCFF` |
-| `page-frame` | stage padding 8, `main` 640 px with 6 px padding and `3px outset #C0C0C0`, the CV article without side padding |
-| `header-layout` | hero: photo left of the centred name, headline and tagline, no wrap; contacts in centred inline blocks |
-| `tech-grid` | skills in 3 equal columns 2 px apart, *Skills* title centred |
-| `experience-heads` | job rows as blocks: company, role, period stacked over the bullets |
-| `app-stack` | app pills stacked, indented 40 px, 4 px apart |
-| `broken-photo`, `broken-icon`, `broken-cover` | photo, Savant icon, Siddhartha cover "don't load" (white box, inset outline, broken-image icon) |
-| `squashed-icons` (was `squashed-logos`) | app icons 64 × 28, `object-fit: fill`, square (Forest has no company logos) |
-| `tech-cells` | skill rows as bevelled cells: `2px inset #C0C0C0`, padding 4, 2 px title gap |
-| `app-cells` | app pills as `#CCFFCC` boxes, `1px solid #000`, square, padding 4 |
-| `card-colors` | `--forest-line` `#808080`, `--forest-accent` `#0000FF` (rules, links, dashes, ring), `--forest-surface` `#C0C0C0`, Education/About fills (`--forest-card-sage/sand`) transparent |
-| `book-frames` | covers with `2px solid #000`, square |
-| `heading-rules` | sections 16 px apart (was Forest's 48–88), `h2` margins 16/8 and a `2px groove` rule |
-| `bullets` | summary lines as disc items, job bullets as square items (Forest's "—" hidden) |
-| `experience-rhythm` | job rows padded 8/12, bullets without gaps, 4 px under the head |
-| `card-padding` (was `about-spacing`) | Education and About without their 24 px card padding |
-| `new-bursts` | blinking "NEW!" after the latest job's company and after *AI Tools* |
-| `decor-room` | CV article 72 px top and 216 px bottom padding for the nav bar and footer |
-| `hide-meta-bar` (was `hide-header`) | the meta bar hidden |
-| `link-style` | contact rows and the footer CTA `#0000EE` underlined; the contact ↗ hidden |
-| `contact-labels` | bold `E-mail me:` and `Phone:` before the email and phone |
-
-Rules for every layer stay: one concern in one place, no two layers set the same property on the same element (so `broken-icon` and `broken-cover` no longer set a radius: `squashed-icons` and `book-frames` own it), only hooks, retro literals only here.
-
-Hooks used beyond the list in ARCHITECTURE → Hook contract: element types (`main`, `footer`, `h1`–`h3`, `ul`, `li`, `p`, `img`, `a`, `span`), `ul`/`li`/`div` **only through `:has(…)` on a hook** (e.g. `ul:has(> [data-testid='forest-skill'])` for the skills grid), direct children of a hook (`[data-testid='forest-job'] > div`), `[aria-hidden='true']` for Forest's decorative arrows and dashes, `:is()`, `::before`/`::after`. No Module classes, no `:nth-child`. The hook test (guard 2) covers them.
+Hooks used beyond the list in ARCHITECTURE → Hook contract: element types (`main`, `footer`, `h1`–`h3`, `ul`, `li`, `p`, `img`, `a`, `span`), `ul`/`li`/`div` **only through `:has(…)` on a hook** (e.g. `div:has(> [data-testid='home-skill'])` for the skills grid), direct children of a hook (`[data-testid='home-job'] > div:has(> img)`), `[aria-hidden='true']` for decorative arrows and dashes, `:is()`, `::before`/`::after`. No Module classes, no `:nth-child`. The hook test (guard 2) covers them.
 
 Host variables (set by the layer host from bundled assets): `--retro-broken-image` → `assets/icon_broken_image.svg`, `--retro-tile-stars` → `assets/retro_tile_stars.svg`, `--retro-badge-new` → `assets/badge_new.svg`. The host also defines `@keyframes retro-blink { 50% { visibility: hidden; } }` unless reduced motion is on.
 
@@ -189,30 +102,15 @@ Host variables (set by the layer host from bundled assets): `--retro-broken-imag
 
 | Id | Anchor | Look | Removed by |
 |---|---|---|---|
-| `top-bar` | top-left of `[data-testid='cv']`, its full width (inside the `decor-room` top padding) | **Nav**: `#000080` strip, 3 px padding, 8 px below; centred buttons `Home` `Resume` `My Apps` `Books` `Guestbook` `Links`: `#C0C0C0`, `2px outset #FFF`, padding 2 × 10, bold Verdana 11/14, black, underlined; not links. **Marquee**: black strip, 1 px `#FF0000` border, bold Comic Sans MS 13/20 `#FFFF00`, right to left, 18 s loop | chunk 29 |
-| `page-footer` | bottom of `[data-testid='cv']`, its full width, top edge 200 px above the bottom (inside the `decor-room` bottom padding) | 2 px groove rule on top, 8 px padding, centred, Verdana 11/16 black: `sign_under_construction.svg` (208 × 40) · "You are visitor number" + counter (6 digits, each a 12 px black cell, bold Courier New 14/18 `#33FF33`, 1 px gaps on `#404040`) · badges `badge_800x600.svg` and `badge_guestbook.svg` (88 × 31, 6 px apart) · webring line (underlined `#0000EE`, not links) · last-updated line | chunk 31 |
-| `oh-snap` | while `page-frame` is on: 28 px right of `main`, 40 px below the header top (x ≈ 676, y ≈ 128); after: over the photo's (`forest-photo`, CV-90) top-right corner (right edge 28 px past the photo, top 12 px above it), following the photo when `header-layout` moves it | 184 px wide, padding 10 × 12, `#FFFF99`, 1 px `#CC9900`, hard shadow `3px 3px 0 #000`, Comic Sans MS 13/17 black, rotated 2.5°; `Oh, snap!` 18/24 `#CC0000` on its own line. It sits in the margin, never over CV text, and leaves right after the photo loads | chunk 17 |
+| `top-bar` | top-left of the page root (`root` anchor), its full width (inside the `decor-room` top padding) | **Nav**: `#000080` strip, 3 px padding, 8 px below; centred buttons (Texts): `#C0C0C0`, `2px outset #FFF`, padding 2 × 10, bold Verdana 11/14, black, underlined; not links. **Marquee**: black strip, 1 px `#FF0000` border, bold Comic Sans MS 13/20 `#FFFF00`, right to left, 18 s loop | chunk 29 |
+| `page-footer` | bottom of the page root, its full width, top edge 200 px above the bottom (inside the `decor-room` bottom padding) | 2 px groove rule on top, 8 px padding, centred, Verdana 11/16 black: `sign_under_construction.svg` (208 × 40) · "You are visitor number" + counter (6 digits, each a 12 px black cell, bold Courier New 14/18 `#33FF33`, 1 px gaps on `#404040`) · badges `badge_800x600.svg` and `badge_guestbook.svg` (88 × 31, 6 px apart) · webring line (underlined `#0000EE`, not links) · last-updated line | chunk 31 |
+| `oh-snap` | while `page-frame` is on: 28 px right of `main`, 40 px below the header top (`header` anchor; x ≈ 676, y ≈ 128); after: over the photo's (`photo` anchor) top-right corner (right edge 28 px past the photo, top 12 px above it), following the photo when `header-layout` moves it | 184 px wide, padding 10 × 12, `#FFFF99`, 1 px `#CC9900`, hard shadow `3px 3px 0 #000`, Comic Sans MS 13/17 black, rotated 2.5°; `Oh, snap!` 18/24 `#CC0000` on its own line. It sits in the margin, never over CV text, and leaves right after the photo loads | chunk 18 |
+
+The anchors are the page's hooks (`DecorationAnchors` in `src/screens/retro/scenario.ts`: `root`, `header`, `photo`; v3 refit).
 
 **Leaving** (GRA-49): a removed decoration fades out and shrinks to 96 % over 250 ms (`--retro-leave-duration`, `--retro-close-easing`), then unmounts; reduced motion: at once.
 
 The alt text of a broken image isn't shown (CSS can't read it; ARCHITECTURE → Broken images). The icon and the empty box are enough.
-
-### Per section: what the visitor sees
-
-Forest `/` (CV-90):
-
-| Section | Broken (all layers) |
-|---|---|
-| Frame | star tile; a cream 640 px table with an outset grey border at x = 8, y = 8; nav bar and marquee at its top; no meta bar |
-| Header | broken photo box (148 × 148) on the left; purple Times name, bold Verdana headline (15 px) and green tagline centred beside it; a blue 2 px rule |
-| Summary | six disc bullets, Verdana 12 |
-| Contacts | centred blocks: `E-mail me:` + address, `Phone:` + number, `WhatsApp`, `Telegram`, blue underlined links, no ↗ |
-| 01 — Skills | red Times title, centred, groove rule; 3 columns of bevelled cells (cyan, one yellow, one pink), 2 px apart; "NEW!" after *AI Tools* |
-| 02 — Experience | red Times title with a groove rule; each job as a block: company in Times, "NEW!" after the latest one, role and period in green/grey Verdana, square bullets; grey rules between jobs; app pills as stacked green boxes indented 40 px, icons squashed to 64 × 28, Savant's broken |
-| 03 — Education | plain (no card): red Times title, Times degree, green place line |
-| 04 — About me | plain: books with black borders, Siddhartha broken; interests in Verdana 11 |
-| Footer | blue 2 px rule; `Let's build something ↗` as a 13 px blue underlined link; then the construction sign, counter `004271`, two badges, webring, "Last updated: 14.03.2002" |
-| Margin | "Oh, snap!" note right of the table |
 
 ## Agent chat panel (GRA-54; was Terminal chat panel)
 
@@ -315,89 +213,9 @@ Each step's narration is typed as `// …` comment lines at the start of the ste
 
 The show is **8 steps of 36 chunks**. A chunk is **one visible change**: one layer, decoration or module, one concern, one place on the page. It is typed, applied right after its own last character, and followed by a beat. Most layer files are ≤ 8 code lines; the few at 9–13 lines are still one concern in one place. Since GRA-54 the console types a **command** per chunk, not the file (DevTools console → Console commands), and typing is capped at 1.3 s, so code never piles up. The last chunk loads the AI chat, so the end state is the real site.
 
-Round 1's 3 steps (`tokens`, `layout`, `rest`) and GRA-46's 7 steps are superseded. Step 1 of the 7 (*fonts & colours*, 10 chunks, ≈ 22 s under one narration line) is split in two, so the narration keeps pace with the page (a line every 6–14 s).
-
 Columns: **Chars** = characters the console types for the chunk, its `// → <label>` line included (GRA-54 commands; was **Lines**, the layer file's code lines); **Target** = the `// → <label>` line and what the highlight marks (selectors under `[data-retro-stage]`; `page` = page-wide); **Motion** = how the change lands (Transitions); **s** = the chunk's time at normal motion (typing + 1 s beat).
 
-Forest `/` (CV-90). Selectors are hooks under `[data-retro-stage]`; token values on the right are Forest's (`src/theme/tokens.css`), read live by the console.
-
-**Step 1 · `fonts` · title `fonts`** · narration: *Starting with typography: replacing the system fonts of the time with the current typeface and type scale.*
-
-| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
-|---|---|---|---|---|---|---|
-| 1 | `type-faces` | 84 | name, section labels and `h3`s in Times New Roman bold, skill titles in Arial → Onest / JetBrains Mono | headings: `[data-testid='forest-name']`, `h2` | morph | 1.8 |
-| 2 | `type-family` | 449 | `--forest-font-display`/`-text` Verdana, `-mono` Courier New, h1 letter spacing normal → Onest, IBM Plex Sans, JetBrains Mono, −0.045em | page | morph | 2.3 |
-| 3 | `type-scale-headings` | 388 | name 34, headline 15/18, subtitle 13, labels 24 → 19–21, 40–84 / 0.98, 19–24, 14 | name & headline: `[data-testid='forest-name']`, `[data-testid='forest-headline']`, `h2` | fade | 2.3 |
-| 4 | `type-scale-text` | 298 | summary 12/16, body 11/15 → 18–20 / 1.55, 16 / 1.55 | body text: `[data-testid='forest-lead']` | fade | 2.3 |
-| 5 | `type-scale-cards` | 302 | skill title 12, items 11/14, periods 11 → 16, 15 / 1.55, 13 | skills & dates: `[data-agent-id='section:technologies']` | fade | 2.3 |
-| 6 | `type-scale-details` | 243 | company 13, role 11, footer CTA 13 → 20, 15, 28–52 | experience & education: `[data-agent-id='section:latest-experience']`, `[data-agent-id='section:education']` | fade | 2.3 |
-
-**Step 2 · `colours` · title `colours`** · narration: *Colours: replacing the tiled background and the period palette with the current colour scheme, for readable contrast.*
-
-| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
-|---|---|---|---|---|---|---|
-| 7 | `page-background` | 85 | `body` `#000033` + star tile, `main` `#FFFFCC` → plain page | page | morph | 1.9 |
-| 8 | `base-colors` | 230 | `--forest-bg` `#FFFFCC`, ink `#000000`, ink-2 `#008000`, ink-3 `#808080` → white, forest inks | page | fade | 2.3 |
-| 9 | `heading-colors` | 93 | name `#800080`, labels `#CC0000`, gradient text flat → ink, accent green, the green-gold gradient back | name & titles: `[data-testid='forest-name']`, `h2` | fade | 1.9 |
-| 10 | `tech-fills` | 82 | skill cells `#CCFFFF`, *Product mindset* `#FFFF00`, *AI Tools* `#FFCCFF` → no fill | skills: `[data-testid='forest-skill']` | fade | 1.8 |
-
-**Step 3 · `layout` · title `layout`** · narration: *Layout: replacing the fixed-width table layout, standard practice at the time, with a centred column and grids.*
-
-| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
-|---|---|---|---|---|---|---|
-| 11 | `page-frame` | 80 | stage padding 8, `main` 640 px with an outset border, no side padding → the centred 1080 px column | page | morph | 1.8 |
-| 12 | `header-layout` | 85 | photo left of the centred intro, contacts in centred blocks → hero with the photo right, contact rows | header: `[data-testid='forest-hero']` | morph | 1.9 |
-| 13 | `tech-grid` | 81 | 3 equal columns 2 px apart, title centred → the skills grid | skills: `[data-agent-id='section:technologies']` | morph | 1.8 |
-| 14 | `experience-heads` | 92 | job heads stacked over the bullets → company / role / period beside the bullets | experience: `[data-testid='forest-job']` | morph | 1.9 |
-| 15 | `app-stack` | 79 | app pills stacked, indented 40 px, 4 px apart → the pill row | apps: `[data-agent-id='section:apps']` | morph | 1.8 |
-
-**Step 4 · `images` · title `images`** · narration: *Images: correcting the asset paths and aspect ratios, so the photo, app icons and covers display properly.*
-
-| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
-|---|---|---|---|---|---|---|
-| 16 | `broken-photo` | 83 | photo "doesn't load": white box, inset outline, broken-image icon, square → the round photo with its green ring | photo: `[data-testid='forest-photo']` | morph | 1.8 |
-| 17 | `oh-snap` (decoration) | 52 | the note → gone | note: `#oh-snap` | leave | 1.6 |
-| 18 | `squashed-icons` | 89 | app icons 64 × 28 `object-fit: fill`, square → 36 px round icons | app icons: `[data-testid='forest-app'] img` | morph | 1.9 |
-| 19 | `broken-icon` | 88 | Savant icon broken → loads | Savant icon: `[data-agent-id='app:savant'] img` | morph | 1.9 |
-| 20 | `broken-cover` | 88 | Siddhartha cover broken → loads | book cover: `[data-agent-id='book:siddhartha'] img` | morph | 1.9 |
-
-**Step 5 · `cards` · title `cards`** · narration: *Cards: converting the bevelled table cells into rows, pills and cards, which group related content more clearly.*
-
-| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
-|---|---|---|---|---|---|---|
-| 21 | `tech-cells` | 82 | skill cells: `2px inset #C0C0C0`, padding 4, 2 px title gap → rows under a 1 px line | skills: `[data-testid='forest-skill']` | fade | 1.8 |
-| 22 | `app-cells` | 79 | app pills as `#CCFFCC` boxes, `1px solid #000`, square, padding 4 → round pills | apps: `[data-testid='forest-app']` | fade | 1.8 |
-| 23 | `card-colors` | 292 | `--forest-line` `#808080`, `--forest-accent` `#0000FF`, `--forest-surface` `#C0C0C0`, Education/About fills transparent → forest line, green accent, surface, sage and sand cards | cards: `[data-testid='forest-app']`, `[data-agent-id='section:education']`, `[data-agent-id='section:about']` | fade | 2.3 |
-| 24 | `book-frames` | 82 | covers with `2px solid #000`, square → 1 px line border, radius 6 | books: `[data-testid='forest-book'] img` | fade | 1.8 |
-
-**Step 6 · `spacing` · title `spacing & lists`** · narration: *Spacing: replacing the horizontal rules and bullet lists with consistent section spacing, so the page is easier to scan.*
-
-| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
-|---|---|---|---|---|---|---|
-| 25 | `heading-rules` | 93 | sections 16 px apart, `h2` margins 16/8 and a `2px groove` rule → 48–88 px apart, no rule | section titles: `h2` | fade | 1.9 |
-| 26 | `bullets` | 80 | summary lines as disc items, job bullets as square items → plain lines, "—" bullets | bullets: `[data-testid='forest-lead']`, `[data-agent-id='section:latest-experience']` | morph | 1.8 |
-| 27 | `experience-rhythm` | 93 | job rows padded 8/12, bullets without gaps → 20 px rows, 8 px between bullets | experience: `[data-testid='forest-job']` | fade | 1.9 |
-| 28 | `card-padding` | 95 | Education and About without padding → 24 px cards | education & about: `[data-agent-id='section:education']`, `[data-agent-id='section:about']` | fade | 1.9 |
-
-**Step 7 · `chrome` · title `2002 chrome`** · narration: *Removing the navigation bar, marquee and footer badges of the original build, and restoring the meta bar.*
-
-| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
-|---|---|---|---|---|---|---|
-| 29 | `top-bar` (decoration) | 55 | nav bar and marquee → gone | nav bar: `#top-bar` | leave | 1.6 |
-| 30 | `new-bursts` | 87 | blinking "NEW!" after the latest company and *AI Tools* → gone | NEW! badges: `[data-agent-id='section:latest-experience'] h3`, `[data-agent-id='technology:ai-tools'] h3` | morph | 1.9 |
-| 31 | `page-footer` (decoration) | 58 | construction sign, counter, badges, webring → gone | footer: `#page-footer` | leave | 1.6 |
-| 32 | `decor-room` | 80 | CV article 72 px top and 216 px bottom padding → Forest's | page | fade | 1.8 |
-| 33 | `hide-meta-bar` | 87 | meta bar (`andrew.panasiuk / cv`, Show case, language switcher) hidden → back | meta bar: `[data-testid='forest-meta-bar']` | morph | 1.9 |
-
-**Step 8 · `links` · title `links & contacts`** · narration: *Finally, links: restoring the contact rows and the footer link, and loading the AI chat assistant.*
-
-| # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
-|---|---|---|---|---|---|---|
-| 34 | `link-style` | 81 | contacts and the footer CTA `#0000EE` underlined, contact ↗ hidden → ink rows with green ↗, the ink CTA | links: `ul:has(> li > [data-testid='forest-contact'])`, `footer a` | morph | 1.8 |
-| 35 | `contact-labels` | 88 | bold `E-mail me:` and `Phone:` labels → gone | contacts: `ul:has(> li > [data-testid='forest-contact'])` | morph | 1.9 |
-| 36 | `ai-chat` (module) | 44 | the AI chat button loads (it sits under the chat card until the end of the show) | none | none | 1.6 |
-
-Finale (fallback): `All changes are applied. The site is up to date; the chat button in the bottom right corner answers questions about Andrew.`
+The 8 steps and their 36 chunks are **The 2001 page → The fix list**, with the v3 selectors from **v3 refit**; the data is `RETRO_CHUNKS` in `src/screens/retro/scenarioSteps.ts`.
 
 Order within a step runs down the page where it can, so the camera mostly moves one way; page-wide chunks change whatever is in view.
 
@@ -416,37 +234,21 @@ Step overhead (Round 5): the narration comment types at 100 chars/s (clamped 0.6
 
 **Why the typing rate changes (GRA-54):** a command is 44–95 characters where the layer files were 80–290, so at 240 chars/s most chunks would hit the 0.4 s floor and the show would shrink to ≈ 77 s with code flashing past. At 100 chars/s a typical command takes ≈ 0.85 s (readable as typing) and the multi-token chunks still cap at 1.3 s, which keeps the ≈ 90 s budget.
 
-Budget (Round 5, GRA-87): measured on the runner's fake clock (`showTiming.test.ts`) with the real copy, the fallback narration, a camera that settles at once and the chat chunk loading at once:
+Budget: The 2001 page → Timing budget (≈ 91 s on the fake clock). **The e2e motion-on timing smoke** fails past 110 s of show time (≈ 20 % over the total for the real chat chunk and the camera) or under 60 s.
 
-| Part | Time |
-|---|---:|
-| Intro: 1 s alone · `That's how this CV would look like in 2001.` (≈ 1.1 s) · 1 s · `Now let's fix it.` (≈ 0.4 s) · 0.8 s · DevTools open 0.8 s | 5.1 s |
-| 1 fonts (6 chunks) | 12.0 s |
-| 2 colours (4) | 9.3 s |
-| 3 layout (5) | 11.3 s |
-| 4 images (5) | 11.1 s |
-| 5 cards (4) | 9.1 s |
-| 6 spacing & lists (4) | 9.8 s |
-| 7 2002 chrome (5) | 10.8 s |
-| 8 links & contacts (3) | 7.2 s |
-| Close: `✓ All fixes applied.` 1 s · DevTools collapses 0.4 s · 1 s · `All good now.` (≈ 0.3 s) · 2 s · the chat collapses 0.5 s | 5.2 s |
-| **Total** | **≈ 91 s** |
-
-CV-90 (Forest refit) re-measured the same way: ≈ 90.9 s, the steps within 0.1 s of Round 5. The fake clock reads no live token values, so its token chunks type only their first two lines; in the browser the 7 token chunks print their `setProperty` lines and hit the 1.3 s cap (≈ +5 s, ≈ 96 s), which the e2e motion-on run measures inside its 60–110 s window. Each step now includes its narration comment (≈ 1–1.3 s of typing for the fallbacks) and the 0.6 s read pause. When every targeted chunk waits the 0.8 s camera cap the show takes ≈ 92 s; with reduced motion ≈ 78 s. The intro (−4.2 s) and the close (−0.7 s) are shorter than in GRA-54, which pays for the comments, so the total stays ≈ 91 s. **The e2e motion-on timing smoke keeps its budget**: it fails past 110 s of show time (≈ 20 % over the total for the real chat chunk and the camera) or under 60 s.
-
-Visitor holds (typing ≤ 15 s, reply streaming ≤ 12 s) come on top; they happen only between chunks. Before GRA-49 the 7-step show took ≈ 71 s with 5 s of typing per step; the new show is ≈ 20 s longer because each of its 36 changes gets its own beat. The close delay after the finale drops from 4 s to 3 s to stay near 90 s.
+Visitor holds (typing ≤ 15 s, reply streaming ≤ 12 s) come on top; they happen only between chunks.
 
 ## Transitions
 
 Every page change lands with motion unless reduced motion is on. Two kinds, chosen per chunk (column *Motion*):
 
-**fade** (CSS transitions, 14 chunks): the properties that can interpolate move from the retro value to today's value.
+**fade** (CSS transitions): the properties that can interpolate move from the retro value to today's value.
 - Properties: `color`, `background-color`, `border-color`, `outline-color`, `text-decoration-color`, `font-size`, `line-height`, `letter-spacing`, `margin`, `padding`, `gap`/`row-gap`/`column-gap`, `border-width`, `border-radius`, `box-shadow`, `width`, `height`, `opacity`.
 - Duration **450 ms** (`--retro-motion-duration`), easing `--chat-motion-easing` (`cubic-bezier(0.2, 0, 0, 1)`: fast out, soft landing), no delay. It starts at the apply and ends well inside the 1 s beat.
 - Discrete properties in a fade chunk (e.g. `border-style` inset → solid) switch at the start; fade chunks are chosen so that nothing structural changes in them.
 - The transition is on only while the chunk is being applied, not all show long: the CV's own motion and the retro page's marquee/blink are never affected.
 
-**morph** (same-document View Transition, 18 chunks): for changes that can't interpolate: font family, layout reflow (grid ↔ block, float, centring, `max-width: none`), `display` changes (icons, star, bursts, the header), `list-style`, generated `content`, background images (the star tile), and the broken images.
+**morph** (same-document View Transition): for changes that can't interpolate: font family, layout reflow (grid ↔ block, float, centring, `max-width: none`), `display` changes (icons, star, bursts, the header), `list-style`, generated `content`, background images (the star tile), and the broken images.
 - The browser captures the page, the layer is removed, and the old picture **cross-fades** into the new page over **500 ms** (`--retro-morph-duration`, `--chat-motion-easing`). The chunk's targets **move and resize** from their old box to their new one (each target is its own view-transition group where the browser supports automatic names; otherwise the page cross-fades as a whole).
 - A broken image's chunk morphs the image alone: the broken box cross-fades into the picture: the picture "loads".
 - The dock, the decorations and the highlight stay live and still during a morph (they are excluded from the captured page), so typing and the chat never freeze.
@@ -457,7 +259,7 @@ Every page change lands with motion unless reduced motion is on. Two kinds, chos
 
 **none**: the module chunk (nothing visible changes on the page until the end of the show).
 
-**Reduced motion**: no fade, no morph, no leave: every change is instant, as in round 1.
+**Reduced motion**: no fade, no morph, no leave: every change is instant.
 
 ## Show what changed
 
@@ -472,8 +274,8 @@ Every page change lands with motion unless reduced motion is on. Two kinds, chos
 | padding | padding box minus content box | `--retro-highlight-padding` `rgba(147,196,125,.3)` | `.55` |
 | content | content box | `--retro-highlight-content` `rgba(111,168,220,.35)` | `.66` |
 
-  Measured from the element's border box (`getBoundingClientRect`, page coordinates) and its computed margin, border and padding widths; negative margins draw nothing; a rotated element (the note) gets its axis-aligned box. No outline, no dashes, no offset: the round-3 Paint selection, its green band and `--agent-highlight-width`/`-offset` are gone from the show.
-- **Flash at the apply**: the content region goes to `--retro-highlight-content-flash` `rgba(111,168,220,.6)` over `--retro-highlight-flash` (100 ms; this also settles the round-3 `TODO(theme)`), holds, then everything fades.
+  Measured from the element's border box (`getBoundingClientRect`, page coordinates) and its computed margin, border and padding widths; negative margins draw nothing; a rotated element (the note) gets its axis-aligned box. No outline, no dashes, no offset (the page agent's `--agent-highlight-*` outline is not used).
+- **Flash at the apply**: the content region goes to `--retro-highlight-content-flash` `rgba(111,168,220,.6)` over `--retro-highlight-flash` (100 ms), holds, then everything fades.
 - **Timing** (as round 3): appears when the chunk starts (fade in 150 ms, `--retro-highlight-fade-in`), so the eye goes to the target while the command types; flash at the apply; holds 200 ms, then fades out over 800 ms (`--retro-highlight-fade-out`), gone when the beat ends. At most one chunk is highlighted at a time.
 - **Several matches** (every `h2`, every technology card): an overlay on each match at least partly in the page area, up to 12; when none is in view, the first match (the one being scrolled to).
 - **Follows the target**: the overlays and the plate's size re-measure every frame while a fade changes the target, and snap to the new box when a morph applies (the round-3 measuring windows).
@@ -496,7 +298,7 @@ The Elements-tab tooltip, pinned to the block: its **bottom-left corner sits on 
 
 ### Page-wide changes
 
-Chunks with target `page` (font family, background, base colours, the page frame, the decoration room) change everything in view, so a box around one element would lie. Instead the **whole page area is tinted** (fixed, `inset: 0`, `right: var(--retro-dock-width)`) with `--retro-highlight-page` `rgba(111,168,220,.2)`, flashing to `--retro-highlight-content` at the apply, plus the plate `body  880 × 800`; same timing, no rings. No scroll: whatever the visitor is looking at changes. (Round 3's dashed frame and `--retro-page-frame-inset` are gone.)
+Chunks with target `page` (font family, background, base colours, the page frame, the decoration room) change everything in view, so a box around one element would lie. Instead the **whole page area is tinted** (fixed, `inset: 0`, `right: var(--retro-dock-width)`) with `--retro-highlight-page` `rgba(111,168,220,.2)`, flashing to `--retro-highlight-content` at the apply, plus the plate `body  880 × 800`; same timing, no rings. No scroll: whatever the visitor is looking at changes.
 
 ### Scrolling
 
@@ -504,7 +306,6 @@ Chunks with target `page` (font family, background, base colours, the page frame
 - **Out of view**: smooth scroll (`behavior: 'smooth'`) so the target's top lands 24 px below the viewport top (`--agent-scroll-margin-top`, as the page agent's scroll). The apply waits until the scroll has settled (`scrollend`, at most 0.8 s), so the change is never missed.
 - **The visitor comes first**: if the visitor scrolled in the last **4 s** (wheel, touch, keys, scrollbar: any scroll the show didn't start), the show doesn't scroll; the chunk runs where the visitor is looking, and its highlight marks the target (off-screen if it is). After 4 s without visitor scrolling, the next chunk scrolls again.
 - The show never scrolls for `page` targets or the module chunk, never moves focus, and jumps instead of scrolling with reduced motion.
-- Where the camera goes in a full run: header and summary (fonts), down to education and About (chunk 6), back up for the name (chunk 9), down through the layout to the apps, up to the photo (chunk 16), down to the logos, the apps and the books, and so on; each step reads top to bottom.
 
 ### In the console
 
@@ -529,7 +330,7 @@ Each chunk's input starts with `// → <label>` (a comment, `--devtools-code-com
 
 ## Tokens (in `src/theme/tokens.css`; GRA-54 revision)
 
-Round 4 adds a `--devtools-*` group (the DevTools look: Chrome's default light theme, where the site has no role), highlight colours and close timings, changes three dock values, and retires the Win98/terminal/VGA tokens. The agent chat uses **the site's existing tokens only** (`--color-*`, `--font-*`, `--space-*`, `--radius-*`, `--gradient-ai`, `--chat-*`). Values are declared at the top of `mock.html` until the theme task lands them.
+Round 4 adds a `--devtools-*` group (the DevTools look: Chrome's default light theme, where the site has no role), highlight colours and close timings, changes three dock values, and retires the Win98/terminal/VGA tokens. The agent chat uses **the site's existing tokens only** (`--color-*`, `--font-*`, `--space-*`, `--radius-*`, `--gradient-ai`, `--chat-*`).
 
 **Dock (changed values):**
 
@@ -592,18 +393,16 @@ Panel metrics stay screen-local custom properties, as the Win98 metrics were: to
 
 Reused: `--chat-motion-easing`, `--chat-motion-duration` (the chat's entrance and minimise), `--chat-shadow-panel`, `--chat-shadow-fab`, `--agent-scroll-margin-top` (camera). The runner's own numbers (`timing.ts`) change only for typing: `codeCharsPerSecond` 100 (was 240), `chunkMinMs` 600 (was 400); `closingMs` stays 650.
 
-**Retired by GRA-54** (unused once R16–R17 land; the theme task removes them after the screen stops reading them): `--retro-dock-gap`, `--retro-win-face`, `--retro-win-light`, `--retro-win-light-inner`, `--retro-win-shadow`, `--retro-win-dark`, `--retro-window-shadow`, `--retro-win-title`, `--retro-win-title-text`, `--retro-win-font`, `--retro-win-font-size`, `--retro-term-bg`, `--retro-term-font`, `--retro-term-font-size`, `--retro-term-line-height`, `--retro-code-font-size`, `--retro-code-line-height`, `--retro-term-text`, `--retro-term-dim`, `--retro-chat-agent`, `--retro-chat-visitor`, `--retro-code-selector`, `--retro-code-property`, `--retro-code-string`, `--retro-code-number`, `--retro-code-add`, `--retro-code-add-bg`, `--retro-code-del`, `--retro-code-del-bg`, `--retro-progress`, `--retro-highlight-ink`, `--retro-page-frame-inset`, `--retro-close-collapse`, `--retro-close-fly`.
-
 Retro values of the **page** are not tokens: they live in the layer files and disappear with them. The **decorations'** own CSS (nav bar, marquee, counter, note) uses literal retro colours too (same exception as `layers/`).
 
 ## Texts (EN only, verbatim)
 
 **Decorations and layers:**
-- Nav: `Home` · `Resume` · `My Apps` · `Books` · `Guestbook` · `Links`
-- Marquee: `*** Welcome to my homepage! *** Senior Android Engineer *** Creating Android apps since 2012 *** Please sign my guestbook! ***`
+- Nav: `Home` · `Resume` · `Impact` · `My Apps` · `Guestbook` · `Links`
+- Marquee: `*** Welcome to my homepage! *** Senior Software Product Engineer *** Android since 2012 *** Agentic engineering *** Please sign my guestbook! ***`
 - Note: `Oh, snap!` / `Some pictures didn't load. Try pressing F5... or just wait a minute.`
-- Contact labels (`contact-labels`): `E-mail me:` · `Phone:`
-- Footer: `UNDER CONSTRUCTION` (in the SVG) · `You are visitor number 004271` · `[ << Prev | Android Devs Webring | Next >> ]` · `Last updated: 14.03.2002 · © 2002 Andrew Panasiuk. All rights reserved.`
+- Contact label (`contact-labels`): `Contact me:`
+- Footer: `UNDER CONSTRUCTION` (in the SVG) · `You are visitor number 004271` · `[ << Prev | AI Builders Webring | Next >> ]` · `Last updated: 14.03.2002 · © 2002 Andrew Panasiuk. All rights reserved.`
 - Browser tab title during the show: `Andrew Panasiuk - Homepage` (today's title comes back at the end).
 
 **Tone** (GRA-58; every agent line, scripted or LLM): calm and professional, like a senior engineer narrating a migration to a client. Brief: one sentence, two at most. Respect the legacy: name the old technique neutrally ("fixed-width table layout", "system fonts of the time"), optionally why it was used; no irony, jokes, mockery, farewells to old elements, exclamation marks or emoji. Say what the step does and what the visitor gains (readability, layout, accessibility, consistency). Friendly to the visitor, never familiar. The old page's own in-world texts (Decorations and layers above) are the 2002 site itself, not the agent, and stay as they are.
@@ -612,25 +411,13 @@ Retro values of the **page** are not tokens: they live in the layer files and di
 - Title `Agent` · subtitle `Fixing this site live` · minimise button label `Minimise chat` (restore: `Restore chat`) · list label (visually hidden) `Conversation with the agent` · line prefixes (visually hidden) `You:` · `Agent:` · input label (visually hidden) `Message the agent` · placeholder `Message the agent…` · send button label `Send` · meta `Answers are AI-generated and may contain mistakes.` · counter `{count} / 500`
 - Intro (Round 5, the human's wording, verbatim): `That's how this CV would look like in 2001.` then `Now let's fix it.` They replace the greeting and the console hand-off line.
 - Closing line: `All good now.` It replaces the finale line.
-- Step narration: the fix list above (the LLM may rephrase in the same tone; these are the fallbacks). Since Round 5 it is typed into DevTools as `// …` comments, not shown in the chat. The finale fallback and the LLM's `finale` line are no longer shown (the narrate contract still carries the key).
+- Step narration: the fallbacks in `src/data/retro/scenario.ts` (the LLM may rephrase in the same tone). Since Round 5 it is typed into DevTools as `// …` comments, not shown in the chat. The finale fallback and the LLM's `finale` line are no longer shown (the narrate contract still carries the key).
 - Scripted reply when the LLM fails (ARCHITECTURE): `Noted, thank you. Continuing with the update.`
 - Limit reached (10 messages, a notice in the list): `That's the message limit for this session. The site's chat button will be available once the update is complete.` (without the IRC `***`)
 - Over 500 characters (meta row, error colour): `Message too long (500 characters max).`
 - Offline (banner): `You're offline. The update continues; the chat resumes when the connection is back.` (without `***`)
-- Dropped with the IRC look: window title `#andrew-cv - agent chat`, status `● connected` · `2 users` · `EN`, system lines `*** Now talking in #andrew-cv` · `*** agent has joined`, placeholder `type here, press Enter`, prompt `you>`, nicks `<agent>` · `<you>`.
-- Example exchange in the renders (not scripted, written in the new tone): `wow, a marquee! haven't seen one in 20 years` → `It belongs to the 2002 layout. It goes in the cleanup step, with the hit counter.` · `much better already` → `Thank you. The layout is next: a centred column and grids.`
 
-**Steps** (manifest, scenario data): titles `fonts` · `colours` · `layout` · `images` · `cards` · `spacing & lists` · `2002 chrome` · `links & contacts`; narration fallbacks in the fix list. LLM intents (one English line each, for the narrate prompt):
-- `fonts`: Replace the 2002 system fonts (Verdana, Times New Roman, Arial, Courier New) and small text sizes with today's typeface and type scale.
-- `colours`: Replace the star-field background and the cream, black, red, purple and cyan colours with today's palette and gradient accents.
-- `layout`: Move the page from the fixed-width, left-aligned table layout into the centred column, rows and grids.
-- `images`: Correct the image paths and the aspect ratios of the app icons, and remove the "Oh, snap!" note.
-- `cards`: Turn the bevelled table cells into today's skill rows, app pills and cards, with their borders, radius and colours.
-- `spacing`: Remove the horizontal rules and bullet lists and restore today's section spacing.
-- `chrome`: Remove the nav bar, marquee, "NEW!" bursts, hit counter, badges and webring, and bring back the meta bar with the language switcher.
-- `links`: Restore the contact rows with their arrows and the footer link, and load the real AI chat button.
-
-**Target labels** (scenario data, after `// → `; CV-90): `headings` · `page` · `name & headline` · `body text` · `skills & dates` · `experience & education` · `name & titles` · `skills` · `header` · `experience` · `apps` · `photo` · `note` · `app icons` · `Savant icon` · `book cover` · `cards` · `books` · `section titles` · `bullets` · `education & about` · `nav bar` · `NEW! badges` · `footer` · `meta bar` · `links` · `contacts`.
+**Steps** (manifest, scenario data): titles `fonts` · `colours` · `layout` · `images` · `cards` · `spacing & lists` · `2002 chrome` · `links & contacts`. The LLM intents and narration fallbacks are `RETRO_STEPS` in `src/data/retro/scenario.ts`; the target labels (after `// → `) are `RETRO_CHUNKS` in `src/screens/retro/scenarioSteps.ts`.
 
 **DevTools console** (strings and generated text):
 - Chrome (decoration, `aria-hidden`): tabs `Elements` · `Console` · `Sources`; filter bar `top` · `Filter` · `Default levels`. Panel label (visually hidden, on the section) `Developer tools: live fix console`; log label `Live fix console`.
@@ -639,11 +426,10 @@ Retro values of the **page** are not tokens: they live in the layer files and di
 - Target comment: `// → {label}`; commands: generated (DevTools console → Console commands); result `undefined`
 - Done lines: `✓ {id} removed` (rule layer) · `✓ {id}: {count} tokens set` (token layer) · `✓ #{id} removed` (decoration) · `✓ chat button loaded` (module)
 - Skipped: `{id} skipped: {reason}`
-- End: `✓ All fixes applied.` (replaces `all fixes applied. Welcome to 2026.`)
+- End: `✓ All fixes applied.`
 - Live step announcement (visually hidden): `Step {n} of {total} done: {title}` (unchanged)
 - Counters' accessible text: none (the chrome is `aria-hidden`; the step announcements carry progress)
 - Plate: generated (`{tag}#{id}.{class}  {W} × {H}`, `{label} × {N}`, `body  {W} × {H}`)
-- Dropped: window title `fix.exe - live console`, prompt `$ agent fix --live andrew-cv`, `// n/8 <title>`, progress `Step n of 8: <title>` and `All fixes applied`.
 
 ## Assets
 
@@ -652,7 +438,7 @@ All made for this package (GRA-38), hand-written SVG, **CC0**: no third-party ar
 | File | Size | Used by |
 |---|---|---|
 | `assets/retro_tile_stars.svg` | 64 × 64, tiles | `page-background` via `--retro-tile-stars` |
-| `assets/icon_broken_image.svg` | 16 × 16 | `broken-photo`, `broken-icon`, `broken-cover` via `--retro-broken-image` |
+| `assets/icon_broken_image.svg` | 16 × 16 | `broken-photo`, `broken-covers` via `--retro-broken-image` |
 | `assets/badge_new.svg` | 40 × 20 | `new-bursts` via `--retro-badge-new` |
 | `assets/sign_under_construction.svg` | 208 × 40 | `page-footer` (text in Arial Black; outline it to a path if exact rendering matters) |
 | `assets/badge_800x600.svg` | 88 × 31 | `page-footer` |
@@ -672,7 +458,7 @@ All made for this package (GRA-38), hand-written SVG, **CC0**: no third-party ar
 
 The DevTools and chevron icons (GRA-54) are single-colour vectors drawn for this package after Chrome's icon shapes, not copied: `currentColor` (the cut-outs are SVG masks), so they tint in code like the site's chat icons. The chat card also uses the site's `src/screens/chat/assets/chat_icon_sparkle.svg` and `chat_icon_send.svg` (and the launcher its `chat_icon_chat.svg`).
 
-Fonts: Inter (shipped). The console font is the system monospace (`--devtools-code-font`: Menlo on macOS, Consolas on Windows; nothing shipped). Courier New is no longer used by the panels (GRA-54). Retro faces are system fonts and are **not** shipped (Comic Sans MS may not be redistributed); fallbacks: `'Comic Neue'` (OFL, only if Linux parity is wanted) then `cursive`; Verdana → `Geneva, sans-serif`; Times New Roman → `Times, serif`; Courier New → `Courier, monospace`.
+Fonts: Inter (shipped). The console font is the system monospace (`--devtools-code-font`: Menlo on macOS, Consolas on Windows; nothing shipped). Retro faces are system fonts and are **not** shipped (Comic Sans MS may not be redistributed); fallbacks: `'Comic Neue'` (OFL, only if Linux parity is wanted) then `cursive`; Verdana → `Geneva, sans-serif`; Times New Roman → `Times, serif`; Courier New → `Courier, monospace`.
 
 ## States and behaviour
 
@@ -682,33 +468,17 @@ Fonts: Inter (shipped). The console font is the system monospace (`--devtools-co
 - **Loading**: the broken page is visible at first paint (layers injected before the first render); no flash of today's design.
 - **Failures**: a chunk that fails prints a console.warn row `{id} skipped: {reason}` and the show continues after its beat; with the LLM off, narration and replies are the scripted lines.
 - **Hover/focus**: DevTools chrome has none (decoration, not focusable). The chat's minimise and Send buttons and the field follow the site's chat (hover fills, focus ring `:focus-visible`).
-- **Accessibility**: chat list `role="log"` `aria-live="polite"`; console `role="log"` with `aria-live="off"` and `aria-label="Live fix console"`, plus a visually hidden live line per finished step (`Step 1 of 8 done: fonts`), not per chunk (36 announcements would flood a screen reader); the DevTools chrome, counters, decorations, highlight and plate are `aria-hidden` (the round-1 `role="progressbar"` goes with the progress row). Focus is never moved by the show; the show's scroll never fights the visitor's. Contrast (WCAG): on white `--devtools-text` 16.5, `--devtools-text-dim` 6.0 (5.6 on the tab strip, 5.2 on the filter field), keyword 6.6, string 6.0, comment 6.3, number 10.8, success 5.0, plate tag 8.6, plate class 12.1; active tab `--devtools-accent` on the tab strip 5.9; warning row text 9.3. The counter icons are paired with their numbers (error icon 4.2:1; the warning icon is 2.1:1 on the strip, like Chrome's, and carries no information the number doesn't). The chat's pairs are the site chat's (`docs/design/chat/SPEC.md` → Accessibility). Text under the highlight stays readable: the content tint is .35 (.6 for 100–300 ms at the apply). Retro page pairs on `#FFFFCC`: `#CC0000` 5.7, `#008000` 5.0, `#0000EE` 9.1, `#800080` 9.2; one known short-lived miss: "remotely" `#808080` on `#FFFFCC` is 3.8:1 (gone at chunk 8). The 11 px body text lasts until chunk 4.
+- **Accessibility**: chat list `role="log"` `aria-live="polite"`; console `role="log"` with `aria-live="off"` and `aria-label="Live fix console"`, plus a visually hidden live line per finished step (`Step 1 of 8 done: fonts`), not per chunk (36 announcements would flood a screen reader); the DevTools chrome, counters, decorations, highlight and plate are `aria-hidden` (the round-1 `role="progressbar"` goes with the progress row). Focus is never moved by the show; the show's scroll never fights the visitor's. Contrast (WCAG): on white `--devtools-text` 16.5, `--devtools-text-dim` 6.0 (5.6 on the tab strip, 5.2 on the filter field), keyword 6.6, string 6.0, comment 6.3, number 10.8, success 5.0, plate tag 8.6, plate class 12.1; active tab `--devtools-accent` on the tab strip 5.9; warning row text 9.3. The counter icons are paired with their numbers (error icon 4.2:1; the warning icon is 2.1:1 on the strip, like Chrome's, and carries no information the number doesn't). The chat's pairs are the site chat's (`docs/design/chat/SPEC.md` → Accessibility). Text under the highlight stays readable: the content tint is .35 (.6 for 100–300 ms at the apply). Retro page pairs on `#FFFFCC`: `#CC0000` 5.7, `#008000` 5.0, `#0000EE` 9.1, `#800080` 9.2; the 2001 page's own pairs and short-lived misses: The 2001 page → Accessibility.
 
 ## Data
 
-- CV content: unchanged, from `CvRepository`.
-- Scenario: step ids, titles, intents, narration fallbacks and finale (manifest, `src/data/retro/scenario.ts`); per step its chunks in order (`src/screens/retro/scenario.ts`): the effect, the target (label + selectors, or `page`, or none) and the motion (`fade` / `morph`; decorations always leave, modules have none). The fix list above is that data.
-- Which images break and which squash is layer content (`broken-photo`, `squashed-icons`, `broken-icon`, `broken-cover`). The counter number is fixed text.
+- CV content: unchanged, from `CvPageRepository`.
+- Scenario: step ids, titles, intents, narration fallbacks and finale (manifest, `src/data/retro/scenario.ts`); per step its chunks in order (`src/screens/retro/scenarioSteps.ts`): the effect, the target (label + selectors, or `page`, or none) and the motion (`fade` / `morph`; decorations always leave, modules have none). The 2001 page → The fix list is that data.
+- Which images break and which squash is layer content (`broken-photo`, `squashed-icons`, `broken-covers`). The counter number is fixed text.
 
 ## Shared components (GRA-54)
 
-The agent chat is the site's chat panel, but `src/screens/chat/` is another screen and **a screen may not import another screen** (AGENTS.md → boundaries, enforced by lint). The project rule for a piece two screens need is to move it to `src/shared` in a Theme-zone PR, not to copy it (AGENTS.md → DRY). Proposal (Decision 39), as a prep task before R17:
-
-| Piece today (`src/screens/chat/`) | The show uses it for | Proposal |
-|---|---|---|
-| `ChatIcon` + `assets/chat_icon_*.svg` | badge sparkle, Send arrow (and the launcher keeps its own) | **move** to `src/shared/chat/` |
-| `MessageRow` + its CSS | agent cards and visitor bubbles | **move**; the visually hidden `You:` / `Assistant:` prefixes become props (today it reads `chatStrings`) |
-| `NoticeRow` | the limit notice (tone `neutral`, no action) | **move** with `MessageRow` |
-| `StreamingCaret`, `TypingIndicator` | streaming lines, waiting for a reply | **move** (stateless) |
-| `SendButton` | Send (the show never shows Stop) | **move**; labels as props |
-| `OfflineNotice` | offline banner | **move**; text as a prop |
-| panel frame (`ChatPanel.module.css`: card, gradient border, shadow) and header layout (`ChatHeader.module.css`) | the card and its header | **extract** a stateless `ChatCard` (frame) and `ChatCardHeader` (badge, title, subtitle, one trailing action) into `src/shared/chat/`; the site passes its close button, the show its minimise |
-| `chat.module.css` (`caption`, `srOnly`, `iconButton`) | meta row, prefixes, minimise button | **move** to shared CSS |
-| screen-local values in `ChatScreen.module.css` (`--chat-badge-size` 36px, `--chat-ai-border-width` 1.5px) | badge, gradient border | **promote** to `tokens.css` (two screens read them) |
-| `ChatComposer` | field + Send + meta | **show-local** `AgentComposer` built from the shared `SendButton` and CSS: its behaviour differs (no Stop, 3-line growth, limit and closing states, show strings). Generalise later if the two converge |
-| `ChatLauncher` | the end of the show | not imported: the module chunk loads the real chat (`import('./chat')`); the show only animates its own card onto the launcher's box |
-
-Alternative if the orchestrator prefers no change to the site chat now: show-local copies of the same pieces in `src/screens/retro/chat/` (faster, but two copies to restyle when the site's chat is calmed down).
+The agent chat is the site's chat panel built from the pieces both screens use, in `src/shared/chat/` (`ChatCard`, `ChatCardHeader`, `ChatBadge`, `ChatIcon`, `MessageRow`, `NoticeRow`, `StreamingCaret`, `TypingIndicator`, `SendButton`, `OfflineNotice`, the shared `chat.module.css`): a screen may not import another screen (AGENTS.md → boundaries). The composer is show-local (`AgentComposer`): no Stop, 3-line growth, limit and closing states, show strings. The launcher is not imported: the module chunk loads the real chat (`import('./chat')`); the show only animates its own card onto the launcher's box.
 
 ## Screenshot vs reference
 
@@ -719,99 +489,55 @@ Alternative if the orchestrator prefers no change to the site chat now: show-loc
 | Overlay alpha | Chrome's (`.55`–`.66`) | about half (`.3`–`.4`) | the human asked for a lighter blue |
 | Plate | `body 971×735`, no spaces | `body  880 × 800`, spaces around `×` | the brief's format; easier to read at 12 px |
 
-## Mock vs the real site
-
-| Mock | Real site |
-|---|---|
-| CSS classes stand in for the CSS Modules (layers never select them); the plate shows them (`div.card`) | hashed Module classes, shown with the hash stripped |
-| Inter from Google Fonts | self-hosted `@fontsource` |
-| Round-4 tokens declared in the mock's `<style>`; the token shield skips `--retro-*` | tokens in `tokens.css`; the shield re-declares every site token |
-| Decorations placed by a small `place()` after layout | the retro screen's portal; same anchors |
-| Layers read with XHR to generate the commands and the token values | `?raw` imports; live values from the stylesheet |
-| Highlight drawn statically for the chosen state (`typing` = overlay, `applied` = with the content flash) | fades in and out with the chunk; follows moving targets |
-| `closing` is one hand-placed frame | the animation in End of the show |
-| No motion (renders use reduced motion) | fade, morph, leave, entrance, close as specified |
-
 ## Show case button (R24, CV-91)
 
-The visitor starts the show with a **"Show case"** text control in the Forest meta bar on `/`, at the right end **before the language switcher** (`docs/design/forest/SPEC.md` → Structure 1). Look: the meta bar's text controls (Mono, `--forest-ink-2`; hover `--forest-accent-hover`, focus ring per Forest Interactions), a small `▶` glyph before the label. Shown only where the show can run: locale `en` and `min-width: 1024px`; otherwise absent (no disabled state). Click calls the shell's start seam (`useShowCase().start`); once the show has ended it can be clicked again (replay). While the show runs the stage covers it.
-
-**CV-95:** the same control, same look and place, also on **`/new`**: at the right end of its meta bar, after `Open to roles` and before the language switcher (2001 `/new` → Show case button). On `/` nothing changes visually. Was "Not on `/new`" (Decision 45).
+The visitor starts the show with the **Show case** button at the end of the page's meta bar (`src/shared/ShowCaseButton/`; look: `docs/design/v3/SPEC.md` → Orchestrator decisions 7). Shown only where the show can run (`min-width: 1024px`); otherwise absent (no disabled state). Click calls the shell's start seam (`useShowCase().start`); once the show has ended it can be clicked again (replay). While the show runs the `hide-meta-bar` layer hides it.
 
 ## Decisions (defaults taken; the orchestrator may change them)
 
-1. **Direction**: 2002 FrontPage/GeoCities homepage: one era, one look.
-2. **Panels**: Win98 windows with black terminals (IRC log in the chat, diffs in the console), not a bare green-on-black terminal. Same era as the page; clearer structure. **Superseded by GRA-54** (see 23–40).
-3. **The windows stay retro** until they close at the end. **Superseded by GRA-54** (see 23–40).
-4. **POC = the architecture's 3 steps**; superseded by the atomic list (decision 12).
-5. **Each effect applies when its own text is typed** (the runner does); GRA-49 adds that each effect is typed **on its own clock** with a beat after it (decision 13).
-6. **The dock reserves its width** (the page lays out in viewport − 416 px) instead of overlapping the page. **Superseded by GRA-54** (see 23–40).
-7. **No alt text on broken images** (icon + box only), following the architecture.
-8. **Decorations anchor to hooks** and never cover CV text; the note moves from the margin to the photo corner when the page frame is fixed.
-9. **Minimise** is the only window control; no close (no skip in scope). **Superseded by GRA-54** (see 23–40).
-10. **Broken images**: 3 (photo, Savant, Siddhartha); every experience logo squashed (GRA-49; was 4 with Transcenda broken). On Forest (CV-90) the app icons are squashed instead: Forest shows no company logos.
-11. **Jokes stay in the furniture**; CV text is never altered or mocked.
-12. **Atomic chunks** (GRA-49): one layer, decoration or module per chunk; one concern, one place; ≤ 8 code lines where possible, 9–13 for a few one-place concerns (header layout, technology cells, the bursts). 32 layer files replace the 12.
-13. **Chunk rhythm**: type at 240 chars/s clamped to 0.4–1.3 s, apply at the last character, 1 s beat; narration 0.6 s ahead of a step's first chunk.
-14. **8 steps**: *fonts & colours* is split into *fonts* and *colours* (it would carry 10 chunks under one narration line); the other six steps keep their titles and narration.
-15. **Fade or morph per chunk**: CSS transitions (450 ms) for interpolable changes; a same-document View Transition (500 ms cross-fade, targets morph) for font family, reflow, `display`, background images and broken images; instant where View Transitions are missing.
-16. **Highlight = the agent's own**: a Paint-style selection (black dashes on the console green, 3 px, 4 px out), show-owned, not the page agent's `--agent-highlight-*` outline (its colour is overridden by the damage and it marks one element). **Superseded by GRA-54** (see 23–40).
-17. **Highlight timing**: on when the chunk starts typing, fill flash at the apply, gone 1 s after the apply.
-18. **Page-wide chunks** get a frame around the page area instead of a rectangle, and never scroll. **Superseded by GRA-54** (see 23–40).
-19. **Scrolling**: only when the first target is out of view, smooth, landing 24 px below the top; never within 4 s of the visitor's own scrolling.
-20. **The console names the target** (`// → header`); no labels on the page. (GRA-54: still true; the label is a DevTools comment and the plate names the element.)
-21. **Windows close smoothly**: Win98 minimise-to-taskbar feel (collapse, then shrink away to the bottom-right), console first, chat 100 ms later, 650 ms in all, with the page re-centring from 250 ms; reduced motion: instant. The close delay after the finale drops from 4 s to 3 s (budget). **Superseded by GRA-54** (see 23–40).
-22. **Terminal font stays Courier New** (what renders today); `--retro-term-font` drops IBM Plex Mono, which was never shipped. **Superseded by GRA-54** (see 23–40).
-23. **Agent chat = the site's AI chat panel** (GRA-54): title `Agent`, subtitle `Fixing this site live`, agent cards left, visitor navy bubbles right, composer with the round Send; no timestamps, nicks or system lines; minimise kept, no close.
-24. **Token shield**: the dock root re-declares the site's tokens with their live values, so the damage token layers on `:root` never restyle the chat card.
-25. **DevTools runs the full height**, flush top/right/bottom with a 1 px left border; the chat card floats over its lower part (16 px inset), and the console keeps its rows above the card with bottom padding.
-26. **Tabs at 400 px**: `Elements` · `Console` · `Sources` · `»`; *Network* and *Performance* go behind `»` as in Chrome at this width (all five tabs, the counters, gear and kebab need ≈ 500 px). The device-toolbar icon is dropped for room; the inspect icon stays. Alternative: a 500 px dock (the page area, 780 px, still fits the 672 px column).
-27. **Counters replace the progress row**: ✖ = chunks not done (36 → 0), ⚠ = steps not done (8 → 0). The step label is the open console group's title; the percentage is gone; no extra `console.info` lines.
-28. **Counters at 0 stay visible** as grey `0` (Chrome hides them) so the finale reads "no errors, no warnings".
-29. **Minimise** only on the agent chat (chevron button, collapses to the header); DevTools has no window controls.
-30. **Limits use the site chat's patterns**: over 500 characters → counter + error meta text, Send disabled; 10 messages → a neutral notice in the list and a disabled field.
-31. **A skipped chunk** prints a `console.warn` row and still counts as done for ✖; ⚠ counts steps only.
-32. **The console prints commands, not the layer files**: rule layer → `document.querySelector('style[data-retro-layer="<id>"]').remove()`; token layer → `const { style } = document.documentElement` + one `style.setProperty` per token with the live value (the engine sets those inline properties, drops the inert layer, and the shell clears them at `done`); decoration → `document.getElementById('<id>').remove()`; module → `const { ChatRoute } = await import('./chat')`. Every result is `undefined`. The real attribute `data-retro-layer` is used (the brief's `data-layer` was an example).
-33. **Typing 100 chars/s, clamped 0.6–1.3 s** (was 240 chars/s, 0.4–1.3 s), so commands read as typing and the show stays ≈ 91 s.
-34. **Highlight = Chrome's box model, lighter**: content `.35`, padding `.3`, border `.4`, margin `.3` (Chrome `.55`–`.66`); the content flashes to `.6` at the apply; no dashed ring, no offset.
-35. **Plate**: bottom-left corner of the chunk's first target (GRA-88; clamped into the page area; page-wide chunks and decorations: page-area corner / own box); the first match's `tag#id.class` (CSS Module hash stripped) and its live `W × H`; several matches `<label> × N` (all matches on the page), no size; page-wide → `body` + the page area's size.
-36. **Page-wide chunks tint the page area** (`.2`, flashing to `.35`) with the `body` plate; no box model.
-37. **End of the show**: DevTools slides right (0–300 ms), the chat shrinks into the launcher's box (150–650 ms), the reserve is released over 0–400 ms; 650 ms in all (`closingMs` unchanged); reduced motion: instant.
-38. **Where the site has no colour role, Chrome's default light theme** (blue accent), not the pink custom theme of the reference screenshot.
-39. **Shared chat pieces move to `src/shared/chat/`** in a prep task (Shared components); the composer stays show-local.
-40. **DevTools appears instantly** at the console hand-off (as when DevTools opens); the chat card enters with the site panel's open motion at 3 s. (Round 5: at 1 s, and DevTools after the two intro lines.)
-41. **Round 5 (GRA-87), the human's flow:** the show starts only on request (`?retro=1` or the shell's start function for the Show case button); the Q2/Q3 auto-start and once-per-session rules go. From today's site the chunk loads first, then the page scrolls to the top and turns broken in one frame.
-42. **Intro in the chat:** broken page alone 1 s → the chat opens and streams `That's how this CV would look like in 2001.` → 1 s → `Now let's fix it.` → 0.8 s → DevTools docks → 0.8 s → step 1. Texts verbatim from the human.
-43. **Silent chat while fixing:** the step narration (LLM line or fallback, contract unchanged) is typed into DevTools as `// …` comments wrapped at 52 characters, at the code rate (100 chars/s, clamped 0.6–2 s), then 0.6 s to read; the first chunk continues in the same prompt, so the comment is part of its echo. Comments change nothing, so code shown = code applied holds. Visitor replies still appear in the chat.
-44. **Close sequence:** `✓ All fixes applied.` → 1 s → DevTools collapses (300 ms slide, the page re-centres over 400 ms) → 1 s → `All good now.` → 2 s → the chat collapses into the launcher (500 ms; was 650 ms with DevTools). Reduced motion: same order and pauses, no motion. The finale line goes; the LLM's `finale` narration is still requested but not shown (dropping it is a contract change for a later task).
-45. **Show case button (CV-91):** a meta bar text control on `/` (en, ≥ 1024 px), before the language switcher, calls the shell's `start`; hidden otherwise, not on `/new` (**superseded by Decision 53**: on `/new` too). No hover prefetch of the show chunk (R20 exposes none).
-46. **Forest refit (CV-90):** the broken page is the same 2002 homepage drawn over the Forest `/`: 32 layers on Forest hooks and `--forest-*` tokens, same steps, chunk count and step ids (`retro-3`), three layers renamed for what they now hold (`squashed-icons`, `card-padding`, `hide-meta-bar`). Every layer changes something visible on Forest; no-op rules from R22 (the job-head grid, the skills `::before`, shadows Forest doesn't have, `--forest-gold` (read only by the chat send button, which it turned yellow), the title line height) are gone.
-47. **Headline:** Forest's 84 px hero h1 is the 2002 page's small bold Verdana line under the purple name (`type-scale-headings`), so the fonts step grows it back; the purple Times name keeps the 2002 hierarchy.
-48. **Gradient text** (the headline's `.`, *AI Tools*, the CTA's ↗) is flat in the text colour while `heading-colors` is on: gradient text did not exist in 2002. It returns in the colours step.
-49. **Education and About** are plain table areas (transparent fills from `card-colors`, no padding from `card-padding`); the sage and sand cards come back in the cards and spacing steps.
-50. **Meta bar:** `hide-meta-bar` hides the whole Forest meta bar (handle, Show case button, language switcher) until the chrome step; a Show case click after it returns is a no-op while the show runs (`useShowCase.start`).
-51. **Contacts** sit in centred inline blocks while `header-layout` is on (one 2002 line where it fits, two at 640 px), blue and labelled until the links step; Forest's contact rows come back in steps 3 and 8.
-52. **Guard 1:** `flex-direction`, `flex-wrap` and `width` count as structural (they can't interpolate to Forest's layout), so `page-frame` and `header-layout` morph.
+Numbers are stable (code and docs cite them); superseded decisions were removed (git history before CV-141).
+
+- **1.** **Direction**: 2002 FrontPage/GeoCities homepage: one era, one look.
+- **5.** **Each effect applies when its own text is typed** (the runner does); GRA-49 adds that each effect is typed **on its own clock** with a beat after it (decision 13).
+- **7.** **No alt text on broken images** (icon + box only), following the architecture.
+- **8.** **Decorations anchor to hooks** and never cover CV text; the note moves from the margin to the photo corner when the page frame is fixed.
+- **11.** **Jokes stay in the furniture**; CV text is never altered or mocked.
+- **12.** **Atomic chunks** (GRA-49): one layer, decoration or module per chunk; one concern, one place; ≤ 8 code lines where possible, 9–13 for a few one-place concerns (header layout, technology cells, the bursts). 32 layer files replace the 12.
+- **14.** **8 steps**: *fonts & colours* is split into *fonts* and *colours* (it would carry 10 chunks under one narration line); the other six steps keep their titles and narration.
+- **15.** **Fade or morph per chunk**: CSS transitions (450 ms) for interpolable changes; a same-document View Transition (500 ms cross-fade, targets morph) for font family, reflow, `display`, background images and broken images; instant where View Transitions are missing.
+- **17.** **Highlight timing**: on when the chunk starts typing, fill flash at the apply, gone 1 s after the apply.
+- **19.** **Scrolling**: only when the first target is out of view, smooth, landing 24 px below the top; never within 4 s of the visitor's own scrolling.
+- **20.** **The console names the target** (`// → header`); no labels on the page. (GRA-54: still true; the label is a DevTools comment and the plate names the element.)
+- **23.** **Agent chat = the site's AI chat panel** (GRA-54): title `Agent`, subtitle `Fixing this site live`, agent cards left, visitor navy bubbles right, composer with the round Send; no timestamps, nicks or system lines; minimise kept, no close.
+- **24.** **Token shield**: the dock root re-declares the site's tokens with their live values, so the damage token layers on `:root` never restyle the chat card.
+- **25.** **DevTools runs the full height**, flush top/right/bottom with a 1 px left border; the chat card floats over its lower part (16 px inset), and the console keeps its rows above the card with bottom padding.
+- **26.** **Tabs at 400 px**: `Elements` · `Console` · `Sources` · `»`; *Network* and *Performance* go behind `»` as in Chrome at this width (all five tabs, the counters, gear and kebab need ≈ 500 px). The device-toolbar icon is dropped for room; the inspect icon stays. Alternative: a 500 px dock (the page area, 780 px, still fits the 672 px column).
+- **27.** **Counters replace the progress row**: ✖ = chunks not done (36 → 0), ⚠ = steps not done (8 → 0). The step label is the open console group's title; the percentage is gone; no extra `console.info` lines.
+- **28.** **Counters at 0 stay visible** as grey `0` (Chrome hides them) so the finale reads "no errors, no warnings".
+- **29.** **Minimise** only on the agent chat (chevron button, collapses to the header); DevTools has no window controls.
+- **30.** **Limits use the site chat's patterns**: over 500 characters → counter + error meta text, Send disabled; 10 messages → a neutral notice in the list and a disabled field.
+- **31.** **A skipped chunk** prints a `console.warn` row and still counts as done for ✖; ⚠ counts steps only.
+- **32.** **The console prints commands, not the layer files**: rule layer → `document.querySelector('style[data-retro-layer="<id>"]').remove()`; token layer → `const { style } = document.documentElement` + one `style.setProperty` per token with the live value (the engine sets those inline properties, drops the inert layer, and the shell clears them at `done`); decoration → `document.getElementById('<id>').remove()`; module → `const { ChatRoute } = await import('./chat')`. Every result is `undefined`. The real attribute `data-retro-layer` is used (the brief's `data-layer` was an example).
+- **33.** **Typing 100 chars/s, clamped 0.6–1.3 s** (was 240 chars/s, 0.4–1.3 s), so commands read as typing and the show stays ≈ 91 s.
+- **34.** **Highlight = Chrome's box model, lighter**: content `.35`, padding `.3`, border `.4`, margin `.3` (Chrome `.55`–`.66`); the content flashes to `.6` at the apply; no dashed ring, no offset.
+- **35.** **Plate**: bottom-left corner of the chunk's first target (GRA-88; clamped into the page area; page-wide chunks and decorations: page-area corner / own box); the first match's `tag#id.class` (CSS Module hash stripped) and its live `W × H`; several matches `<label> × N` (all matches on the page), no size; page-wide → `body` + the page area's size.
+- **36.** **Page-wide chunks tint the page area** (`.2`, flashing to `.35`) with the `body` plate; no box model.
+- **37.** **End of the show**: DevTools slides right (0–300 ms), the chat shrinks into the launcher's box (150–650 ms), the reserve is released over 0–400 ms; 650 ms in all (`closingMs` unchanged); reduced motion: instant.
+- **38.** **Where the site has no colour role, Chrome's default light theme** (blue accent), not the pink custom theme of the reference screenshot.
+- **39.** **Shared chat pieces move to `src/shared/chat/`** in a prep task (Shared components); the composer stays show-local.
+- **40.** **DevTools appears instantly** at the console hand-off (as when DevTools opens); the chat card enters with the site panel's open motion at 3 s. (Round 5: at 1 s, and DevTools after the two intro lines.)
+- **41.** **Round 5 (GRA-87), the human's flow:** the show starts only on request (`?retro=1` or the shell's start function for the Show case button); the auto-start and once-per-session rules go. From today's site the chunk loads first, then the page scrolls to the top and turns broken in one frame.
+- **42.** **Intro in the chat:** broken page alone 1 s → the chat opens and streams `That's how this CV would look like in 2001.` → 1 s → `Now let's fix it.` → 0.8 s → DevTools docks → 0.8 s → step 1. Texts verbatim from the human.
+- **43.** **Silent chat while fixing:** the step narration (LLM line or fallback, contract unchanged) is typed into DevTools as `// …` comments wrapped at 52 characters, at the code rate (100 chars/s, clamped 0.6–2 s), then 0.6 s to read; the first chunk continues in the same prompt, so the comment is part of its echo. Comments change nothing, so code shown = code applied holds. Visitor replies still appear in the chat.
+- **44.** **Close sequence:** `✓ All fixes applied.` → 1 s → DevTools collapses (300 ms slide, the page re-centres over 400 ms) → 1 s → `All good now.` → 2 s → the chat collapses into the launcher (500 ms; was 650 ms with DevTools). Reduced motion: same order and pauses, no motion. The finale line goes; the LLM's `finale` narration is still requested but not shown (dropping it is a contract change for a later task).
 
 ---
 
-# 2001 `/new` (CV-95)
+# The 2001 page (CV-95)
 
-The Show case on **`/new`**, the Forest profile (`docs/design/forest/SPEC.md` → Structure `/new`). The same show as on `/` (same panels, flow, copy, timing model, highlight, plate, close; everything above that this part doesn't override), drawn over `/new`'s own markup and tokens, so its end state is the real `/new` with zero layers. How the show picks this scenario is `docs/retro/ARCHITECTURE.md` §10.
+The broken page the show fixes: the CV as its author would have built it as a 2001 FrontPage/GeoCities homepage (Decision 1), with today's content unchanged (Decision 11). It was designed in CV-95 on the profile page `/new` (since retired); the show runs it on the one v3 page as `retro-4`, and **v3 refit** at the end maps every `/new` hook (`forest-*`, `profile-*`) and token (`--forest-*`) named below to the v3 page's. Panels, flow, timing model, highlight, plate and close are the first half of this file. The code (`src/screens/retro/layers/`, `scenarioSteps.ts`, `src/data/retro/scenario.ts`) is the source where they differ.
 
-## Source (`/new`)
-
-- **No reference from the human** (scope default l): this part defines the look. Same direction as `/` (Decision 1): the page is `/new` as its author would have built it as a 2001 FrontPage/GeoCities homepage, with today's content unchanged (Decision 11); `/new`'s own blocks (impact figures, the "How I build" panel, the Earlier row, the "Live AI CV" contact) get their 2001 equivalents (Decision 55).
-- `new/layers/*.css`: the **15 `/new`-only damage layers** (the build copies them to `src/screens/retro/layers/new/`, Prettier-formatted as they will be there). The other **17 layers are `/`'s files, reused unchanged** from `src/screens/retro/layers/` (Damage layers below says which).
-- `new/screenshot.png` (1280 × 800) and `new/screenshot-full.png` (1280 wide, full page): t = 0, the broken page alone, no dock. Rendered by `new/render.mjs` from the **real built `/new`**: it puts the stage on the shell's wrapper, injects the 32 layers of this scenario and the three decorations with the `/new` copy, and **fails if any layer selector matches nothing on today's `/new`** (a one-off guard 2). Run from the repo root: `npm run build && npx vite preview --port 4391 --strictPort &`, then `node docs/design/retro/new/render.mjs`. Reduced motion (marquee and bursts hold still); render on macOS or Windows (retro core fonts). The mock decorations are placed like `useDecorationPlacement` with the anchors below.
-
-## Flow, layout and copy (`/new`)
-
-Unchanged from `/`, verbatim: the trigger (the Show case button, `?retro=1` on `/new`, scope default j), Screen layout (dock 400 px, page area 880 px, chat card 368 × 392), Timeline and Round 5 phases, the intro lines `That's how this CV would look like in 2001.` and `Now let's fix it.`, the silent chat while fixing (narration only as `//` comments in DevTools), the close (`✓ All fixes applied.` → DevTools collapses → `All good now.` → the chat collapses into the launcher), Agent chat panel, DevTools console (chrome, rows, opening line `Agent connected to andrew-cv: 36 changes in 8 steps.`, counters ✖ 36 → 0, ⚠ 8 → 0), Console commands, Chunk rhythm, Transitions, Highlight, **Plate** (bottom-left corner of the chunk's first target; page-wide chunks at the page area's corner; decorations on their own box), Scrolling, End of the show, Tokens, Assets, States, reduced motion, EN only and desktop only (scope default e). The browser tab title during the show is the same `Andrew Panasiuk - Homepage`.
-
-During the show the meta bar (`andrew.panasiuk / cv`, `Wroclaw area`, `Remote / B2B across EU`, `Open to roles`, Show case, switcher) is hidden by `hide-meta-bar` and comes back in the chrome step, as on `/`. The AI chat launcher is off the page until the last chunk loads it.
-
-## Per section: what the visitor sees (`/new`, all layers on)
+## Per section: what the visitor sees (all layers on)
 
 | Section | Broken (2001) |
 |---|---|
@@ -826,62 +552,60 @@ During the show the meta bar (`andrew.panasiuk / cv`, `Wroclaw area`, `Remote / 
 | Footer | blue 2 px rule; `Let's build something ↗` as a 13 px blue underlined link, the © in grey Courier at the right; then the construction sign, `You are visitor number 004271`, the two badges, `[ << Prev | AI Builders Webring | Next >> ]`, `Last updated: 14.03.2002 · © 2002 Andrew Panasiuk. All rights reserved.` |
 | Margin | the "Oh, snap!" note right of the table |
 
-## Damage layers (`/new`)
+## Damage layers (the 32 files)
 
-32 layers, one per chunk, the same rules as `/`'s (one concern in one place, no two layers set the same property on the same element, only hooks, retro literals only in layer files). **Shared** = `/`'s file in `src/screens/retro/layers/`, used by both scenarios unchanged (guard 2 checks it against both pages); **`/new`** = a file in `new/layers/` → `src/screens/retro/layers/new/<id>.css`. A `/new` file may carry the same id as a `/` file with different content (`heading-colors`, `page-frame`, `heading-rules`, `bullets`, `card-padding`, `new-bursts`, `decor-room`, `contact-labels`): ids are unique per scenario, and only one scenario runs at a time.
+32 layers, one per chunk, in `src/screens/retro/layers/`, under the rules of The broken page → Damage layers. What each holds (`/new` values; the v3 tokens and selectors: v3 refit):
 
-| Layer | File | Holds on `/new` (retro → Forest) |
-|---|---|---|
-| `type-faces` | shared | name, `h2`, `h3` (companies, Earlier, skills, degree) in Times New Roman bold; skill titles in Arial |
-| `type-family` | shared | `--forest-font-display`/`-text` Verdana, `-mono` Courier New, h1 letter spacing normal |
-| `type-scale-headings` | shared | name 34, headline 15/18, subtitle 13, section labels 24 |
-| `type-scale-text` | shared | summary 12/16, body (bullets, education and about text) 11/15 |
-| `type-scale-impact` | `/new` | `--forest-type-impact-size` 22px, impact letter spacing normal, `--forest-type-card-size` 11px (impact text, loop steps), `--forest-type-dark-lead-size` 13px, `--forest-type-dark-lead-line-height` 17px |
-| `type-scale-cards` | shared | skill title 12, items 11/14, periods 11 |
-| `type-scale-details` | shared | company and degree titles 13, roles 11, footer CTA 13 |
-| `page-background` | shared | `body` `#000033` + star tile, `main` `#FFFFCC` |
-| `base-colors` | shared | `--forest-bg` `#FFFFCC`, ink `#000000`, ink-2 `#008000`, ink-3 `#808080` |
-| `heading-colors` | `/new` | name `#800080`, `h2` `#CC0000`, gradient text flat: `:is(h1, footer a) > span` (the headline's *Product* and `.`, the CTA's ↗). `/`'s file also names `h3 > span` (its gradient skill title), which `/new` doesn't have |
-| `panel-colors` | `/new` | `--forest-gradient-hero` `#000080` (featured impact cell), `--forest-gradient-dark` `#000000` (loop panel), `--forest-dark-ink` `#00FF00`, `--forest-dark-ink-2` `#00CC00`, `--forest-dark-line` `#008000`, `--forest-gold-soft` `#FFFF00`, `--forest-shadow-dark` `none` |
-| `page-frame` | `/new` | stage padding 8, `main` 640 px with 6 px padding and `3px outset #C0C0C0`, `[data-testid='profile']` without side padding (`/`'s names `cv`) |
-| `header-layout` | shared | hero: photo left of the centred text, no wrap; contacts in centred inline blocks |
-| `impact-grid` | `/new` | the impact list in 2 equal columns 2 px apart; cells without Forest's 200 px minimum height |
-| `experience-heads` | shared | job rows as blocks: company, role, period stacked over the bullets |
-| `skills-grid` | `/new` | skills in 3 equal columns 2 px apart, *Skills* title centred (`/`'s `tech-grid` finds its title by `data-agent-id`, which `/new` doesn't have) |
-| `broken-photo` | shared | photo "doesn't load": white box, inset outline, broken-image icon, square |
-| `squashed-icons` | shared | app icons 64 × 28, `object-fit: fill`, square |
-| `broken-covers` | `/new` | **all three** book covers "don't load" (white box, inset outline, broken-image icon), square |
-| `impact-cells` | `/new` | impact cells: padding 6, `2px outset #C0C0C0`, square, 4 px gap between figure and text |
-| `loop-frame` | `/new` | the loop panel: padding 8, `3px ridge #808080`, square, 8 px gaps; steps without tile border, padding or radius |
-| `app-cells` | shared | app pills as `#CCFFCC` boxes, `1px solid #000`, square, padding 4 |
-| `tech-cells` | shared | skill rows as bevelled cells: `2px inset #C0C0C0`, padding 4, 2 px title gap |
-| `card-colors` | shared | `--forest-line` `#808080`, `--forest-accent` `#0000FF`, `--forest-surface` `#C0C0C0` (impact cells, pills), Education/About fills transparent |
-| `heading-rules` | `/new` | `[data-testid='profile']` sections 16 px apart (Forest's 48–88), `h2` margins 16/8 and a `2px groove` rule |
-| `bullets` | `/new` | the loop steps' list as a block with decimal items (step numbers hidden), job bullets as square items (Forest's "—" hidden), 28 px indent |
-| `card-padding` | `/new` | `profile-education` and `profile-about` without their 24 px card padding |
-| `new-bursts` | `/new` | blinking "NEW!" after the *Selected impact* and *How I build with agents* titles |
-| `decor-room` | `/new` | `[data-testid='profile']` 72 px top and 216 px bottom padding for the nav bar and footer |
-| `hide-meta-bar` | shared | the meta bar hidden |
-| `link-style` | shared | contact rows and the footer CTA `#0000EE` underlined; the contact ↗ hidden |
-| `contact-labels` | `/new` | a bold `Contact me:` line before the contact list (`/`'s file labels the email and phone rows by `data-agent-id`, which `/new` doesn't have) |
+| Layer | Holds (retro → today) |
+|---|---|
+| `type-faces` | name, `h2`, `h3` (companies, Earlier, skills, degree) in Times New Roman bold; skill titles in Arial |
+| `type-family` | `--forest-font-display`/`-text` Verdana, `-mono` Courier New, h1 letter spacing normal |
+| `type-scale-headings` | name 34, headline 15/18, subtitle 13, section labels 24 |
+| `type-scale-text` | summary 12/16, body (bullets, education and about text) 11/15 |
+| `type-scale-impact` | `--forest-type-impact-size` 22px, impact letter spacing normal, `--forest-type-card-size` 11px (impact text, loop steps), `--forest-type-dark-lead-size` 13px, `--forest-type-dark-lead-line-height` 17px |
+| `type-scale-cards` | skill title 12, items 11/14, periods 11 |
+| `type-scale-details` | company and degree titles 13, roles 11, footer CTA 13 |
+| `page-background` | `body` `#000033` + star tile, `main` `#FFFFCC` |
+| `base-colors` | `--forest-bg` `#FFFFCC`, ink `#000000`, ink-2 `#008000`, ink-3 `#808080` |
+| `heading-colors` | name `#800080`, `h2` `#CC0000`, gradient text flat: `:is(h1, footer a) > span` (the headline's *Product* and `.`, the CTA's ↗) |
+| `panel-colors` | `--forest-gradient-hero` `#000080` (featured impact cell), `--forest-gradient-dark` `#000000` (loop panel), `--forest-dark-ink` `#00FF00`, `--forest-dark-ink-2` `#00CC00`, `--forest-dark-line` `#008000`, `--forest-gold-soft` `#FFFF00`, `--forest-shadow-dark` `none` |
+| `page-frame` | stage padding 8, `main` 640 px with 6 px padding and `3px outset #C0C0C0`, `[data-testid='profile']` without side padding |
+| `header-layout` | hero: photo left of the centred text, no wrap; contacts in centred inline blocks |
+| `impact-grid` | the impact list in 2 equal columns 2 px apart; cells without Forest's 200 px minimum height |
+| `experience-heads` | job rows as blocks: company, role, period stacked over the bullets |
+| `skills-grid` | skills in 3 equal columns 2 px apart, *Skills* title centred |
+| `broken-photo` | photo "doesn't load": white box, inset outline, broken-image icon, square |
+| `squashed-icons` | app icons 64 × 28, `object-fit: fill`, square |
+| `broken-covers` | **all three** book covers "don't load" (white box, inset outline, broken-image icon), square |
+| `impact-cells` | impact cells: padding 6, `2px outset #C0C0C0`, square, 4 px gap between figure and text |
+| `loop-frame` | the loop panel: padding 8, `3px ridge #808080`, square, 8 px gaps; steps without tile border, padding or radius |
+| `app-cells` | app pills as `#CCFFCC` boxes, `1px solid #000`, square, padding 4 |
+| `tech-cells` | skill rows as bevelled cells: `2px inset #C0C0C0`, padding 4, 2 px title gap |
+| `card-colors` | `--forest-line` `#808080`, `--forest-accent` `#0000FF`, `--forest-surface` `#C0C0C0` (impact cells, pills), Education/About fills transparent |
+| `heading-rules` | `[data-testid='profile']` sections 16 px apart (Forest's 48–88), `h2` margins 16/8 and a `2px groove` rule |
+| `bullets` | the loop steps' list as a block with decimal items (step numbers hidden), job bullets as square items (Forest's "—" hidden), 28 px indent |
+| `card-padding` | `profile-education` and `profile-about` without their 24 px card padding |
+| `new-bursts` | blinking "NEW!" after the *Selected impact* and *How I build with agents* titles |
+| `decor-room` | `[data-testid='profile']` 72 px top and 216 px bottom padding for the nav bar and footer |
+| `hide-meta-bar` | the meta bar hidden |
+| `link-style` | contact rows and the footer CTA `#0000EE` underlined; the contact ↗ hidden |
+| `contact-labels` | a bold `Contact me:` line before the contact list |
 
-**Hooks.** Every selector exists on today's `/new` (`render.mjs` checks them): section test ids (`profile`, `profile-header`, `profile-impact`, `profile-loop`, `profile-experience`, `profile-skills`, `profile-education`, `profile-about`, `src/screens/profile/testIds.ts`), Forest item test ids (`forest-meta-bar`, `forest-hero`, `forest-name`, `forest-headline`, `forest-photo`, `forest-lead`, `forest-contact`, `forest-impact-card`, `forest-loop-step`, `forest-job`, `forest-app`, `forest-skill`, `forest-book`, `src/shared/forest/testIds.ts`), element types, `:has(…)` on a hook, a hook's direct child (`[data-testid='profile-loop'] > div`, the loop panel), `[aria-hidden='true']`, `:is()`, `::before`/`::after`. **No hook has to be added** and no `data-agent-id` is used (`/new` has none today; CV-94 may add them for the chat, and the show doesn't depend on them). Not reached on purpose: the meta bar's status dot colour (hidden anyway), the app pills' meta stats, the Earlier row's flex layout (it wraps at 640 px by itself).
+**Hooks**: the v3 page's test ids (`src/screens/home/testIds.ts`; the `/new` → v3 map is in v3 refit) and the forms in The broken page → Damage layers; guard 2 checks every selector against the page. No `data-agent-id` is used. Host variables and keyframes: The broken page → Damage layers.
 
-Host variables and keyframes: as on `/` (`--retro-broken-image`, `--retro-tile-stars`, `--retro-badge-new`, `@keyframes retro-blink`).
+## Decorations: anchors and copy
 
-## Decorations (`/new`)
+The three decorations of The broken page → Decorations, with the anchors and copy of this page (`/new` hooks; v3: `home`, `home-header`, `home-photo`).
 
-The same three decorations with the same look and leave motion as on `/`; only their anchors and some copy differ.
-
-| Id | Anchor on `/new` | Copy that differs from `/` | Removed by |
+| Id | Anchor | Copy | Removed by |
 |---|---|---|---|
-| `top-bar` | top-left of `[data-testid='profile']`, its full width | nav `Home` · `Resume` · `Impact` · `My Apps` · `Guestbook` · `Links` (`Books` → `Impact`); marquee `*** Welcome to my homepage! *** AI Product Engineer *** Mobile & Agentic Systems *** Please sign my guestbook! ***` (`/new`'s own headline and subtitle) | chunk 29 |
-| `page-footer` | bottom of `[data-testid='profile']`, its full width, top edge 200 px above the bottom | webring `AI Builders Webring` (was `Android Devs Webring`); the sign, counter `004271`, badges and the last-updated line are `/`'s | chunk 31 |
-| `oh-snap` | while `page-frame` is on: 28 px right of `main`, 40 px below the top of `[data-testid='profile-header']`; after: over the photo's top-right corner (`forest-photo`), as on `/` | none | chunk 18 |
+| `top-bar` | top-left of `[data-testid='profile']`, its full width | nav and marquee: Texts (the marquee quotes the page's headline) | chunk 29 |
+| `page-footer` | bottom of `[data-testid='profile']`, its full width, top edge 200 px above the bottom | sign, counter, badges, webring, last-updated line: Texts | chunk 31 |
+| `oh-snap` | while `page-frame` is on: 28 px right of `main`, 40 px below the top of `[data-testid='profile-header']`; after: over the photo's top-right corner (`forest-photo`) | the note: Texts | chunk 18 |
 
-## The fix list (`/new`)
+## The fix list (8 steps, 36 chunks)
 
-8 steps of 36 chunks: 32 layers (17 morph, 15 fade), 3 decorations (leave), 1 module. Step ids and titles are `/`'s (`fonts`, `colours`, `layout`, `images`, `cards`, `spacing`, `chrome`, `links`; titles `fonts` · `colours` · `layout` · `images` · `cards` · `spacing & lists` · `2002 chrome` · `links & contacts`); narration fallbacks and LLM intents follow `/new`'s content (Texts below). Columns as in `/`'s fix list; **Chars** counts the typed input with the token layers' full `setProperty` lines and today's values; **s** = typing (100 chars/s, 0.6–1.3 s) + 1 s beat. Selectors are hooks under `[data-retro-stage]`.
+8 steps of 36 chunks: 32 layers (17 morph, 15 fade), 3 decorations (leave), 1 module. Step ids `fonts`, `colours`, `layout`, `images`, `cards`, `spacing`, `chrome`, `links`; titles `fonts` · `colours` · `layout` · `images` · `cards` · `spacing & lists` · `2002 chrome` · `links & contacts`. The narration lines below are the CV-95 fallbacks; the current ones (reworded for the v3 page) are in `src/data/retro/scenario.ts`. Columns as in The fix list above; **Chars** counts the typed input with the token layers' full `setProperty` lines and today's values; **s** = typing (100 chars/s, 0.6–1.3 s) + 1 s beat. Selectors are hooks under `[data-retro-stage]`.
 
 **Step 1 · `fonts`** · narration: *Starting with typography: the current typeface and type scale, so the headline and the impact figures read at a glance.*
 
@@ -904,7 +628,7 @@ The same three decorations with the same look and leave motion as on `/`; only t
 | 10 | `heading-colors` | 94 | purple name, red labels, flat *Product* and ↗ → ink, accent green, the green-gold gradient back | name & titles: `[data-testid='forest-name']`, `h2` | fade | 1.9 |
 | 11 | `panel-colors` | 550 | navy featured cell, black panel with green text, yellow numbers, no shadow → the hero and dark gradients, dark-panel inks, gold-soft, the panel shadow | impact & loop: `[data-testid='forest-impact-card']`, `[data-testid='profile-loop'] > div` | morph | 2.3 |
 
-**Step 3 · `layout`** · narration: *Layout: replacing the fixed-width table layout, standard practice at the time, with a centred column and grids.* (`/`'s line)
+**Step 3 · `layout`** · narration: *Layout: replacing the fixed-width table layout, standard practice at the time, with a centred column and grids.*
 
 | # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
 |---|---|---|---|---|---|---|
@@ -941,7 +665,7 @@ The same three decorations with the same look and leave motion as on `/`; only t
 | 27 | `bullets` | 79 | decimal loop list, square job bullets → the six step tiles with `01`–`06`, "—" bullets | lists: `ol:has(> [data-testid='forest-loop-step'])`, `[data-testid='forest-job'] ul` | morph | 1.8 |
 | 28 | `card-padding` | 96 | Education and About without padding → 24 px cards | education & about: `[data-testid='profile-education']`, `[data-testid='profile-about']` | fade | 2.0 |
 
-**Step 7 · `chrome` · title `2002 chrome`** · narration: *Removing the navigation bar, marquee and footer badges of the original build, and restoring the meta bar.* (`/`'s line)
+**Step 7 · `chrome` · title `2002 chrome`** · narration: *Removing the navigation bar, marquee and footer badges of the original build, and restoring the meta bar.*
 
 | # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
 |---|---|---|---|---|---|---|
@@ -951,7 +675,7 @@ The same three decorations with the same look and leave motion as on `/`; only t
 | 32 | `decor-room` | 81 | 72 px top and 216 px bottom padding → Forest's | page | fade | 1.8 |
 | 33 | `hide-meta-bar` | 88 | meta bar (handle, location, work mode, status, Show case, switcher) hidden → back | meta bar: `[data-testid='forest-meta-bar']` | morph | 1.9 |
 
-**Step 8 · `links` · title `links & contacts`** · narration: *Finally, links: restoring the contact rows and the footer link, and loading the AI chat assistant.* (`/`'s line)
+**Step 8 · `links` · title `links & contacts`** · narration: *Finally, links: restoring the contact rows and the footer link, and loading the AI chat assistant.*
 
 | # | Chunk | Chars | Holds (retro) → Forest | Target | Motion | s |
 |---|---|---|---|---|---|---|
@@ -959,17 +683,17 @@ The same three decorations with the same look and leave motion as on `/`; only t
 | 35 | `contact-labels` | 89 | bold `Contact me:` line → gone | contacts: `ul:has(> li > [data-testid='forest-contact'])` | morph | 1.9 |
 | 36 | `ai-chat` (module) | 44 | the AI chat button loads | none | none | 1.6 |
 
-Order within a step runs down the page where it can (the camera goes header → impact → loop → experience → skills → education/about → footer in most steps); `type-scale-cards` (skills) before `type-scale-details` (experience) mirrors `/`, so the camera moves down and back once in the fonts step.
+Order within a step runs down the page where it can (the camera goes header → impact → loop → experience → skills → education/about → footer in most steps); on v3 the fonts step runs down the page (v3 refit).
 
-**Console commands**: generated exactly as on `/` (Console commands): e.g. chunk 11 types `// → impact & loop`, `const { style } = document.documentElement`, then seven lines such as `style.setProperty('--forest-gradient-hero', 'linear-gradient(135deg, #1f3a22, #3e7a34)')` and `style.setProperty('--forest-shadow-dark', '0 30px 80px -40px rgba(62, 122, 52, 0.5)')`, values read live; done line `✓ panel-colors: 7 tokens set`. Chunk 20 types `// → book covers` and `document.querySelector('style[data-retro-layer="broken-covers"]').remove()`, done line `✓ broken-covers removed`.
+**Console commands**: generated as in DevTools console → Console commands: e.g. chunk 11 types `// → impact & loop`, `const { style } = document.documentElement`, then seven lines such as `style.setProperty('--forest-gradient-hero', 'linear-gradient(135deg, #1f3a22, #3e7a34)')` and `style.setProperty('--forest-shadow-dark', '0 30px 80px -40px rgba(62, 122, 52, 0.5)')`, values read live; done line `✓ panel-colors: 7 tokens set`. Chunk 20 types `// → book covers` and `document.querySelector('style[data-retro-layer="broken-covers"]').remove()`, done line `✓ broken-covers removed`.
 
-## Timing budget (`/new`)
+## Timing budget
 
-Measured the way `showTiming.test.ts` measures `/` (fake clock: fallback narration, a camera that settles at once, token chunks typing their first two lines):
+Measured with `showTiming.test.ts` (fake clock: fallback narration, a camera that settles at once, token chunks typing their first two lines):
 
 | Part | Time |
 |---|---:|
-| Intro (as `/`) | 5.1 s |
+| Intro: 1 s alone · `That's how this CV would look like in 2001.` · 1 s · `Now let's fix it.` · 0.8 s · DevTools open 0.8 s | 5.1 s |
 | 1 fonts (7 chunks) | 13.8 s |
 | 2 colours (4) | 9.3 s |
 | 3 layout (5) | 11.4 s |
@@ -978,54 +702,34 @@ Measured the way `showTiming.test.ts` measures `/` (fake clock: fallback narrati
 | 6 spacing & lists (3) | 7.9 s |
 | 7 2002 chrome (5) | 10.8 s |
 | 8 links & contacts (3) | 7.3 s |
-| Close (as `/`) | 5.2 s |
+| Close: `✓ All fixes applied.` 1 s · DevTools collapses 0.4 s · 1 s · `All good now.` · 2 s · the chat collapses 0.5 s | 5.2 s |
 | **Total** | **≈ 91 s** (91.2) |
 
-In the browser the 9 token chunks print every `setProperty` line and hit the 1.3 s cap: ≈ 97 s (`/` ≈ 96 s). The `/new` e2e timing smoke keeps `/`'s window: done within 110 s of show time and not under 60 s. Reduced motion ≈ 78 s, as `/`.
+In the browser the 9 token chunks print every `setProperty` line and hit the 1.3 s cap: ≈ 97 s. The e2e timing smoke's window: done within 110 s of show time and not under 60 s. Reduced motion ≈ 78 s.
 
-## Texts (`/new`, EN only, verbatim)
+## Texts of the 2001 page
 
-- Same as `/`: intro and close lines, the agent chat strings, the DevTools strings and the opening line, the scripted reply, limit, too-long and offline lines, the note, the counter, the construction sign, the last-updated line, the browser tab title, step titles, the finale fallback (not shown).
-- `/new` decoration copy: nav `Home` · `Resume` · `Impact` · `My Apps` · `Guestbook` · `Links`; marquee `*** Welcome to my homepage! *** AI Product Engineer *** Mobile & Agentic Systems *** Please sign my guestbook! ***`; webring `[ << Prev | AI Builders Webring | Next >> ]`.
-- Layer content: `Contact me:` (`contact-labels`).
-- Narration fallbacks: the fix list above (Tone as `/`: calm, professional, one sentence; the LLM may rephrase).
-- **LLM intents** (manifest, one English line each, the `/new` narrate and reply outline):
-  - `fonts`: Replace the 2002 system fonts (Verdana, Times New Roman, Arial, Courier New) and small sizes with today's typeface and type scale: the AI Product Engineer headline, the impact figures and the process panel.
-  - `colours`: Replace the star-field background, the cream page and the flat navy and black panels with today's palette and gradients: the featured impact card and the dark "How I build with agents" panel.
-  - `layout`: Move the page from the fixed-width, left-aligned table into the centred column: the hero beside the photo, the impact figures in one row, the job rows and the skills grid.
-  - `images`: Correct the image paths and the app icons' aspect ratios so the photo, the app icons and the book covers load, and remove the "Oh, snap!" note.
-  - `cards`: Turn the bevelled table cells into today's impact cards, the framed process panel, app pills, skill rows and the education and about cards.
-  - `spacing`: Remove the horizontal rules and the numbered and square-bullet lists, and restore today's section spacing, the six loop steps as tiles and the job bullets.
-  - `chrome`: Remove the nav bar, marquee, "NEW!" bursts, hit counter, badges and webring, and bring back the meta bar with location, availability and the language switcher.
-  - `links`: Restore the contact rows with their arrows (email, phone, the live AI CV) and the footer link, and load the real AI chat button.
-- **Target labels** (after `// → `): `headings` · `page` · `name & headline` · `summary` · `impact & loop` · `skills & dates` · `experience & education` · `name & titles` · `header` · `impact` · `experience` · `skills` · `photo` · `note` · `app icons` · `book covers` · `impact cards` · `loop panel` · `apps` · `cards` · `section titles` · `lists` · `education & about` · `nav bar` · `NEW! badges` · `footer` · `meta bar` · `links` · `contacts`.
+All copy, the decorations' included, is in Texts above (the screen's `strings.ts`); the layer content is `Contact me:` (`contact-labels`). Intents, narration fallbacks and target labels: `src/data/retro/scenario.ts` and `src/screens/retro/scenarioSteps.ts`.
 
-## Show case button (`/new`)
+## Accessibility (the broken page)
 
-The shared control of the section *Show case button* above, in `/new`'s meta bar: right group, after the status `● Open to roles` and before the language switcher, the meta bar's 16 px gap between items (`--space-4`, the `.right` group's gap). Same look, label `▶ Show case`, same rule (en and ≥ 1024 px, else absent), same seam. On `/` its place and look don't change.
+As in States → Accessibility. New retro pairs: `#00FF00` on `#000000` 15.3:1, `#00CC00` on `#000000` 9.6:1, `#FFFFCC` on `#000080` 15.6:1, black on `#C0C0C0` 11.5:1. Known short-lived misses: the impact text (`--forest-ink-2`) on the grey `--forest-surface` cells is 2.8:1 until `base-colors` (chunk 9, ≈ 25 s in), then 3.7:1 until `card-colors` restores the surface (chunk 25, ≈ 66 s in); the periods `#808080` on cream are 3.8:1 until chunk 9.
 
-## Accessibility (`/new`, the broken page)
+## Decisions (the 2001 page, CV-95; defaults taken, the orchestrator may change them)
 
-As `/` (States → Accessibility). New retro pairs: `#00FF00` on `#000000` 15.3:1, `#00CC00` on `#000000` 9.6:1, `#FFFFCC` on `#000080` 15.6:1, black on `#C0C0C0` 11.5:1. Known short-lived misses: the impact text (`--forest-ink-2`) on the grey `--forest-surface` cells is 2.8:1 until `base-colors` (chunk 9, ≈ 25 s in), then 3.7:1 until `card-colors` restores the surface (chunk 25, ≈ 66 s in); the periods `#808080` on cream are 3.8:1 until chunk 9.
-
-## Decisions (`/new`, CV-95; defaults taken, the orchestrator may change them)
-
-53. **Show case on `/new`**: the shared meta-bar control, same look and rule as `/`, after the status and before the switcher; `?retro=1` on `/new` starts the `/new` show (scope defaults i, j).
-54. **One look for both pages**: the same 2001 homepage language on `/new` (star tile, 640 px cream table, Verdana/Times/Comic, bevels, NEW!, blue links, broken images, the same decorations), so the two shows read as one series; `/new` differs only where its blocks differ.
-55. **`/new`'s own blocks in 2001 terms**: impact figures → a 2 × 2 table of bevelled grey cells with the featured one flat navy; the dark "How I build" panel → a black ridge-bordered box with green text and a decimal list (a 2001 "terminal" box); the contacts → a `Contact me:` line over inline links; the "Live AI CV" row stays (content is never hidden).
-56. **Reuse `/`'s layer files** where every selector already matches both pages (17 files); `/new`-only files (15) live in `layers/new/` and may share an id with a `/` file. A shared file is a two-page contract: guard 2 checks it against both pages.
-57. **No new hooks**: test ids, element types and structural selectors only; no `data-agent-id` (the `/`-only per-item breakage, Savant's icon and Siddhartha's cover, becomes "all three covers don't load" on `/new`).
-58. **Same step ids and titles as `/`** (`retro-3`'s eight), so the v3 contract stays as it is (ARCHITECTURE §10); the narration fallbacks for fonts, colours, images, cards and spacing name `/new`'s content, the other three are `/`'s lines.
-59. **36 chunks, ≈ 91 s** on the fake clock (scope default f); trimmed from a 41-chunk draft: no separate loop-list, app-stack, skill-fill, book-frame or job-rhythm chunks (the first is part of `bullets`; the others add little at 640 px).
-60. **`panel-colors` morphs**: its tokens' "after" values are gradients, which can't interpolate; guard 1 treats `--forest-gradient-*` tokens as structural (ARCHITECTURE §10 → Guards).
-61. **2002 in the furniture, 2001 in the intro** on both pages, as on `/` (`2002 chrome`, `Last updated: 14.03.2002`): the narrate prompt says "original 2002 build" for both scenarios and stays unchanged.
-62. **Decoration copy**: the marquee quotes `/new`'s own headline and subtitle; the nav names `/new`'s sections; the webring is `AI Builders Webring`. Nothing else differs.
-63. **The intro and close are `/`'s lines verbatim** (the human's wording says "this CV" on both pages).
-64. **Plate and highlight unchanged**: the plate sits on the first target's bottom-left corner; multi-target chunks list the topmost block first where the camera should go.
+- **55.** **`/new`'s own blocks in 2001 terms**: impact figures → a 2 × 2 table of bevelled grey cells with the featured one flat navy; the dark "How I build" panel → a black ridge-bordered box with green text and a decimal list (a 2001 "terminal" box); the contacts → a `Contact me:` line over inline links; the "Live AI CV" row stays (content is never hidden).
+- **57.** **No new hooks**: test ids, element types and structural selectors only; no `data-agent-id`. The photo and all three book covers "don't load"; the app icons are squashed.
+- **58.** **Step ids and titles of the earlier show kept**, so the v3 contract didn't change; the narration fallbacks name the page's content.
+- **59.** **36 chunks, ≈ 91 s** on the fake clock (scope default f); trimmed from a 41-chunk draft: no separate loop-list, app-stack, skill-fill, book-frame or job-rhythm chunks (the first is part of `bullets`; the others add little at 640 px).
+- **60.** **`panel-colors` morphs**: its tokens' "after" values are gradients, which can't interpolate; guard 1 treats gradient tokens as structural.
+- **61.** **2002 in the furniture, 2001 in the intro** (`2002 chrome`, `Last updated: 14.03.2002`): the narrate prompt says "original 2002 build".
+- **62.** **Decoration copy**: the marquee quotes the page's own headline; the nav names the page's sections; the webring is `AI Builders Webring`.
+- **63.** **The intro and close lines are the human's wording verbatim** ("this CV").
+- **64.** **Plate and highlight unchanged**: the plate sits on the first target's bottom-left corner; multi-target chunks list the topmost block first where the camera should go.
 
 ## v3 refit (`retro-4`, CV-112)
 
-The show runs on the one v3 page (`docs/design/v3/`, ADR-0006) as **`retro-4`**: `/new`'s 2001 look and fix list above, on the v3 page's `home-*` hooks and v3 tokens (`docs/retro/ARCHITECTURE.md` §11). Same 32 layer ids, 36 chunks, 8 steps, decorations, flow and timing (≈ 91 s on the fake clock). The source of truth is now `src/screens/retro/layers/*.css` (the copies in `new/layers/` and `layers/` here are history).
+The show runs on the one v3 page (`docs/design/v3/`, ADR-0006) as **`retro-4`**: The 2001 page's look and fix list above, on the v3 page's `home-*` hooks and v3 tokens (`docs/retro/ARCHITECTURE.md` §11). Same 32 layer ids, 36 chunks, 8 steps, decorations, flow and timing (≈ 91 s on the fake clock). The source of truth is `src/screens/retro/layers/*.css`.
 
 **Selectors that moved** (`/new` → v3):
 
