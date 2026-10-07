@@ -9,8 +9,12 @@ import { useRetroMode } from './useRetroMode';
 import { useShowCase } from './useShowCase';
 import { useShowCaseAvailable } from './useShowCaseAvailable';
 
+// The Show case button is hidden for now (CV-144). The show itself is intact and still starts with
+// `?retro=1`; set this to `true` to bring the button back.
+const SHOW_CASE_BUTTON_ENABLED = false;
+
 /**
- * App shell: the one CV page on every path, with the Show case button at the end of its meta bar,
+ * App shell: the one CV page on every path, with the (currently hidden) Show case button at the end of its meta bar,
  * and the floating AI chat. When the page has a Retro Rebuild scenario (`showScenarios.ts`) the
  * show runs when started (`?retro=1`, or `useShowCase`'s `start` for the Show case button) over
  * the same tree (`data-retro-stage`), so the page never remounts; the AI chat is off the page until
@@ -20,7 +24,7 @@ import { useShowCaseAvailable } from './useShowCaseAvailable';
 export function App() {
   const retroMode = useRetroMode();
   const { showing, pending, Show, start, end } = useShowCase(SHOW_SCENARIO, retroMode === 'show');
-  const canShow = useShowCaseAvailable(SHOW_SCENARIO);
+  const canShow = useShowCaseAvailable(SHOW_SCENARIO) && SHOW_CASE_BUTTON_ENABLED;
   // Today's site loads the chat at start; after a show it is already there (or loads if it failed).
   const { Chat, load } = useLazyChat(!showing && !pending);
   const loaders = useMemo(() => ({ 'ai-chat': load }), [load]);

@@ -37,6 +37,8 @@ Rules and limits:
 - One page, no router: every path renders `HomeRoute`; production redirects `/new` to `/`
   (`vercel.json`), Vite dev/preview fall back to `index.html` by themselves.
 - Entry point is `src/main.tsx` (global styles, providers, `App`).
+- The Show case button is hidden (`SHOW_CASE_BUTTON_ENABLED = false` in `App.tsx`, CV-144); the show
+  still starts with `?retro=1`. Set the constant to `true` to bring the button back.
 - Reduced motion is read by the show itself. The Show case button shows only with a scenario, on
   ≥ 1024 px (`useShowCaseAvailable`); the start seam itself checks only the scenario.
 - Real-user speed: `AppSpeedInsights` sends Core Web Vitals to Vercel Speed Insights (dashboard:
