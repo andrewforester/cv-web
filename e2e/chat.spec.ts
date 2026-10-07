@@ -154,7 +154,7 @@ test.describe('chat on a phone: system Back', () => {
 
     await page.goBack();
     await expect(page.getByRole('dialog')).toBeHidden();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/\?retro=0$/);
     expect(errors).toEqual([]);
   });
 });
