@@ -1,0 +1,69 @@
+/* docs/design/voice/SPEC.md → Layout 2 (top bar): white chips over the fog. */
+.bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  animation: fade-in var(--voice-enter-duration) var(--chat-motion-easing) 200ms both;
+}
+
+/* The "Ask my AI" pill's anatomy, not a button. */
+.title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--pill-height);
+  padding: var(--space-1-5) var(--space-4) var(--space-1-5) var(--space-1-5);
+  font-size: var(--type-body-size);
+  font-weight: var(--type-button-weight);
+  line-height: var(--chat-launcher-line-height);
+  white-space: nowrap;
+  color: var(--color-ink);
+  background: var(--color-card);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-launcher);
+}
+
+.close {
+  width: var(--chat-control-size);
+  height: var(--chat-control-size);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--color-ink);
+  background: var(--color-card);
+  border: 0;
+  border-radius: 50%;
+  box-shadow: var(--shadow-launcher);
+  cursor: pointer;
+  transition: color var(--chat-transition);
+}
+
+.close:hover {
+  color: var(--color-accent);
+}
+
+.close:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+[data-closing] .bar {
+  opacity: 0;
+  transition: opacity var(--voice-exit-duration) var(--chat-motion-easing);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation-duration: var(--chat-motion-exit-duration);
+    animation-delay: 0s;
+  }
+}

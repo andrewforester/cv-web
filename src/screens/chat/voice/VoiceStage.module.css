@@ -1,0 +1,74 @@
+/* docs/design/voice/SPEC.md → Layout 2 (stage), 3 (the orb drops for a tool), 7 (phone, short). */
+.stage {
+  position: relative;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity var(--chat-motion-exit-duration) linear;
+}
+
+.status {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--type-label-size);
+  letter-spacing: var(--type-label-letter-spacing);
+  color: var(--color-accent);
+}
+
+.caption {
+  max-width: var(--voice-caption-max-width);
+  margin: var(--space-3) 0 0;
+  font-size: var(--type-loop-lead-size);
+  line-height: var(--type-loop-lead-line-height);
+  letter-spacing: var(--type-loop-lead-letter-spacing);
+  color: var(--color-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.visitor {
+  color: var(--color-ink-3);
+}
+
+.privacy {
+  max-width: var(--voice-caption-max-width);
+  margin: var(--space-6) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--type-label-size);
+  line-height: var(--chat-caption-line-height);
+  color: var(--color-ink-3);
+}
+
+/* A tool runs: the orb goes to the bottom of the stage, the texts step aside. */
+[data-phase='tool'] .stage {
+  justify-content: flex-end;
+}
+
+[data-phase='tool'] .text {
+  opacity: 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+@media (max-width: 599px) {
+  .caption {
+    -webkit-line-clamp: 4;
+  }
+}
+
+@media (max-height: 560px) {
+  .caption {
+    -webkit-line-clamp: 2;
+  }
+}

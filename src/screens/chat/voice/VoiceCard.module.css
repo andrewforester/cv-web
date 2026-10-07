@@ -1,0 +1,116 @@
+/* docs/design/voice/SPEC.md → Layout 4 (contact card) and 5 (error card): one white card frame. */
+.card {
+  width: 100%;
+  max-width: var(--voice-card-max-width);
+  margin-top: var(--space-3);
+  padding: var(--card-padding);
+  text-align: left;
+  color: var(--color-ink);
+  background: var(--color-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card), var(--shadow-launcher);
+  animation: card-in var(--chat-motion-duration) var(--chat-motion-easing) both;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.glyph {
+  flex: none;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  display: grid;
+  place-items: center;
+  color: var(--color-accent);
+  background: var(--color-surface-lilac);
+  border-radius: var(--radius-logo);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--type-card-title-size);
+  font-weight: var(--type-card-title-weight);
+  line-height: var(--type-card-title-line-height);
+  letter-spacing: var(--type-card-title-letter-spacing);
+}
+
+.body {
+  margin: var(--space-3) 0 0;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+  color: var(--color-ink-3);
+}
+
+.detail {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--type-label-size);
+  color: var(--color-accent);
+  overflow-wrap: anywhere;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.button {
+  flex: 1 1 140px;
+  min-height: var(--button-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-5);
+  font-family: var(--font-sans);
+  font-size: var(--type-button-size);
+  font-weight: var(--type-button-weight);
+  color: var(--color-ink);
+  text-decoration: none;
+  background: var(--color-surface);
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.primary {
+  color: var(--color-on-accent);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-cta);
+}
+
+.button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.hint {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--type-label-size);
+  color: var(--color-ink-3);
+  text-align: center;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation-name: fade-in;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}

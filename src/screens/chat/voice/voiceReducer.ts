@@ -17,7 +17,11 @@ export interface VoiceModel {
   readonly muted: boolean;
   readonly elapsedSec: number;
   readonly maxCallSeconds: number;
-  readonly caption: { readonly id: string; readonly role: VoiceLineRole; readonly text: string } | null;
+  readonly caption: {
+    readonly id: string;
+    readonly role: VoiceLineRole;
+    readonly text: string;
+  } | null;
   readonly action: ChatActionCall | null;
   /** A visual page tool ran: the fog is parted until the agent's turn ends. */
   readonly fogParted: boolean;

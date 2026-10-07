@@ -100,7 +100,12 @@ export function useVoiceCall({ record, openChat }: VoiceCallOptions): {
           return;
         case 'correction':
           if (!session.callId) return;
-          record({ type: 'callCorrection', id: session.callId, lineId: event.id, text: event.text });
+          record({
+            type: 'callCorrection',
+            id: session.callId,
+            lineId: event.id,
+            text: event.text,
+          });
           dispatch({ type: 'correction', id: event.id, text: event.text });
           return;
         case 'ended':

@@ -8,6 +8,13 @@
   gap: var(--space-3);
 }
 
+/* [mic] [pill]: stays one row on a phone, where the hint goes above it. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 /* The "Ask my AI" pill (docs/design/v3/SPEC.md, Structure 11): ✦ badge + label on white. */
 .pill {
   flex: none;

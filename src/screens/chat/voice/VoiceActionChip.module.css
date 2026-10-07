@@ -1,0 +1,38 @@
+/* docs/design/voice/SPEC.md → Layout 3 (action chip). */
+.chip {
+  position: absolute;
+  top: calc(var(--space-6) + var(--pill-height) + var(--space-3));
+  left: 50%;
+  max-width: calc(100% - 2 * var(--space-4));
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--type-meta-size);
+  color: var(--color-ink);
+  background: var(--color-card);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-launcher);
+  transform: translateX(-50%);
+  animation: chip-in var(--chat-motion-duration) var(--chat-motion-easing) both;
+}
+
+.icon {
+  width: var(--chat-action-icon-size);
+  height: var(--chat-action-icon-size);
+  color: var(--color-accent);
+}
+
+@media (max-width: 599px) {
+  .chip {
+    top: calc(var(--space-4) + env(safe-area-inset-top) + var(--pill-height) + var(--space-3));
+  }
+}
+
+@keyframes chip-in {
+  from {
+    opacity: 0;
+  }
+}
