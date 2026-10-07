@@ -105,7 +105,7 @@ separate layout.
    v3 dark panel colours above). The chat answers about this one page.
 7. **Show case button** goes at the end of the meta bar (as today in Forest), styled as a small
    mono pill in this palette.
-8. Contact links: phone numbers and URLs exactly as in the design (`wa.me/380938977110`,
+8. Contact links: phone numbers and URLs exactly as in the design (`wa.me/48519457129`,
    LinkedIn `in/andriipanasiuk`).
 
 ## Architecture notes

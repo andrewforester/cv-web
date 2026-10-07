@@ -133,7 +133,7 @@ describe('the page agent on the one page', () => {
     });
     expect(vi.mocked(openLink).mock.calls).toEqual([
       ['mailto:andriipanasiuk@gmail.com'],
-      ['https://wa.me/380938977110'],
+      ['https://wa.me/48519457129'],
     ]);
   });
 
