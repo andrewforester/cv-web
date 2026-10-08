@@ -80,7 +80,7 @@ The guards are shared with the chat (`server/http/guards.ts`); their four codes 
 ```http
 POST /api/voice-session HTTP/1.1
 Content-Type: application/json
-Origin: https://cv-web-inky-five.vercel.app
+Origin: https://grandtorino.dev
 
 {"v":1}
 ```

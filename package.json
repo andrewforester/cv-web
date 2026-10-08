@@ -15,7 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "web-check": "playwright test",
-    "web-check:prod": "PW_BASE_URL=${PW_BASE_URL:-https://cv-web-inky-five.vercel.app} playwright test --grep @prod"
+    "web-check:prod": "PW_BASE_URL=${PW_BASE_URL:-https://grandtorino.dev} playwright test --grep @prod"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",
