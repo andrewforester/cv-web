@@ -1,6 +1,6 @@
 # ADR-0008: Voice conversations through ElevenLabs Agents, inside our chat
 
-**Status:** Proposed (CV-146)
+**Status:** Proposed (CV-146); superseded in part by [ADR-0009](0009-voice-panel-shared-conversation.md) (the full-screen voice mode of Decision 1 and "the text model doesn't see it" of Decision 5)
 **Date:** 2026-10-07
 **Deciders:** Andrew Panasiuk (owner); orchestrator
 **Related:** [ADR-0001](0001-ai-cv-chat.md) (stateless functions, no DB/KV, hard money caps),
