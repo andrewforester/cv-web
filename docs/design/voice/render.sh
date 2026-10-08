@@ -37,13 +37,13 @@ mobile() { # <out.png> <state>
 }
 
 desktop screenshot.png listening
-for s in launcher mic-states connecting listening speaking muted tool confirm warning ended \
+for s in launcher connecting listening speaking muted tool confirm warning chat minimized ended \
   error-denied error-failed error-busy error-ratelimited error-dropped error-callcap error-monthly offline; do
   desktop "assets/voice_state_${s}_desktop.png" "$s"
   mobile "assets/voice_state_${s}_mobile.png" "$s"
 done
 
-# Optional: shrink the renders (the fog's gradients need dithering, so pngquant, not a plain
+# Optional: shrink the renders (the orb's gradients need dithering, so pngquant, not a plain
 # palette). Set PNGQUANT=/path/to/pngquant if it is not on PATH.
 PNGQUANT="${PNGQUANT:-$(command -v pngquant || true)}"
 if [[ -n "$PNGQUANT" ]]; then
