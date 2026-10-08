@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from 'react';
 import { useStrings } from '../../../i18n';
+import chat from '../../../shared/chat/chat.module.css';
 import { chatStrings, formatString } from '../strings';
 import { chatTestIds } from '../testIds';
 import styles from './VoiceCard.module.css';
@@ -31,12 +32,12 @@ export function VoiceContactCard({
       className={className ? `${styles.card} ${className}` : styles.card}
       data-testid={chatTestIds.voiceContact}
     >
-      <h2 className={styles.title}>{contact.title}</h2>
-      <p className={styles.detail}>{contact.detail}</p>
+      <p className={styles.title}>{contact.title}</p>
+      <p className={`${chat.caption} ${styles.detail}`}>{contact.detail}</p>
       <div className={styles.buttons}>
         <a
           ref={openRef}
-          className={`${styles.button} ${styles.primary}`}
+          className={`${chat.secondaryButton} ${styles.primary}`}
           href={contact.href}
           target="_blank"
           rel="noopener noreferrer"
@@ -47,14 +48,14 @@ export function VoiceContactCard({
         </a>
         <button
           type="button"
-          className={styles.button}
+          className={chat.secondaryButton}
           data-testid={chatTestIds.voiceContactCancel}
           onClick={onCancel}
         >
           {strings.cancel}
         </button>
       </div>
-      <p className={styles.hint}>{strings.voiceTapNeeded}</p>
+      <p className={`${chat.caption} ${styles.hint}`}>{strings.voiceTapNeeded}</p>
     </div>
   );
 }

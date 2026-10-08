@@ -2,7 +2,7 @@ import { useEffect, useRef, type RefObject } from 'react';
 
 /**
  * Writes the call's loudness (0..1) to `--voice-level` on `target` once per animation frame
- * (docs/design/voice/SPEC.md → Motion): the orb and the fog follow it without a React render.
+ * (docs/design/voice/SPEC.md → Motion): the orb follows it without a React render.
  */
 export function useVoiceLevel(target: RefObject<HTMLElement | null>, level: () => number): void {
   const read = useRef(level);

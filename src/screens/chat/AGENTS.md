@@ -5,16 +5,18 @@ the corner (with a first-visit hint) opens a chat where the visitor asks about A
 and gets answers streamed from the page's content. Suggested questions help start; the chat can
 also act on the page: "show his selected impact" scrolls there, "highlight his work at Transcenda" marks
 the job, and opening a contact asks for confirmation first. A link to `#ask` anywhere on the site
-opens it too. With the voice flag on, a mic beside the pill starts a voice call (`voice/`, its
-own `AGENTS.md`) whose transcript lands in the same conversation. Behaviour:
+opens it too. With the voice flag on, a mic beside the pill (and in the composer) starts a voice
+call (`voice/`, its own `AGENTS.md`) whose transcript lands in the same conversation. Behaviour:
 `docs/design/chat/SPEC.md` (with "Orchestrator decisions"); look:
 `docs/design/v3/SPEC.md` → Decision 6 (the pill; the panel in the loop panel's dark colours); API:
 `docs/chat/API.md` → v4; page agent: `docs/chat/AGENT.md`; copy and labels: ADR-0006 → Decision 3.
 
 What the visitor can rely on:
-- A card on desktop, a full-screen sheet on small screens that stays above the on-screen keyboard.
-  The open sheet owns one history entry (`#chat`), so the system Back closes the chat and
-  stays on the page; desktop history is untouched.
+- One place for the chat and the call (`chatSurface.ts`: `closed`, `text`, `call`, `callChat`,
+  `callPill`; docs/voice/SYSTEM_DESIGN.md §4.2): a column docked on the right on wide screens
+  (the page shifts left; not modal), a floating card on medium ones, full-screen sheets on phones
+  that stay above the on-screen keyboard. Each open phone sheet owns one history entry (`#chat`),
+  so the system Back steps out one view and stays on the page; desktop history is untouched.
 - Stop at any time; Try again after a failure; clear, neutral notices for rate limits, offline,
   refusals and a full conversation ("Start a new chat").
 - The conversation (text turns and voice calls, in order) survives closing and reopening, not a
@@ -34,9 +36,8 @@ mounted tools) from the agent registry. Chips and confirmation cards name the pa
 `CvPage` (impact figure, company, project, skill group, book, contact).
 
 Dock: the chat tells the app shell how much room to keep free for it (`chatDock.ts`: `none`,
-`side` column, `bottom` sheet; docs/voice/SYSTEM_DESIGN.md §4.3) through `ChatRoute`'s
-`onDockChange`; the shell reserves it. Until the call panel lands (CV-186) it always reports
-`none`.
+`side` column, `bottom` call sheet; derived from the surface and the layout, §4.3) through
+`ChatRoute`'s `onDockChange`; the shell reserves it.
 
 Place in the architecture: the screen pattern (state holder → UI state → stateless components)
 over `src/data/chat/` (the conversation stream), `CvPageRepository` (labels) and `src/agent/`
@@ -46,10 +47,8 @@ agent chat; here thin wrappers bind them to this screen's strings. Strings in `s
 (English only); tokens in the theme: the v3 ones (`--color-*`, `--gradient-*`, `--font-*`,
 `--radius-*`) plus `--chat-*` for the chat-only colours, sizes, geometry and motion.
 
-Stubs and limits: Try again doesn't re-send the voice calls before the failed question yet
-(`retryMessages` waits for CV-186 to be wired); the sheet media query is repeated in the CSS modules; the composer reserves a
-slot for a future voice button. The launcher's visible label is its accessible name (WCAG 2.5.3);
-its test id is still `chat-fab`.
+Stubs and limits: the sheet and column media queries are repeated in the CSS modules; the
+launcher's visible label is its accessible name (WCAG 2.5.3); its test id is still `chat-fab`.
 
 Content consistency: `suggestionPrerequisites.ts` gives each starter question (`suggestionN` in
 `strings.ts`) the CV data it needs; its test runs them on the real data and fails for a question

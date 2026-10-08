@@ -11,7 +11,7 @@ interface VoiceMicButtonProps {
   onStart: () => void;
 }
 
-/** The round gradient mic left of the "Ask my AI" pill: opens the voice mode. */
+/** The round gradient mic left of the "Ask my AI" pill: starts a call. */
 export function VoiceMicButton({ className, buttonRef, onStart }: VoiceMicButtonProps) {
   const strings = useStrings(chatStrings);
   return (

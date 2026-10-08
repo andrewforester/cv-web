@@ -1,16 +1,20 @@
 import { useEffect, useRef } from 'react';
+import { useStrings } from '../../i18n';
+import chat from '../../shared/chat/chat.module.css';
 import { ChatLauncher } from './ChatLauncher';
 import { ChatPanel } from './ChatPanel';
 import styles from './ChatScreen.module.css';
+import type { ChatSurface } from './chatSurface';
 import type { ChatActions, ChatUiState } from './ChatUiState';
+import { chatStrings } from './strings';
 import { chatTestIds } from './testIds';
 import { usePresence } from './usePresence';
-import { VoiceMode } from './voice/VoiceMode';
+import { callEndText } from './voice/callEndText';
+import { VoiceCallPill } from './voice/VoiceCallPill';
+import { VoicePanel } from './voice/VoicePanel';
 
-/** Matches `--chat-motion-exit-duration` (the panel's close animation). */
-const PANEL_EXIT_MS = 150;
-/** Matches `--voice-exit-duration` (the voice mode's close animation). */
-const VOICE_EXIT_MS = 300;
+/** Matches `--chat-motion-exit-duration` (the frames' and the pill's close animation). */
+const EXIT_MS = 150;
 
 interface ChatScreenProps {
   className?: string;
@@ -19,29 +23,35 @@ interface ChatScreenProps {
 }
 
 /**
- * The floating chat widget: the launcher (with the voice mic when voice is on) while closed, the
- * panel while open, the full-screen voice mode during a call.
+ * The chat widget by surface (docs/voice/SYSTEM_DESIGN.md §4.2): the launcher (with the mic when
+ * voice is on) while closed, the chat (`text`, `callChat`) or the call panel (`call`) in one
+ * place, the call pill while folded.
  */
 export function ChatScreen({ className, state, actions }: ChatScreenProps) {
+  const strings = useStrings(chatStrings);
   const fabRef = useRef<HTMLButtonElement>(null);
   const micRef = useRef<HTMLButtonElement>(null);
   const focusFabOnClose = useRef(false);
-  const panel = usePresence(state.isOpen, PANEL_EXIT_MS);
-  const voiceOpen = state.voice?.open ?? false;
-  const voiceMode = usePresence(voiceOpen, VOICE_EXIT_MS);
-  const wasVoiceOpen = useRef(voiceOpen);
+  const { surface, voice } = state;
+  const panel = usePresence(surface === 'text' || surface === 'callChat', EXIT_MS);
+  const callPanel = usePresence(surface === 'call', EXIT_MS);
+  const pill = usePresence(surface === 'callPill' || state.endedPill, EXIT_MS);
+  const launcher = surface === 'closed' && !state.endedPill;
+  const lastCall = state.entries.filter((entry) => entry.kind === 'call').at(-1);
 
+  // Back on the launcher: after closing by keyboard the pill, after a call that left nothing
+  // the mic, after the ended pill whatever lost the focus with it.
+  const previous = useRef<{ surface: ChatSurface; launcher: boolean }>({ surface, launcher });
   useEffect(() => {
-    if (state.isOpen || !focusFabOnClose.current) return;
+    const before = previous.current;
+    previous.current = { surface, launcher };
+    if (!launcher || before.launcher) return;
+    if (before.surface === 'call' || before.surface === 'callChat') micRef.current?.focus();
+    else if (focusFabOnClose.current || document.activeElement === document.body) {
+      fabRef.current?.focus();
+    }
     focusFabOnClose.current = false;
-    fabRef.current?.focus();
-  }, [state.isOpen]);
-
-  // The voice mode closed without opening the chat: focus goes back to the mic.
-  useEffect(() => {
-    if (wasVoiceOpen.current && !voiceOpen && !state.isOpen) micRef.current?.focus();
-    wasVoiceOpen.current = voiceOpen;
-  }, [voiceOpen, state.isOpen]);
+  }, [surface, launcher]);
 
   const closeAndFocusFab = () => {
     focusFabOnClose.current = true;
@@ -52,8 +62,9 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
     <div
       className={className ? `${styles.root} ${className}` : styles.root}
       data-testid={chatTestIds.root}
+      data-surface={surface}
     >
-      {!state.isOpen && !voiceOpen && (
+      {launcher && (
         <ChatLauncher
           fabRef={fabRef}
           hintVisible={state.hintVisible}
@@ -62,7 +73,7 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
             actions.dismissHint();
             fabRef.current?.focus();
           }}
-          voiceAvailable={state.voice !== null}
+          voiceAvailable={voice !== null}
           micRef={micRef}
           onStartVoice={actions.voice.start}
         />
@@ -75,8 +86,27 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
           onKeyboardClose={closeAndFocusFab}
         />
       )}
-      {state.voice && voiceMode.mounted && (
-        <VoiceMode state={state.voice} actions={actions.voice} closing={voiceMode.closing} />
+      {voice && callPanel.mounted && (
+        <VoicePanel state={voice} actions={actions.voice} closing={callPanel.closing} />
+      )}
+      {voice && pill.mounted && (
+        <VoiceCallPill
+          state={voice}
+          actions={actions.voice}
+          endedText={state.endedPill && lastCall ? callEndText(lastCall, strings) : null}
+          onOpenChat={actions.open}
+          closing={pill.closing}
+        />
+      )}
+      {voice && (
+        <div
+          className={chat.srOnly}
+          aria-live="polite"
+          aria-atomic="true"
+          data-testid={chatTestIds.voiceAnnouncer}
+        >
+          {voice.announcement?.text}
+        </div>
       )}
     </div>
   );

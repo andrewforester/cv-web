@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { ChatScreen } from './ChatScreen';
-import type { ChatDock, ChatRouteProps } from './chatDock';
+import { chatDock, type ChatRouteProps } from './chatDock';
 import { useChatState } from './useChatState';
 
 /**
@@ -9,8 +9,7 @@ import { useChatState } from './useChatState';
  */
 export function ChatRoute({ onDockChange }: ChatRouteProps) {
   const { state, actions } = useChatState();
-  // TODO(CV-186): the dock follows the surface and the viewport (§4.3); nothing docks yet.
-  const dock: ChatDock = 'none';
+  const dock = chatDock(state.surface, state.layout);
   useEffect(() => {
     onDockChange?.(dock);
   }, [onDockChange, dock]);

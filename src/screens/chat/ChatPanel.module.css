@@ -1,36 +1,29 @@
-/* The frame (column, dark gradient, border, radius, shadow) is the shared `ChatCard`; this adds the
-   fixed placement, size and motion. Imported after the card so these overrides win. */
-.panel {
-  position: fixed;
-  right: var(--space-4);
-  bottom: var(--space-4);
-  z-index: var(--chat-z-index);
-  width: var(--chat-panel-width);
-  height: min(var(--chat-panel-height), calc(100dvh - 2 * var(--space-4)));
-  transform-origin: bottom right;
-  animation: panel-in var(--chat-motion-duration) var(--chat-motion-easing) both;
-}
+/* The frame is the shared `ChatCard`, placed by `ChatColumn`; this adds the phone's full-screen
+   sheet. Imported after both so these overrides win. */
+@media (max-width: 599px), (max-height: 499px) {
+  .panel {
+    inset: var(--chat-vv-top, 0) 0 auto 0;
+    width: 100%;
+    /* Set by useVisualViewportFit while the keyboard is open. */
+    height: var(--chat-vv-height, 100dvh);
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    animation-name: sheet-in;
+  }
 
-.panel:focus {
-  outline: none;
-}
-
-.closing {
-  pointer-events: none;
-  animation: panel-out var(--chat-motion-exit-duration) var(--chat-motion-easing) both;
-}
-
-@keyframes panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(var(--space-2)) scale(0.98);
+  .panel[inert] {
+    animation-name: sheet-out;
   }
 }
 
-@keyframes panel-out {
-  to {
-    opacity: 0;
-    transform: translateY(var(--space-2)) scale(0.98);
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation-name: fade-in;
+  }
+
+  .panel[inert] {
+    animation-name: fade-out;
   }
 }
 
@@ -57,33 +50,5 @@
 @keyframes fade-out {
   to {
     opacity: 0;
-  }
-}
-
-@media (max-width: 599px), (max-height: 499px) {
-  .panel {
-    inset: var(--chat-vv-top, 0) 0 auto 0;
-    width: 100%;
-    /* Set by useVisualViewportFit while the keyboard is open. */
-    height: var(--chat-vv-height, 100dvh);
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    animation-name: sheet-in;
-  }
-
-  .closing {
-    animation-name: sheet-out;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .panel {
-    animation-name: fade-in;
-    animation-duration: calc(var(--chat-motion-exit-duration) / 2);
-  }
-
-  .closing {
-    animation-name: fade-out;
   }
 }

@@ -1,0 +1,7 @@
+/* docs/design/voice/SPEC.md → Layout 2: minimize is off while connecting. */
+.button:disabled,
+.button:disabled:hover {
+  color: var(--color-ink-4);
+  background: transparent;
+  cursor: default;
+}

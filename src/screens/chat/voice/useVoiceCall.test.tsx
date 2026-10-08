@@ -55,7 +55,12 @@ function renderVoiceCall(client: ManualVoiceClient, entries: readonly ChatEntry[
   );
   return renderHook(
     ({ conversation }) =>
-      useVoiceCall({ record: vi.fn(), openChat: vi.fn(), entries: conversation }),
+      useVoiceCall({
+        record: vi.fn(),
+        entries: conversation,
+        onEnded: vi.fn(),
+        onNeedsPanel: vi.fn(),
+      }),
     { wrapper, initialProps: { conversation: entries } },
   );
 }

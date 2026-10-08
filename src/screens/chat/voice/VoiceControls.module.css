@@ -1,74 +1,70 @@
-/* docs/design/voice/SPEC.md → Layout 2 (controls). */
+/* docs/design/voice/SPEC.md → Layout 2 (controls) and 3 (the call bar's 44 px versions). */
 .controls {
-  position: relative;
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-4);
-  padding-top: var(--space-6);
-  animation: fade-in var(--voice-enter-duration) var(--chat-motion-easing) 200ms both;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6) var(--space-6);
+}
+
+.control {
+  flex: none;
+  height: var(--voice-control-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: var(--type-button-size);
+  line-height: var(--chat-ui-line-height);
+  font-weight: var(--type-button-weight);
+  white-space: nowrap;
+  color: var(--color-dark-ink);
+  background: var(--chat-fill);
+  border: var(--border-card) solid var(--color-dark-line);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    color var(--chat-transition),
+    background-color var(--chat-transition),
+    border-color var(--chat-transition);
+}
+
+.control:hover:not(:disabled) {
+  background: var(--chat-fill-hover);
 }
 
 .round {
   width: var(--voice-control-size);
-  height: var(--voice-control-size);
-  display: grid;
-  place-items: center;
-  padding: 0;
-  color: var(--color-ink);
-  background: var(--color-card);
-  border: 0;
-  border-radius: 50%;
-  box-shadow: var(--shadow-launcher);
-  cursor: pointer;
-  transition:
-    color var(--chat-transition),
-    background-color var(--chat-transition);
 }
 
-.round:hover:not(:disabled) {
-  color: var(--color-accent);
+.labelled {
+  padding: 0 var(--space-5) 0 var(--space-4);
 }
 
 .round[aria-pressed='true'],
 .round[aria-pressed='true']:hover {
-  color: var(--color-on-accent);
-  background: var(--color-ink);
+  color: var(--color-dark-number);
+  background: var(--chat-notice-bg);
+  border-color: var(--color-dark-number);
 }
 
 .round:disabled {
   color: var(--color-ink-4);
-  background: var(--color-surface);
-  box-shadow: none;
+  background: transparent;
   cursor: default;
 }
 
 .end {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  height: var(--voice-control-size);
-  padding: 0 var(--space-6) 0 var(--space-5);
-  font-family: var(--font-sans);
-  font-size: var(--type-button-size);
-  font-weight: var(--type-button-weight);
-  color: var(--color-on-accent);
-  background: var(--color-ink);
-  border: 0;
-  border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-launcher);
-  cursor: pointer;
-  transition: background-color var(--chat-transition);
+  color: var(--color-ink);
+  background: var(--color-card);
+  border-color: transparent;
 }
 
-.end:hover {
-  background: var(--color-ink-2);
-}
-
-.round:focus-visible,
-.end:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-ring-offset);
+.end:hover:not(:disabled) {
+  background: var(--color-surface);
 }
 
 .icon {
@@ -76,26 +72,22 @@
   height: var(--voice-control-icon-size);
 }
 
-[data-closing] .controls {
-  opacity: 0;
-  transition: opacity var(--voice-exit-duration) var(--chat-motion-easing);
+/* The call bar's controls: 44 high, icons 20. */
+.small {
+  height: var(--chat-control-size);
 }
 
-@media (max-width: 599px) {
+.small.round {
+  width: var(--chat-control-size);
+}
+
+.small .icon {
+  width: var(--chat-icon-size);
+  height: var(--chat-icon-size);
+}
+
+@media (max-width: 599px), (max-height: 499px) {
   .controls {
-    gap: var(--space-3);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .controls {
-    animation-duration: var(--chat-motion-exit-duration);
-    animation-delay: 0s;
+    padding: var(--space-2) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
   }
 }

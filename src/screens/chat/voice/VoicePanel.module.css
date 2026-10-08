@@ -1,0 +1,65 @@
+/* docs/design/voice/SPEC.md → Layout 2 (the call panel); the placement is `ChatColumn`'s. */
+.panel {
+  --voice-level: 0;
+}
+
+/* The phone's call: a bottom sheet of a fixed height over the live page (the shell pads it). */
+@media (max-width: 599px), (max-height: 499px) {
+  .panel {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: var(--voice-sheet-height);
+    border-bottom: 0;
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    animation-name: sheet-in;
+  }
+
+  .panel[inert] {
+    animation-name: sheet-out;
+  }
+}
+
+@media (max-height: 499px) {
+  .panel {
+    height: var(--voice-sheet-height-short);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation-name: fade-in;
+  }
+
+  .panel[inert] {
+    animation-name: fade-out;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-6));
+  }
+}
+
+@keyframes sheet-out {
+  to {
+    opacity: 0;
+    transform: translateY(var(--space-6));
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}

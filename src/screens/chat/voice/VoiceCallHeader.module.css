@@ -1,0 +1,25 @@
+/* docs/design/voice/SPEC.md → Layout 3 (the chat's header during a call). */
+.header {
+  --voice-level: 0;
+
+  flex: none;
+}
+
+.status {
+  margin: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.live {
+  color: var(--color-dark-number);
+}
+
+.time {
+  font-weight: var(--type-medium-weight);
+  color: var(--color-dark-ink);
+}
+
+.warning {
+  color: var(--color-dark-number);
+}

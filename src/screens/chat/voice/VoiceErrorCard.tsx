@@ -1,4 +1,5 @@
 import { useStrings } from '../../../i18n';
+import chat from '../../../shared/chat/chat.module.css';
 import { ChatIcon } from '../../../shared/chat/ChatIcon';
 import { chatStrings } from '../strings';
 import { chatTestIds } from '../testIds';
@@ -20,7 +21,7 @@ export function VoiceErrorCard({ className, error, onButton }: VoiceErrorCardPro
   const [secondaryLabel, secondary] = card.secondary;
   return (
     <div
-      className={className ? `${styles.card} ${className}` : styles.card}
+      className={[styles.card, styles.error, className].filter(Boolean).join(' ')}
       role="alert"
       data-testid={chatTestIds.voiceError}
       data-error={error}
@@ -29,13 +30,13 @@ export function VoiceErrorCard({ className, error, onButton }: VoiceErrorCardPro
         <span className={styles.glyph}>
           <ChatIcon name={card.icon} />
         </span>
-        <h2 className={styles.title}>{strings[card.title]}</h2>
+        <p className={styles.title}>{strings[card.title]}</p>
       </div>
       <p className={styles.body}>{strings[card.body]}</p>
       <div className={styles.buttons}>
         <button
           type="button"
-          className={`${styles.button} ${styles.primary}`}
+          className={`${chat.secondaryButton} ${styles.primary}`}
           data-testid={chatTestIds.voiceErrorPrimary}
           onClick={() => onButton(primary)}
         >
@@ -43,7 +44,7 @@ export function VoiceErrorCard({ className, error, onButton }: VoiceErrorCardPro
         </button>
         <button
           type="button"
-          className={styles.button}
+          className={chat.secondaryButton}
           data-testid={chatTestIds.voiceErrorSecondary}
           onClick={() => onButton(secondary)}
         >
