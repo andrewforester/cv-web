@@ -23,16 +23,20 @@ describe('chat contract v4', () => {
     expect(CV_CONTACT_CHANNELS).toEqual(['email', 'whatsapp', 'linkedin']);
   });
 
-  it('keeps the char limits and adds the tool-loop caps', () => {
+  it('keeps the char limits and adds the tool-loop caps and the voice transcript room', () => {
     expect(CHAT_LIMITS_V2).toMatchObject({
       maxMessages: 40,
       maxUserQuestions: 10,
       maxUserMessageChars: CHAT_LIMITS.maxUserMessageChars,
-      maxTotalChars: CHAT_LIMITS.maxTotalChars,
+      maxTotalChars: 32_000,
       maxPageStateChars: 1_000,
       maxProviderStateChars: 16_384,
       maxToolCallsPerMessage: 3,
       maxToolRoundsPerTurn: 2,
+      maxVoiceCallsPerQuestion: 3,
+      maxVoiceCallLines: 60,
+      maxVoiceLineChars: 1_000,
+      maxVoiceCallChars: 4_000,
     });
   });
 

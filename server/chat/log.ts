@@ -1,4 +1,8 @@
-import type { ChatErrorCode, ChatStopReasonV2 } from '../../src/data/chat/contract.js';
+import type {
+  ChatErrorCode,
+  ChatMessageV4,
+  ChatStopReasonV2,
+} from '../../src/data/chat/contract.js';
 import type { ShowKind } from '../../src/data/retro/contract.js';
 import type { RetroStepId } from '../../src/data/retro/scenario.js';
 import type { ShowScenarioId } from '../../src/data/retro/scenarios.js';
@@ -42,6 +46,9 @@ export interface ChatLogEntry {
   toolChoice: 'auto' | 'none' | null;
   /** v4: length of the `providerState` sent with `done`. */
   providerStateBytes: number | null;
+  /** v4: voice calls the request carried (all questions) and the characters of their lines. */
+  voiceCalls: number | null;
+  voiceChars: number | null;
   /** v3: the show request's kind. */
   showKind: ShowKind | null;
   /** v3: the scenario the show runs (its page's), an id. */
@@ -52,6 +59,19 @@ export interface ChatLogEntry {
   narrationLines: number | null;
   /** This instance's estimated spend for the current UTC day, this request included. */
   dayCostUsd: number | null;
+}
+
+/** The v4 voice fields: how much transcript a request carried, never its text. */
+export function voiceLogFields(
+  messages: ChatMessageV4[],
+): Pick<ChatLogEntry, 'voiceCalls' | 'voiceChars'> {
+  const calls = messages.flatMap((message) =>
+    message.role === 'user' && 'voiceCalls' in message ? (message.voiceCalls ?? []) : [],
+  );
+  const voiceChars = calls
+    .flatMap((call) => call.lines)
+    .reduce((sum, line) => sum + line.text.length, 0);
+  return { voiceCalls: calls.length, voiceChars };
 }
 
 export type ChatLogger = (entry: ChatLogEntry) => void;
