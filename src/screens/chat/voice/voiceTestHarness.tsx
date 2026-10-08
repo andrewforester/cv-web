@@ -18,7 +18,7 @@ import type { ChatDock, ChatLayout } from '../chatDock';
 import { ChatRoute } from '../ChatRoute';
 import { FakeAgentExecutor } from '../fakeAgentExecutor';
 
-/** A call the test drives by hand: it records what the voice mode asked of it. */
+/** A call the test drives by hand: it records what the call asked of it. */
 export class ManualVoiceCall implements VoiceCall {
   muted = false;
   ended: string | null = null;

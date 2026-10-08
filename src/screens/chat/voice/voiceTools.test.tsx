@@ -21,7 +21,7 @@ describe('voice page tools', () => {
     vi.useRealTimers();
   });
 
-  it('a scroll parts the fog with a chip until the agent’s turn ends, 3 s at least', async () => {
+  it('a scroll shows its chip until the agent’s turn ends, 3 s at least', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const { client, executor } = await liveCall({
       advanceTimers: (ms) => vi.advanceTimersByTime(ms),

@@ -16,7 +16,7 @@ async function startCall(client = new ManualVoiceClient(), sessions = new StubSe
   return { ...rendered, client };
 }
 
-describe('voice mode errors and limits', () => {
+describe('call errors and limits', () => {
   it.each([
     ['rate_limited', 'rateLimited', 'Too many calls'],
     ['quota_exhausted', 'quotaExhausted', 'Voice is resting this month'],

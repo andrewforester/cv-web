@@ -33,7 +33,7 @@ export interface Conversation {
   reset(): void;
   confirmAction(callId: string): void;
   declineAction(callId: string): void;
-  /** Records a voice call's events (the voice mode's state holder writes its transcript here). */
+  /** Records a voice call's events (the call's state holder writes its transcript here). */
   record: Dispatch<ConversationAction>;
 }
 

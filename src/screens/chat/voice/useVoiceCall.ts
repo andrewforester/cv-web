@@ -80,12 +80,11 @@ export function useVoiceCall({ record, entries, onEnded, onNeedsPanel }: VoiceCa
   const conclude = useCallback((session: CallSession, error: VoiceErrorKind | null) => {
     closeSession(session);
     if (current.current === session) current.current = null;
-    const outcome = {
+    surface.current.onEnded({
       hadLines: session.lines > 0,
-      card: error !== null,
+      card: !!error,
       wasLive: !!session.callId,
-    };
-    surface.current.onEnded(outcome);
+    });
     dispatch(error ? { type: 'error', error } : { type: 'close' });
   }, []);
 

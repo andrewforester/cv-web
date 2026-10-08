@@ -1,7 +1,7 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { collectErrors, NORMAL_SITE, SCREENSHOT_DIR } from './support';
 
-// Web check of the voice mode (docs/voice/SYSTEM_DESIGN.md §12, docs/design/voice/SPEC.md): the
+// Web check of the voice call (docs/voice/SYSTEM_DESIGN.md §12, docs/design/voice/SPEC.md): the
 // scripted `FakeVoiceClient` (`?voice=fake`) with a mocked `/api/voice-session`, so no test talks
 // to ElevenLabs. The fake script steps every 1.5 s; the page clock runs it step by step.
 // Compare the screenshots with docs/design/voice/assets/voice_state_*.png.
@@ -23,7 +23,7 @@ function mockSession(page: Page, status = 200, body: unknown = sessionBody) {
 }
 const sessionBody = { v: 1, conversationToken: 'fake', maxCallSeconds: 180 };
 
-/** Waits for the finite animations (open, fog shift, cards); the orb and fog loop forever. */
+/** Waits for the finite animations (open, view swaps, cards); the orb loops forever. */
 async function settle(target: Locator) {
   await target.evaluate((element) =>
     Promise.all(
@@ -55,11 +55,41 @@ const viewports = [
   { name: 'mobile', size: { width: 390, height: 844 } },
 ] as const;
 
+/** The CV page's content width: the shell pads the chat's column away while it shows (`side`). */
+const mainWidth = (page: Page) =>
+  page.locator('main').evaluate((main) => {
+    const style = getComputedStyle(main);
+    return main.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+  });
+
+/** A `/api/chat` mock that answers once and keeps the requests. */
+async function mockChat(page: Page): Promise<unknown[]> {
+  const requests: unknown[] = [];
+  const usage = {
+    inputTokens: 1,
+    outputTokens: 1,
+    cacheReadInputTokens: 0,
+    cacheCreationInputTokens: 0,
+  };
+  await page.route('**/api/chat', async (route) => {
+    requests.push(route.request().postDataJSON());
+    await route.fulfill({
+      status: 200,
+      headers: { 'Content-Type': 'text/event-stream; charset=utf-8', 'X-Chat-Api-Version': '4' },
+      body: [
+        `event: delta\ndata: ${JSON.stringify({ text: 'From the call, yes.' })}\n\n`,
+        `event: done\ndata: ${JSON.stringify({ stopReason: 'end_turn', usage })}\n\n`,
+      ].join(''),
+    });
+  });
+  return requests;
+}
+
 for (const { name, size } of viewports) {
-  test.describe(`voice mode (${name})`, () => {
+  test.describe(`voice call (${name})`, () => {
     test.use({ viewport: size });
 
-    test('a scripted call: connect, lines, a page tool, end, transcript in the chat', async ({
+    test('a scripted call: the panel, a page tool, the chat during the call, the pill, the transcript', async ({
       page,
     }) => {
       const errors = collectErrors(page);
@@ -67,17 +97,30 @@ for (const { name, size } of viewports) {
       await page.clock.install({ time: CLOCK_START });
       await page.clock.pauseAt(new Date(CLOCK_START.getTime() + 1000));
       await mockSession(page);
+      const chatRequests = await mockChat(page);
       await page.goto(VOICE_SITE);
+      const html = page.locator('html');
+      const fullWidth = await mainWidth(page);
 
       const mic = page.getByTestId('chat-voice-mic');
       await expect(mic).toBeVisible();
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-launcher-${name}.png` });
 
       await mic.click();
-      const voice = page.getByTestId('chat-voice-mode');
+      const voice = page.getByTestId('chat-voice-panel');
       await expect(voice).toBeVisible();
       await expect(voice).toHaveAttribute('data-phase', 'connecting');
       await settle(voice);
+      if (name === 'desktop') {
+        // The page shifts left: the column (400 + its 16 px gutter) is reserved beside it.
+        await expect(html).toHaveAttribute('data-chat-dock', 'side');
+        expect(await mainWidth(page)).toBeLessThanOrEqual(fullWidth - 400);
+      } else {
+        // A bottom sheet over the live page; the page pads its end by the sheet's height.
+        await expect(html).toHaveAttribute('data-chat-dock', 'bottom');
+        const box = await voice.boundingBox();
+        expect(box && Math.round(box.y + box.height)).toBe(size.height);
+      }
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-connecting-${name}.png` });
 
       // live → speaking → greeting
@@ -104,7 +147,7 @@ for (const { name, size } of viewports) {
         await expect(voice).toHaveAttribute('data-muted', 'false');
       }
 
-      // speaking → the scroll: the fog parts and the chip names the section
+      // speaking → the scroll: the page is visible beside the panel, the chip names the section
       await steps(page, 2);
       await expect(voice).toHaveAttribute('data-phase', 'tool');
       await expect(voice.getByTestId('chat-voice-action')).toHaveText(
@@ -115,28 +158,65 @@ for (const { name, size } of viewports) {
       await scrollSettled(page);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-tool-${name}.png` });
 
-      // answer, listening (the fog closes after 3 s), correction, goodbye, the agent hangs up
-      await steps(page, 7);
-      await page.clock.runFor(3000);
-      await expect(voice).toBeHidden();
+      // the answer, then Show chat: every line so far, read-only (the call bar, no field)
+      await steps(page, 1);
+      await voice.getByTestId('chat-voice-show-chat').click();
       const chat = page.getByTestId('chat-panel');
       await expect(chat).toBeVisible();
       const list = chat.getByTestId('chat-list');
+      await expect(list.getByTestId('chat-visitor-message')).toHaveText([
+        /Show me his selected impact\./,
+      ]);
+      await expect(chat.getByTestId('chat-voice-callbar')).toBeVisible();
+      await expect(chat.getByTestId('chat-input')).toHaveCount(0);
+      await settle(chat);
+      await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-chat-${name}.png` });
+
+      if (name === 'mobile') {
+        // The system Back steps out of the chat to the call sheet, not off the site.
+        await page.goBack();
+        await expect(voice).toBeVisible();
+        await voice.getByTestId('chat-voice-minimize').click();
+      } else {
+        await chat.getByTestId('chat-voice-minimize').click();
+      }
+
+      // minimized: the pill in the launcher's place, the page back to full width
+      const pill = page.getByTestId('chat-voice-pill');
+      await expect(pill).toBeVisible();
+      await expect(html).toHaveAttribute('data-chat-dock', 'none');
+      expect(await mainWidth(page)).toBe(fullWidth);
+      await settle(pill);
+      await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-minimized-${name}.png` });
+
+      // unfold and end: the chat shows the transcript between the call dividers
+      await pill.getByTestId('chat-voice-pill-expand').click();
+      // Desktop folded the chat view (it unfolds to it), the phone the call sheet.
+      const end =
+        name === 'desktop'
+          ? chat.getByTestId('chat-voice-callbar-end')
+          : voice.getByTestId('chat-voice-end');
+      await end.click();
+      await expect(chat).toBeVisible();
       const dividers = list.getByTestId('chat-voice-divider');
       await expect(dividers.first()).toHaveText('Voice call');
       await expect(dividers.last()).toHaveText(/^Call ended · 0:\d\d$/);
-      await expect(list.getByTestId('chat-visitor-message')).toHaveText([
-        /Show me his selected impact\./,
-        /Thanks, bye!/,
-      ]);
       await expect(list.getByTestId('chat-assistant-message')).toHaveText([
         /voice assistant/,
-        /Here is his selected impact\.$/,
-        /Goodbye!/,
+        /Here is his selected impact/,
       ]);
       await expect(list.getByTestId('chat-action-chip')).toHaveText('Scrolled to Selected impact');
       await settle(chat);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-ended-${name}.png` });
+
+      // One conversation: the next typed question carries the call's lines.
+      await chat.getByTestId('chat-input').fill('Did he show it?');
+      await chat.getByTestId('chat-input').press('Enter');
+      await expect(list.getByTestId('chat-assistant-message').last()).toContainText(
+        'From the call, yes.',
+      );
+      const [request] = chatRequests as { messages: { voiceCalls?: { lines: unknown[] }[] }[] }[];
+      expect(request?.messages.at(-1)?.voiceCalls?.[0]?.lines).toHaveLength(3);
       expect(errors).toEqual([]);
     });
 
@@ -152,7 +232,7 @@ for (const { name, size } of viewports) {
       });
       await page.goto(VOICE_SITE);
       await page.getByTestId('chat-voice-mic').click();
-      const voice = page.getByTestId('chat-voice-mode');
+      const voice = page.getByTestId('chat-voice-panel');
       const card = voice.getByTestId('chat-voice-error');
       await expect(card).toHaveAttribute('data-error', 'quotaExhausted');
       await expect(card).toContainText('Voice is resting this month');

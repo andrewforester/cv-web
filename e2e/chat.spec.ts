@@ -41,14 +41,14 @@ test('asks a suggested question and renders the streamed answer', async ({ page 
   await page.goto(NORMAL_SITE);
 
   await page.getByTestId('chat-fab').click();
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible();
-  await dialog.getByRole('button', { name: question }).click();
+  const chat = page.getByTestId('chat-panel');
+  await expect(chat).toBeVisible();
+  await chat.getByRole('button', { name: question }).click();
 
-  const reply = dialog.getByTestId('chat-assistant-message');
+  const reply = chat.getByTestId('chat-assistant-message');
   await expect(reply).toContainText(answer);
   await expect(reply.locator('strong').first()).toHaveText('Cync');
-  await expect(dialog.getByTestId('chat-send')).toBeVisible();
+  await expect(chat.getByTestId('chat-send')).toBeVisible();
   expect(requests).toEqual([
     {
       v: 4,
@@ -88,7 +88,8 @@ test('shows the rate-limit notice for a platform 429', async ({ page }) => {
 });
 
 // The chat look on the v3 palette (docs/design/v3): opened by the `#ask` link, empty and answered,
-// on the desktop card and the phone sheet. Compare the screenshots with the package's PNGs.
+// in the desktop column (docked: the page gives it room, docs/design/voice/SPEC.md → Layout zones)
+// and the phone sheet. Compare the screenshots with the package's PNGs.
 const viewports = [
   { name: 'desktop', size: { width: 1280, height: 800 } },
   { name: 'phone', size: { width: 390, height: 844 } },
@@ -112,17 +113,21 @@ for (const { name, size } of viewports) {
       );
       await page.goto('./#ask');
 
-      const dialog = page.getByRole('dialog');
-      await expect(dialog).toBeVisible();
+      const chat = page.getByTestId('chat-panel');
+      await expect(chat).toBeVisible();
       await expect(page).toHaveURL(/\/(#chat)?$/);
+      await expect(page.locator('html')).toHaveAttribute(
+        'data-chat-dock',
+        name === 'desktop' ? 'side' : 'none',
+      );
       // Let the open animation finish so the screenshot shows the final look.
-      await dialog.evaluate((panel) =>
+      await chat.evaluate((panel) =>
         Promise.all(panel.getAnimations().map((animation) => animation.finished)),
       );
       await page.screenshot({ path: `${SCREENSHOT_DIR}/chat-empty-${name}.png` });
 
-      await dialog.getByRole('button', { name: question }).click();
-      await expect(dialog.getByTestId('chat-assistant-message')).toContainText(answer);
+      await chat.getByRole('button', { name: question }).click();
+      await expect(chat.getByTestId('chat-assistant-message')).toContainText(answer);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/chat-answer-${name}.png` });
       expect(errors).toEqual([]);
     });
@@ -133,7 +138,7 @@ for (const { name, size } of viewports) {
 test('offers the page’s first questions', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto(`${NORMAL_SITE}#ask`);
-  await expect(page.getByRole('dialog').getByTestId('chat-suggestion')).toHaveText([
+  await expect(page.getByTestId('chat-panel').getByTestId('chat-suggestion')).toHaveText([
     'How does he build with AI agents?',
     'What impact has he had?',
     'Which apps has he shipped?',
@@ -149,11 +154,11 @@ test.describe('chat on a phone: system Back', () => {
     const errors = collectErrors(page);
     await page.goto(NORMAL_SITE);
     await page.getByTestId('chat-fab').click();
-    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByTestId('chat-panel')).toBeVisible();
     await expect(page).toHaveURL(/#chat$/);
 
     await page.goBack();
-    await expect(page.getByRole('dialog')).toBeHidden();
+    await expect(page.getByTestId('chat-panel')).toBeHidden();
     await expect(page).toHaveURL(/\/\?retro=0$/);
     expect(errors).toEqual([]);
   });
