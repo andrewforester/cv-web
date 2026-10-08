@@ -43,7 +43,6 @@ export function createVoiceDeps(env: Record<string, string | undefined>): VoiceD
     agentId,
     limiter: new RateLimiter(VOICE_RATE_LIMITS),
     agentSync,
-    minted: [],
     log,
   };
 }

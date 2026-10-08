@@ -111,7 +111,7 @@ X-Request-Id: 7c1e...
 ```
 
 The token is single-use and short-lived: start the session right away. A token that is never used
-counts against the month for 15 minutes at most (SYSTEM_DESIGN §5).
+costs nothing against the month (SYSTEM_DESIGN §5).
 
 ## Errors
 

@@ -63,7 +63,6 @@ export function voiceTestDeps(
     agentId: 'agent_test',
     limiter: new RateLimiter(VOICE_RATE_LIMITS, () => NOW_MS),
     agentSync: undefined,
-    minted: [],
     log: (entry) => logs.push(entry),
     now: () => NOW_MS,
     newRequestId: () => 'req-1',

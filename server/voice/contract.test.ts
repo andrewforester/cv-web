@@ -109,7 +109,7 @@ describe('voice contract: HttpVoiceSessionRepository ↔ handleVoiceSession', ()
 
   it('month used up → quota_exhausted, not retryable, until the 1st (UTC)', async () => {
     const deps = voiceTestDeps({
-      conversationPages: [[conversation({ callDurationSecs: 1_621 })]],
+      conversationPages: [[conversation({ callDurationSecs: 1_800 })]],
     });
     const error = await errorOf(repositoryOver(deps));
     expect(error).toMatchObject({

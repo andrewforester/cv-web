@@ -14,9 +14,9 @@ the month's minutes from ElevenLabs' conversation list (fail closed) → token. 
 `docs/voice/SYSTEM_DESIGN.md`. ElevenLabs is reached through the `ElevenLabsApi` interface
 (plain `fetch`, 5 s per call, no SDK); tests and `VOICE_FAKE=1` use the in-memory fake.
 
-Domain terms: *call* (≤ 180 s), *month quota* (30 minutes for all visitors per UTC month; a token
-only when a full call still fits; a call not over yet, or a token this instance minted, counts as
-a full call for 15 minutes), *agent sync* (production writes the agent's prompt, first message,
+Domain terms: *call* (≤ 180 s), *month quota* (30 minutes for all visitors per UTC month, summed
+from ElevenLabs' conversation list by the seconds actually spoken; a token while any of it is left,
+so the month can end one call over), *agent sync* (production writes the agent's prompt, first message,
 max duration and three client tools from the code, and keeps auth on and every client override
 off; everything else stays as the dashboard set it).
 
