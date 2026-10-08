@@ -202,3 +202,17 @@ the build shares it, a `tone` modifier on one class beats a copy.
 
 The mock's page card has a top padding (the real page starts with the meta bar) and a trimmed
 footer CTA (two plain pills); only the card row is to be built from it.
+
+## Orchestrator decisions (override the items above)
+
+1. Decisions 1–6 and 8 accepted as written.
+2. Decision 7 is overridden: the chat and the voice agent are **in scope of the build (CV-173)**.
+   They must know the stats (chat knowledge `server/chat/knowledge/`, voice prompt
+   `server/voice/prompt/`). The page agent target (`data-agent-id="stackoverflow"`) is added only if
+   it needs no change to `src/data/chat/contract.ts`; otherwise it is left out and filed as a
+   follow-up.
+3. The five new tokens (`--color-badge-gold/silver/bronze`, `--badge-dot-size`,
+   `--label-icon-size`) go into `src/theme/tokens.css` in the build task; no other task touches the
+   theme now.
+4. `mock.html`, `frame.html` and `render.sh` stay in the package as the renderer of the PNGs; they
+   are not product code.
