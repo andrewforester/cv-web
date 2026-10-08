@@ -1,7 +1,7 @@
 import { createCvPageKnowledgeLoader } from '../chat/knowledge/assembleKnowledge.js';
 import { CV_PAGE_KNOWLEDGE_SOURCES } from '../chat/knowledge/sources.js';
 import { CV_PAGE } from '../chat/cvPageData.js';
-import { RateLimiter } from '../chat/rateLimiter.js';
+import { RateLimiter } from '../http/rateLimiter.js';
 import { buildVoiceAgentConfig } from './agentConfig.js';
 import { createAgentSync } from './agentSync.js';
 import { readVoiceConfig } from './config.js';

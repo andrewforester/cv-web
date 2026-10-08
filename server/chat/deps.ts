@@ -1,5 +1,5 @@
 import { readChatConfig } from './config.js';
-import type { ChatDeps } from './handler.js';
+import { CHAT_RATE_LIMITS, type ChatDeps } from './handler.js';
 import { DayCostMeter } from './dayCost.js';
 import { createCvPageKnowledgeLoader } from './knowledge/assembleKnowledge.js';
 import { CV_PAGE_KNOWLEDGE_SOURCES } from './knowledge/sources.js';
@@ -8,7 +8,7 @@ import { devFakeScript } from './llm/devFakeScript.js';
 import { FakeLlmClient } from './llm/FakeLlmClient.js';
 import type { LlmClient } from './llm/LlmClient.js';
 import { consoleLogger } from './log.js';
-import { RateLimiter } from './rateLimiter.js';
+import { RateLimiter } from '../http/rateLimiter.js';
 import { showFakeScript } from './show/showFakeScript.js';
 
 /**
@@ -40,7 +40,7 @@ export function createChatDeps(env: Record<string, string | undefined>): ChatDep
   return {
     config,
     llm,
-    limiter: new RateLimiter(),
+    limiter: new RateLimiter(CHAT_RATE_LIMITS),
     dayCost: new DayCostMeter(),
     cvPageKnowledge: createCvPageKnowledgeLoader(CV_PAGE_KNOWLEDGE_SOURCES),
     log: consoleLogger,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { VoiceErrorBody } from '../../src/data/voice/contract.js';
-import { RateLimiter } from '../chat/rateLimiter.js';
+import { RateLimiter } from '../http/rateLimiter.js';
 import { conversation, NOW_MS, voiceRequest, voiceTestDeps } from '../test/voiceHelpers.js';
 import { readVoiceConfig } from './config.js';
 import { ElevenLabsError } from './ElevenLabsApi.js';

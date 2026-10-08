@@ -15,7 +15,7 @@ Andrew Panasiuk's personal CV as a website: a static single-page app (Vite + Rea
 | `src/screens/<screen>/` | One folder per screen: `home/` (the v3 CV page), `chat/`, `retro/`. |
 | `src/screens/retro/` | The Show case: the live-fix show (the CV opens as a broken 2000s page; an agent chat and a DevTools dock fix it step by step until it is today's CV). A lazy chunk started only by the Show case button or `?retro=1`; `harness/` is dev-only. |
 | `api/` | Vercel Functions (Node runtime), thin entries only: `chat.ts` = `POST /api/chat` (AI CV chat). Every file here becomes a function. |
-| `server/` | Framework-free backend logic: `chat/` (the `/api/chat` pipeline: guards, limiter, validation, knowledge, prompt, Claude via `@anthropic-ai/sdk`, SSE), `dev/` (Vite plugin serving `/api/chat` in `npm run dev`), `test/` (server test setup and helpers). |
+| `server/` | Framework-free backend logic: `http/` (guards, client IP and rate limiter shared by the endpoints), `chat/` (the `/api/chat` pipeline: validation, knowledge, prompt, Claude via `@anthropic-ai/sdk`, SSE), `voice/` (`/api/voice-session`: ElevenLabs tokens, month quota, agent sync), `dev/` (Vite plugin serving both endpoints in `npm run dev`), `test/` (server test setup and helpers). |
 | `server/chat/show/` | The show's narration side of `/api/chat` (`v: 3`): validation, prompts, line parser, scripted fallback when there is no model key. |
 | `src/data/retro/` | The show's scenario data: step manifest, LLM intents, scripted fallback lines. Pure data, no React. |
 | `e2e/` | Playwright e2e (page, chat, page agent, Show case) and the `@prod` subset run against production. |

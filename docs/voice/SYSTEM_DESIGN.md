@@ -35,7 +35,7 @@ Browser
 Vercel Function api/voice-session.ts               |
   server/voice/handler.ts                          |
     1 guards: method, Origin, Content-Type, body cap, VOICE_ENABLED, key + agent id
-    2 per-IP / per-instance limiter (server/chat/rateLimiter.ts, voice limits)
+    2 per-IP / per-instance limiter (server/http/rateLimiter.ts, voice limits)
     3 production only, once per instance: sync agent prompt + tools (§6)
     4 month's minutes: list conversations since the 1st (§5) -> 503 quota_exhausted
     5 GET /v1/convai/conversation/token -> 200 { conversationToken, maxCallSeconds }

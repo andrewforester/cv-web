@@ -6,9 +6,9 @@ single-use ElevenLabs conversation token; this package decides whether it gets o
 ElevenLabs agent in line with the deployed CV. The call itself (audio, transcript, page tools)
 runs between the browser and ElevenLabs; the server never sees it.
 
-Place in the architecture: behind `api/voice-session.ts`. Pipeline: the chat's guards (method,
-origin, content type, body cap; `server/chat/guards.ts`) → `{ "v": 1 }` → kill switch and env →
-the chat's in-memory limiter with voice limits → agent sync (production, once per instance) →
+Place in the architecture: behind `api/voice-session.ts`. Pipeline: the shared guards (method,
+origin, content type, body cap; `server/http/`) → `{ "v": 1 }` → kill switch and env → the
+shared in-memory limiter with voice limits → agent sync (production, once per instance) →
 the month's minutes from ElevenLabs' conversation list (fail closed) → token. Contract:
 `docs/voice/API.md`, mirrored in `src/data/voice/contract.ts`; design:
 `docs/voice/SYSTEM_DESIGN.md`. ElevenLabs is reached through the `ElevenLabsApi` interface

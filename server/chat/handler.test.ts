@@ -3,8 +3,8 @@ import type { ChatErrorBody, ChatMessageV4 } from '../../src/data/chat/contract.
 import { chatRequest, questionV4, testDeps, v4Body, VALID_BODY } from '../test/helpers.js';
 import { readChatConfig } from './config.js';
 import { DayCostMeter } from './dayCost.js';
-import { handleChat } from './handler.js';
-import { RateLimiter, DEFAULT_RATE_LIMITS } from './rateLimiter.js';
+import { CHAT_RATE_LIMITS, handleChat } from './handler.js';
+import { RateLimiter } from '../http/rateLimiter.js';
 
 async function errorOf(response: Response): Promise<ChatErrorBody['error']> {
   expect(response.headers.get('content-type')).toBe('application/json; charset=utf-8');
@@ -113,7 +113,7 @@ describe('handleChat: errors before the stream', () => {
   });
 
   it('answers 503 unavailable with Retry-After past the per-instance cap', async () => {
-    const limiter = new RateLimiter({ ...DEFAULT_RATE_LIMITS, perInstanceHour: 0 });
+    const limiter = new RateLimiter({ ...CHAT_RATE_LIMITS, perInstanceHour: 0 });
     const response = await handleChat(chatRequest(), testDeps(undefined, { limiter }));
     expect(response.status).toBe(503);
     expect(response.headers.get('retry-after')).toBe('3600');
