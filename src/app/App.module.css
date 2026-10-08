@@ -2,3 +2,16 @@
 .pending {
   visibility: hidden;
 }
+
+/* The chat's space (docs/voice/SYSTEM_DESIGN.md §4.3): the page reflows at once, no animated width. */
+:global(:root[data-chat-dock='side']) .main {
+  padding-inline-end: var(--chat-dock-width);
+}
+
+:global(:root[data-chat-dock='bottom']) {
+  scroll-padding-bottom: var(--voice-sheet-height);
+}
+
+:global(:root[data-chat-dock='bottom']) .main {
+  padding-block-end: var(--voice-sheet-height);
+}

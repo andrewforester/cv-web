@@ -38,6 +38,11 @@ lazy chunk too, requested only when asked for; at a `?retro=1` load the shell is
 has loaded, so the first visible frame is already the broken page. If a chunk fails to load the
 shell stays on today's site.
 
+- **Dock** (docs/voice/SYSTEM_DESIGN.md §4.3): the space the chat asks the shell to keep free
+  (`none`, `side` column, `bottom` sheet), reported through `onDockChange`. The shell mirrors it
+  as `data-chat-dock` on `<html>` (`none` while the chat is off the page); `App.module.css` turns
+  it into padding on `main` (`--chat-dock-width`, `--voice-sheet-height`). The page itself reflows.
+
 Rules and limits:
 - Owner: Scaffold. Screens may only register their own route in `App.tsx`.
 - One page, no router: every path renders `HomeRoute`; production redirects `/new` to `/`
