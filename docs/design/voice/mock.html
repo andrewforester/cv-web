@@ -25,7 +25,9 @@
     <style>
       /* ---- Token changes proposed in SPEC → Tokens (the build task edits tokens.css) ---- */
       :root {
-        --voice-column-reserve: calc(var(--chat-panel-width) + var(--space-4));
+        --chat-dock-width: calc(var(--chat-panel-width) + var(--space-4));
+        --voice-sheet-height: calc(472px + env(safe-area-inset-bottom));
+        --voice-sheet-height-short: calc(272px + env(safe-area-inset-bottom));
         --voice-orb-size: 200px;
         --voice-orb-size-small: 120px;
         --voice-orb-size-mini: var(--chat-badge-size);
@@ -277,6 +279,9 @@
         background: transparent;
         border: 0;
         border-radius: 50%;
+      }
+      .icon-btn:disabled {
+        color: var(--color-ink-4);
       }
       .btn-secondary {
         flex: none;
@@ -791,11 +796,13 @@
           right: 0;
           bottom: 0;
           width: auto;
+          height: var(--voice-sheet-height);
           border-bottom: 0;
           border-radius: var(--radius-card) var(--radius-card) 0 0;
         }
         .column.chat-view {
           top: 0;
+          height: auto;
           border: 0;
           border-radius: 0;
           box-shadow: none;
@@ -804,14 +811,10 @@
           padding-left: var(--space-4);
         }
         .stage {
-          flex: none;
           padding-inline: var(--space-4);
         }
         .action {
           top: var(--space-2);
-        }
-        .tool .stage {
-          padding-top: var(--space-9);
         }
         .controls {
           padding: var(--space-2) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
@@ -847,6 +850,7 @@
 
       const minimizeBtn = `<button type="button" class="icon-btn" aria-label="Minimize call" aria-expanded="true">${icon('minimize')}</button>`;
       const closeBtn = `<button type="button" class="icon-btn" aria-label="Close voice chat">${icon('close')}</button>`;
+      const minimizeOff = minimizeBtn.replace('aria-expanded="true"', 'aria-expanded="true" disabled');
       const callHeader = (sub, action = minimizeBtn) =>
         `<header class="header"><span class="badge" aria-hidden="true">${icon('sparkle')}</span><div class="titles"><h2 class="title">Voice call</h2>${sub}</div>${action}</header>`;
 
@@ -886,8 +890,8 @@
         connecting: () =>
           panel(
             'connecting',
-            callHeader(''),
-            `${orb()}<p class="status">Connecting…</p><p class="say visitor">Allow the microphone when your browser asks.</p><p class="privacy caption">Calls are processed by ElevenLabs. AI answers may contain mistakes.</p>`,
+            callHeader('', minimizeOff),
+            `${orb()}<p class="status">Connecting…</p><p class="say visitor">Allow the microphone when your browser asks.</p><p class="privacy caption">Calls run on ElevenLabs. Voice and text share one history. AI can make mistakes.</p>`,
             controls({ disabled: true }),
           ),
         listening: () =>
@@ -937,7 +941,7 @@
           `<aside class="column chat-view" aria-label="Ask about Andrew">
             <header class="header"><span class="badge" aria-hidden="true">${icon('sparkle')}</span><div class="titles"><h2 class="title">Ask about Andrew</h2><p class="caption">AI assistant · answers from this page</p></div>${closeBtn.replace('Close voice chat', 'Close chat')}</header>
             <ol class="list" aria-label="Conversation">${callLines}${assistant('SpotOn: a point-of-sale and kiosk app with strict offline rules.')}${divider('Call ended · 1:24')}</ol>
-            <div class="composer"><div class="field"><span>Ask a question…</span><button type="button" class="send" aria-label="Send" disabled>${icon('send')}</button></div><p class="caption">Answers are AI-generated and may contain mistakes.</p></div>
+            <div class="composer"><div class="field"><span>Ask a question…</span><button type="button" class="icon-btn" aria-label="Talk to my AI by voice">${icon('mic')}</button><button type="button" class="send" aria-label="Send" disabled>${icon('send')}</button></div><p class="caption">Answers are AI-generated and may contain mistakes.</p></div>
           </aside>`,
         minimized: () =>
           `<div class="callpill listening" role="group" aria-label="Voice call"><button type="button" class="expand" aria-label="Open the call panel" aria-expanded="false">${orb(true)}<span class="state">Listening</span><span class="time">0:42</span></button><button type="button" class="hang" aria-label="End call">${icon('end')}</button></div>`,
