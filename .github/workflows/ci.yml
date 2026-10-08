@@ -131,12 +131,22 @@ jobs:
             test-results/
           if-no-files-found: ignore
 
+  # Vercel deploys (preview and production) run in three jobs, so no job holds both the secrets and
+  # the project's code (CV-166): `vercel build` runs `npm ci` (every package's install scripts) and
+  # the build, which could read the token and send it out.
+  # 1. plan (token, no project code: git and the Vercel API only): `vercel pull`; only
+  #    `.vercel/project.json` (the project settings, no env) goes on, as an artifact.
+  # 2. build (no secrets): `vercel build`; `.vercel/output` goes on as an artifact. The build reads
+  #    no env (runtime env comes from Vercel), so it doesn't need the pulled `.env` file.
+  # 3. deploy (token, no project code): `vercel deploy --prebuilt` of that output.
+  # `include-hidden-files`: the output's functions carry `.vc-config.json`.
+
   # Proves the Vercel token and the CLI build on a PR that changes the deploy path, without touching
   # production. Only those PRs, so ordinary ones don't spend the Hobby limit (100 deployments a
   # day; each push to such a Ready PR spends one). Only when the secrets are there: forks and
   # Dependabot PRs get none, and they skip instead of going red.
-  preview:
-    name: Vercel preview (CLI)
+  preview-plan:
+    name: Vercel preview (plan)
     if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.draft }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -144,6 +154,8 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    outputs:
+      run: ${{ steps.paths.outputs.run }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -164,43 +176,95 @@ jobs:
         if: ${{ steps.paths.outputs.run == 'true' }}
         with:
           node-version-file: .nvmrc
-          cache: npm
       - name: Install Vercel CLI
         if: ${{ steps.paths.outputs.run == 'true' }}
         timeout-minutes: 5
         run: npm install --global "vercel@$VERCEL_CLI_VERSION"
-      - name: Build (preview)
+      - name: Project settings (preview)
         if: ${{ steps.paths.outputs.run == 'true' }}
-        run: |
-          vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
-          vercel build --token="$VERCEL_TOKEN"
+        run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+      - uses: actions/upload-artifact@v4
+        if: ${{ steps.paths.outputs.run == 'true' }}
+        with:
+          name: vercel-project-preview
+          path: .vercel/project.json
+          include-hidden-files: true
+          retention-days: 1
+
+  preview-build:
+    name: Vercel preview (build)
+    needs: preview-plan
+    if: ${{ needs.preview-plan.outputs.run == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-project-preview
+          path: .vercel
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install Vercel CLI
+        timeout-minutes: 5
+        run: npm install --global "vercel@$VERCEL_CLI_VERSION"
+      - name: Build (preview, no secrets)
+        run: vercel build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vercel-output-preview
+          path: .vercel/output
+          include-hidden-files: true
+          retention-days: 1
+
+  preview:
+    name: Vercel preview (CLI)
+    needs: preview-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      # Only for the deployment's git metadata; nothing of the project runs here.
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-project-preview
+          path: .vercel
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-output-preview
+          path: .vercel/output
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install Vercel CLI
+        timeout-minutes: 5
+        run: npm install --global "vercel@$VERCEL_CLI_VERSION"
       - name: Deploy (preview, never --prod)
-        if: ${{ steps.paths.outputs.run == 'true' }}
         run: |
           url=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")
           echo "Preview: $url"
           echo "Preview deployment (CLI): $url" >> "$GITHUB_STEP_SUMMARY"
 
-  deploy:
-    name: Deploy production
+  release-plan:
+    name: Plan production deploy
     needs: [checks, e2e]
     if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-      deployments: write
+    timeout-minutes: 10
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      GH_TOKEN: ${{ github.token }}
     outputs:
+      deploy: ${{ steps.live.outputs.deploy }}
       previous: ${{ steps.live.outputs.previous }}
       previous_sha: ${{ steps.live.outputs.previous_sha }}
-      github_deployment: ${{ steps.github.outputs.id }}
-      promoting: ${{ steps.release.outputs.promoting }}
-      promoted: ${{ steps.release.outputs.promoted }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -235,21 +299,90 @@ jobs:
         if: ${{ steps.live.outputs.deploy == 'true' }}
         with:
           node-version-file: .nvmrc
-          cache: npm
       - name: Install Vercel CLI
         if: ${{ steps.live.outputs.deploy == 'true' }}
         timeout-minutes: 5
         run: npm install --global "vercel@$VERCEL_CLI_VERSION"
-      - name: Build (production)
+      - name: Project settings (production)
         if: ${{ steps.live.outputs.deploy == 'true' }}
-        run: |
-          vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-          vercel build --prod --token="$VERCEL_TOKEN"
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - uses: actions/upload-artifact@v4
+        if: ${{ steps.live.outputs.deploy == 'true' }}
+        with:
+          name: vercel-project-production
+          path: .vercel/project.json
+          include-hidden-files: true
+          retention-days: 1
+
+  release-build:
+    name: Build production
+    needs: release-plan
+    if: ${{ needs.release-plan.outputs.deploy == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-project-production
+          path: .vercel
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install Vercel CLI
+        timeout-minutes: 5
+        run: npm install --global "vercel@$VERCEL_CLI_VERSION"
+      - name: Build (production, no secrets)
+        run: vercel build --prod
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vercel-output-production
+          path: .vercel/output
+          include-hidden-files: true
+          retention-days: 1
+
+  deploy:
+    name: Deploy production
+    needs: [release-plan, release-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      deployments: write
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      GH_TOKEN: ${{ github.token }}
+    outputs:
+      previous: ${{ needs.release-plan.outputs.previous }}
+      previous_sha: ${{ needs.release-plan.outputs.previous_sha }}
+      github_deployment: ${{ steps.github.outputs.id }}
+      promoting: ${{ steps.release.outputs.promoting }}
+      promoted: ${{ steps.release.outputs.promoted }}
+    steps:
+      # Only for the deployment's git metadata (`meta.githubCommitSha`, which the next run's
+      # docs-only check reads); nothing of the project runs here.
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-project-production
+          path: .vercel
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-output-production
+          path: .vercel/output
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install Vercel CLI
+        timeout-minutes: 5
+        run: npm install --global "vercel@$VERCEL_CLI_VERSION"
       # The GitHub Deployment for this commit (environment Production), only when CI really
       # deploys; its status follows the deploy below and the rollback job.
       - name: GitHub deployment
         id: github
-        if: ${{ steps.live.outputs.deploy == 'true' }}
         run: |
           set -euo pipefail
           eval "$GH_DEPLOYMENTS_SH"
@@ -263,7 +396,6 @@ jobs:
       # The smoke starts only once the domain serves the new deployment.
       - name: Deploy and promote
         id: release
-        if: ${{ steps.live.outputs.deploy == 'true' }}
         run: |
           set -euo pipefail
           eval "$VERCEL_API_SH"
