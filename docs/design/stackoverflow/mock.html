@@ -1,0 +1,466 @@
+<!doctype html>
+<!--
+  Static mock of the Stack Overflow card on the CV page (docs/design/stackoverflow/SPEC.md).
+  Not product code. Open directly in a browser. Query params:
+    state = default | big | notags | nobadges | hover | empty
+  The bottom of the page is rebuilt from the home screen's CSS over the real tokens: the card row
+  (Education · Stack Overflow · About me), the footer CTA and the copyright.
+  Screenshots: render.sh next to this file.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stack Overflow card mock</title>
+    <!-- Real tokens. The theme self-hosts Figtree / JetBrains Mono under Vite; Google Fonts here. -->
+    <link rel="stylesheet" href="../../../src/theme/tokens.css" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=block"
+    />
+    <style>
+      /* ---- New tokens proposed in SPEC → New tokens ---- */
+      :root {
+        --color-badge-gold: #f1b600;
+        --color-badge-silver: #9a9c9f;
+        --color-badge-bronze: #ab8253;
+        --badge-dot-size: 8px;
+        --label-icon-size: 16px;
+      }
+
+      /* ---- global.css equivalent ---- */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: var(--font-sans);
+        font-size: var(--type-body-size);
+        line-height: var(--type-body-line-height);
+        color: var(--color-ink);
+        background: var(--color-page);
+        -webkit-font-smoothing: antialiased;
+      }
+      p {
+        margin: 0;
+      }
+
+      /* ---- HomePage ---- */
+      .page {
+        padding: var(--page-margin);
+      }
+      .pageCard {
+        display: flex;
+        flex-direction: column;
+        gap: var(--page-section-gap);
+        max-width: var(--page-max-width);
+        margin: 0 auto;
+        padding: var(--page-padding-x) var(--page-padding-x) var(--page-padding-bottom);
+        background: var(--color-card);
+        border-radius: var(--radius-page);
+        box-shadow: var(--shadow-card);
+      }
+
+      /* ---- HomeScreen .cards: grid → flex-wrap (SPEC → Layout → Card row) ---- */
+      .cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2-5);
+      }
+      .cards > * {
+        flex: 1 1 min(100%, 320px);
+        min-width: 0;
+      }
+
+      /* ---- HomeCard (existing) ---- */
+      .card {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+        padding: var(--space-6);
+        border-radius: var(--radius-card);
+      }
+      .violet {
+        gap: var(--space-2);
+        background: var(--color-surface-violet);
+      }
+      .violet .text {
+        margin-top: var(--space-1-5);
+      }
+      .neutral {
+        gap: var(--space-3-5);
+        background: var(--color-surface);
+      }
+      .label {
+        font-family: var(--font-mono);
+        font-size: var(--type-label-size);
+        line-height: var(--type-label-line-height);
+        color: var(--color-accent);
+      }
+      .title {
+        font-size: var(--type-card-title-size);
+        font-weight: var(--type-card-title-weight);
+        line-height: var(--type-card-title-line-height);
+        letter-spacing: var(--type-card-title-letter-spacing);
+      }
+      .secondary {
+        color: var(--color-ink-3);
+      }
+      .text {
+        font-size: var(--type-body-size);
+        line-height: var(--type-body-line-height);
+        text-wrap: pretty;
+      }
+      .books {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, var(--book-width)));
+        gap: var(--space-2);
+      }
+      .book {
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        object-fit: cover;
+        background: var(--color-card);
+        border-radius: var(--radius-book);
+      }
+      .lines {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+      }
+      .lineLabel {
+        font-weight: var(--type-company-weight);
+        color: var(--color-ink);
+      }
+
+      /* ---- NEW: the Stack Overflow card (SPEC → Layout → Card) ---- */
+      .so {
+        gap: var(--space-4);
+        background: var(--color-surface-pink);
+      }
+      .soLabel {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1-5);
+        color: var(--color-accent-pink);
+      }
+      .soIcon {
+        flex: none;
+        width: var(--label-icon-size);
+        height: var(--label-icon-size);
+      }
+      .soStats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3) var(--space-8);
+      }
+      .soValue {
+        font-size: var(--type-stat-size);
+        font-weight: var(--type-stat-weight);
+        line-height: var(--type-stat-line-height);
+        letter-spacing: var(--type-stat-letter-spacing);
+        font-variant-numeric: tabular-nums;
+      }
+      .soStatLabel {
+        margin-top: var(--space-1);
+        font-size: var(--type-meta-size);
+        line-height: var(--type-meta-line-height);
+        color: var(--color-ink-3);
+      }
+      .soBadges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1-5) var(--space-4);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: var(--type-meta-size);
+        line-height: var(--type-meta-line-height);
+        color: var(--color-ink-3);
+      }
+      .soBadge {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1-5);
+      }
+      .soDot {
+        flex: none;
+        width: var(--badge-dot-size);
+        height: var(--badge-dot-size);
+        border-radius: var(--radius-pill);
+      }
+      .gold {
+        background: var(--color-badge-gold);
+      }
+      .silver {
+        background: var(--color-badge-silver);
+      }
+      .bronze {
+        background: var(--color-badge-bronze);
+      }
+      .soCount {
+        font-weight: var(--type-company-weight);
+        color: var(--color-ink);
+      }
+      .soTags {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+      }
+      .soCaption {
+        font-family: var(--font-mono);
+        font-size: var(--type-label-size);
+        line-height: var(--type-label-line-height);
+        color: var(--color-ink-3);
+      }
+      .soTagList {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-1-5);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .soTag {
+        padding: var(--tag-padding);
+        font-family: var(--font-mono);
+        font-size: var(--type-tag-size);
+        line-height: var(--type-tag-line-height);
+        color: var(--color-accent);
+        background: var(--color-card);
+        border-radius: var(--radius-book);
+        overflow-wrap: anywhere;
+      }
+      .soScore {
+        margin-left: var(--space-1-5);
+        color: var(--color-ink-3);
+      }
+      .soFoot {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--space-1) var(--space-4);
+        margin-top: auto;
+      }
+      .soLink {
+        display: inline-flex;
+        gap: var(--space-1-5);
+        font-size: var(--type-body-size);
+        font-weight: var(--type-company-weight);
+        color: var(--color-accent);
+        text-decoration: none;
+        border-radius: var(--radius-book);
+      }
+      .soLink:hover,
+      .soLink.isHover {
+        color: var(--color-accent-hover);
+      }
+      .soLink:focus-visible,
+      .soLink.isFocus {
+        outline: var(--focus-ring);
+        outline-offset: var(--focus-ring-offset);
+      }
+      .soUpdated {
+        font-family: var(--font-mono);
+        font-size: var(--type-period-size);
+        line-height: var(--type-period-line-height);
+        color: var(--color-ink-3);
+      }
+
+      /* ---- HomeFooter (existing, trimmed) ---- */
+      .cta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-5) var(--cta-gap-x);
+        padding: var(--cta-padding);
+        background: var(--gradient-footer);
+        border-radius: var(--radius-cta);
+      }
+      .ctaTitle {
+        flex: 1 1 300px;
+        font-size: var(--type-footer-title-size);
+        font-weight: var(--type-footer-title-weight);
+        line-height: var(--type-footer-title-line-height);
+        letter-spacing: var(--type-footer-title-letter-spacing);
+      }
+      .ctaArrow {
+        color: transparent;
+        background: var(--gradient-brand-tile);
+        background-clip: text;
+      }
+      .ctaLinks {
+        display: flex;
+        flex: 1 1 340px;
+        flex-direction: column;
+        gap: var(--space-2);
+        max-width: var(--cta-links-max-width);
+      }
+      .ctaPill {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: var(--pill-height);
+        font-weight: var(--type-medium-weight);
+        background: var(--color-card);
+        border-radius: var(--radius-pill);
+      }
+      .copyright {
+        margin-top: calc(-1 * var(--copyright-pull-up));
+        font-size: var(--type-period-size);
+        color: var(--color-ink-4);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <main class="pageCard">
+        <div class="cards">
+          <section class="card violet">
+            <span class="label">education</span>
+            <div class="title">M.Sc. Applied Mathematics &amp; Cybernetics</div>
+            <div class="secondary">Kyiv National University · 2007–2012</div>
+            <p class="text">
+              Learned to model systems with feedback loops – the same lens I use for software
+              engineering.
+            </p>
+          </section>
+
+          <section class="card so" id="so" aria-labelledby="so-label"></section>
+
+          <section class="card neutral">
+            <span class="label">about me</span>
+            <div class="books">
+              <img class="book" src="../v3/assets/cv_book_the_goal.jpg" alt="The Goal" />
+              <img
+                class="book"
+                src="../v3/assets/cv_book_pattern_language.jpg"
+                alt="A Pattern Language"
+              />
+              <img class="book" src="../v3/assets/cv_book_antifragile.jpg" alt="Antifragile" />
+              <img class="book" src="../v3/assets/cv_book_siddhartha.jpg" alt="Siddhartha" />
+            </div>
+            <div class="lines">
+              <p class="text">
+                <span class="lineLabel">Reading on systems:</span>
+                <span class="secondary">The Goal, A Pattern Language, Antifragile.</span>
+              </p>
+              <p class="text">
+                <span class="lineLabel">Off-screen:</span>
+                <span class="secondary"
+                  >forest hiking, e-bike rides, guitar, volunteering – and AI experiments.</span
+                >
+              </p>
+            </div>
+          </section>
+        </div>
+
+        <footer class="cta">
+          <div class="ctaTitle">Let's build something <span class="ctaArrow">↗</span></div>
+          <div class="ctaLinks">
+            <div class="ctaPill">andriipanasiuk@gmail.com</div>
+            <div class="ctaPill">WhatsApp · LinkedIn</div>
+          </div>
+        </footer>
+        <div class="copyright">© 2026 Andrew Panasiuk</div>
+      </main>
+    </div>
+
+    <script>
+      // The data shape of the brief (cvPage.json → stackOverflow); one sample per state.
+      const base = {
+        profileUrl: 'https://stackoverflow.com/users/3223198/andrew-panasiuk',
+        reputation: 666,
+        badges: { gold: 1, silver: 8, bronze: 19 },
+        answers: 20,
+        topTags: [
+          { name: 'android', score: 46 },
+          { name: 'gradle', score: 28 },
+          { name: 'robolectric', score: 19 },
+          { name: 'android-assets', score: 17 },
+          { name: 'android-intent', score: 8 },
+        ],
+        updatedAt: '2026-10-08',
+      };
+      const samples = {
+        default: base,
+        hover: base,
+        big: {
+          ...base,
+          reputation: 123456,
+          answers: 4321,
+          badges: { gold: 123, silver: 1234, bronze: 12345 },
+          topTags: [
+            { name: 'android-recyclerview', score: 104321 },
+            { name: 'kotlin-coroutines', score: 98765 },
+            { name: 'android-jetpack-compose', score: 54321 },
+            { name: 'gradle-kotlin-dsl', score: 12345 },
+            { name: 'robolectric', score: 999 },
+          ],
+        },
+        notags: { ...base, topTags: [] },
+        nobadges: {
+          ...base,
+          reputation: 1,
+          answers: 0,
+          badges: { gold: 0, silver: 0, bronze: 0 },
+          topTags: [{ name: 'android', score: 1 }],
+        },
+      };
+
+      const state = new URLSearchParams(location.search).get('state') || 'default';
+      const so = samples[state];
+      const el = document.getElementById('so');
+      const num = new Intl.NumberFormat('en-US');
+      const date = new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC',
+      });
+      const logo =
+        '<svg class="soIcon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.725 0l-1.72 1.277 6.39 8.588 1.716-1.277L15.725 0zm-3.94 3.418l-1.369 1.644 8.225 6.85 1.369-1.644-8.225-6.85zm-3.15 4.465l-.905 1.94 9.702 4.517.904-1.94-9.701-4.517zm-1.85 4.86l-.44 2.093 10.473 2.201.44-2.092-10.473-2.203zM1.89 15.47V24h19.19v-8.53h-2.133v6.397H4.021v-6.396H1.89zm4.265 2.133v2.13h10.66v-2.13H6.154z"/></svg>';
+
+      if (!so) {
+        el.remove(); // state=empty: no stackOverflow data, the row is as today
+      } else {
+        const badges = ['gold', 'silver', 'bronze'].filter((kind) => so.badges[kind] > 0);
+        const stat = (value, label) =>
+          `<div><div class="soValue">${num.format(value)}</div><div class="soStatLabel">${label}</div></div>`;
+        el.innerHTML = `
+          <span class="label soLabel" id="so-label">${logo}stack overflow</span>
+          <div class="soStats">${stat(so.reputation, 'reputation')}${stat(so.answers, so.answers === 1 ? 'answer' : 'answers')}</div>
+          ${
+            badges.length
+              ? `<ul class="soBadges" aria-label="Badges">${badges
+                  .map(
+                    (kind) =>
+                      `<li class="soBadge"><span class="soDot ${kind}" aria-hidden="true"></span><span class="soCount">${num.format(so.badges[kind])}</span> ${kind}</li>`,
+                  )
+                  .join('')}</ul>`
+              : ''
+          }
+          ${
+            so.topTags.length
+              ? `<div class="soTags"><span class="soCaption">top tags · answer score</span><ul class="soTagList">${so.topTags
+                  .map(
+                    (tag) =>
+                      `<li class="soTag">${tag.name}<span class="soScore">${num.format(tag.score)}</span></li>`,
+                  )
+                  .join('')}</ul></div>`
+              : ''
+          }
+          <div class="soFoot">
+            <a class="soLink${state === 'hover' ? ' isHover isFocus' : ''}" href="${so.profileUrl}" target="_blank" rel="noopener noreferrer">View profile <span aria-hidden="true">↗</span></a>
+            <span class="soUpdated">updated ${date.format(new Date(so.updatedAt))}</span>
+          </div>`;
+      }
+    </script>
+  </body>
+</html>
