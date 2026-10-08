@@ -107,11 +107,15 @@ for (const { out, width, option, state = 'default' } of shots) {
   // The floating chat button would cover the placements; it isn't part of them.
   await page.addStyleTag({ content: '[data-testid="chat-fab"] { display: none !important; }' });
   await page.evaluate(() => document.fonts.ready);
+  const before = await page.evaluate(() => document.documentElement.scrollHeight);
   const clip = await page.evaluate(place, { option, state });
   const card = await page.locator('.so').boundingBox();
+  const pageHeight = await page.evaluate(() => document.documentElement.scrollHeight);
   await page.screenshot({ path: join(here, out), clip, fullPage: true });
   await page.close();
-  console.log(`${out}: card ${Math.round(card.width)}×${Math.round(card.height)}`);
+  console.log(
+    `${out}: card ${Math.round(card.width)}×${Math.round(card.height)}, page +${pageHeight - before} px`,
+  );
 }
 await browser.close();
 server.close();
