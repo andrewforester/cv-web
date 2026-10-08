@@ -25,7 +25,7 @@ describe('handleChat: v4 (the one page)', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('x-chat-api-version')).toBe('4');
     expect(events.map((event) => event.event)).toEqual(['delta', 'done']);
-    const knowledge = deps.llm.requests[0]?.system[2]?.text;
+    const knowledge = deps.llm.requests[0]?.system.at(-2)?.text;
     expect(knowledge).toMatch(/^<knowledge>\n<document id="cv" title="CV">\n# Andrew Panasiuk\n/);
     expect(knowledge).toContain('## Code craft × agentic process');
     expect(deps.llm.requests[0]?.system.at(-1)?.text).toBe('Site language: English (en).');
