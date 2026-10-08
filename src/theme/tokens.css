@@ -312,7 +312,7 @@
   --voice-mic-icon-size: 22px;
   --voice-control-size: 56px;
   --voice-control-icon-size: 24px;
-  --voice-orb-size: clamp(160px, 44vw, 200px);
+  --voice-orb-size: 200px;
   --voice-orb-size-compact: 88px;
   --voice-orb-size-error: 120px;
   --voice-orb-blur: 18px;
@@ -347,4 +347,14 @@
   --voice-breathe: 3.2s;
   --voice-drift: 11s;
   --voice-mic-sheen: 6s;
+  --voice-orb-size-small: 120px;
+  --voice-orb-size-mini: var(--chat-badge-size);
+  --voice-glow-pink: rgba(255, 79, 184, 0.7);
+  --voice-glow-violet: rgba(139, 92, 246, 0.7);
+  --voice-caption-lines: 3;
+  --voice-pill-end-size: var(--chat-badge-size);
+  --voice-ended-pill-duration: 4s;
+  --voice-sheet-height: calc(472px + env(safe-area-inset-bottom));
+  --voice-sheet-height-short: calc(272px + env(safe-area-inset-bottom));
+  --chat-dock-width: calc(var(--chat-panel-width) + var(--space-4));
 }
