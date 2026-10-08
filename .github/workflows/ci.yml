@@ -27,7 +27,7 @@ permissions:
 env:
   VERCEL_CLI_VERSION: 62.4.0
   # The production domain (prod-smoke.yml smokes the same one).
-  PRODUCTION_DOMAIN: cv-web-inky-five.vercel.app
+  PRODUCTION_DOMAIN: grandtorino.dev
   # Vercel REST helpers for the deploy and rollback steps (`eval "$VERCEL_API_SH"`; kept
   # here because the workflow is the only file these jobs share without a checkout).
   # Promote and roll back go through the API, not the CLI: `vercel promote` / `vercel rollback`

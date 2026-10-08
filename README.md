@@ -1,6 +1,6 @@
 # CV Andrew Panasiuk
 
-Andrew Panasiuk's CV as a website: **https://cv-web-inky-five.vercel.app/**
+Andrew Panasiuk's CV as a website: **https://grandtorino.dev/**
 
 Andrew is a Senior Software Product Engineer: Android since 2012, now building with AI agents. The
 site is his CV, and it can talk back.

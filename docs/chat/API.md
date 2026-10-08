@@ -625,7 +625,7 @@ export interface ChatErrorBody {
 POST /api/chat HTTP/1.1
 Content-Type: application/json
 Accept: text/event-stream
-Origin: https://cv-web-inky-five.vercel.app
+Origin: https://grandtorino.dev
 ```
 
 | Header | Rule |

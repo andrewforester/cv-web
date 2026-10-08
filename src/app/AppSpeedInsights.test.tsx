@@ -8,9 +8,9 @@ vi.mock('@vercel/speed-insights/react', () => ({ SpeedInsights: speedInsights })
 
 describe('AppSpeedInsights', () => {
   it('runs only in a production build on a non-local host', () => {
-    expect(isSpeedInsightsHost(true, 'cv-web-inky-five.vercel.app')).toBe(true);
+    expect(isSpeedInsightsHost(true, 'grandtorino.dev')).toBe(true);
     expect(isSpeedInsightsHost(true, 'localhost')).toBe(false);
-    expect(isSpeedInsightsHost(false, 'cv-web-inky-five.vercel.app')).toBe(false);
+    expect(isSpeedInsightsHost(false, 'grandtorino.dev')).toBe(false);
   });
 
   it('is off in tests (not a production build) and attributes views to /', () => {

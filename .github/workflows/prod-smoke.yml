@@ -19,7 +19,7 @@ permissions:
 
 env:
   # The production domain, not a per-deployment URL: those may sit behind Vercel Authentication.
-  PW_BASE_URL: https://cv-web-inky-five.vercel.app
+  PW_BASE_URL: https://grandtorino.dev
 
 jobs:
   prod-smoke:
