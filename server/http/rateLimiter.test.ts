@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_RATE_LIMITS, RateLimiter } from './rateLimiter.js';
+import { RateLimiter, type RateLimits } from './rateLimiter.js';
 
-function limiterAt(start = 0, limits = DEFAULT_RATE_LIMITS) {
+const LIMITS: RateLimits = { perIpMinute: 8, perIpDay: 100, perInstanceHour: 600, maxKeys: 10_000 };
+
+function limiterAt(start = 0, limits = LIMITS) {
   const clock = { now: start };
   return { clock, limiter: new RateLimiter(limits, () => clock.now) };
 }
@@ -37,7 +39,7 @@ describe('RateLimiter', () => {
   });
 
   it('caps the whole instance per hour', () => {
-    const { limiter } = limiterAt(0, { ...DEFAULT_RATE_LIMITS, perInstanceHour: 3 });
+    const { limiter } = limiterAt(0, { ...LIMITS, perInstanceHour: 3 });
     expect(hits(limiter, 'a', 1)[0]?.ok).toBe(true);
     expect(hits(limiter, 'b', 1)[0]?.ok).toBe(true);
     expect(hits(limiter, 'c', 1)[0]?.ok).toBe(true);
@@ -54,7 +56,7 @@ describe('RateLimiter', () => {
   });
 
   it('evicts the oldest IP past the key cap', () => {
-    const { limiter } = limiterAt(0, { ...DEFAULT_RATE_LIMITS, maxKeys: 2 });
+    const { limiter } = limiterAt(0, { ...LIMITS, maxKeys: 2 });
     hits(limiter, 'a', 8);
     limiter.check('b');
     limiter.check('c');

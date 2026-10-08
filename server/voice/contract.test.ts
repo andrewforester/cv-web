@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { VOICE_API_PATH, VOICE_MAX_CALL_SECONDS } from '../../src/data/voice/contract.js';
 import { HttpVoiceSessionRepository } from '../../src/data/voice/HttpVoiceSessionRepository.js';
-import { RateLimiter } from '../chat/rateLimiter.js';
+import { RateLimiter } from '../http/rateLimiter.js';
 import { SITE } from '../test/helpers.js';
 import { conversation, NOW_MS, voiceTestDeps, type VoiceTestDeps } from '../test/voiceHelpers.js';
 import { readVoiceConfig } from './config.js';

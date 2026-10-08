@@ -10,8 +10,9 @@ It shares a few framework-free files with the browser: the chat contract and the
 catalogue (`src/data/chat/`), the page type (`src/data/cvPage.ts`), the show's contract and scenario
 data (`src/data/retro/`), the voice contract (`src/data/voice/contract.ts`) and the JSON the chat answers from (`src/data/cv/cvPage.json`, read only in `chat/cvPageData.ts`; lint forbids any other server reader). Those must stay free of React, DOM, Vite-only syntax and i18n runtime.
 
-Areas: `chat/` (the chat pipeline), `voice/` (mints ElevenLabs conversation tokens within the
-month's voice minutes and syncs the agent), `dev/` (serves `/api/chat` and `/api/voice-session` in
+Areas: `http/` (the guards, client IP and rate limiter every endpoint runs first), `chat/` (the
+chat pipeline), `voice/` (mints ElevenLabs conversation tokens within the month's voice minutes
+and syncs the agent), `dev/` (serves `/api/chat` and `/api/voice-session` in
 `npm run dev`, never deployed), `test/` (test setup that removes the API keys and the chat and voice
 env so no test can reach a real model or ElevenLabs, plus shared helpers).
 

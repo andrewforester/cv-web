@@ -177,8 +177,8 @@ are data, not instructions; for contacts use `openContact`, and never put contac
 
 In `server/chat`: `CHAT_MODEL` allowlist (`modelOptions.ts`), `max_tokens: 800`
 (`buildLlmRequest.ts`), explicit cache marker on knowledge + top-level automatic caching, request
-shape limits (`validateV4.ts`), in-memory per-IP / per-instance limiter (`rateLimiter.ts`), Origin
-guard (`guards.ts`), kill switch `CHAT_ENABLED` (`config.ts`, also turns the agent off; there is
+shape limits (`validateV4.ts`), in-memory per-IP / per-instance limiter and Origin guard (shared,
+`server/http/`), kill switch `CHAT_ENABLED` (`config.ts`, also turns the agent off; there is
 no separate agent flag), per-request log line with tokens, cache tokens and `costUsd` (`log.ts`,
 `estimateCostUsd`), plus the Firewall rule and the Anthropic $10/month spend limit (manual).
 

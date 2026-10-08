@@ -1,17 +1,25 @@
-import type { ChatError } from '../../src/data/chat/contract.js';
-import { chatError } from './errors.js';
+/** The codes a guard can fail with; every endpoint's contract has them, with its own body. */
+export type GuardErrorCode =
+  'method_not_allowed' | 'forbidden_origin' | 'unsupported_media_type' | 'too_long';
+
+export interface GuardError {
+  code: GuardErrorCode;
+  message: string;
+}
+
+const guardError = (code: GuardErrorCode, message: string): GuardError => ({ code, message });
 
 /** `POST` only. */
-export function checkMethod(request: Request): ChatError | undefined {
+export function checkMethod(request: Request): GuardError | undefined {
   return request.method === 'POST'
     ? undefined
-    : chatError('method_not_allowed', `Method ${request.method} is not allowed; use POST`);
+    : guardError('method_not_allowed', `Method ${request.method} is not allowed; use POST`);
 }
 
 /** `Origin` must be present and its host must equal the request host (same origin, no CORS). */
-export function checkOrigin(request: Request): ChatError | undefined {
+export function checkOrigin(request: Request): GuardError | undefined {
   const origin = request.headers.get('origin');
-  if (!origin) return chatError('forbidden_origin', 'Missing Origin header');
+  if (!origin) return guardError('forbidden_origin', 'Missing Origin header');
   const host = (request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '')
     .split(',')[0]
     ?.trim()
@@ -20,28 +28,28 @@ export function checkOrigin(request: Request): ChatError | undefined {
   try {
     originHost = new URL(origin).host.toLowerCase();
   } catch {
-    return chatError('forbidden_origin', 'Malformed Origin header');
+    return guardError('forbidden_origin', 'Malformed Origin header');
   }
   return host && originHost === host
     ? undefined
-    : chatError('forbidden_origin', `Origin ${origin} does not match the site host`);
+    : guardError('forbidden_origin', `Origin ${origin} does not match the site host`);
 }
 
 /** `Content-Type` must be JSON. */
-export function checkContentType(request: Request): ChatError | undefined {
+export function checkContentType(request: Request): GuardError | undefined {
   const type = request.headers.get('content-type')?.trim().toLowerCase() ?? '';
   return type.startsWith('application/json')
     ? undefined
-    : chatError('unsupported_media_type', 'Content-Type must be application/json');
+    : guardError('unsupported_media_type', 'Content-Type must be application/json');
 }
 
-export type BodyResult = { ok: true; text: string } | { ok: false; error: ChatError };
+export type BodyResult = { ok: true; text: string } | { ok: false; error: GuardError };
 
 /** Reads the body as UTF-8, failing with `too_long` past `maxBytes` (declared or actual). */
 export async function readBody(request: Request, maxBytes: number): Promise<BodyResult> {
   const tooLong = (): BodyResult => ({
     ok: false,
-    error: chatError('too_long', `Request body exceeds ${maxBytes} bytes`),
+    error: guardError('too_long', `Request body exceeds ${maxBytes} bytes`),
   });
   const declared = Number(request.headers.get('content-length'));
   if (Number.isFinite(declared) && declared > maxBytes) return tooLong();

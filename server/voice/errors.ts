@@ -1,4 +1,3 @@
-import type { ChatError } from '../../src/data/chat/contract.js';
 import { CHAT_REQUEST_ID_HEADER } from '../../src/data/chat/contract.js';
 import {
   VOICE_API_VERSION,
@@ -36,13 +35,6 @@ export function voiceError(
   extra: Partial<Pick<VoiceError, 'retryable' | 'retryAfterSeconds'>> = {},
 ): VoiceError {
   return { code, message, retryable: RETRYABLE_BY_DEFAULT.has(code), ...extra };
-}
-
-/** The chat's guards (`server/chat/guards.ts`) return a subset of the voice codes. */
-export function fromChatGuard(error: ChatError): VoiceError {
-  return error.code in VOICE_HTTP_STATUS
-    ? { ...error, code: error.code as VoiceErrorCode }
-    : voiceError('internal_error', error.message);
 }
 
 /** Headers every response of the endpoint carries. */

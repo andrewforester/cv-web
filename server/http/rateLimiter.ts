@@ -1,4 +1,4 @@
-/** Fixed-window limits (docs/chat/SYSTEM_DESIGN.md §8). */
+/** Fixed-window limits; each endpoint sets its own (chat: `CHAT_RATE_LIMITS`, voice: `VOICE_RATE_LIMITS`). */
 export interface RateLimits {
   perIpMinute: number;
   perIpDay: number;
@@ -6,13 +6,6 @@ export interface RateLimits {
   /** Tracked IPs; the oldest is evicted past this. */
   maxKeys: number;
 }
-
-export const DEFAULT_RATE_LIMITS: RateLimits = {
-  perIpMinute: 8,
-  perIpDay: 100,
-  perInstanceHour: 600,
-  maxKeys: 10_000,
-};
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 3_600_000;
@@ -54,7 +47,7 @@ export class RateLimiter {
   private readonly instance: Window = { start: 0, count: 0 };
 
   constructor(
-    private readonly limits: RateLimits = DEFAULT_RATE_LIMITS,
+    private readonly limits: RateLimits,
     private readonly now: () => number = Date.now,
   ) {}
 

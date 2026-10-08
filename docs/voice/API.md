@@ -72,8 +72,8 @@ export interface VoiceErrorBody {
 }
 ```
 
-The guards are the chat's (`server/chat/guards.ts`); their codes are a subset of
-`VoiceErrorCode`, so the handler passes their errors through unchanged.
+The guards are shared with the chat (`server/http/guards.ts`); their four codes are part of
+`VoiceErrorCode`, and the handler answers them in the voice error body.
 
 ## Request
 

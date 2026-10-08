@@ -3,7 +3,7 @@ import type { ConversationSummary } from '../voice/ElevenLabsApi.js';
 import { FakeElevenLabsApi, type FakeElevenLabsState } from '../voice/FakeElevenLabsApi.js';
 import { VOICE_RATE_LIMITS, type VoiceDeps } from '../voice/handler.js';
 import type { VoiceLogEntry, VoiceSyncLogEntry } from '../voice/log.js';
-import { RateLimiter } from '../chat/rateLimiter.js';
+import { RateLimiter } from '../http/rateLimiter.js';
 import { SITE } from './helpers.js';
 
 /** 2026-10-07 12:00:00 UTC. */

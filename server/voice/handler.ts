@@ -5,19 +5,13 @@ import {
   type VoiceError,
   type VoiceSessionResponse,
 } from '../../src/data/voice/contract.js';
-import { clientIp } from '../chat/clientIp.js';
-import { checkContentType, checkMethod, checkOrigin, readBody } from '../chat/guards.js';
-import type { RateLimiter, RateLimits } from '../chat/rateLimiter.js';
+import { clientIp } from '../http/clientIp.js';
+import { checkContentType, checkMethod, checkOrigin, readBody } from '../http/guards.js';
+import type { RateLimiter, RateLimits } from '../http/rateLimiter.js';
 import type { AgentSync } from './agentSync.js';
 import type { VoiceConfig } from './config.js';
 import { ElevenLabsError, type ElevenLabsApi } from './ElevenLabsApi.js';
-import {
-  fromChatGuard,
-  VOICE_HTTP_STATUS,
-  voiceError,
-  voiceErrorResponse,
-  voiceHeaders,
-} from './errors.js';
+import { VOICE_HTTP_STATUS, voiceError, voiceErrorResponse, voiceHeaders } from './errors.js';
 import type { VoiceLogEntry, VoiceLogger } from './log.js';
 import {
   fitsOneMoreCall,
@@ -108,9 +102,9 @@ export async function handleVoiceSession(request: Request, deps: VoiceDeps): Pro
   };
 
   const guardError = checkMethod(request) ?? checkOrigin(request) ?? checkContentType(request);
-  if (guardError) return fail(fromChatGuard(guardError));
+  if (guardError) return fail(voiceError(guardError.code, guardError.message));
   const body = await readBody(request, VOICE_MAX_BODY_BYTES);
-  if (!body.ok) return fail(fromChatGuard(body.error));
+  if (!body.ok) return fail(voiceError(body.error.code, body.error.message));
   const parsed = parseVersion(body.text);
   if (!parsed.ok) return fail(parsed.error);
   entry.v = parsed.v;

@@ -5,17 +5,17 @@ import {
   type ChatMessageV4,
 } from '../../src/data/chat/contract.js';
 import { CHAT_API_VERSION_V3 } from '../../src/data/retro/contract.js';
-import { clientIp } from './clientIp.js';
+import { clientIp } from '../http/clientIp.js';
 import type { ChatConfig } from './config.js';
 import type { DayCostMeter } from './dayCost.js';
 import { chatError, errorResponse, HTTP_STATUS_BY_CODE } from './errors.js';
-import { checkContentType, checkMethod, checkOrigin, readBody } from './guards.js';
+import { checkContentType, checkMethod, checkOrigin, readBody } from '../http/guards.js';
 import type { CvPageKnowledgeLoader } from './knowledge/assembleKnowledge.js';
 import type { LlmClient, LlmRequest } from './llm/LlmClient.js';
 import type { ChatLogEntry, ChatLogger } from './log.js';
 import { buildLlmRequest } from './prompt/buildLlmRequest.js';
 import { PROMPT_VERSION } from './prompt/systemPrompt.js';
-import type { RateLimiter } from './rateLimiter.js';
+import type { RateLimiter, RateLimits } from '../http/rateLimiter.js';
 import { planShow } from './show/planShow.js';
 import { SHOW_PROMPT_VERSION } from './show/showPrompt.js';
 import { validateShowRequest } from './show/validateShow.js';
@@ -42,6 +42,14 @@ export interface ChatDeps {
   /** Keep-alive interval until the first delta; default 15 s. */
   pingIntervalMs?: number;
 }
+
+/** Per IP 8 / minute and 100 / day, per instance 600 / hour (docs/chat/SYSTEM_DESIGN.md §8). */
+export const CHAT_RATE_LIMITS: RateLimits = {
+  perIpMinute: 8,
+  perIpDay: 100,
+  perInstanceHour: 600,
+  maxKeys: 10_000,
+};
 
 export const DEFAULT_DEADLINE_MS = 55_000;
 export const DEFAULT_PING_INTERVAL_MS = 15_000;
@@ -125,7 +133,7 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
 
   const deadlineMs = deps.deadlineMs ?? DEFAULT_DEADLINE_MS;
   const guardError = checkMethod(request) ?? checkOrigin(request) ?? checkContentType(request);
-  if (guardError) return fail(guardError);
+  if (guardError) return fail(chatError(guardError.code, guardError.message));
   if (!deps.config.enabled) return fail(chatError('unavailable', 'Chat is switched off'));
   if (!deps.llm) return fail(chatError('unavailable', 'Chat is not configured'));
   const budget = deps.config.dailyBudgetUsd;
@@ -148,7 +156,7 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
   }
 
   const body = await readBody(request, CHAT_LIMITS.maxBodyBytes);
-  if (!body.ok) return fail(body.error);
+  if (!body.ok) return fail(chatError(body.error.code, body.error.message));
   const json = parseJson(body.text);
   if (!json.ok) return fail(chatError('invalid_request', 'Malformed JSON'));
   const version = (json.value as { v?: unknown } | null)?.v;

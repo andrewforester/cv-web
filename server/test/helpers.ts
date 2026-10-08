@@ -9,13 +9,13 @@ import type {
 import type { ShowNarrateRequest, ShowReplyRequest } from '../../src/data/retro/contract.js';
 import { RETRO_SCENARIO_ID } from '../../src/data/retro/scenario.js';
 import { readChatConfig } from '../chat/config.js';
-import type { ChatDeps } from '../chat/handler.js';
+import { CHAT_RATE_LIMITS, type ChatDeps } from '../chat/handler.js';
 import { DayCostMeter } from '../chat/dayCost.js';
 import { createCvPageKnowledgeLoader } from '../chat/knowledge/assembleKnowledge.js';
 import { CV_PAGE_KNOWLEDGE_SOURCES } from '../chat/knowledge/sources.js';
 import { FakeLlmClient, type FakeScript } from '../chat/llm/FakeLlmClient.js';
 import type { ChatLogEntry } from '../chat/log.js';
-import { RateLimiter } from '../chat/rateLimiter.js';
+import { RateLimiter } from '../http/rateLimiter.js';
 
 export const SITE = 'https://cv.example.com';
 
@@ -121,7 +121,7 @@ export function testDeps(
   return {
     config: readChatConfig({ ANTHROPIC_API_KEY: 'test-key' }),
     llm: new FakeLlmClient(script),
-    limiter: new RateLimiter(),
+    limiter: new RateLimiter(CHAT_RATE_LIMITS),
     dayCost: new DayCostMeter(),
     cvPageKnowledge: createCvPageKnowledgeLoader(CV_PAGE_KNOWLEDGE_SOURCES),
     log: (entry) => logs.push(entry),

@@ -72,9 +72,9 @@ Backend (the layout as designed; the folders have grown since, see `server/chat/
 | `api/chat.ts` | Vercel entry, ~15 lines: `export default { fetch(request) }` building production deps (`AnthropicLlmClient`, sources, limiter, config from env) and calling `handleChat`. Nothing else lives in `api/` (every file there becomes a function). |
 | `server/chat/handler.ts` | `handleChat(request, deps): Promise<Response>`: the pipeline of section 2, returns JSON errors or the SSE `Response`. |
 | `server/chat/validate.ts`, `validateV4.ts` | Hand-written validation (no schema library) against `CHAT_LIMITS` / `CHAT_LIMITS_V2`; `validateV4.ts` holds the v4 tool dialect rules. Returns the request or a `ChatError`. |
-| `server/chat/guards.ts` | Method, `Origin` vs host, `Content-Type`, body size read with a byte cap. |
-| `server/chat/rateLimiter.ts` | In-memory fixed-window counters per IP key (+ per-instance hourly cap), injected clock. |
-| `server/chat/clientIp.ts` | Client IP from `x-real-ip`, else first `x-forwarded-for` entry (Vercel sets both). Used only in memory. |
+| `server/http/guards.ts` | Shared with `/api/voice-session`. Method, `Origin` vs host, `Content-Type`, body size read with a byte cap. |
+| `server/http/rateLimiter.ts` | Shared; the chat's limits are `CHAT_RATE_LIMITS` in `handler.ts`. In-memory fixed-window counters per IP key (+ per-instance hourly cap), injected clock. |
+| `server/http/clientIp.ts` | Client IP from `x-real-ip`, else first `x-forwarded-for` entry (Vercel sets both). Used only in memory. |
 | `server/chat/sse.ts` | `encodeSseEvent(name, payload)`, keep-alive comment, SSE response headers. |
 | `server/chat/errors.ts` | `ChatError` factories, HTTP status per code, JSON error `Response`. |
 | `server/chat/config.ts` | Reads env once: `ANTHROPIC_API_KEY`, `CHAT_MODEL`, `CHAT_ENABLED`, `CHAT_DAILY_BUDGET_USD`, `CHAT_FAKE_LLM`, `VERCEL_ENV`. |
@@ -379,7 +379,7 @@ No real LLM call runs in tests or CI: CI has no `ANTHROPIC_API_KEY`, tests injec
 
 | Level | What | Where |
 |---|---|---|
-| Unit, server (Vitest, `@vitest-environment node`) | `validate` (every rule and limit, boundary values 1,000/1,001 chars, 20/21 messages, roles); `guards` (Origin, method, content type, byte cap); `rateLimiter` (windows, eviction, fake clock); `sse` (exact bytes); `renderCvPage` (every section present, no image refs, deterministic); `buildLlmRequest` (block order, cache markers, site-language line, per-model knobs, no dates or randomness in the prefix); `AnthropicLlmClient` event and error mapping against recorded SDK event objects (no network). | `server/chat/**/*.test.ts` |
+| Unit, server (Vitest, `@vitest-environment node`) | `validate` (every rule and limit, boundary values 1,000/1,001 chars, 20/21 messages, roles); `guards` (Origin, method, content type, byte cap) and `rateLimiter` (windows, eviction, fake clock) in `server/http/`; `sse` (exact bytes); `renderCvPage` (every section present, no image refs, deterministic); `buildLlmRequest` (block order, cache markers, site-language line, per-model knobs, no dates or randomness in the prefix); `AnthropicLlmClient` event and error mapping against recorded SDK event objects (no network). | `server/chat/**/*.test.ts` |
 | Handler | `handleChat` with `FakeLlmClient`: happy stream, `max_tokens`, `refusal`, upstream error before and after the first delta, abort propagation, each HTTP error code and header (`Retry-After`, `X-Request-Id`), one log line without message text. | `server/chat/handler.test.ts` |
 | Contract | Provider and consumer in one process: `HttpChatRepository` with a `fetch` stub that calls `handleChat` (fake LLM) and asserts the `ChatStreamEvent` sequence the app sees, for success, a JSON error, a platform `429` without body and a truncated stream. Both sides compile against `src/data/chat/contract.ts`, so a type change breaks both builds. | `server/chat/contract.test.ts` |
 | Unit, client (jsdom) | `parseSse` (chunk borders, multi-byte UTF-8 split, comments, unknown events); `HttpChatRepository` error mapping; `useChatState` with `FakeChatRepository` (history rules, stop, retry, limit reached); widget UI tests (open, send, streaming text, each error text). | `src/data/chat/*.test.ts`, `src/screens/chat/*.test.tsx` |
