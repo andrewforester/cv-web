@@ -886,7 +886,7 @@
         connecting: () =>
           panel(
             'connecting',
-            callHeader('<p class="sub caption"><span class="live">Connecting…</span></p>'),
+            callHeader(''),
             `${orb()}<p class="status">Connecting…</p><p class="say visitor">Allow the microphone when your browser asks.</p><p class="privacy caption">Calls are processed by ElevenLabs. AI answers may contain mistakes.</p>`,
             controls({ disabled: true }),
           ),
@@ -935,7 +935,7 @@
           </aside>`,
         ended: () =>
           `<aside class="column chat-view" aria-label="Ask about Andrew">
-            <header class="header"><span class="badge" aria-hidden="true">${icon('sparkle')}</span><div class="titles"><h2 class="title">Ask about Andrew</h2><p class="sub caption">AI assistant · answers from this page</p></div>${closeBtn.replace('Close voice chat', 'Close chat')}</header>
+            <header class="header"><span class="badge" aria-hidden="true">${icon('sparkle')}</span><div class="titles"><h2 class="title">Ask about Andrew</h2><p class="caption">AI assistant · answers from this page</p></div>${closeBtn.replace('Close voice chat', 'Close chat')}</header>
             <ol class="list" aria-label="Conversation">${callLines}${assistant('SpotOn: a point-of-sale and kiosk app with strict offline rules.')}${divider('Call ended · 1:24')}</ol>
             <div class="composer"><div class="field"><span>Ask a question…</span><button type="button" class="send" aria-label="Send" disabled>${icon('send')}</button></div><p class="caption">Answers are AI-generated and may contain mistakes.</p></div>
           </aside>`,
