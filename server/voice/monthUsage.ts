@@ -1,23 +1,14 @@
-import { VOICE_MAX_CALL_SECONDS } from '../../src/data/voice/contract.js';
 import type { ConversationSummary, ElevenLabsApi } from './ElevenLabsApi.js';
 import { ElevenLabsError } from './ElevenLabsApi.js';
 
 /** All visitors together, per calendar month (UTC). */
 export const VOICE_MONTH_SECONDS = 1_800;
-/** A conversation that is not over counts as a full call for this long after it started. */
-export const LIVE_GRACE_SECONDS = 15 * 60;
 /** More pages than this (500 conversations) and the month check fails closed. */
 export const MAX_LIST_PAGES = 5;
 
 export interface MonthUsage {
   usedSeconds: number;
   leftSeconds: number;
-}
-
-/** A token this instance minted (§5 fallback: counted until the list shows its conversation). */
-export interface MintedToken {
-  conversationId: string;
-  mintedAtUnix: number;
 }
 
 /** 00:00 UTC on the 1st of `now`'s month, in Unix seconds. */
@@ -33,38 +24,22 @@ export function secondsToNextMonth(nowMs: number): number {
   return Math.max(1, Math.ceil((next - nowMs) / 1000));
 }
 
-function countedSeconds(conversation: ConversationSummary, nowUnix: number): number {
-  const over = !['initiated', 'in-progress'].includes(conversation.status);
-  if (over) return conversation.callDurationSecs;
-  const recent = nowUnix - conversation.startTimeUnixSecs < LIVE_GRACE_SECONDS;
-  return recent ? VOICE_MAX_CALL_SECONDS : conversation.callDurationSecs;
-}
-
 /**
- * The month's counted seconds (docs/voice/SYSTEM_DESIGN.md §5): finished calls by their length, a
- * call that is still on (or a token not used yet) as a full call for 15 minutes. Tokens this
- * instance minted in the last 15 minutes that the list doesn't show yet count as full calls too.
+ * The month's spoken seconds (docs/voice/SYSTEM_DESIGN.md §5): every conversation by its length
+ * so far, nothing reserved. A token that was never used costs nothing; the agent runs one call at
+ * a time, so the month can end at most one call over.
  */
-export function sumMonthUsage(
-  conversations: readonly ConversationSummary[],
-  minted: readonly MintedToken[],
-  nowMs: number,
-): MonthUsage {
-  const nowUnix = Math.floor(nowMs / 1000);
-  const listed = new Set(conversations.map((conversation) => conversation.conversationId));
-  const unlisted = minted.filter(
-    (token) =>
-      !listed.has(token.conversationId) && nowUnix - token.mintedAtUnix < LIVE_GRACE_SECONDS,
+export function sumMonthUsage(conversations: readonly ConversationSummary[]): MonthUsage {
+  const usedSeconds = conversations.reduce(
+    (sum, conversation) => sum + conversation.callDurationSecs,
+    0,
   );
-  const usedSeconds =
-    conversations.reduce((sum, conversation) => sum + countedSeconds(conversation, nowUnix), 0) +
-    unlisted.length * VOICE_MAX_CALL_SECONDS;
   return { usedSeconds, leftSeconds: VOICE_MONTH_SECONDS - usedSeconds };
 }
 
-/** A full call still fits in the month. */
-export function fitsOneMoreCall(usage: MonthUsage): boolean {
-  return usage.leftSeconds >= VOICE_MAX_CALL_SECONDS;
+/** Some of the month is left. */
+export function hasMonthLeft(usage: MonthUsage): boolean {
+  return usage.leftSeconds > 0;
 }
 
 /**
@@ -75,7 +50,6 @@ export function fitsOneMoreCall(usage: MonthUsage): boolean {
 export async function readMonthUsage(
   api: ElevenLabsApi,
   agentId: string,
-  minted: readonly MintedToken[],
   nowMs: number,
 ): Promise<MonthUsage> {
   const since = monthStartUnix(nowMs);
@@ -85,7 +59,7 @@ export async function readMonthUsage(
     const result = await api.listConversations(agentId, since, cursor);
     conversations.push(...result.items);
     cursor = result.nextCursor;
-    if (cursor === undefined) return sumMonthUsage(conversations, minted, nowMs);
+    if (cursor === undefined) return sumMonthUsage(conversations);
   }
   throw new ElevenLabsError('list_pages', 'bad_response');
 }

@@ -13,13 +13,7 @@ import type { VoiceConfig } from './config.js';
 import { ElevenLabsError, type ElevenLabsApi } from './ElevenLabsApi.js';
 import { VOICE_HTTP_STATUS, voiceError, voiceErrorResponse, voiceHeaders } from './errors.js';
 import type { VoiceLogEntry, VoiceLogger } from './log.js';
-import {
-  fitsOneMoreCall,
-  LIVE_GRACE_SECONDS,
-  readMonthUsage,
-  secondsToNextMonth,
-  type MintedToken,
-} from './monthUsage.js';
+import { hasMonthLeft, readMonthUsage, secondsToNextMonth } from './monthUsage.js';
 
 /**
  * Per IP 2 / minute and 4 / day, per instance 12 / hour (docs/voice/SYSTEM_DESIGN.md §5): the month
@@ -40,8 +34,6 @@ export interface VoiceDeps {
   limiter: RateLimiter;
   /** Production only; absent elsewhere (preview and dev never write the agent). */
   agentSync: AgentSync | undefined;
-  /** Tokens this instance minted, newest last (§5 fallback); trimmed to the last 15 minutes. */
-  minted: MintedToken[];
   log: VoiceLogger;
   now?: () => number;
   newRequestId?: () => string;
@@ -131,20 +123,16 @@ export async function handleVoiceSession(request: Request, deps: VoiceDeps): Pro
   try {
     if (deps.agentSync) entry.agentSync = await deps.agentSync();
     const nowMs = now();
-    const fresh = deps.minted.filter(
-      (token) => nowMs / 1000 - token.mintedAtUnix < LIVE_GRACE_SECONDS,
-    );
-    deps.minted.splice(0, deps.minted.length, ...fresh);
     let usage;
     try {
-      usage = await readMonthUsage(api, deps.agentId, deps.minted, nowMs);
+      usage = await readMonthUsage(api, deps.agentId, nowMs);
     } catch (error) {
       entry.upstreamError = describe(error);
       return fail(upstreamError(error));
     }
     entry.monthSecondsUsed = usage.usedSeconds;
     entry.monthSecondsLeft = usage.leftSeconds;
-    if (!fitsOneMoreCall(usage)) {
+    if (!hasMonthLeft(usage)) {
       return fail(
         voiceError('quota_exhausted', "This month's voice minutes are used up", {
           retryAfterSeconds: secondsToNextMonth(nowMs),
@@ -159,10 +147,6 @@ export async function handleVoiceSession(request: Request, deps: VoiceDeps): Pro
       entry.upstreamError = describe(error);
       return fail(upstreamError(error));
     }
-    deps.minted.push({
-      conversationId: minted.conversationId,
-      mintedAtUnix: Math.floor(now() / 1000),
-    });
     entry.conversationId = minted.conversationId;
     const response: VoiceSessionResponse = {
       v: VOICE_API_VERSION,

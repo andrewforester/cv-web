@@ -143,7 +143,7 @@ Only one call at a time: the mic button is disabled while a call is live, and th
 | Per IP (in function, per instance) | 2 sessions / 60 s, 4 / 24 h (`RateLimiter` with voice limits) | Casual abuse: one visitor gets a retry, not the month (10 full calls) |
 | Per instance | 12 sessions / hour, then `503 unavailable` | Bursts |
 | **Per call** | Agent `max_duration_seconds: 180` (synced from `VOICE_MAX_CALL_SECONDS`) + client timer | Exact, on ElevenLabs' side |
-| **Per month** | Endpoint sums the month's calls from ElevenLabs (below); token only if a full call fits | Exact across instances |
+| **Per month** | Endpoint sums the month's calls from ElevenLabs (below); a token while any of the month is left | Across instances; at most one call over |
 | Concurrency | Agent `call_limits.agent_concurrency_limit: 1`, `bursting_enabled: false` | Closes the race for the last slot |
 | Per day | Agent `call_limits.daily_limit: 20` conversations | Backstop if the month check had a bug |
 | Money | ElevenLabs plan credits with usage-based billing **off** | The hard cap, like the Anthropic spend limit |
@@ -154,19 +154,16 @@ Only one call at a time: the mic button is disabled while a call is live, and th
 monthStart = 00:00 UTC on the 1st of the current month
 list GET /v1/convai/conversations?agent_id=…&call_start_after_unix=monthStart&page_size=100
      (follow next_cursor; more than 5 pages → fail closed, upstream_error)
-used = Σ per conversation:
-         status done | failed | processing  → call_duration_secs
-         status initiated | in-progress     → 180 if started < 15 min ago, else call_duration_secs
+used = Σ call_duration_secs of every conversation, whatever its status
 left = 1,800 − used
-left < 180 → 503 quota_exhausted, retryAfterSeconds = seconds to 00:00 UTC on the 1st of next month
+left ≤ 0 → 503 quota_exhausted, retryAfterSeconds = seconds to 00:00 UTC on the 1st of next month
 ```
 
-Counting a live or just-minted conversation as a full call keeps the cap exact while calls
-overlap; a minted token that was never used stops counting after 15 minutes. The month ends with
-up to 3 unused minutes, the price of never going over. The build ticket checks once against the
-real API that a minted token's conversation shows up in the list right away (status
-`initiated`); if it doesn't, the handler also counts the tokens this instance minted in the last
-15 minutes.
+Nothing is reserved for a minted token or a call still on: the agent runs one call at a time
+(concurrency 1, queueing off), so calls come one after another and each new token sees the
+earlier ones. The month can end at most one call (180 s) over. In exchange an unused token costs
+nothing: a visitor who opens and drops calls doesn't block voice for everyone (before CV-171: see
+git).
 
 In the UI: `quota_exhausted` shows the design's "voice is resting until next month" state with a
 way into the text chat; the mic button stays (the visitor learns why). When the client timer has
@@ -441,7 +438,7 @@ replaced by a pointer here in A's or the coordinator's next docs change.
 | Risk | Mitigation |
 |---|---|
 | `@elevenlabs/client` changes fast (1.27.0 on 2026-10-06) | Pinned exact; one adapter file; the fake keeps tests independent; Dependabot bumps go through B's tests and a manual call. |
-| The conversation list lags behind a just-minted token | Checked in A against the real API; fallback: count this instance's tokens of the last 15 min (§5). |
+| The conversation list lags behind a just-minted token | Harmless: nothing is reserved (§5); concurrency 1 bounds the overshoot to one call. |
 | Two prompts drift in tone or facts | Shared blocks and knowledge in code, sync per deploy, voice golden check; Custom LLM is the escape hatch (ADR-0008). |
 | Popup blocking makes `openContact` need a tap | By design (§7): the card asks for one tap; the agent says so. |
 | Language detection picks the wrong language on short utterances | Default English first message; the visitor can say "speak English"; checked in the golden set. |

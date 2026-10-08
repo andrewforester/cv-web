@@ -31,7 +31,6 @@ describe('handleVoiceSession: success', () => {
       maxCallSeconds: 180,
     });
     expect(deps.api.calls).toEqual(['listConversations', 'conversationToken']);
-    expect(deps.minted).toEqual([{ conversationId: 'conv_fake_1', mintedAtUnix: NOW_MS / 1000 }]);
   });
 
   it('ignores extra body fields (forward compatible)', async () => {
@@ -63,7 +62,7 @@ describe('handleVoiceSession: success', () => {
     expect(JSON.stringify(deps.logs)).not.toContain('token-1');
   });
 
-  it('counts its own minted tokens: 10 calls fit in a quarter hour, the 11th hits the quota', async () => {
+  it('reserves nothing for a token: unused tokens never block the next visitor', async () => {
     const deps = voiceTestDeps(
       {},
       {
@@ -73,11 +72,16 @@ describe('handleVoiceSession: success', () => {
         ),
       },
     );
-    for (let i = 0; i < 10; i += 1) {
+    for (let i = 0; i < 11; i += 1) {
       expect((await handleVoiceSession(voiceRequest(), deps)).status).toBe(200);
     }
-    const eleventh = await handleVoiceSession(voiceRequest(), deps);
-    expect((await errorOf(eleventh)).code).toBe('quota_exhausted');
+  });
+
+  it('a token while any of the month is left: 1,799 s used yes', async () => {
+    const deps = voiceTestDeps({
+      conversationPages: [[conversation({ callDurationSecs: 1_799 })]],
+    });
+    expect((await handleVoiceSession(voiceRequest(), deps)).status).toBe(200);
   });
 });
 
@@ -182,7 +186,7 @@ describe('handleVoiceSession: errors', () => {
 
   it('month used up → 503 quota_exhausted until the 1st, no token', async () => {
     const deps = voiceTestDeps({
-      conversationPages: [[conversation({ callDurationSecs: 1_621 })]],
+      conversationPages: [[conversation({ callDurationSecs: 1_800 })]],
     });
     const response = await handleVoiceSession(voiceRequest(), deps);
     expect(response.status).toBe(503);
@@ -195,8 +199,8 @@ describe('handleVoiceSession: errors', () => {
     });
     expect(deps.api.calls).toEqual(['listConversations']);
     expect(sessionLogs(deps.logs)[0]).toMatchObject({
-      monthSecondsUsed: 1_621,
-      monthSecondsLeft: 179,
+      monthSecondsUsed: 1_800,
+      monthSecondsLeft: 0,
     });
   });
 
@@ -222,7 +226,6 @@ describe('handleVoiceSession: errors', () => {
     const response = await handleVoiceSession(voiceRequest(), deps);
     expect(response.status).toBe(502);
     expect(await errorOf(response)).toMatchObject({ code: 'upstream_error', retryable });
-    expect(deps.minted).toEqual([]);
   });
 
   it('an unexpected throw → 500 internal_error, one log line', async () => {
