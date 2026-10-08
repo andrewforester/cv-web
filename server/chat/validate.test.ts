@@ -59,10 +59,12 @@ describe('validateChatRequest', () => {
     expect(codeOf(history(CHAT_LIMITS.maxAssistantMessageChars + 1))).toBe('too_long');
   });
 
-  it('rejects more than 24,000 chars in total with too_long', () => {
-    // 10 questions x 1,000 + 4 x 4,000 + 5 x 1 = 26,005
+  it('rejects more than 32,000 chars in total with too_long', () => {
+    // 10 questions x 1,000 + 6 x 4,000 + 3 x 1 = 34,003
     const messages = Array.from({ length: 19 }, (_, index) =>
-      index % 2 === 0 ? questionV4('a'.repeat(1_000)) : answer(index < 9 ? 'a'.repeat(4_000) : 'a'),
+      index % 2 === 0
+        ? questionV4('a'.repeat(1_000))
+        : answer(index < 13 ? 'a'.repeat(4_000) : 'a'),
     );
     expect(codeOf(v4Body(...messages))).toBe('too_long');
   });

@@ -78,7 +78,7 @@ describe('conversation', () => {
     });
   });
 
-  it('is full at 10 questions, 40 messages or 24,000 characters', () => {
+  it('is full at 10 questions, 40 messages or 32,000 characters', () => {
     const nine = Array.from({ length: 9 }, (_, i) => turn(String(i), 'q', 'a'));
     expect(exceedsConversationLimits(nine, 'q')).toBe(false);
     expect(exceedsConversationLimits([...nine, turn('10', 'q', 'a')], 'q')).toBe(true);
@@ -90,7 +90,7 @@ describe('conversation', () => {
     expect(
       exceedsConversationLimits([...busy, turn('7', 'q', 'a', 'done', [round, round])], 'q'),
     ).toBe(true);
-    expect(exceedsConversationLimits([turn('1', 'q', 'a'.repeat(23_995))], 'question')).toBe(true);
+    expect(exceedsConversationLimits([turn('1', 'q', 'a'.repeat(31_995))], 'question')).toBe(true);
   });
 
   it('streams, finishes, fails, retries and ignores events of finished turns', () => {
