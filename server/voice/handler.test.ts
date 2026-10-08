@@ -157,6 +157,21 @@ describe('handleVoiceSession: errors', () => {
     expect(sessionLogs(deps.logs).at(-1)).toMatchObject({ limiter: 'ip', status: 429 });
   });
 
+  it('per-IP limit: the 5th session in a day → 429 until the day window ends', async () => {
+    let now = NOW_MS;
+    const deps = voiceTestDeps({}, { limiter: new RateLimiter(VOICE_RATE_LIMITS, () => now) });
+    for (let call = 0; call < 4; call += 1) {
+      expect((await handleVoiceSession(voiceRequest(), deps)).status).toBe(200);
+      now += 61_000;
+    }
+    const fifth = await handleVoiceSession(voiceRequest(), deps);
+    expect(fifth.status).toBe(429);
+    expect(await errorOf(fifth)).toMatchObject({
+      code: 'rate_limited',
+      retryAfterSeconds: 86_400 - 4 * 61,
+    });
+  });
+
   it('per-instance cap → 503 unavailable with Retry-After', async () => {
     const limiter = new RateLimiter({ ...VOICE_RATE_LIMITS, perInstanceHour: 0 }, () => NOW_MS);
     const response = await handleVoiceSession(voiceRequest(), voiceTestDeps({}, { limiter }));
