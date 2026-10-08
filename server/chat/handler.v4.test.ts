@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { ChatSsePayloadsV2 } from '../../src/data/chat/contract.js';
+import type {
+  ChatSsePayloadsV2,
+  ChatUserMessageV4,
+  ChatVoiceCallV4,
+} from '../../src/data/chat/contract.js';
 import {
   chatRequest,
+  PAGE_V4,
   questionV4,
   readSse,
   SCROLL_IMPACT,
@@ -16,6 +21,8 @@ import { FakeLlmClient } from './llm/FakeLlmClient.js';
 import { PROMPT_VERSION } from './prompt/systemPrompt.js';
 
 type Done = ChatSsePayloadsV2['done'];
+
+const PAGE_QUESTION: ChatUserMessageV4 = { role: 'user', content: 'And apps?', page: PAGE_V4 };
 
 describe('handleChat: v4 (the one page)', () => {
   it('answers with the one page knowledge and logs v4 without a locale', async () => {
@@ -42,8 +49,30 @@ describe('handleChat: v4 (the one page)', () => {
         toolNames: [],
         toolRound: 0,
         toolChoice: 'auto',
+        voiceCalls: 0,
+        voiceChars: 0,
       }),
     ]);
+  });
+
+  it('logs how many voice calls and characters the request carried, never their text', async () => {
+    const call: ChatVoiceCallV4 = {
+      lines: [
+        { role: 'visitor', text: 'Where does he work?' },
+        { role: 'agent', text: 'At Transcenda.' },
+      ],
+    };
+    const first: ChatUserMessageV4 = {
+      ...PAGE_QUESTION,
+      content: 'And before?',
+      voiceCalls: [call],
+    };
+    const latest: ChatUserMessageV4 = { ...PAGE_QUESTION, voiceCalls: [call, call] };
+    const body = v4Body(first, { role: 'assistant', content: 'Before that…' }, latest);
+    const deps = testDeps({ deltas: ['Several.'] });
+    await readSse(await handleChat(chatRequest(body), deps));
+    expect(deps.logs[0]).toMatchObject({ voiceCalls: 3, voiceChars: 3 * 33 });
+    expect(JSON.stringify(deps.logs[0])).not.toContain('Transcenda');
   });
 
   it('streams a tool round and accepts its follow-up', async () => {
