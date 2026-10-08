@@ -850,7 +850,10 @@
 
       const minimizeBtn = `<button type="button" class="icon-btn" aria-label="Minimize call" aria-expanded="true">${icon('minimize')}</button>`;
       const closeBtn = `<button type="button" class="icon-btn" aria-label="Close voice chat">${icon('close')}</button>`;
-      const minimizeOff = minimizeBtn.replace('aria-expanded="true"', 'aria-expanded="true" disabled');
+      const minimizeOff = minimizeBtn.replace(
+        'aria-expanded="true"',
+        'aria-expanded="true" disabled',
+      );
       const callHeader = (sub, action = minimizeBtn) =>
         `<header class="header"><span class="badge" aria-hidden="true">${icon('sparkle')}</span><div class="titles"><h2 class="title">Voice call</h2>${sub}</div>${action}</header>`;
 
@@ -866,7 +869,8 @@
 
       const errorCard = (glyph, title, body, primary, secondary) =>
         `<div class="card err" role="alert"><div class="card-head"><span class="glyph">${icon(glyph)}</span><p class="card-title">${title}</p></div><p class="card-body">${body}</p><div class="card-buttons"><button type="button" class="btn-secondary btn-primary">${primary}</button><button type="button" class="btn-secondary">${secondary}</button></div></div>`;
-      const errorPanel = (...card) => panel('error', callHeader('', closeBtn), `${orb()}${errorCard(...card)}`, '');
+      const errorPanel = (...card) =>
+        panel('error', callHeader('', closeBtn), `${orb()}${errorCard(...card)}`, '');
 
       // The conversation: a text exchange before the call, then the call's lines (one history).
       const visitor = (t) => `<li class="row visitor"><div class="bubble">${t}</div></li>`;
@@ -877,7 +881,9 @@
         `<li class="divider caption" role="separator"><span>${mic ? icon('mic') : ''}${t}</span></li>`;
       const callLines =
         visitor('Is he open to new roles?') +
-        assistant('Yes. He’s open to senior product and Android roles, remote or B2B across the EU.') +
+        assistant(
+          'Yes. He’s open to senior product and Android roles, remote or B2B across the EU.',
+        ) +
         divider('Voice call', true) +
         visitor('What did he build at Transcenda?') +
         assistant(
@@ -948,21 +954,69 @@
         launcher: () =>
           `<div class="launcher"><button type="button" class="mic" aria-label="Talk to my AI by voice">${icon('mic')}</button><button type="button" class="pill"><span class="badge" aria-hidden="true">${icon('sparkle')}</span>Ask my AI</button></div>`,
         'error-denied': () =>
-          errorPanel('mic-off', 'Microphone is blocked', 'Allow the microphone for this site in your browser’s address bar, then try again. Or type your question.', 'Try again', 'Type instead'),
+          errorPanel(
+            'mic-off',
+            'Microphone is blocked',
+            'Allow the microphone for this site in your browser’s address bar, then try again. Or type your question.',
+            'Try again',
+            'Type instead',
+          ),
         'error-failed': () =>
-          errorPanel('alert', 'Couldn’t start the call', 'The voice service didn’t answer. Try again in a moment, or type your question.', 'Try again', 'Type instead'),
+          errorPanel(
+            'alert',
+            'Couldn’t start the call',
+            'The voice service didn’t answer. Try again in a moment, or type your question.',
+            'Try again',
+            'Type instead',
+          ),
         'error-busy': () =>
-          errorPanel('alert', 'The line is busy', 'Someone else is talking to the AI right now. Try again in a few minutes, or type your question.', 'Try again', 'Type instead'),
+          errorPanel(
+            'alert',
+            'The line is busy',
+            'Someone else is talking to the AI right now. Try again in a few minutes, or type your question.',
+            'Try again',
+            'Type instead',
+          ),
         'error-ratelimited': () =>
-          errorPanel('timer', 'Too many calls', 'You’ve started several calls in a short time. Try again in a minute, or type your question.', 'Try again', 'Type instead'),
+          errorPanel(
+            'timer',
+            'Too many calls',
+            'You’ve started several calls in a short time. Try again in a minute, or type your question.',
+            'Try again',
+            'Type instead',
+          ),
         'error-dropped': () =>
-          errorPanel('alert', 'The call dropped', 'The connection was lost. Everything said so far is in the chat.', 'Call again', 'Open chat'),
+          errorPanel(
+            'alert',
+            'The call dropped',
+            'The connection was lost. Everything said so far is in the chat.',
+            'Call again',
+            'Open chat',
+          ),
         'error-callcap': () =>
-          errorPanel('timer', 'That’s the 3-minute limit', 'Calls are capped at 3 minutes. Everything said is in the chat.', 'Call again', 'Open chat'),
+          errorPanel(
+            'timer',
+            'That’s the 3-minute limit',
+            'Calls are capped at 3 minutes. Everything said is in the chat.',
+            'Call again',
+            'Open chat',
+          ),
         'error-monthly': () =>
-          errorPanel('timer', 'Voice is resting this month', 'This month’s voice time is used up. The text chat still works.', 'Type instead', 'Close'),
+          errorPanel(
+            'timer',
+            'Voice is resting this month',
+            'This month’s voice time is used up. The text chat still works.',
+            'Type instead',
+            'Close',
+          ),
         offline: () =>
-          errorPanel('offline', 'You’re offline', 'Connect to the internet to talk to the AI.', 'Try again', 'Close'),
+          errorPanel(
+            'offline',
+            'You’re offline',
+            'Connect to the internet to talk to the AI.',
+            'Try again',
+            'Close',
+          ),
       };
 
       // The page behind: the column states sit over a page that already reserves the column.
