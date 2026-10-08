@@ -12,7 +12,9 @@ Place in the architecture: data layer below `src/screens/chat/` (the voice mode,
 
 - `contract.ts` (framework-free, `.js` specifiers, shared with the server): `POST
   /api/voice-session` v1 (docs/voice/API.md): the request `{ v: 1 }`, the token response with the
-  call cap, the error codes (the chat's guard codes plus `quota_exhausted`). Change it only through
+  call cap, the error codes (the chat's guard codes plus `quota_exhausted`); and the heading and
+  caps of the *earlier conversation*, the contextual update a call starts with (ADR-0009), which
+  the server's voice prompt quotes. Change it only through
   the backend ticket that owns the contract; breaking changes bump `v`.
 - `VoiceSessionRepository` (HTTP over the contract): never throws; platform errors without a JSON
   body are mapped like the chat's.
@@ -26,7 +28,8 @@ Place in the architecture: data layer below `src/screens/chat/` (the voice mode,
 Domain terms: *call* (one voice session, at most `VOICE_MAX_CALL_SECONDS`), *session endpoint*
 (mints the token after the guards and the month's minutes check), *conversation token*
 (single-use, for our agent only; the only ElevenLabs secret the browser ever sees), *line* (a
-final transcript line), *correction* (an agent line cut to what was spoken before an interruption).
+final transcript line), *correction* (an agent line cut to what was spoken before an interruption),
+*earlier conversation* (the text chat and earlier calls sent to the agent at call start).
 
 Known limits: no test talks to ElevenLabs; the adapter is unit-tested against a stubbed SDK, so a
 real call (and its CSP) is checked by hand on a preview or production with `?voice=1`.
