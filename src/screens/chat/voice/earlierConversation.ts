@@ -1,6 +1,6 @@
 import { EARLIER_CONVERSATION_HEADING, EARLIER_CONVERSATION_LIMITS } from '../../../data/voice';
 import type { ChatEntry } from '../ChatUiState';
-import { isAnswered } from '../conversation';
+import { isAnswered } from '../conversationRequests';
 import { spokenLines } from './voiceHistory';
 
 /** Who said a line and on which channel (docs/voice/SYSTEM_DESIGN.md §8). */

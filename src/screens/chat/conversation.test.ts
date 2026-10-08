@@ -1,14 +1,13 @@
 import { CHAT_LIMITS_V2, type AgentPageStateV4 } from '../../data/chat';
 import type { ChatActionCall, ChatToolRound, ChatTurn } from './ChatUiState';
+import { conversationReducer, textTurns } from './conversation';
 import {
   buildHistory,
   buildMessages,
-  conversationReducer,
   exceedsConversationLimits,
   retryMessages,
-  textTurns,
   turnMessages,
-} from './conversation';
+} from './conversationRequests';
 import type { ChatVoiceCall } from './voice/callReducer';
 
 const page: AgentPageStateV4 = {

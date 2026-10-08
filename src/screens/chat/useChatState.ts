@@ -7,7 +7,7 @@ import type {
   ChatAnnouncementInput,
   ChatUiState,
 } from './ChatUiState';
-import { exceedsConversationLimits } from './conversation';
+import { exceedsConversationLimits } from './conversationRequests';
 import { useAskHash } from './useAskHash';
 import { useChatConversation } from './useChatConversation';
 import { useChatHint } from './useChatHint';
