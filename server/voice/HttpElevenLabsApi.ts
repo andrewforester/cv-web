@@ -1,5 +1,6 @@
 import {
   ElevenLabsError,
+  type AgentPatch,
   type AgentSettings,
   type ClientToolConfig,
   type ConversationStatus,
@@ -29,6 +30,30 @@ const isNumber = (v: unknown): v is number => typeof v === 'number' && Number.is
 const isStringArray = (v: unknown): v is string[] => Array.isArray(v) && v.every(isString);
 const STATUSES: readonly string[] = ['initiated', 'in-progress', 'processing', 'done', 'failed'];
 const isStatus = (v: unknown): v is ConversationStatus => isString(v) && STATUSES.includes(v);
+
+/** Dotted paths of the `true` leaves under `value` (the overrides that are on). */
+function truePaths(value: unknown, prefix = ''): string[] {
+  if (value === true) return [prefix];
+  if (!isRecord(value)) return [];
+  return Object.entries(value).flatMap(([key, child]) =>
+    truePaths(child, prefix ? `${prefix}.${key}` : key),
+  );
+}
+
+/** `{ a: { b: false } }` for each path `a.b`: the patch that turns those overrides off. */
+function falseAt(paths: readonly string[]): Json {
+  const root: Json = {};
+  for (const path of paths) {
+    const keys = path.split('.');
+    let node = root;
+    for (const key of keys.slice(0, -1)) {
+      node[key] = isRecord(node[key]) ? node[key] : {};
+      node = node[key] as Json;
+    }
+    node[keys.at(-1) ?? ''] = false;
+  }
+  return root;
+}
 
 function nextCursor(body: Json): string | undefined {
   return body.has_more === true && isString(body.next_cursor) ? body.next_cursor : undefined;
@@ -82,6 +107,8 @@ export class HttpElevenLabsApi implements ElevenLabsApi {
     const agent = field(config.agent, isRecord, op);
     const prompt = field(agent.prompt, isRecord, op);
     const conversation = isRecord(config.conversation) ? config.conversation : {};
+    const platform = isRecord(body.platform_settings) ? body.platform_settings : {};
+    const auth = isRecord(platform.auth) ? platform.auth : {};
     return {
       prompt: isString(prompt.prompt) ? prompt.prompt : '',
       firstMessage: isString(agent.first_message) ? agent.first_message : '',
@@ -89,10 +116,12 @@ export class HttpElevenLabsApi implements ElevenLabsApi {
         ? conversation.max_duration_seconds
         : 0,
       toolIds: isStringArray(prompt.tool_ids) ? prompt.tool_ids : [],
+      authEnabled: auth.enable_auth === true,
+      overridesOn: truePaths(platform.overrides),
     };
   }
 
-  async patchAgent(agentId: string, patch: Partial<AgentSettings>): Promise<void> {
+  async patchAgent(agentId: string, patch: AgentPatch): Promise<void> {
     const prompt: Json = {};
     if (patch.prompt !== undefined) prompt.prompt = patch.prompt;
     if (patch.toolIds !== undefined) prompt.tool_ids = patch.toolIds;
@@ -104,13 +133,21 @@ export class HttpElevenLabsApi implements ElevenLabsApi {
     if (patch.maxDurationSeconds !== undefined) {
       conversationConfig.conversation = { max_duration_seconds: patch.maxDurationSeconds };
     }
+    const platformSettings: Json = {};
+    if (patch.authEnabled) platformSettings.auth = { enable_auth: true };
+    if (patch.overridesOff?.length) platformSettings.overrides = falseAt(patch.overridesOff);
     await this.call(
       'patch_agent',
       'PATCH',
       `/v1/convai/agents/${encodeURIComponent(agentId)}`,
       {},
       {
-        conversation_config: conversationConfig,
+        ...(Object.keys(conversationConfig).length > 0
+          ? { conversation_config: conversationConfig }
+          : {}),
+        ...(Object.keys(platformSettings).length > 0
+          ? { platform_settings: platformSettings }
+          : {}),
       },
     );
   }

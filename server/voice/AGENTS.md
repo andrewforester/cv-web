@@ -17,8 +17,8 @@ the month's minutes from ElevenLabs' conversation list (fail closed) → token. 
 Domain terms: *call* (≤ 180 s), *month quota* (30 minutes for all visitors per UTC month; a token
 only when a full call still fits; a call not over yet, or a token this instance minted, counts as
 a full call for 15 minutes), *agent sync* (production writes the agent's prompt, first message,
-max duration and three client tools from the code; everything else stays as the dashboard set
-it).
+max duration and three client tools from the code, and keeps auth on and every client override
+off; everything else stays as the dashboard set it).
 
 Where the agent's behaviour comes from: `prompt/voicePrompt.ts` reuses the text chat's
 knowledge, scope and safety rules (`server/chat/prompt/systemPrompt.ts`) and the same

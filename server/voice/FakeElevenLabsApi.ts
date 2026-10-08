@@ -1,4 +1,5 @@
 import type {
+  AgentPatch,
   AgentSettings,
   ClientToolConfig,
   ConversationSummary,
@@ -36,7 +37,14 @@ export class FakeElevenLabsApi implements ElevenLabsApi {
   constructor(state: Partial<FakeElevenLabsState> = {}) {
     this.state = {
       conversationPages: [],
-      agent: { prompt: '', firstMessage: '', maxDurationSeconds: 600, toolIds: [] },
+      agent: {
+        prompt: '',
+        firstMessage: '',
+        maxDurationSeconds: 600,
+        toolIds: [],
+        authEnabled: true,
+        overridesOn: [],
+      },
       tools: [],
       token: 'fake',
       failures: {},
@@ -64,12 +72,15 @@ export class FakeElevenLabsApi implements ElevenLabsApi {
 
   async getAgent(): Promise<AgentSettings> {
     this.enter('getAgent');
-    return { ...this.state.agent, toolIds: [...this.state.agent.toolIds] };
+    const { toolIds, overridesOn } = this.state.agent;
+    return { ...this.state.agent, toolIds: [...toolIds], overridesOn: [...overridesOn] };
   }
 
-  async patchAgent(_agentId: string, patch: Partial<AgentSettings>): Promise<void> {
+  async patchAgent(_agentId: string, patch: AgentPatch): Promise<void> {
     this.enter('patchAgent');
-    this.state.agent = { ...this.state.agent, ...patch };
+    const { overridesOff = [], ...fields } = patch;
+    const overridesOn = this.state.agent.overridesOn.filter((path) => !overridesOff.includes(path));
+    this.state.agent = { ...this.state.agent, ...fields, overridesOn };
   }
 
   async listTools(): Promise<Page<StoredTool>> {
