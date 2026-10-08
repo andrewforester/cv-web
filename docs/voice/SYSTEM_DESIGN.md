@@ -221,8 +221,10 @@ once per instance (a memoized promise, cleared on failure), before the first tok
 2. `GET /v1/convai/agents/{id}` and `GET /v1/convai/tools`; find our tools by name.
 3. Create a missing tool; `PATCH /v1/convai/tools/{id}` for a tool whose config differs;
    `PATCH /v1/convai/agents/{id}` when the prompt, first message, max duration or `tool_ids`
-   differ. Compare normalised JSON of the fields we own only; leave everything else (voice,
-   LLM, languages, limits, security) as the checklist set it.
+   differ, when `platform_settings.auth.enable_auth` is off (patched on) or any boolean under
+   `platform_settings.overrides` is on (patched off, §10). Compare normalised JSON of the fields
+   we own only; leave everything else (voice, LLM, languages, call limits, allowlist) as the
+   checklist set it.
 4. Log `{"evt":"voice_sync","outcome":"unchanged"|"patched"|"failed","changed":[…]}`. A failure
    doesn't block the token: the call runs on the previous config and the next request retries.
 
@@ -329,7 +331,8 @@ launch, a later ticket removes the client flag or makes it default on.
   products). The token is the only secret the browser sees: single-use, for this agent only.
 - **Agent.** `enable_auth: true` (tokens only), no allowlist (ElevenLabs: not together with
   signed tokens), every client override off (prompt, first message, language, voice, LLM), so a
-  visitor can't turn the agent into a free general-purpose voice LLM.
+  visitor can't turn the agent into a free general-purpose voice LLM. The production sync puts
+  auth and the overrides back if someone changes them in the dashboard (§6).
 - **Tools.** Enums only, executed by our registry; `openContact` needs a spoken yes and, where
   the browser requires it, a tap. Prompt injection by voice can at most scroll, highlight or ask
   to open a contact, as with typing.
@@ -393,7 +396,8 @@ overwrites it.
 6. **Advanced / conversation.** Max conversation duration: *sync* (180 s). Turn timeout 7 s
    (default). Silence end-call timeout 20 s. Client events: defaults plus `agent_response`,
    `user_transcript`, `agent_response_correction`, `interruption`, `client_tool_call`.
-7. **Security.** Enable authentication: **on**. Allowlist: **empty**. All overrides: **off**.
+7. **Security.** Enable authentication: **on**. Allowlist: **empty**. All overrides: **off**
+   (auth and overrides: *sync*, §6).
    Call limits: concurrency **1**, daily limit **20**, bursting **off**.
 8. **Privacy.** Record voice: **off**. Retention: **40 days**. Zero retention mode: off (the
    month check needs the conversation list).

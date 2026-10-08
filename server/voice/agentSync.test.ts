@@ -42,6 +42,8 @@ function syncedApi(): FakeElevenLabsApi {
       firstMessage: wanted.firstMessage,
       maxDurationSeconds: 180,
       toolIds: ['system_end_call', 't0', 't1', 't2'],
+      authEnabled: true,
+      overridesOn: [],
     },
     tools: [
       stored('t0', 0),
@@ -77,6 +79,21 @@ describe('syncAgent', () => {
     expect(api.state.agent).toMatchObject({ prompt: wanted.prompt, maxDurationSeconds: 180 });
   });
 
+  it('turns auth back on and every client override off', async () => {
+    const api = syncedApi();
+    api.state.agent.authEnabled = false;
+    api.state.agent.overridesOn = [
+      'conversation_config_override.agent.prompt.prompt',
+      'conversation_config_override.conversation.max_duration_seconds',
+    ];
+    expect(await syncAgent(api, 'agent_x', wanted)).toEqual([
+      'authEnabled',
+      'override:conversation_config_override.agent.prompt.prompt',
+      'override:conversation_config_override.conversation.max_duration_seconds',
+    ]);
+    expect(api.state.agent).toMatchObject({ authEnabled: true, overridesOn: [] });
+  });
+
   it('patches a tool whose config changed (e.g. a new CV target)', async () => {
     const api = syncedApi();
     const old = stored('t1', 1);
@@ -95,6 +112,8 @@ describe('syncAgent', () => {
         firstMessage: '',
         maxDurationSeconds: 600,
         toolIds: ['system_end_call'],
+        authEnabled: true,
+        overridesOn: [],
       },
       tools: [{ id: 'system_end_call', config: { type: 'system', name: 'end_call' } }],
     });

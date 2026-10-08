@@ -1,10 +1,5 @@
 import type { VoiceAgentConfig } from './agentConfig.js';
-import type {
-  AgentSettings,
-  ClientToolConfig,
-  ElevenLabsApi,
-  StoredTool,
-} from './ElevenLabsApi.js';
+import type { AgentPatch, ClientToolConfig, ElevenLabsApi, StoredTool } from './ElevenLabsApi.js';
 import type { VoiceLogger } from './log.js';
 
 export type AgentSyncOutcome = 'unchanged' | 'patched' | 'failed';
@@ -78,8 +73,9 @@ const sameSet = (a: readonly string[], b: readonly string[]): boolean =>
 
 /**
  * Brings the agent to `wanted`: creates missing tools, patches changed ones, then patches the
- * agent's prompt, first message, max duration and tool list where they differ. Tools of the
- * agent that are not ours (by name) stay attached. Returns what changed.
+ * agent's prompt, first message, max duration and tool list where they differ, and its security
+ * (§10): auth on, every client override off. Tools of the agent that are not ours (by name) stay
+ * attached. Returns what changed.
  */
 export async function syncAgent(
   api: ElevenLabsApi,
@@ -110,16 +106,19 @@ export async function syncAgent(
   const nameById = new Map(tools.map((stored) => [stored.id, stored.config.name]));
   const foreignIds = agent.toolIds.filter((id) => !ourNames.has(nameById.get(id) ?? ''));
   const toolIds = [...foreignIds, ...ourIds];
-  const patch: Partial<AgentSettings> = {};
+  const patch: AgentPatch = {};
   if (agent.prompt !== wanted.prompt) patch.prompt = wanted.prompt;
   if (agent.firstMessage !== wanted.firstMessage) patch.firstMessage = wanted.firstMessage;
   if (agent.maxDurationSeconds !== wanted.maxDurationSeconds) {
     patch.maxDurationSeconds = wanted.maxDurationSeconds;
   }
   if (!sameSet(agent.toolIds, toolIds)) patch.toolIds = toolIds;
+  if (!agent.authEnabled) patch.authEnabled = true;
+  if (agent.overridesOn.length > 0) patch.overridesOff = agent.overridesOn;
   if (Object.keys(patch).length > 0) {
     await api.patchAgent(agentId, patch);
-    changed.push(...Object.keys(patch));
+    const { overridesOff = [], ...fields } = patch;
+    changed.push(...Object.keys(fields), ...overridesOff.map((path) => `override:${path}`));
   }
   return changed;
 }

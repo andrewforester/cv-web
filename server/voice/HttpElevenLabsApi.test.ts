@@ -83,6 +83,7 @@ describe('HttpElevenLabsApi', () => {
         },
         conversation: { max_duration_seconds: 600 },
       },
+      platform_settings: { auth: { enable_auth: true, allowlist: [] } },
     };
     const { api, sent } = stubFetch(agent);
     expect(await api.getAgent('agent_x')).toEqual({
@@ -90,6 +91,8 @@ describe('HttpElevenLabsApi', () => {
       firstMessage: 'Hi',
       maxDurationSeconds: 600,
       toolIds: ['t1'],
+      authEnabled: true,
+      overridesOn: [],
     });
     await api.patchAgent('agent_x', { prompt: 'Q', maxDurationSeconds: 180 });
     expect(sent[1]).toMatchObject({
@@ -102,6 +105,48 @@ describe('HttpElevenLabsApi', () => {
       },
     });
     expect(sent[1]?.url.pathname).toBe('/v1/convai/agents/agent_x');
+  });
+
+  it('reads auth and the overrides that are on, and patches them in platform_settings', async () => {
+    const agent = {
+      conversation_config: { agent: { prompt: { prompt: 'P' } } },
+      platform_settings: {
+        auth: { enable_auth: false },
+        overrides: {
+          conversation_config_override: {
+            agent: { first_message: false, prompt: { prompt: true, llm: false } },
+            tts: { voice_id: true },
+          },
+          custom_llm_extra_body: false,
+        },
+      },
+    };
+    const { api, sent } = stubFetch(agent);
+    const read = await api.getAgent('agent_x');
+    expect(read).toMatchObject({
+      authEnabled: false,
+      overridesOn: [
+        'conversation_config_override.agent.prompt.prompt',
+        'conversation_config_override.tts.voice_id',
+      ],
+    });
+    await api.patchAgent('agent_x', { authEnabled: true, overridesOff: read.overridesOn });
+    expect(sent[1]?.body).toEqual({
+      platform_settings: {
+        auth: { enable_auth: true },
+        overrides: {
+          conversation_config_override: {
+            agent: { prompt: { prompt: false } },
+            tts: { voice_id: false },
+          },
+        },
+      },
+    });
+  });
+
+  it('treats a missing platform_settings as auth off, no overrides on', async () => {
+    const { api } = stubFetch({ conversation_config: { agent: { prompt: { prompt: 'P' } } } });
+    expect(await api.getAgent('agent_x')).toMatchObject({ authEnabled: false, overridesOn: [] });
   });
 
   it('creates and patches tools as tool_config', async () => {

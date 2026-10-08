@@ -35,7 +35,17 @@ export interface AgentSettings {
   firstMessage: string;
   maxDurationSeconds: number;
   toolIds: string[];
+  /** `platform_settings.auth.enable_auth`: conversations need our token (§10). */
+  authEnabled: boolean;
+  /** Dotted paths under `platform_settings.overrides` that are on: what a client may override. */
+  overridesOn: string[];
 }
+
+/** A patch of the agent: the fields to write, auth only ever on, the listed overrides off. */
+export type AgentPatch = Partial<Omit<AgentSettings, 'authEnabled' | 'overridesOn'>> & {
+  authEnabled?: true;
+  overridesOff?: string[];
+};
 
 export interface ClientToolParameter {
   type: 'string';
@@ -76,7 +86,7 @@ export interface ElevenLabsApi {
   ): Promise<Page<ConversationSummary>>;
   getAgent(agentId: string): Promise<AgentSettings>;
   /** Writes only the given fields. */
-  patchAgent(agentId: string, patch: Partial<AgentSettings>): Promise<void>;
+  patchAgent(agentId: string, patch: AgentPatch): Promise<void>;
   listTools(cursor?: string): Promise<Page<StoredTool>>;
   createTool(config: ClientToolConfig): Promise<{ id: string }>;
   patchTool(toolId: string, config: ClientToolConfig): Promise<void>;
