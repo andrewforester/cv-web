@@ -140,8 +140,8 @@ Only one call at a time: the mic button is disabled while a call is live, and th
 | Client flag | Mic button only with `?voice=1` remembered (§9) | Hides the feature; not a security layer |
 | Kill switch | `VOICE_ENABLED` must be `true` (unset = off) | All tokens, instantly after a redeploy |
 | Same origin | `Origin` host = request host; no CORS | Other sites' browsers |
-| Per IP (in function, per instance) | 2 sessions / 60 s, 10 / 24 h (`RateLimiter` with voice limits) | Casual abuse |
-| Per instance | 30 sessions / hour, then `503 unavailable` | Bursts |
+| Per IP (in function, per instance) | 2 sessions / 60 s, 4 / 24 h (`RateLimiter` with voice limits) | Casual abuse: one visitor gets a retry, not the month (10 full calls) |
+| Per instance | 12 sessions / hour, then `503 unavailable` | Bursts |
 | **Per call** | Agent `max_duration_seconds: 180` (synced from `VOICE_MAX_CALL_SECONDS`) + client timer | Exact, on ElevenLabs' side |
 | **Per month** | Endpoint sums the month's calls from ElevenLabs (below); token only if a full call fits | Exact across instances |
 | Concurrency | Agent `call_limits.agent_concurrency_limit: 1`, `bursting_enabled: false` | Closes the race for the last slot |

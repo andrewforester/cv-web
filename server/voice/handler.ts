@@ -27,11 +27,14 @@ import {
   type MintedToken,
 } from './monthUsage.js';
 
-/** Per IP 2 / minute and 10 / day, per instance 30 / hour (docs/voice/SYSTEM_DESIGN.md §5). */
+/**
+ * Per IP 2 / minute and 4 / day, per instance 12 / hour (docs/voice/SYSTEM_DESIGN.md §5): the month
+ * holds 10 full calls, so one visitor gets a retry, not the month.
+ */
 export const VOICE_RATE_LIMITS: RateLimits = {
   perIpMinute: 2,
-  perIpDay: 10,
-  perInstanceHour: 30,
+  perIpDay: 4,
+  perInstanceHour: 12,
   maxKeys: 10_000,
 };
 
