@@ -30,7 +30,7 @@ export default defineConfig({
           name: 'server',
           environment: 'node',
           setupFiles: ['./server/test/setup.ts'],
-          include: ['server/**/*.test.ts'],
+          include: ['server/**/*.test.ts', 'scripts/**/*.test.ts'],
         },
       },
     ],
