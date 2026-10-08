@@ -20,10 +20,13 @@ What to read for what:
   edits ship as deploys), [`0008`](../adr/0008-voice-agent-elevenlabs.md) (voice through an
   ElevenLabs agent).
 - Voice: [`../voice/`](../voice/AGENTS.md). A voice call runs on an ElevenLabs agent, not on
-  `/api/chat`; its lines land in this chat's conversation but are not sent to the text model.
+  `/api/chat`; text and voice are one conversation ([`0009`](../adr/0009-voice-panel-shared-conversation.md)):
+  the call's lines reach the text model with the next question (`voiceCalls`), and the call
+  starts with the earlier chat as context.
 
 Rules for implementers: change the contract only through its own ticket and bump `v` for breaking
 changes; never call a real model in tests or CI; keep the code the server shares with `src/`
-framework-free. These files describe only what is on `main`: when a version or a design is
+framework-free. These files describe only what is on `main` (on `feature/voice-panel`: the
+agreed `voiceCalls` design until its build tickets merge): when a version or a design is
 replaced, delete its text (git and the ADRs keep the history). Where docs and code disagree, the
 code and the package `AGENTS.md` files win.
