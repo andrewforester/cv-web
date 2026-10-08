@@ -7,6 +7,7 @@ import {
   type VoiceEndReason,
 } from '../../../data/voice';
 import { useStrings } from '../../../i18n';
+import type { ChatEntry } from '../ChatUiState';
 import type { ConversationAction } from '../conversation';
 import { chatStrings } from '../strings';
 import { sessionErrorKind } from './voiceErrorKind';
@@ -19,15 +20,23 @@ import {
   type CallSession,
 } from './voiceSession';
 import type { VoiceActions, VoiceAnnouncement, VoiceErrorKind, VoiceUiState } from './VoiceUiState';
+import { useCallBriefing } from './useCallBriefing';
 import { useCallGuards } from './useCallGuards';
 import { useVoiceTimer, WRAP_UP_UPDATE } from './useVoiceTimer';
 import { useVoiceTools } from './useVoiceTools';
+
+const NO_ENTRIES: readonly ChatEntry[] = [];
 
 interface VoiceCallOptions {
   /** Writes the call into the chat's conversation. */
   record: Dispatch<ConversationAction>;
   /** Opens the text chat (after a call with lines, or on Switch to text chat). */
   openChat: () => void;
+  /**
+   * The chat's conversation: a call starts knowing it (the earlier-conversation update).
+   * TODO(CV-186): `useChatState` passes its `entries`; until then no update is sent.
+   */
+  entries?: readonly ChatEntry[];
 }
 
 /**
@@ -37,7 +46,7 @@ interface VoiceCallOptions {
  * arrives; timer, mute, page tools, and one error card per cause. `state` is `null` when no voice
  * client is bound (the flag is off).
  */
-export function useVoiceCall({ record, openChat }: VoiceCallOptions): {
+export function useVoiceCall({ record, openChat, entries = NO_ENTRIES }: VoiceCallOptions): {
   state: VoiceUiState | null;
   actions: VoiceActions;
 } {
@@ -52,6 +61,7 @@ export function useVoiceCall({ record, openChat }: VoiceCallOptions): {
   const current = useRef<CallSession | null>(null);
   const nextCallId = useRef(0);
   const tools = useVoiceTools({ record, dispatch, announce });
+  const brief = useCallBriefing(entries);
 
   const fail = useCallback((session: CallSession, error: VoiceErrorKind) => {
     closeSession(session);
@@ -91,6 +101,7 @@ export function useVoiceCall({ record, openChat }: VoiceCallOptions): {
           record({ type: 'callStart', id: session.callId });
           dispatch({ type: 'live' });
           announce(strings.voiceConnected);
+          brief(session);
           return;
         case 'mode':
           session.mode = event.mode;
@@ -117,7 +128,7 @@ export function useVoiceCall({ record, openChat }: VoiceCallOptions): {
           finish(session, event.reason);
       }
     },
-    [record, announce, strings, tools, finish],
+    [record, announce, strings, tools, finish, brief],
   );
 
   const hangUp = useCallback(
@@ -156,11 +167,12 @@ export function useVoiceCall({ record, openChat }: VoiceCallOptions): {
       // Cancelled while connecting: hang up the call that just came up.
       if (session.finished) return void call.end('visitor');
       session.call = call;
+      brief(session);
     } catch {
       // Any start failure after a token reads as "busy" (orchestrator decision 2).
       if (!session.finished) finish(session, 'error');
     }
-  }, [client, sessions, fail, onEvent, tools, finish]);
+  }, [client, sessions, fail, onEvent, tools, finish, brief]);
 
   useCallGuards({
     onOffline: () => {

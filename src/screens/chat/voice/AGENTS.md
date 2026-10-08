@@ -13,8 +13,15 @@ screens may not import each other). `useVoiceCall` is the state holder, called b
 `useChatState`; it talks only to the seams in `src/data/voice/` (`VoiceClient`,
 `VoiceSessionRepository`, bound in `src/app/AppProviders.tsx` by the `?voice=` flag) and runs the
 agent's page tools through the chat's executor (`src/agent/`). It writes the call into the chat's
-reducer (`callReducer`: lines and tool chips in order, how and when the call ended); the text
-model never sees a call (`buildHistory` sends turns only). The rest are stateless components.
+reducer (`callReducer`: lines and tool chips in order, how and when the call ended). The rest are
+stateless components.
+
+One conversation (docs/voice/SYSTEM_DESIGN.md §8): the text model gets a call's lines with the
+next question (`voiceHistory.ts`, used by the chat's `buildHistory`: lines only, within the API's
+caps); the agent gets the chat so far once, when the call is live and connected
+(`earlierConversation.ts`: one labelled line per entry, oldest first, cut to the contract's
+caps; `useCallBriefing`). Stub: `useChatState` doesn't pass its `entries` yet (CV-186), so no
+update is sent in the app until then.
 
 What the visitor can rely on: one call at a time, at most 3 minutes (the timer counts down the
 last 30 s, the agent is told to wrap up at 2:30); Mute; End, Esc or "Switch to text chat" close

@@ -18,7 +18,9 @@ What the visitor can rely on:
 - Stop at any time; Try again after a failure; clear, neutral notices for rate limits, offline,
   refusals and a full conversation ("Start a new chat").
 - The conversation (text turns and voice calls, in order) survives closing and reopening, not a
-  reload; the text model is sent the text turns only.
+  reload. Text and voice are one conversation (ADR-0009): each question carries the call
+  transcripts since the previous one (`voiceCalls`, cut to the API's caps on the client), and a
+  call starts with the chat so far (`voice/`).
 - Each page action shows as a chip (running / done / failed) and is announced to screen readers.
   Confirmation texts come from the app and the page's data, never from the model; tools never
   re-run on Try again.
@@ -31,6 +33,11 @@ language. Each question carries a snapshot of the page (section in view, highlig
 mounted tools) from the agent registry. Chips and confirmation cards name the page's items from
 `CvPage` (impact figure, company, project, skill group, book, contact).
 
+Dock: the chat tells the app shell how much room to keep free for it (`chatDock.ts`: `none`,
+`side` column, `bottom` sheet; docs/voice/SYSTEM_DESIGN.md §4.3) through `ChatRoute`'s
+`onDockChange`; the shell reserves it. Until the call panel lands (CV-186) it always reports
+`none`.
+
 Place in the architecture: the screen pattern (state holder → UI state → stateless components)
 over `src/data/chat/` (the conversation stream), `CvPageRepository` (labels) and `src/agent/`
 (running page tools). The stateless pieces (card frame and header, message and notice rows, send
@@ -39,7 +46,8 @@ agent chat; here thin wrappers bind them to this screen's strings. Strings in `s
 (English only); tokens in the theme: the v3 ones (`--color-*`, `--gradient-*`, `--font-*`,
 `--radius-*`) plus `--chat-*` for the chat-only colours, sizes, geometry and motion.
 
-Stubs and limits: the sheet media query is repeated in the CSS modules; the composer reserves a
+Stubs and limits: Try again doesn't re-send the voice calls before the failed question yet
+(`retryMessages` waits for CV-186 to be wired); the sheet media query is repeated in the CSS modules; the composer reserves a
 slot for a future voice button. The launcher's visible label is its accessible name (WCAG 2.5.3);
 its test id is still `chat-fab`.
 
