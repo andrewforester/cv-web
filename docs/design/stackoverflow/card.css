@@ -1,0 +1,195 @@
+/*
+  The compact Stack Overflow card (SPEC.md → Layout → Card). Not product code: the mock and the
+  placement renderer (render.mjs) both use it over the real tokens (src/theme/tokens.css).
+*/
+
+/* ---- New tokens proposed in SPEC → New tokens ---- */
+:root {
+  --color-badge-gold: #f1b600;
+  --color-badge-silver: #9a9c9f;
+  --color-badge-bronze: #ab8253;
+  --badge-dot-size: 8px;
+  --label-icon-size: 16px;
+}
+
+.so {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-4);
+  background: var(--color-surface-pink);
+  border-radius: var(--radius-tile);
+}
+
+/* Option 3 sits on the footer CTA's pink gradient: the card turns white, its tags pink. */
+.so.onTint {
+  background: var(--color-card);
+}
+.so.onTint .soTag {
+  background: var(--color-surface-pink);
+}
+
+/* Option 2 only: one row, label · stats · tags, the link at the far end. */
+.so.wide {
+  flex-flow: row wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-6);
+}
+.so.wide .soHead {
+  display: contents;
+}
+.so.wide .soLink {
+  order: 1;
+  margin-left: auto;
+}
+
+.soHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-4);
+}
+
+.soLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  font-family: var(--font-mono);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line-height);
+  letter-spacing: var(--type-label-letter-spacing);
+  color: var(--color-accent-pink);
+}
+
+.soIcon {
+  flex: none;
+  width: var(--label-icon-size);
+  height: var(--label-icon-size);
+}
+
+.soLink {
+  display: inline-flex;
+  gap: var(--space-1);
+  font-size: var(--type-meta-size);
+  font-weight: var(--type-company-weight);
+  line-height: var(--type-meta-line-height);
+  color: var(--color-accent);
+  text-decoration: none;
+  border-radius: var(--radius-book);
+}
+.soLink:hover,
+.soLink.isHover {
+  color: var(--color-accent-hover);
+}
+.soLink:focus-visible,
+.soLink.isFocus {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* One line: 666 reputation · 20 answers · ● 1 ● 8 ● 19 (wraps only with huge numbers). */
+.soStats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  font-size: var(--type-meta-size);
+  line-height: var(--type-meta-line-height);
+  color: var(--color-ink-3);
+}
+
+.soValue {
+  margin-right: var(--space-1);
+  font-size: var(--type-card-title-size);
+  font-weight: var(--type-card-title-weight);
+  line-height: var(--type-card-title-line-height);
+  letter-spacing: var(--type-card-title-letter-spacing);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+.soBadges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.soBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.soDot {
+  flex: none;
+  width: var(--badge-dot-size);
+  height: var(--badge-dot-size);
+  border-radius: var(--radius-pill);
+}
+.gold {
+  background: var(--color-badge-gold);
+}
+.silver {
+  background: var(--color-badge-silver);
+}
+.bronze {
+  background: var(--color-badge-bronze);
+}
+
+.soCount {
+  font-weight: var(--type-company-weight);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+/* Visually hidden, read by screen readers ("1 gold badge"). */
+.soHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The top three tags, whole; they wrap only where a line is too narrow for all three. */
+.soTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.soTag {
+  display: flex;
+  gap: var(--space-1-5);
+  min-width: 0;
+  max-width: 100%; /* a tag longer than the line is cut with an ellipsis, its score kept */
+  padding: var(--tag-padding);
+  font-family: var(--font-mono);
+  font-size: var(--type-tag-size);
+  line-height: var(--type-tag-line-height);
+  white-space: nowrap;
+  background: var(--color-card);
+  border-radius: var(--radius-book);
+}
+
+.soTagName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--color-accent);
+}
+
+.soScore {
+  flex: none;
+  color: var(--color-ink-3);
+}
