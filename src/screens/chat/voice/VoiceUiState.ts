@@ -2,8 +2,8 @@ import type { VoiceLineRole } from '../../../data/voice';
 import type { ChatActionCall } from '../ChatUiState';
 
 /**
- * What the voice mode shows (docs/design/voice/SPEC.md → Data and state). `tool`: the agent runs a
- * page tool and the fog parts; `contact`: the browser needs a tap to open a contact.
+ * What the call panel shows (docs/design/voice/SPEC.md → Data and state). `tool`: the agent ran a
+ * visual page tool (its chip shows); `contact`: the browser needs a tap to open a contact.
  */
 export type VoicePhase = 'connecting' | 'listening' | 'speaking' | 'tool' | 'contact' | 'error';
 
@@ -28,41 +28,41 @@ export interface VoiceContactRequest {
   readonly channel: string;
 }
 
-/** A screen-reader announcement of the voice mode; `id` changes on every announcement. */
+/** Where the call is: `idle` no call, `connecting` from the tap until live, `error` a card. */
+export type VoiceStatus = 'idle' | 'connecting' | 'live' | 'error';
+
+/** A screen-reader announcement of the call; `id` changes on every announcement. */
 export interface VoiceAnnouncement {
   readonly id: number;
   readonly text: string;
 }
 
 export interface VoiceUiState {
-  readonly open: boolean;
+  readonly status: VoiceStatus;
   readonly phase: VoicePhase;
   /** `pending` while the browser's microphone prompt may be showing. */
   readonly permission: 'pending' | 'granted';
   readonly muted: boolean;
-  /** The call is live: the timer and Mute are on. */
-  readonly live: boolean;
   readonly elapsedSec: number;
   readonly maxCallSeconds: number;
   /** The latest final line of the call. */
   readonly caption: { readonly role: VoiceLineRole; readonly text: string } | null;
-  /** The page action shown in the chip under the top bar. */
+  /** The page action shown in the panel's chip. */
   readonly action: ChatActionCall | null;
   readonly contact: VoiceContactRequest | null;
   readonly error: VoiceErrorKind | null;
   readonly announcement: VoiceAnnouncement | null;
 }
 
-export interface VoiceActions {
-  /** The mic tap (also Try again / Call again): opens the voice mode and starts a call. */
+/** What the call itself does (`useVoiceCall`). */
+export interface VoiceCallActions {
+  /** The mic tap (also Try again / Call again): starts a call. */
   start(): void;
-  /** End (and Esc): hangs up; while connecting, cancels. */
+  /** End: hangs up; while connecting, cancels. */
   end(): void;
   toggleMute(): void;
-  /** Ends the call and opens the text chat. */
-  switchToChat(): void;
-  /** Closes the voice mode from an error card. */
-  close(): void;
+  /** Clears a card: the call is over. */
+  dismiss(): void;
   /** "Reload page" on the "Voice was updated" card. */
   reload(): void;
   /** The contact card's Open link was tapped (the link itself opens the contact). */
@@ -70,4 +70,16 @@ export interface VoiceActions {
   contactCancelled(): void;
   /** 0..1 loudness for the orb, read per animation frame (not state). */
   level(): number;
+}
+
+/** The call's actions plus where it shows (the chat's surface, docs/voice/SYSTEM_DESIGN.md §4.2). */
+export interface VoiceActions extends VoiceCallActions {
+  showChat(): void;
+  hideChat(): void;
+  /** Folds the panel into the pill (only while live). */
+  minimize(): void;
+  /** The pill's main button: the panel opens again in the view it had. */
+  expand(): void;
+  /** A card's way out: `chat` (Type instead, Open chat) or `back` (×, Close, Esc). */
+  leaveCard(to: 'chat' | 'back'): void;
 }

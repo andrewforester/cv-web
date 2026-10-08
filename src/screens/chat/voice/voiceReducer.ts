@@ -5,11 +5,16 @@ import type {
   VoiceContactRequest,
   VoiceErrorKind,
   VoicePhase,
+  VoiceStatus,
   VoiceUiState,
 } from './VoiceUiState';
 
-/** The voice mode's own state; the call's transcript lives in the chat's conversation. */
+/**
+ * The call's own state; its transcript lives in the chat's conversation, and where it shows is the
+ * chat's surface (`chatSurface.ts`).
+ */
 export interface VoiceModel {
+  /** A call attempt runs, or its card shows. */
   readonly open: boolean;
   readonly permission: 'pending' | 'granted';
   readonly live: boolean;
@@ -23,8 +28,8 @@ export interface VoiceModel {
     readonly text: string;
   } | null;
   readonly action: ChatActionCall | null;
-  /** A visual page tool ran: the fog is parted until the agent's turn ends. */
-  readonly fogParted: boolean;
+  /** A visual page tool ran: its chip holds until the agent's turn ends. */
+  readonly toolShown: boolean;
   readonly contact: VoiceContactRequest | null;
   readonly error: VoiceErrorKind | null;
 }
@@ -39,9 +44,9 @@ export type VoiceModelAction =
   | { type: 'correction'; id: string; text: string }
   | { type: 'muted'; muted: boolean }
   | { type: 'tick'; elapsedSec: number }
-  /** A page tool started or changed; `visual` tools part the fog. */
+  /** A page tool started or changed; a `visual` one holds its chip until the turn ends. */
   | { type: 'action'; action: ChatActionCall; visual?: boolean }
-  /** The fog closes and the chip leaves. */
+  /** The chip leaves. */
   | { type: 'actionDone' }
   | { type: 'contact'; contact: VoiceContactRequest | null }
   | { type: 'error'; error: VoiceErrorKind }
@@ -57,7 +62,7 @@ export const initialVoiceModel: VoiceModel = {
   maxCallSeconds: VOICE_MAX_CALL_SECONDS,
   caption: null,
   action: null,
-  fogParted: false,
+  toolShown: false,
   contact: null,
   error: null,
 };
@@ -88,10 +93,10 @@ export function voiceReducer(model: VoiceModel, action: VoiceModelAction): Voice
       return {
         ...model,
         action: action.action,
-        fogParted: model.fogParted || action.visual === true,
+        toolShown: model.toolShown || action.visual === true,
       };
     case 'actionDone':
-      return { ...model, action: null, fogParted: false };
+      return { ...model, action: null, toolShown: false };
     case 'contact':
       return { ...model, contact: action.contact };
     case 'error':
@@ -102,17 +107,23 @@ export function voiceReducer(model: VoiceModel, action: VoiceModelAction): Voice
         error: action.error,
         contact: null,
         action: null,
-        fogParted: false,
+        toolShown: false,
       };
     case 'close':
       return { ...initialVoiceModel, maxCallSeconds: model.maxCallSeconds };
   }
 }
 
+function statusOf(model: VoiceModel): VoiceStatus {
+  if (!model.open) return 'idle';
+  if (model.error) return 'error';
+  return model.live ? 'live' : 'connecting';
+}
+
 function phaseOf(model: VoiceModel): VoicePhase {
   if (model.error) return 'error';
   if (model.contact) return 'contact';
-  if (model.fogParted) return 'tool';
+  if (model.toolShown) return 'tool';
   if (!model.live) return 'connecting';
   return model.mode;
 }
@@ -123,11 +134,10 @@ export function toVoiceUiState(
 ): VoiceUiState {
   const { caption } = model;
   return {
-    open: model.open,
+    status: statusOf(model),
     phase: phaseOf(model),
     permission: model.permission,
     muted: model.muted,
-    live: model.live,
     elapsedSec: model.elapsedSec,
     maxCallSeconds: model.maxCallSeconds,
     caption: caption && { role: caption.role, text: caption.text },

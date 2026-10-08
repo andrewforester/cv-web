@@ -6,6 +6,8 @@ import type {
   ChatErrorCode,
   ChatStopReason,
 } from '../../data/chat';
+import type { ChatLayout } from './chatDock';
+import type { ChatSurface } from './chatSurface';
 import type { ChatVoiceCall } from './voice/callReducer';
 import type { VoiceActions, VoiceUiState } from './voice/VoiceUiState';
 
@@ -70,7 +72,12 @@ type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K>
 export type ChatAnnouncementInput = DistributiveOmit<ChatAnnouncement, 'id'>;
 
 export interface ChatUiState {
-  readonly isOpen: boolean;
+  /** What the chat shows (docs/voice/SYSTEM_DESIGN.md §4.2). */
+  readonly surface: ChatSurface;
+  /** A folded call just ended: the pill says how for a moment (the surface is `closed`). */
+  readonly endedPill: boolean;
+  /** Where the chat sits at this viewport: docked column, floating card or phone sheets. */
+  readonly layout: ChatLayout;
   readonly hintVisible: boolean;
   readonly online: boolean;
   readonly entries: readonly ChatEntry[];
@@ -92,7 +99,7 @@ export interface ChatUiState {
   readonly suggestions: readonly string[];
   /** The page's example commands; empty while its tools aren't mounted. */
   readonly commands: readonly string[];
-  /** The voice mode and its mic button; `null` when voice is off (no client bound). */
+  /** The voice call and its mic buttons; `null` when voice is off (no client bound). */
   readonly voice: VoiceUiState | null;
 }
 

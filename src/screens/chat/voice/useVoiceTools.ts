@@ -15,9 +15,9 @@ import { sessionTimeout, type CallSession } from './voiceSession';
 
 /** How long the contact card waits for a tap (docs/design/voice/SPEC.md → Layout 4). */
 export const CONTACT_TAP_MS = 30_000;
-/** The fog stays parted at least this long after a visual tool (`--agent-highlight-duration`). */
-export const FOG_HOLD_MS = 3_000;
-/** How long the "Opened WhatsApp" chip stays. */
+/** A visual tool's chip stays at least this long (`--agent-highlight-duration`). */
+export const CHIP_HOLD_MS = 3_000;
+/** How long a non-visual tool's chip ("Opened WhatsApp") stays. */
 const CHIP_MS = 3_000;
 
 const OK: AgentToolResult = { ok: true };
@@ -27,15 +27,17 @@ interface VoiceToolsOptions {
   record: Dispatch<ConversationAction>;
   dispatch: Dispatch<VoiceModelAction>;
   announce: (text: string) => void;
+  /** The panel must show: a contact card waits for a tap, or a visual tool ran. */
+  needsPanel: (reason: 'contact' | 'visual') => void;
 }
 
 /**
  * The agent's page tools during a call (docs/voice/SYSTEM_DESIGN.md §7): each call runs through
- * the chat's executor, shows a chip in the voice mode and in the call's transcript, and parts the
- * fog while a visual tool shows the page. `openContact` comes after the agent's spoken yes: it
+ * the chat's executor and shows a chip in the panel and in the call's transcript; a visual tool's
+ * chip holds until the agent's turn ends. `openContact` comes after the agent's spoken yes: it
  * opens at once when the browser allows a new tab, otherwise a card asks for the tap.
  */
-export function useVoiceTools({ record, dispatch, announce }: VoiceToolsOptions) {
+export function useVoiceTools({ record, dispatch, announce, needsPanel }: VoiceToolsOptions) {
   const executor = useAgentExecutor();
   const cvPageRepository = useCvPageRepository();
   const strings = useStrings(chatStrings);
@@ -67,6 +69,7 @@ export function useVoiceTools({ record, dispatch, announce }: VoiceToolsOptions)
       }
       const channel = actionTarget(action, strings);
       dispatch({ type: 'contact', contact: { ...confirmation, href: contact.href, channel } });
+      needsPanel('contact');
       announce(confirmation.title);
       const confirmed = await new Promise<boolean>((resolve) => {
         session.decide = resolve;
@@ -76,7 +79,7 @@ export function useVoiceTools({ record, dispatch, announce }: VoiceToolsOptions)
       if (!session.finished) dispatch({ type: 'contact', contact: null });
       return confirmed ? OK : ({ ok: false, error: 'declined' } as const);
     },
-    [executor, strings, execute, record, dispatch, announce],
+    [executor, strings, execute, record, dispatch, announce, needsPanel],
   );
 
   const runTool = useCallback(
@@ -86,7 +89,10 @@ export function useVoiceTools({ record, dispatch, announce }: VoiceToolsOptions)
       const visual = VISUAL_TOOLS.includes(call.name);
       const action: ChatActionCall = { call, label: itemLabel(call, content), status: 'running' };
       if (session.callId) record({ type: 'callAction', id: session.callId, action });
-      if (visual) dispatch({ type: 'action', action, visual });
+      if (visual) {
+        dispatch({ type: 'action', action, visual });
+        needsPanel('visual');
+      }
       const result =
         call.name === 'openContact'
           ? await openContact(session, action, content)
@@ -105,11 +111,11 @@ export function useVoiceTools({ record, dispatch, announce }: VoiceToolsOptions)
     [cvPageRepository, record, dispatch, openContact, execute, announce, strings],
   );
 
-  /** The agent's turn ended (next *listening*): the fog closes, not sooner than 3 s after a tool. */
+  /** The agent's turn ended (next *listening*): the chip leaves, not sooner than 3 s after a tool. */
   const agentTurnEnded = useCallback(
     (session: CallSession) => {
       if (session.toolAt === null) return;
-      const wait = Math.max(0, session.toolAt + FOG_HOLD_MS - Date.now());
+      const wait = Math.max(0, session.toolAt + CHIP_HOLD_MS - Date.now());
       session.toolAt = null;
       sessionTimeout(session, () => dispatch({ type: 'actionDone' }), wait);
     },

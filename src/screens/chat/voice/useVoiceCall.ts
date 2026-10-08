@@ -1,4 +1,4 @@
-import { useCallback, useReducer, useRef, useState, type Dispatch } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState, type Dispatch } from 'react';
 import {
   useVoiceClient,
   useVoiceSessionRepository,
@@ -7,6 +7,7 @@ import {
   type VoiceEndReason,
 } from '../../../data/voice';
 import { useStrings } from '../../../i18n';
+import type { CallOutcome } from '../chatSurface';
 import type { ChatEntry } from '../ChatUiState';
 import type { ConversationAction } from '../conversation';
 import { chatStrings } from '../strings';
@@ -19,36 +20,39 @@ import {
   sessionLevel,
   type CallSession,
 } from './voiceSession';
-import type { VoiceActions, VoiceAnnouncement, VoiceErrorKind, VoiceUiState } from './VoiceUiState';
+import type {
+  VoiceAnnouncement,
+  VoiceCallActions,
+  VoiceErrorKind,
+  VoiceUiState,
+} from './VoiceUiState';
 import { useCallBriefing } from './useCallBriefing';
 import { useCallGuards } from './useCallGuards';
 import { useVoiceTimer, WRAP_UP_UPDATE } from './useVoiceTimer';
 import { useVoiceTools } from './useVoiceTools';
 
-const NO_ENTRIES: readonly ChatEntry[] = [];
-
 interface VoiceCallOptions {
   /** Writes the call into the chat's conversation. */
   record: Dispatch<ConversationAction>;
-  /** Opens the text chat (after a call with lines, or on Switch to text chat). */
-  openChat: () => void;
-  /**
-   * The chat's conversation: a call starts knowing it (the earlier-conversation update).
-   * TODO(CV-186): `useChatState` passes its `entries`; until then no update is sent.
-   */
-  entries?: readonly ChatEntry[];
+  /** The chat's conversation: a call starts knowing it (the earlier-conversation update). */
+  entries: readonly ChatEntry[];
+  /** The attempt is over (with its card, if it has one). */
+  onEnded: (outcome: CallOutcome) => void;
+  /** The call needs its panel on screen: a contact card waits for a tap, or a visual tool ran. */
+  onNeedsPanel: (reason: 'contact' | 'visual') => void;
 }
 
 /**
- * State holder of the voice mode (docs/voice/SYSTEM_DESIGN.md §4, docs/design/voice/SPEC.md →
- * States and behaviour): mic tap → microphone → session token → call; status, mode, lines and
+ * State holder of the call (docs/voice/SYSTEM_DESIGN.md §4, docs/design/voice/SPEC.md → States
+ * and behaviour): mic tap → microphone → session token → call; status, mode, lines and
  * corrections from the `VoiceClient`; the transcript goes into the chat's conversation as it
- * arrives; timer, mute, page tools, and one error card per cause. `state` is `null` when no voice
- * client is bound (the flag is off).
+ * arrives; timer, mute, page tools, and one error card per cause. Where the call shows is the
+ * chat's surface, told through `onEnded` / `onNeedsPanel`. `state` is `null` when no voice client
+ * is bound (the flag is off).
  */
-export function useVoiceCall({ record, openChat, entries = NO_ENTRIES }: VoiceCallOptions): {
+export function useVoiceCall({ record, entries, onEnded, onNeedsPanel }: VoiceCallOptions): {
   state: VoiceUiState | null;
-  actions: VoiceActions;
+  actions: VoiceCallActions;
 } {
   const client = useVoiceClient();
   const sessions = useVoiceSessionRepository();
@@ -60,16 +64,28 @@ export function useVoiceCall({ record, openChat, entries = NO_ENTRIES }: VoiceCa
   }, []);
   const current = useRef<CallSession | null>(null);
   const nextCallId = useRef(0);
-  const tools = useVoiceTools({ record, dispatch, announce });
+  // The SDK's callbacks outlive renders: they read the surface's latest callbacks from here.
+  const surface = useRef({ onEnded, onNeedsPanel });
+  useEffect(() => {
+    surface.current = { onEnded, onNeedsPanel };
+  });
+  const needsPanel = useCallback(
+    (reason: 'contact' | 'visual') => surface.current.onNeedsPanel(reason),
+    [],
+  );
+  const tools = useVoiceTools({ record, dispatch, announce, needsPanel });
   const brief = useCallBriefing(entries);
 
-  const fail = useCallback((session: CallSession, error: VoiceErrorKind) => {
+  /** The attempt is over, with or without a card; the surface says where to go. */
+  const conclude = useCallback((session: CallSession, error: VoiceErrorKind | null) => {
     closeSession(session);
     if (current.current === session) current.current = null;
-    dispatch({ type: 'error', error });
+    const outcome = { hadLines: session.lines > 0, card: error !== null, wasLive: !!session.callId };
+    surface.current.onEnded(outcome);
+    dispatch(error ? { type: 'error', error } : { type: 'close' });
   }, []);
 
-  /** The call is over: record its end, then a card (failure, cap) or close (and open the chat). */
+  /** The call is over: record its end, then a card (failure, cap) or the surface moves on. */
   const finish = useCallback(
     (session: CallSession, sdkReason: VoiceEndReason) => {
       if (session.finished) return;
@@ -79,15 +95,12 @@ export function useVoiceCall({ record, openChat, entries = NO_ENTRIES }: VoiceCa
         const durationSec = Math.min(liveSeconds(session), session.maxCallSeconds);
         record({ type: 'callEnd', id: callId, reason, durationSec });
       }
-      if (reason === 'error') return fail(session, callId ? 'dropped' : 'busy');
-      if (reason === 'time_limit') return fail(session, 'timeLimit');
-      closeSession(session);
-      if (current.current === session) current.current = null;
-      dispatch({ type: 'close' });
+      if (reason === 'error') return conclude(session, callId ? 'dropped' : 'busy');
+      if (reason === 'time_limit') return conclude(session, 'timeLimit');
       announce(strings.voiceEnded);
-      if (session.lines > 0 || session.toChat) openChat();
+      conclude(session, null);
     },
-    [record, fail, announce, strings, openChat],
+    [record, announce, strings, conclude],
   );
 
   const onEvent = useCallback(
@@ -148,14 +161,14 @@ export function useVoiceCall({ record, openChat, entries = NO_ENTRIES }: VoiceCa
     const session = newCallSession();
     current.current = session;
     dispatch({ type: 'open' });
-    if (!navigator.onLine) return fail(session, 'offline');
+    if (!navigator.onLine) return conclude(session, 'offline');
     const microphone = await client.requestMicrophone().catch(() => 'denied' as const);
     if (session.finished) return;
-    if (microphone === 'denied') return fail(session, 'micDenied');
+    if (microphone === 'denied') return conclude(session, 'micDenied');
     dispatch({ type: 'micGranted' });
     const result = await sessions.create(session.abort.signal);
     if (session.finished) return;
-    if (!result.ok) return fail(session, sessionErrorKind(result.error));
+    if (!result.ok) return conclude(session, sessionErrorKind(result.error));
     session.maxCallSeconds = result.session.maxCallSeconds;
     dispatch({ type: 'session', maxCallSeconds: result.session.maxCallSeconds });
     const handlers: VoiceCallHandlers = {
@@ -172,14 +185,14 @@ export function useVoiceCall({ record, openChat, entries = NO_ENTRIES }: VoiceCa
       // Any start failure after a token reads as "busy" (orchestrator decision 2).
       if (!session.finished) finish(session, 'error');
     }
-  }, [client, sessions, fail, onEvent, tools, finish, brief]);
+  }, [client, sessions, conclude, onEvent, tools, finish, brief]);
 
   useCallGuards({
     onOffline: () => {
       const session = current.current;
       if (!session || session.finished) return;
       // Still connecting: no call to drop yet, so the offline card says why.
-      if (!session.call) return fail(session, 'offline');
+      if (!session.call) return conclude(session, 'offline');
       session.endAsError = true;
       hangUp(session, 'visitor');
     },
@@ -208,7 +221,9 @@ export function useVoiceCall({ record, openChat, entries = NO_ENTRIES }: VoiceCa
     dispatch({ type: 'close' });
   };
 
-  const actions: VoiceActions = {
+  const dismiss = useCallback(() => dispatch({ type: 'close' }), []);
+
+  const actions: VoiceCallActions = {
     start: () => void start(),
     end,
     toggleMute: () => {
@@ -219,16 +234,7 @@ export function useVoiceCall({ record, openChat, entries = NO_ENTRIES }: VoiceCa
       dispatch({ type: 'muted', muted: session.muted });
       announce(session.muted ? strings.voiceMicOff : strings.voiceListening);
     },
-    switchToChat: () => {
-      const session = current.current;
-      if (session) {
-        session.toChat = true;
-        return hangUp(session, 'visitor');
-      }
-      dispatch({ type: 'close' });
-      openChat();
-    },
-    close: end,
+    dismiss,
     reload: () => window.location.reload(),
     contactOpened: () => current.current?.decide?.(true),
     contactCancelled: () => current.current?.decide?.(false),
