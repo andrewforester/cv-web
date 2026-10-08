@@ -13,6 +13,8 @@ interface TurnViewProps {
   turn: ChatTurn;
   /** Only the last turn offers Try again. */
   isLast: boolean;
+  /** During a call: the notice offers neither Try again nor New chat. */
+  readOnly?: boolean;
   maxInputLength: number;
   onRetry: () => void;
   onNewChat: () => void;
@@ -24,6 +26,7 @@ interface TurnViewProps {
 export function TurnView({
   turn,
   isLast,
+  readOnly = false,
   maxInputLength,
   onRetry,
   onNewChat,
@@ -32,13 +35,19 @@ export function TurnView({
 }: TurnViewProps) {
   const strings = useStrings(chatStrings);
 
-  const errorNotice = (error: ChatError) => {
-    let action: NoticeAction | undefined;
+  const noticeAction = (error: ChatError): NoticeAction | undefined => {
+    if (readOnly) return undefined;
     if (error.code === 'conversation_limit') {
-      action = { label: strings.newChat, testId: chatTestIds.newChat, onClick: onNewChat };
-    } else if (error.retryable && isLast) {
-      action = { label: strings.retry, testId: chatTestIds.retry, onClick: onRetry };
+      return { label: strings.newChat, testId: chatTestIds.newChat, onClick: onNewChat };
     }
+    if (error.retryable && isLast) {
+      return { label: strings.retry, testId: chatTestIds.retry, onClick: onRetry };
+    }
+    return undefined;
+  };
+
+  const errorNotice = (error: ChatError) => {
+    const action = noticeAction(error);
     const text = formatString(strings[errorTextKey(error)], { max: maxInputLength });
     return (
       <NoticeRow

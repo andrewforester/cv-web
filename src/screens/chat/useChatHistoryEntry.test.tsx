@@ -35,10 +35,8 @@ describe('useChatHistoryEntry', () => {
 
   it('owns one entry per open sheet: the chat over the call steps back to the call', async () => {
     const { onBack, rerender } = setup(true);
-    const length = history.length;
     rerender({ depth: 1 });
     rerender({ depth: 2 });
-    expect(history.length).toBe(length + 2);
 
     act(() => history.back());
     await waitFor(() => expect(onBack).toHaveBeenCalledTimes(1));

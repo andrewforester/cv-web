@@ -24,14 +24,23 @@ export const chatTestIds = {
   declineAction: 'chat-decline',
   command: 'chat-command',
   voiceMic: 'chat-voice-mic',
-  voiceMode: 'chat-voice-mode',
+  voiceComposerMic: 'chat-voice-composer-mic',
+  voicePanel: 'chat-voice-panel',
   voiceOrb: 'chat-voice-orb',
   voiceStatus: 'chat-voice-status',
   voiceCaption: 'chat-voice-caption',
   voiceTimer: 'chat-voice-timer',
   voiceMute: 'chat-voice-mute',
   voiceEnd: 'chat-voice-end',
-  voiceToChat: 'chat-voice-to-chat',
+  voiceShowChat: 'chat-voice-show-chat',
+  voiceHideChat: 'chat-voice-hide-chat',
+  voiceMinimize: 'chat-voice-minimize',
+  voicePill: 'chat-voice-pill',
+  voicePillExpand: 'chat-voice-pill-expand',
+  voicePillEnd: 'chat-voice-pill-end',
+  voiceCallbar: 'chat-voice-callbar',
+  voiceCallbarEnd: 'chat-voice-callbar-end',
+  voiceCallbarMute: 'chat-voice-callbar-mute',
   voiceAction: 'chat-voice-action',
   voiceContact: 'chat-voice-contact',
   voiceContactOpen: 'chat-voice-contact-open',
@@ -44,5 +53,8 @@ export const chatTestIds = {
   voiceAnnouncer: 'chat-voice-announcer',
 } as const;
 
-/** The dialog's DOM id (the FAB's `aria-controls`). */
+/** The chat panel's DOM id (the FAB's `aria-controls`). */
 export const CHAT_PANEL_ID = 'chat-panel';
+
+/** The call panel's DOM id (minimize's and the pill's `aria-controls`). */
+export const VOICE_PANEL_ID = 'chat-voice-panel';

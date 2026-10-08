@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, type Dispatch } from 'react';
 import { CHAT_COLUMN_QUERY, type ChatLayout } from './chatDock';
-import { historyDepth, type CallStatus, type SurfaceAction, type SurfaceModel } from './chatSurface';
+import {
+  historyDepth,
+  type CallStatus,
+  type SurfaceAction,
+  type SurfaceModel,
+} from './chatSurface';
 import { useAskHash } from './useAskHash';
 import { useChatHistoryEntry } from './useChatHistoryEntry';
 import { CHAT_SHEET_QUERY, useMediaQuery } from './useMediaQuery';

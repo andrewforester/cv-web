@@ -1,9 +1,9 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import { chatTestIds } from '../testIds';
-import { CONTACT_TAP_MS, FOG_HOLD_MS } from './useVoiceTools';
+import { CONTACT_TAP_MS, CHIP_HOLD_MS } from './useVoiceTools';
 import { ManualVoiceClient, renderVoiceChat } from './voiceTestHarness';
 
-const voiceMode = () => screen.getByTestId(chatTestIds.voiceMode);
+const voicePanel = () => screen.getByTestId(chatTestIds.voicePanel);
 const linkedin = { name: 'openContact', input: { channel: 'linkedin' } } as const;
 
 async function liveCall(options: { advanceTimers?: (ms: number) => void } = {}) {
@@ -31,13 +31,13 @@ describe('voice page tools', () => {
     );
     expect(result).toEqual({ ok: true });
     expect(executor.executed).toHaveLength(1);
-    expect(voiceMode()).toHaveAttribute('data-phase', 'tool');
+    expect(voicePanel()).toHaveAttribute('data-phase', 'tool');
     expect(screen.getByTestId(chatTestIds.voiceAction)).toHaveTextContent('Scrolled to Experience');
 
     client.emit({ type: 'mode', mode: 'listening' });
-    expect(voiceMode()).toHaveAttribute('data-phase', 'tool');
-    act(() => vi.advanceTimersByTime(FOG_HOLD_MS));
-    expect(voiceMode()).toHaveAttribute('data-phase', 'listening');
+    expect(voicePanel()).toHaveAttribute('data-phase', 'tool');
+    act(() => vi.advanceTimersByTime(CHIP_HOLD_MS));
+    expect(voicePanel()).toHaveAttribute('data-phase', 'listening');
     expect(screen.queryByTestId(chatTestIds.voiceAction)).not.toBeInTheDocument();
   });
 
@@ -72,7 +72,7 @@ describe('voice page tools', () => {
     const pending = client.tool(linkedin);
 
     const card = await screen.findByTestId(chatTestIds.voiceContact);
-    expect(voiceMode()).toHaveAttribute('data-phase', 'contact');
+    expect(voicePanel()).toHaveAttribute('data-phase', 'contact');
     expect(card).toHaveTextContent('Open Andrew’s LinkedIn profile?');
     const link = within(card).getByRole('link', { name: 'Open LinkedIn' });
     await waitFor(() => expect(link).toHaveFocus());

@@ -8,6 +8,8 @@ interface DialogBehaviorOptions {
   initialFocusRef: RefObject<HTMLElement | null>;
   /** Full-screen sheet: focus the dialog itself on open, lock page scroll, no outside clicks. */
   sheet: boolean;
+  /** Off for the docked column: no Tab trap, no outside clicks, the page stays usable. */
+  modal?: boolean;
   /** While closing, outside clicks are ignored. */
   active: boolean;
   onEscape: () => void;
@@ -15,31 +17,33 @@ interface DialogBehaviorOptions {
 }
 
 /**
- * Modal behaviour of the chat panel (SPEC → Accessibility): initial focus, Tab trap, Esc,
- * pointer-down outside (desktop), page scroll lock (sheet). Returns the dialog's key handler.
+ * Dialog behaviour of the chat panel (SPEC → Accessibility): initial focus (the field, else the
+ * dialog), Esc; when modal also the Tab trap, pointer-down outside (card) and the page scroll lock
+ * (sheet). Returns the dialog's key handler.
  */
 export function useDialogBehavior({
   dialogRef,
   initialFocusRef,
   sheet,
+  modal = true,
   active,
   onEscape,
   onOutsidePointerDown,
 }: DialogBehaviorOptions): (event: KeyboardEvent<HTMLElement>) => void {
   // Initial focus once, on open: the textarea on desktop, the dialog on the sheet.
   useEffect(() => {
-    (sheet ? dialogRef.current : initialFocusRef.current)?.focus();
+    (sheet ? dialogRef.current : (initialFocusRef.current ?? dialogRef.current))?.focus();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the dialog opens
   }, []);
 
   useEffect(() => {
-    if (sheet || !active) return;
+    if (sheet || !modal || !active) return;
     const onPointerDown = (event: PointerEvent) => {
       if (!dialogRef.current?.contains(event.target as Node)) onOutsidePointerDown();
     };
     document.addEventListener('pointerdown', onPointerDown);
     return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, [sheet, active, dialogRef, onOutsidePointerDown]);
+  }, [sheet, modal, active, dialogRef, onOutsidePointerDown]);
 
   useEffect(() => {
     if (!sheet) return;
@@ -56,7 +60,7 @@ export function useDialogBehavior({
       onEscape();
       return;
     }
-    if (event.key !== 'Tab' || !dialogRef.current) return;
+    if (event.key !== 'Tab' || !modal || !dialogRef.current) return;
     const focusable = [...dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)];
     const first = focusable[0];
     const last = focusable.at(-1);

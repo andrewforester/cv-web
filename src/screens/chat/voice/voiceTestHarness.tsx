@@ -1,5 +1,6 @@
 import { act, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 import { AppProviders } from '../../../app/AppProviders';
 import { buildCvPageToolSpecs, FakeChatRepository, type AgentToolCall } from '../../../data/chat';
 import { StaticCvRepository } from '../../../data/cv/StaticCvRepository';
@@ -13,6 +14,7 @@ import type {
   VoiceSessionResult,
 } from '../../../data/voice';
 import { AgentExecutorContext } from '../agentExecutor';
+import type { ChatDock, ChatLayout } from '../chatDock';
 import { ChatRoute } from '../ChatRoute';
 import { FakeAgentExecutor } from '../fakeAgentExecutor';
 
@@ -84,27 +86,43 @@ export class StubSessionRepository implements VoiceSessionRepository {
   }
 }
 
+/**
+ * Makes the chat's media queries see a viewport of this layout (jsdom has no `matchMedia`, so
+ * without a stub the chat is the medium floating card). Undo with `vi.unstubAllGlobals()`.
+ */
+export function stubLayout(layout: ChatLayout) {
+  const matches = (query: string) =>
+    layout === 'sheet'
+      ? query.includes('max-width: 599px')
+      : layout === 'column' && query.includes('min-width: 1024px');
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: matches(query),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }));
+}
+
 /** The chat widget (closed) with a voice client, a session stub and the page's tools as a fake. */
 export async function renderVoiceChat({
   client = new ManualVoiceClient() as VoiceClient | null,
   sessions = new StubSessionRepository(),
+  chat = new FakeChatRepository(),
+  onDockChange,
   advanceTimers,
 }: {
   client?: VoiceClient | null;
   sessions?: StubSessionRepository;
+  chat?: FakeChatRepository;
+  onDockChange?: (dock: ChatDock) => void;
   advanceTimers?: (ms: number) => void;
 } = {}) {
   const page = await new StaticCvRepository().getCvPage();
   const executor = new FakeAgentExecutor(buildCvPageToolSpecs(page));
   const user = userEvent.setup(advanceTimers ? { advanceTimers } : {});
   render(
-    <AppProviders
-      chatRepository={new FakeChatRepository()}
-      voiceClient={client}
-      voiceSessionRepository={sessions}
-    >
+    <AppProviders chatRepository={chat} voiceClient={client} voiceSessionRepository={sessions}>
       <AgentExecutorContext value={executor}>
-        <ChatRoute />
+        <ChatRoute onDockChange={onDockChange} />
       </AgentExecutorContext>
     </AppProviders>,
   );

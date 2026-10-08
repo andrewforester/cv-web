@@ -1,4 +1,4 @@
-/* docs/design/voice/SPEC.md → Layout 2 (orb), Motion. */
+/* docs/design/voice/SPEC.md → Layout 2 (orb), 3 and 4 (mini orb), Motion. */
 .orb {
   --orb: var(--voice-orb-size);
   --orb-gain: 0.12;
@@ -12,10 +12,9 @@
   transform: scale(calc(1 + var(--voice-level) * var(--orb-gain)));
   transition:
     transform var(--voice-level-smoothing) linear,
-    width var(--voice-fog-shift-duration) var(--chat-motion-easing),
-    height var(--voice-fog-shift-duration) var(--chat-motion-easing),
-    margin var(--voice-fog-shift-duration) var(--chat-motion-easing);
-  animation: grow var(--voice-enter-duration) var(--chat-motion-easing) 100ms both;
+    width var(--chat-motion-duration) var(--chat-motion-easing),
+    height var(--chat-motion-duration) var(--chat-motion-easing),
+    margin var(--chat-motion-duration) var(--chat-motion-easing);
 }
 
 .glow {
@@ -24,15 +23,13 @@
   border-radius: 50%;
   background: radial-gradient(
     closest-side,
-    var(--voice-fog-pink),
-    var(--voice-fog-violet) 55%,
+    var(--voice-glow-pink),
+    var(--voice-glow-violet) 55%,
     transparent
   );
   filter: blur(var(--space-6));
   opacity: calc(0.45 + var(--voice-level) * 0.5);
-  transition:
-    opacity var(--voice-level-smoothing) linear,
-    inset var(--voice-fog-shift-duration) var(--chat-motion-easing);
+  transition: opacity var(--voice-level-smoothing) linear;
   animation: breathe var(--voice-breathe) ease-in-out infinite alternate;
 }
 
@@ -44,8 +41,8 @@
   box-shadow: var(--voice-orb-shadow);
   background: radial-gradient(circle at 50% 60%, var(--color-brand-violet), var(--color-accent));
   transition:
-    filter var(--voice-fog-shift-duration) var(--chat-motion-easing),
-    opacity var(--voice-fog-shift-duration) var(--chat-motion-easing);
+    filter var(--chat-motion-duration) var(--chat-motion-easing),
+    opacity var(--chat-motion-duration) var(--chat-motion-easing);
 }
 
 /* The brand colours on a turning conic gradient, blurred so it flows without a centre point. */
@@ -125,14 +122,9 @@
   opacity: 0.35;
 }
 
-/* A tool shows the page: the orb shrinks to the bottom of the stage. */
-[data-phase='tool'] .orb {
-  --orb: var(--voice-orb-size-compact);
-}
-
 [data-phase='contact'] .orb,
 [data-phase='error'] .orb {
-  --orb: var(--voice-orb-size-error);
+  --orb: var(--voice-orb-size-small);
 }
 
 [data-phase='error'] .orb {
@@ -153,16 +145,34 @@
   display: none;
 }
 
-[data-closing] .orb {
-  opacity: 0;
-  transition: opacity var(--voice-exit-duration) var(--chat-motion-easing);
+/* Mini: the chat's call header and the pill. No glow at 36 px (it would smear). */
+.orb.mini {
+  --orb: var(--voice-orb-size-mini);
+  --orb-gain: 0.08;
+
+  margin: 0;
 }
 
-@media (max-height: 560px) {
-  .orb,
-  [data-phase='contact'] .orb,
-  [data-phase='error'] .orb {
-    --orb: var(--voice-orb-size-compact);
+.mini .glow {
+  display: none;
+}
+
+.mini .swirl {
+  filter: blur(calc(var(--voice-orb-blur) / 3));
+}
+
+.mini .shimmer {
+  filter: blur(var(--space-1));
+}
+
+.mini .body {
+  box-shadow: none;
+}
+
+/* The phone's call sheet: the small orb (SPEC → Layout 5). */
+@media (max-width: 599px), (max-height: 499px) {
+  .orb:not(.mini) {
+    --orb: var(--voice-orb-size-small);
   }
 }
 
@@ -178,13 +188,6 @@
   }
 }
 
-@keyframes grow {
-  from {
-    opacity: 0;
-    scale: 0.6;
-  }
-}
-
 /* A still gradient; the level drives only the glow. */
 @media (prefers-reduced-motion: reduce) {
   .orb,
@@ -192,18 +195,11 @@
   [data-phase='connecting'] .orb {
     transform: none;
     transition: none;
-    animation: fade var(--chat-motion-exit-duration) linear both;
   }
 
   .swirl,
   .shimmer,
   .glow {
     animation: none;
-  }
-}
-
-@keyframes fade {
-  from {
-    opacity: 0;
   }
 }
