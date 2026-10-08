@@ -138,7 +138,8 @@ Rules and caps:
   not used). A `tool_choice` change keeps the tools and system caches.
 - **Tool calls per response: at most 3**; extra calls get `invalid_params` without running.
   Parallel calls are allowed ("scroll to his experience and highlight Transcenda" is one round).
-- **History window:** 1,000 chars per question and 24,000 chars in total, `maxMessages` 40
+- **History window:** 1,000 chars per question and 32,000 chars in total (voice transcripts
+  included, ADR-0009), `maxMessages` 40
   because tool rounds add two small messages each; the "Start a new chat" rule counts **10
   questions**. No sliding window: dropping old turns would rewrite the cached prefix on every
   request.
