@@ -108,7 +108,7 @@ export function useVoiceTools({ record, dispatch, announce, needsPanel }: VoiceT
       else sessionTimeout(session, () => dispatch({ type: 'actionDone' }), CHIP_MS);
       return result;
     },
-    [cvPageRepository, record, dispatch, openContact, execute, announce, strings],
+    [cvPageRepository, record, dispatch, openContact, execute, announce, strings, needsPanel],
   );
 
   /** The agent's turn ended (next *listening*): the chip leaves, not sooner than 3 s after a tool. */

@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import { FakeChatRepository } from '../../../data/chat';
 import { FakeVoiceClient } from '../../../data/voice';
+import { answer } from '../chatTestHarness';
 import { chatTestIds } from '../testIds';
 import { ManualVoiceClient, renderVoiceChat } from './voiceTestHarness';
 
@@ -126,10 +127,7 @@ describe('call panel', () => {
   });
 
   it('starts a call from the open chat (the composer mic); the earlier chat goes to the agent', async () => {
-    const chat = new FakeChatRepository().reply(
-      { type: 'delta', text: 'He led mobile.' },
-      { type: 'done', stopReason: 'end_turn' },
-    );
+    const chat = new FakeChatRepository().reply(...answer('He led mobile.'));
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client, chat });
     await user.click(screen.getByTestId(chatTestIds.fab));

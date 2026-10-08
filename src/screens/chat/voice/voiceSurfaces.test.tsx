@@ -10,7 +10,11 @@ import { ManualVoiceClient, renderVoiceChat, stubLayout } from './voiceTestHarne
 const surface = () => screen.getByTestId(chatTestIds.root).getAttribute('data-surface');
 const LINE = { type: 'line', line: { id: 'visitor-1', role: 'visitor', text: 'Hello?' } } as const;
 
-async function liveCall(user: UserEvent, client: ManualVoiceClient, mic = chatTestIds.voiceMic) {
+async function liveCall(
+  user: UserEvent,
+  client: ManualVoiceClient,
+  mic: string = chatTestIds.voiceMic,
+) {
   await user.click(screen.getByTestId(mic));
   await waitFor(() => expect(client.call).not.toBeNull());
   client.emit({ type: 'status', status: 'live' });
