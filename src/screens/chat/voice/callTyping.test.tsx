@@ -1,0 +1,138 @@
+import { screen, waitFor, within } from '@testing-library/react';
+import type { UserEvent } from '@testing-library/user-event';
+import { afterEach, vi } from 'vitest';
+import { FakeChatRepository } from '../../../data/chat';
+import { chatTestIds } from '../testIds';
+import { ManualVoiceClient, renderVoiceChat, stubLayout } from './voiceTestHarness';
+
+// docs/voice/SYSTEM_DESIGN.md §4.4 and §12 "Screen (typing in a call)": one composer, two
+// destinations, decided by the call at the moment of sending.
+const surface = () => screen.getByTestId(chatTestIds.root).getAttribute('data-surface');
+const panel = () => within(screen.getByTestId(chatTestIds.voicePanel));
+const chatPanel = () => within(screen.getByTestId(chatTestIds.panel));
+const AGENT = { type: 'line', line: { id: 'agent-1', role: 'agent', text: 'Hi there.' } } as const;
+
+async function startCall(user: UserEvent, client: ManualVoiceClient) {
+  await user.click(screen.getByTestId(chatTestIds.voiceMic));
+  await waitFor(() => expect(client.call).not.toBeNull());
+}
+
+async function liveCall(user: UserEvent, client: ManualVoiceClient) {
+  await startCall(user, client);
+  client.emit({ type: 'status', status: 'live' }, AGENT);
+}
+
+describe('typing during a call', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('live: Send goes to the agent, shows at once as the caption and a chat row, clears the field', async () => {
+    const client = new ManualVoiceClient();
+    const chat = new FakeChatRepository();
+    const { user } = await renderVoiceChat({ client, chat });
+    await liveCall(user, client);
+
+    const input = panel().getByTestId(chatTestIds.input);
+    expect(input).toHaveAttribute('placeholder', 'Type a message…');
+    await user.type(input, 'Does he know Kotlin?{Enter}');
+
+    expect(client.call?.sentTexts).toEqual(['Does he know Kotlin?']);
+    expect(panel().getByTestId(chatTestIds.voiceCaption)).toHaveTextContent('Does he know Kotlin?');
+    expect(input).toHaveValue('');
+    expect(input).toHaveFocus();
+    expect(chat.requests).toHaveLength(0);
+
+    await user.click(screen.getByTestId(chatTestIds.voiceShowChat));
+    const list = within(screen.getByTestId(chatTestIds.list));
+    expect(list.getByTestId(chatTestIds.visitorMessage)).toHaveTextContent('Does he know Kotlin?');
+  });
+
+  it('connecting: the field is disabled and keeps the draft; Send does nothing', async () => {
+    const client = new ManualVoiceClient();
+    const { user } = await renderVoiceChat({ client });
+    await user.click(screen.getByTestId(chatTestIds.fab));
+    await user.type(screen.getByTestId(chatTestIds.input), 'draft');
+    await user.click(screen.getByTestId(chatTestIds.voiceComposerMic));
+    await waitFor(() => expect(client.call).not.toBeNull());
+
+    const input = panel().getByTestId(chatTestIds.input);
+    expect(input).toBeDisabled();
+    expect(input).toHaveValue('draft');
+    expect(panel().getByTestId(chatTestIds.voiceMute)).toBeDisabled();
+    expect(panel().getByTestId(chatTestIds.send)).toBeDisabled();
+
+    client.emit({ type: 'status', status: 'live' });
+    expect(input).toBeEnabled();
+    expect(input).toHaveValue('draft');
+  });
+
+  it('typing() reaches the agent only while the call is live', async () => {
+    const client = new ManualVoiceClient();
+    const { user } = await renderVoiceChat({ client });
+    await liveCall(user, client);
+    await user.type(panel().getByTestId(chatTestIds.input), 'abc');
+    const call = client.call;
+    expect(call?.typings).toBe(3);
+
+    await user.click(panel().getByTestId(chatTestIds.voiceEnd));
+    await waitFor(() => expect(surface()).toBe('text'));
+    await user.type(chatPanel().getByTestId(chatTestIds.input), 'de');
+    expect(call?.typings).toBe(3);
+  });
+
+  it('the call ends mid-typing: the text stays, and Send asks /api/chat with the call', async () => {
+    const client = new ManualVoiceClient();
+    const chat = new FakeChatRepository();
+    const { user } = await renderVoiceChat({ client, chat });
+    await liveCall(user, client);
+    await user.type(panel().getByTestId(chatTestIds.input), 'Typed line{Enter}');
+    await user.click(screen.getByTestId(chatTestIds.voiceShowChat));
+    await user.type(chatPanel().getByTestId(chatTestIds.input), 'And after?');
+    client.emit({ type: 'ended', reason: 'agent' });
+
+    expect(surface()).toBe('text');
+    const input = chatPanel().getByTestId(chatTestIds.input);
+    expect(input).toHaveValue('And after?');
+    expect(input).toHaveAttribute('placeholder', '…or type instead');
+    await user.type(input, '{Enter}');
+
+    expect(client.call?.sentTexts).toEqual(['Typed line']);
+    expect(chat.requests).toHaveLength(1);
+    const question = chat.requests[0]?.messages.at(-1);
+    expect(question).toMatchObject({ role: 'user', content: 'And after?' });
+    const lines = question && 'voiceCalls' in question ? question.voiceCalls?.[0]?.lines : [];
+    expect(lines).toEqual([
+      { role: 'agent', text: 'Hi there.' },
+      { role: 'visitor', text: 'Typed line' },
+    ]);
+  });
+
+  it('a typed line is a call line, not a question: a call with only typed lines opens the chat', async () => {
+    const client = new ManualVoiceClient();
+    const chat = new FakeChatRepository();
+    const { user } = await renderVoiceChat({ client, chat });
+    await startCall(user, client);
+    client.emit({ type: 'status', status: 'live' });
+    await user.type(panel().getByTestId(chatTestIds.input), 'Only typed{Enter}');
+    await user.click(panel().getByTestId(chatTestIds.voiceEnd));
+
+    expect(surface()).toBe('text');
+    const list = within(screen.getByTestId(chatTestIds.list));
+    expect(list.getByTestId(chatTestIds.visitorMessage)).toHaveTextContent('Only typed');
+    expect(list.getAllByTestId(chatTestIds.voiceDivider)).toHaveLength(2);
+    expect(chat.requests).toHaveLength(0);
+  });
+
+  it('on a phone, focusing the field in the call sheet opens the chat and keeps typing there', async () => {
+    stubLayout('sheet');
+    const client = new ManualVoiceClient();
+    const { user } = await renderVoiceChat({ client });
+    await liveCall(user, client);
+    await user.click(panel().getByTestId(chatTestIds.input));
+
+    expect(surface()).toBe('callChat');
+    const input = chatPanel().getByTestId(chatTestIds.input);
+    await waitFor(() => expect(input).toHaveFocus());
+    await user.keyboard('Hello{Enter}');
+    expect(client.call?.sentTexts).toEqual(['Hello']);
+  });
+});
