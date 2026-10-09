@@ -114,7 +114,8 @@ for (const { name, size } of viewports) {
       if (name === 'desktop') {
         // The page shifts left: the column (400 + its 16 px gutter) is reserved beside it.
         await expect(html).toHaveAttribute('data-chat-dock', 'side');
-        expect(await mainWidth(page)).toBeLessThanOrEqual(fullWidth - 400);
+        // The width animates (ADR-0010 → Decision 2): wait for it to settle.
+        await expect.poll(() => mainWidth(page)).toBeLessThanOrEqual(fullWidth - 400);
       } else {
         // A bottom sheet over the live page; the page pads its end by the sheet's height.
         await expect(html).toHaveAttribute('data-chat-dock', 'bottom');
@@ -185,7 +186,7 @@ for (const { name, size } of viewports) {
       const pill = page.getByTestId('chat-voice-pill');
       await expect(pill).toBeVisible();
       await expect(html).toHaveAttribute('data-chat-dock', 'none');
-      expect(await mainWidth(page)).toBe(fullWidth);
+      await expect.poll(() => mainWidth(page)).toBe(fullWidth);
       await settle(pill);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-minimized-${name}.png` });
 

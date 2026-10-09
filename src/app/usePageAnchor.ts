@@ -36,7 +36,7 @@ function findAnchor(main: HTMLElement): Element | null {
  * scroll anchoring (it is a suppression trigger in Chromium too), so on each change to or from
  * `side` the hook notes the element at the top of the page and, on every animation frame until
  * `main`'s transition ends (at most its duration + 50 ms), scrolls by that element's drift. Wheel,
- * touch or a key hands the scroll back to the visitor. With no transition (reduced motion) it
+ * touch, a key or a scroll it didn't make (the page agent's) ends it. With no transition (reduced motion) it
  * corrects once, after the reflow. Must run before the dock reaches the DOM, so the anchor is
  * noted at the old layout.
  */
@@ -54,15 +54,25 @@ export function usePageAnchor(mainRef: RefObject<HTMLElement | null>, dock: Chat
 
     let frame = 0;
     let deadline = 0;
+    let running = true;
+    // Where the hook left the page: any other scroll (the page agent's, a link) wins.
+    let ownScrollY = window.scrollY;
     const correct = () => {
+      if (!running) return;
       const drift = anchor.getBoundingClientRect().top - noted;
-      if (drift !== 0) window.scrollBy(0, drift);
+      if (drift !== 0) window.scrollBy({ top: drift, behavior: 'instant' });
+      ownScrollY = window.scrollY;
+    };
+    const onScroll = () => {
+      if (Math.abs(window.scrollY - ownScrollY) > 1) stop();
     };
     const stop = () => {
+      running = false;
       cancelAnimationFrame(frame);
       main.removeEventListener('transitionend', onEnd);
       main.removeEventListener('transitioncancel', onEnd);
       CANCEL_EVENTS.forEach((type) => window.removeEventListener(type, stop));
+      window.removeEventListener('scroll', onScroll);
     };
     const onEnd = (event: TransitionEvent) => {
       if (event.target !== main) return;
@@ -78,6 +88,7 @@ export function usePageAnchor(mainRef: RefObject<HTMLElement | null>, dock: Chat
     main.addEventListener('transitionend', onEnd);
     main.addEventListener('transitioncancel', onEnd);
     CANCEL_EVENTS.forEach((type) => window.addEventListener(type, stop, { passive: true }));
+    window.addEventListener('scroll', onScroll, { passive: true });
     // After the shell's layout effects (the new dock is in the DOM), before paint: an instant
     // reflow (reduced motion) is corrected before the visitor sees it.
     queueMicrotask(correct);
