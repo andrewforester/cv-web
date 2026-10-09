@@ -21,8 +21,9 @@ const LABELS = {
  * earlier. Text turns count only when `done` with an answer (as the text model's history), except
  * the handed-over turn (ADR-0013 → Decision 3): when the last entry is a text turn that never
  * finished (stopped, e.g. by tapping Call, or failed), its question goes with what was written of
- * its answer, or `…`, under the unfinished label. Whitespace is collapsed, so a line can't start a forged one; each line is cut at
- * `maxLineChars` and the oldest lines are dropped until the update fits `maxChars`.
+ * its answer, or `…`, under the unfinished label. Whitespace is collapsed, so a line can't start
+ * a forged one; each line is cut at `maxLineChars` and the oldest lines are dropped until the
+ * update fits `maxChars`.
  */
 export function earlierConversation(entries: readonly ChatEntry[]): string | null {
   const last = entries.at(-1);
