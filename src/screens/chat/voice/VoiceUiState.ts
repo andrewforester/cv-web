@@ -55,7 +55,7 @@ export interface VoiceUiState {
 }
 
 /**
- * Where the focus goes in the view that takes the column after a swap: the chat toggle stays the
+ * Where the focus goes in the view that takes the panel after a swap: the chat toggle stays the
  * toggle (same place, new label), the field stays the field (typing began in the phone's sheet).
  */
 export type FocusRequest = 'toggle' | 'field';

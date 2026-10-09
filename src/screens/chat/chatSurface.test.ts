@@ -33,7 +33,7 @@ describe('surfaceReducer', () => {
     expect(surfaceReducer(at('text'), { type: 'callStart' }).surface).toBe('call');
   });
 
-  it('the one toggle swaps the column’s view both ways, and nothing else', () => {
+  it('the one toggle swaps the panel’s view both ways, and nothing else', () => {
     const chat = surfaceReducer(at('call'), { type: 'toggleChat' });
     expect(chat.surface).toBe('callChat');
     expect(surfaceReducer(chat, { type: 'toggleChat' }).surface).toBe('call');

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type Dispatch } from 'react';
-import { CHAT_COLUMN_QUERY, type ChatLayout } from './chatDock';
+import { CHAT_SLIDE_QUERY, type ChatLayout } from './chatDock';
 import {
   historyDepth,
   type CallStatus,
@@ -23,8 +23,8 @@ export function callStatusOf(status: VoiceStatus | undefined): CallStatus {
 /** Where the chat sits at this viewport (`chatDock.ts` → `ChatLayout`). */
 export function useChatLayout(): ChatLayout {
   const sheet = useMediaQuery(CHAT_SHEET_QUERY);
-  const column = useMediaQuery(CHAT_COLUMN_QUERY);
-  return sheet ? 'sheet' : column ? 'column' : 'card';
+  const slide = useMediaQuery(CHAT_SLIDE_QUERY);
+  return sheet ? 'sheet' : slide ? 'slide' : 'card';
 }
 
 interface ChatSurfaceOptions {

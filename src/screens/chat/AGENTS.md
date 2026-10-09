@@ -17,9 +17,11 @@ answer streams: one channel speaks at a time. Behaviour:
 
 What the visitor can rely on:
 - One place for the chat and the call (`chatSurface.ts`: `closed`, `text`, `call`, `callChat`,
-  `callPill`; docs/voice/SYSTEM_DESIGN.md §4.2): a column docked on the right on wide screens
-  (the page shifts left; not modal), a floating card on medium ones, full-screen sheets on phones
-  that stay above the on-screen keyboard. Each open phone sheet owns one history entry (`#chat`),
+  `callPill`; docs/voice/SYSTEM_DESIGN.md §4.2): above the phone one floating panel bottom-right,
+  never full height (ADR-0012). From 1584 px the page slides left beside it at its own width (the
+  **slide**; the chat is a region, not modal); on 600–1583 px laptops it floats over the unmoved
+  page (the **overlay**, a dialog). There is no column. Phones get full-screen sheets that stay
+  above the on-screen keyboard. Each open phone sheet owns one history entry (`#chat`),
   so the system Back steps out one view and stays on the page; desktop history is untouched.
 - Stop at any time; Try again after a failure; clear, neutral notices for rate limits, offline,
   refusals and a full conversation ("Start a new chat").
@@ -40,11 +42,14 @@ mounted tools) from the agent registry. Chips and confirmation cards name the pa
 `CvPage` (impact figure, company, project, skill group, book, contact).
 
 Dock and motion: the chat tells the app shell how much room to keep free for it (`chatDock.ts`:
-`none`, `side` column, `bottom` call sheet; derived from the surface and the layout, §4.3)
-through `ChatRoute`'s `onDockChange`, before paint, so the shell's page transition starts on the
-frame the column enters. The column slides in from the right edge with the page's timing (the
-dock motion tokens) and slides out the same way; swapping views inside it crossfades, minimize
-folds it toward the pill (`useFrameMotion`, `ChatColumn.module.css`); reduced motion fades only.
+`none`, `side` the panel's strip while the page slides, `bottom` call sheet; derived from the
+surface and the layout, §4.3) through `ChatRoute`'s `onDockChange`, before paint, so the shell's
+page slide starts on the frame the panel enters. The slide's breakpoint, 1584 px
+(`CHAT_SLIDE_QUERY`), is the full CV card + the panel with its gutter + a 24 px margin on each
+side of the card; media queries can't read tokens, so `chatDock.test.ts` recomputes it from
+`tokens.css`. The frame's CSS (`ChatFrame.module.css`) has one placement for every non-phone
+width; swapping views inside it crossfades, minimize folds it toward the pill (`useFrameMotion`);
+reduced motion fades only. The morph out of the pill (ADR-0012 → Decision 2) is not built yet.
 
 Place in the architecture: the screen pattern (state holder → UI state → stateless components)
 over `src/data/chat/` (the conversation stream), `CvPageRepository` (labels) and `src/agent/`
@@ -54,7 +59,7 @@ agent chat; here thin wrappers bind them to this screen's strings. Strings in `s
 (English only); tokens in the theme: the v3 ones (`--color-*`, `--gradient-*`, `--font-*`,
 `--radius-*`) plus `--chat-*` for the chat-only colours, sizes, geometry and motion.
 
-Stubs and limits: the sheet and column media queries are repeated in the CSS modules; the
+Stubs and limits: the sheet media query is repeated in the CSS modules; the
 launcher's visible label is its accessible name (WCAG 2.5.3); its test id is still `chat-fab`.
 The toggle swaps the views by a crossfade: the orb's flight into the header (SPEC → Motion) is
 not built.

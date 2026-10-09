@@ -22,10 +22,10 @@ describe('ChatRoute dock', () => {
     expect(onDockChange.mock.calls).toEqual([['none'], ['none']]);
   });
 
-  it('reports the column in the same commit as the chat opens, before its effects run', async () => {
-    stubLayout('column');
+  it('reports the slide in the same commit as the chat opens, before its effects run', async () => {
+    stubLayout('slide');
     const user = userEvent.setup();
-    // The dock must be known before paint (the page's transition starts with the column's entry):
+    // The dock must be known before paint (the page's transition starts with the panel's entry):
     // when the panel's own effects run (it focuses the field), the dock is already `side`.
     let dockWhenFocused: string | undefined;
     let dock = 'none';

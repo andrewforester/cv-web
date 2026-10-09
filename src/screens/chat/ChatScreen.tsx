@@ -17,7 +17,7 @@ import type { FocusRequest } from './voice/VoiceUiState';
 
 /** Matches `--chat-motion-exit-duration` (the launcher's and the pill's close animation). */
 const EXIT_MS = 150;
-/** Matches `--chat-slide-exit-duration`: the longest exit of a frame (the column sliding out). */
+/** Matches `--chat-slide-exit-duration`: the longest exit of a frame (it closes with the page's slide). */
 const FRAME_EXIT_MS = 400;
 
 interface ChatScreenProps {
@@ -38,7 +38,7 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
   const callInputRef = useRef<HTMLTextAreaElement>(null);
   const { surface, voice } = state;
 
-  // A view swap hands the focus to the view that takes the column (the toggle stays the toggle; on
+  // A view swap hands the focus to the view that takes the panel (the toggle stays the toggle; on
   // a phone, typing in the call sheet opens the chat and goes on there). A request the next view
   // didn't take is dropped with the next surface change, so it never fires later.
   const focusRequest = useRef<FocusRequest | null>(null);
@@ -69,7 +69,7 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
   const pill = usePresence(surface === 'callPill' || state.endedPill, EXIT_MS);
   const launcher = surface === 'closed' && !state.endedPill;
   const launcherShown = usePresence(launcher, EXIT_MS);
-  // The first launcher is just there; once it has given way, it comes back after the column.
+  // The first launcher is just there; once it has given way, it comes back after the panel.
   const [returning, setReturning] = useState(false);
   if (!launcher && !returning) setReturning(true);
   const lastCall = state.entries.filter((entry) => entry.kind === 'call').at(-1);

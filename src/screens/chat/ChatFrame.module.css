@@ -1,7 +1,8 @@
 /*
- * Where the chat's frames sit (docs/design/voice/SPEC.md → Layout zones): the text chat and the
- * call panel share one place. Wide: the docked right column, full height (the shell reserves it);
- * medium: today's floating card. Each frame adds its own phone sheet. Imported after the card.
+ * Where the chat's frames sit (docs/voice/SYSTEM_DESIGN.md §4.3, ADR-0012): the text chat and the
+ * call panel share one floating panel bottom-right, never full height, at every width above the
+ * phone; from 1584 px the shell slides the page left beside it, below it floats over the page.
+ * Each frame adds its own phone sheet. Imported after the card.
  */
 .frame {
   position: fixed;
@@ -23,23 +24,7 @@
   animation: card-out var(--chat-motion-exit-duration) var(--chat-motion-easing) both;
 }
 
-/*
- * docs/design/voice/SPEC.md → Motion. The column slides in from beyond the right edge while the
- * shell narrows the page with the same timing, so it pushes the page; it leaves the same way.
- */
-@media (min-width: 1024px) and (min-height: 500px) {
-  .frame {
-    top: var(--space-4);
-    height: auto;
-    animation: column-in var(--chat-dock-duration) var(--chat-motion-easing) both;
-  }
-
-  .closing {
-    animation: column-out var(--chat-dock-exit-duration) var(--chat-motion-exit-easing) both;
-  }
-}
-
-/* A view swap inside the column (text ⇄ call ⇄ call chat): the frame stays, the views crossfade. */
+/* A view swap inside the panel (text ⇄ call ⇄ call chat): the frame stays, the views crossfade. */
 .frame.swapIn {
   animation: fade-in var(--chat-motion-duration) var(--chat-motion-easing) both;
 }
@@ -48,7 +33,7 @@
   animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
 }
 
-/* Minimize: the column folds toward the pill's corner. */
+/* Minimize: the panel folds toward the pill's corner. */
 .frame.closing.foldOut {
   animation: fold-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
 }
@@ -64,18 +49,6 @@
   to {
     opacity: 0;
     transform: translateY(var(--space-2)) scale(0.98);
-  }
-}
-
-@keyframes column-in {
-  from {
-    transform: translateX(calc(100% + var(--space-4)));
-  }
-}
-
-@keyframes column-out {
-  to {
-    transform: translateX(calc(100% + var(--space-4)));
   }
 }
 
