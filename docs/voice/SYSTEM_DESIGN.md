@@ -568,7 +568,7 @@ call (§4.4), and each sees what was said on the other channel.
 | Switch | Where | Default | Effect |
 |---|---|---|---|
 | `?voice=1` | URL, remembered in `localStorage` (`cv.voice` = `1`) | off | Shows the call button in the chat with the real client. `?voice=0` forgets it. |
-| `?voice=fake` | URL, this page load only | off | Call button with `FakeVoiceClient` (no microphone, no ElevenLabs): dev, e2e, web check screenshots. The endpoint is still called (mocked in e2e). |
+| `?voice=fake` | URL, this page load only; dev server and the e2e build (`npm run build:e2e`, `VITE_VOICE_FAKE=1`), ignored in a production build | off | Call button with `FakeVoiceClient` (no microphone, no ElevenLabs): dev, e2e, web check screenshots. The endpoint is still called (mocked in e2e). |
 | `?voice=demo` | URL, dev server only (ignored in a production build) | off | Call button with the endless scripted demo call of `npm run demo` (`demoVoiceScript.ts`; it also answers typed lines, §4.4). |
 | `VOICE_ENABLED` | Vercel env (Production, Preview), `.env.local` | unset = off | `true` lets the endpoint mint tokens; anything else is `503 unavailable` (the kill switch: set to `false` and redeploy). |
 | `VOICE_FAKE` | `.env.local` only, ignored on Vercel | unset | `1`: the endpoint skips ElevenLabs and returns `{ conversationToken: "fake" }` after the same guards. |

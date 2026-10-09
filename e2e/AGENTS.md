@@ -26,7 +26,7 @@ What it guarantees today:
 - Every selector of every damage layer (`src/screens/retro/layers/*.css`, read from disk) matches an
   element on the show's first frame (`retroLayers.spec.ts`), so editing the CV can't leave a layer
   styling nothing.
-- The voice call (`voice.spec.ts`): the scripted `FakeVoiceClient` (`?voice=fake`) with a mocked
+- The voice call (`voice.spec.ts`): the scripted `FakeVoiceClient` (`?voice=fake`, which only the `build:e2e` build honours) with a mocked
   `/api/voice-session`; the "Talk to my AI" pill opens the chat, its Call button starts the call
   in the floating panel (a bottom sheet on a phone), and its states (typing, the chat toggle, the
   pill, the transcript, reduced motion) are screenshotted against `docs/design/voice/` at the

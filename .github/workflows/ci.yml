@@ -115,7 +115,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Build
-        run: npm run build
+        run: npm run build:e2e
       - name: Install Chromium
         timeout-minutes: 5
         run: npx playwright install --with-deps chromium
