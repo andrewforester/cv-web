@@ -1,13 +1,16 @@
 # Voice agent: system design
 
-> A visitor of the one CV page (`/`, English, ADR-0006) can talk to the CV's AI. A round mic
-> button left of the "Ask my AI" pill starts a call in the chat's right column (a bottom sheet on
-> phones) while the CV stays readable beside it; the conversation runs on an **ElevenLabs agent**
-> (speech in and out, turn taking, its own LLM); the agent can use the page tools. Text and voice
-> are **one conversation**: every line of a call lands in the chat and reaches the text model with
-> the next question, and a call starts knowing the earlier chat. Hidden behind a flag. Decisions:
-> [ADR-0008](../adr/0008-voice-agent-elevenlabs.md),
-> [ADR-0009](../adr/0009-voice-panel-shared-conversation.md) (panel, one conversation); wire
+> A visitor of the one CV page (`/`, English, ADR-0006) can talk to the CV's AI. The "Talk to my
+> AI" pill opens the chat (the right column on wide screens, a sheet on phones); a phone-handset
+> button inside it starts a call there (a bottom sheet on phones) while the CV stays readable
+> beside it. The call runs on an **ElevenLabs agent** (speech in and out, turn taking, its own
+> LLM), which can use the page tools; the visitor can also type mid-call, and the agent answers
+> by voice. Text and voice are **one conversation**: every line of a call lands in the chat and
+> reaches the text model with the next question, and a call starts knowing the earlier chat.
+> Hidden behind a flag. Decisions: [ADR-0008](../adr/0008-voice-agent-elevenlabs.md),
+> [ADR-0009](../adr/0009-voice-panel-shared-conversation.md) (panel, one conversation),
+> [ADR-0010](../adr/0010-voice-panel-v2-typing-in-call-animated-dock.md) (typing during a call,
+> the animated page width); wire
 > contracts: [`API.md`](API.md), [`../chat/API.md`](../chat/API.md) → v4 `voiceCalls`; look and
 > copy: `docs/design/voice/`. Where this file and the code disagree, the code on `main` wins.
 
@@ -15,9 +18,9 @@
 
 | Kind | Requirement |
 |---|---|
-| Functional | Spoken Q&A about Andrew's professional profile, grounded only in the CV, in the visitor's language (auto-detected; the site stays English). Page tools by voice: `scrollToSection`, `highlightElement`, `openContact` (confirmed by a spoken yes or the on-screen button). Every final line of the call appears in the chat conversation, marked as voice; the text model sees it with the next question, and a call starts with the earlier conversation as context (§8). The call lives in the chat's right column on desktop (the page shifts left) and in a bottom sheet on phones; it folds into a pill (§4). |
+| Functional | Spoken Q&A about Andrew's professional profile, grounded only in the CV, in the visitor's language (auto-detected; the site stays English). Page tools by voice: `scrollToSection`, `highlightElement`, `openContact` (confirmed by a spoken yes or the on-screen button). Typing during a call goes to the agent, which answers by voice; after the call, typing goes to the text model again (§4.4). Every final line of the call (spoken or typed) appears in the chat conversation inside the call; the text model sees it with the next question, and a call starts with the earlier conversation as context (§8). The call starts from the open chat and lives in the chat's right column on desktop (the page narrows with an animation) and in a bottom sheet on phones; it folds into a pill (§4). |
 | Limits | At most **3 minutes per call** and **30 minutes per month** for all visitors together. |
-| Rollout | Off by default: a client flag shows the mic button, a server switch allows tokens. |
+| Rollout | Off by default: a client flag shows the call button, a server switch allows tokens. |
 | Security | The ElevenLabs API key never reaches the browser; only our endpoint can start a call; the visitor cannot change the agent's prompt, voice or tools. |
 | Platform | Vercel Hobby, stateless functions, no DB/KV (ADR-0001); one new npm dependency (`@elevenlabs/client`), loaded lazily. |
 | Testing | No test, e2e or CI job talks to ElevenLabs. |
@@ -27,11 +30,13 @@
 
 ```text
 Browser
-  src/app/            shell: reserves the chat's column or sheet (data-chat-dock) <- onDockChange
-  src/screens/chat/   mic button, call panel (orb), column / sheet / pill <- ChatUiState (surface)
-        | tap mic: requestMicrophone() -> create session -> start(token, handlers)
+  src/app/            shell: reserves (and animates) the chat's column or sheet (data-chat-dock)
+                      <- onDockChange
+  src/screens/chat/   launcher pill, chat with the call button, call panel (orb), column / sheet /
+                      pill <- ChatUiState (surface); Send -> /api/chat, or the call while live
+        | tap call: requestMicrophone() -> create session -> start(token, handlers)
   src/screens/chat/voice/useVoiceCall.ts  (state holder: call status, lines, timer, tools)
-        |                         ^ events: status, mode, line, correction, ended
+        | sendText, typing        ^ events: status, mode, line, correction, ended
         | VoiceSessionRepository  | VoiceClient (interface)
   src/data/voice/HttpVoiceSessionRepository.ts   src/data/voice/ElevenLabsVoiceClient.ts
         |  POST /api/voice-session                 |  lazy import('@elevenlabs/client')
@@ -64,13 +69,13 @@ stores nothing.
 |---|---|---|
 | Contract | `src/data/voice/contract.ts` | `API.md` types and constants, plus the earlier-conversation heading and limits (§8), framework-free, shared with `server/`. |
 | Data | `src/data/voice/VoiceClient.ts` | The interface below; no SDK types leak out of it. |
-| Data | `src/data/voice/ElevenLabsVoiceClient.ts` | The only importer of `@elevenlabs/client` (dynamic `import()`, so the SDK and `livekit-client` form a lazy chunk). Maps SDK callbacks to `VoiceCallEvent`s, registers one client tool per catalogue name, self-hosts the audio worklets (`workletPaths` with Vite `?url&no-inline` imports of `@elevenlabs/client/worklets/*`: a plain `?url` inlines these small files as `data:` URLs, which CSP `script-src 'self'` blocks). |
-| Data | `src/data/voice/FakeVoiceClient.ts` | Scripted calls for unit tests, e2e and `?voice=fake`: greeting, a visitor line, a tool call, an answer, an interruption correction, an end; no network, no microphone. |
+| Data | `src/data/voice/ElevenLabsVoiceClient.ts` | The only importer of `@elevenlabs/client` (dynamic `import()`, so the SDK and `livekit-client` form a lazy chunk). Maps SDK callbacks to `VoiceCallEvent`s, `sendText` to `sendUserMessage` and `typing` to `sendUserActivity`, drops a platform echo of a typed line (§4.4), registers one client tool per catalogue name, self-hosts the audio worklets (`workletPaths` with Vite `?url&no-inline` imports of `@elevenlabs/client/worklets/*`: a plain `?url` inlines these small files as `data:` URLs, which CSP `script-src 'self'` blocks). |
+| Data | `src/data/voice/FakeVoiceClient.ts` | Scripted calls for unit tests, e2e and `?voice=fake`: greeting, a visitor line, a tool call, an answer, an interruption correction, an end, and a scripted agent answer to each typed line; no network, no microphone. |
 | Data | `src/data/voice/HttpVoiceSessionRepository.ts` (+ context) | `POST /api/voice-session`; never throws: `{ ok: true, session } \| { ok: false, error }`, non-JSON platform errors mapped like `HttpChatRepository`. |
-| App | `src/app/voiceMode.ts`, `src/app/AppProviders.tsx` | Reads the flag (§9) and binds `ElevenLabsVoiceClient`, `FakeVoiceClient` or none (no mic button). |
-| Screen | `src/screens/chat/voice/` | `useVoiceCall` (state holder), the mic button, the call panel (orb, timer, controls, confirmation card, "Show chat", minimize), the pill, the earlier-conversation builder (§8), strings in the chat's `strings.ts`, test ids, tests. Lives in the chat screen because the transcript is the chat's conversation and screens may not import each other. |
-| Screen | `src/screens/chat/` (surface) | The chat's surface (`closed`, `text`, `call`, `callChat`, `callPill`) and the dock it reports to the shell (§4). |
-| App | `src/app/App.tsx`, `App.module.css` | Keeps the reported dock, sets `data-chat-dock` on `<html>`, reserves the column or the sheet's height (§4). |
+| App | `src/app/voiceMode.ts`, `src/app/AppProviders.tsx` | Reads the flag (§9) and binds `ElevenLabsVoiceClient`, `FakeVoiceClient` or none (no call button). |
+| Screen | `src/screens/chat/voice/` | `useVoiceCall` (state holder), the call button, the call panel (orb, timer, controls, confirmation card, the chat toggle, minimize), the pill, typing into the call (§4.4), the earlier-conversation builder (§8), strings in the chat's `strings.ts`, test ids, tests. Lives in the chat screen because the transcript is the chat's conversation and screens may not import each other. |
+| Screen | `src/screens/chat/` (surface) | The launcher pill, the chat's surface (`closed`, `text`, `call`, `callChat`, `callPill`), where Send goes (§4.4), and the dock it reports to the shell (§4.3). |
+| App | `src/app/App.tsx`, `App.module.css` | Keeps the reported dock, sets `data-chat-dock` on `<html>`, reserves the column or the sheet's height and animates the column's width; anchors the scroll where the browser can't (§4.3). |
 | Agent | `src/agent/` (unchanged) | Executes the agent's tool calls through the chat's executor. |
 | Entry | `api/voice-session.ts` | ~10 lines: build deps once per instance, call `handleVoiceSession`. |
 | Server | `server/voice/handler.ts`, `config.ts`, `log.ts` | The pipeline of §2; env read once; one log line per request. |
@@ -106,10 +111,15 @@ export interface VoiceCall {
   setMuted(muted: boolean): void;
   /** The SDK's contextual update, e.g. the 2:30 wrap-up hint (design: Orchestrator decision 3). */
   sendContextualUpdate(text: string): void;
+  /** A line the visitor typed mid-call, sent as their turn (`sendUserMessage`); the agent answers
+   *  by voice. No `line` event follows for it: the caller records it (§4.4). */
+  sendText(text: string): void;
+  /** The visitor is typing (`sendUserActivity`, throttled by the SDK to 1/s). */
+  typing(): void;
 }
 
 export interface VoiceClient {
-  /** Asks for the microphone (call from the mic tap); also starts fetching the SDK chunk. */
+  /** Asks for the microphone (call from the call button's tap); also starts fetching the SDK chunk. */
   requestMicrophone(): Promise<'granted' | 'denied'>;
   /** Connects with a fresh token; rejects if the connection fails, with no `ended` event
    *  after it: the caller ends the call as `error`. */
@@ -121,9 +131,11 @@ export interface VoiceClient {
 
 ### 4.1 Lifecycle
 
-1. The mic button is shown only when the flag is on (§9). Tap: `useVoiceCall` opens the call
-   panel in `connecting` (surface `call`, §4.2) and calls `requestMicrophone()`. Denied → the
-   "microphone blocked" state, nothing else happens.
+1. **One launcher.** The "Talk to my AI" pill opens the chat (surface `text`); no mic sits beside
+   it. With the flag on (§9), the chat shows the **call button** (phone handset; place and look:
+   `docs/design/voice/`). Tap: `useVoiceCall` opens the call panel in `connecting` (surface
+   `call`, §4.2) and calls `requestMicrophone()`. Denied → the "microphone blocked" state,
+   nothing else happens.
 2. `HttpVoiceSessionRepository.create()` → `POST /api/voice-session`. An error ends in the state
    for its code (`API.md` → Errors); no call starts.
 3. `VoiceClient.start(session, handlers)`: WebRTC connect with the token; the SDK's `onConnect`
@@ -132,94 +144,145 @@ export interface VoiceClient {
 4. During the call: `onModeChange` drives the orb (listening / speaking, loudness from
    `levels()`); every final `onMessage` (`role: 'user' | 'agent'`) becomes a `line`;
    `onAgentResponseCorrection` becomes a `correction`; client tool calls go to `onToolCall` (§7).
+   The visitor may also **type**: Send goes to the agent, which answers by voice (§4.4).
 5. The call ends when the visitor taps End (`reason: visitor`), the timer reaches 0
-   (`time_limit`; the state holder calls `end('time_limit')`, and the agent's own `max_duration_seconds: 180` ends
-   it on ElevenLabs' side anyway), the agent hangs up (`end_call` tool, silence timeout) or the
-   connection fails (`error`), or the visitor **types** in the chat (§4.2). The call stays in the
-   chat as an entry with its lines and how it ended; the column shows the text chat if anything
-   was said (§4.2 → after the call).
+   (`time_limit`; the state holder calls `end('time_limit')`, and the agent's own
+   `max_duration_seconds: 180` ends it on ElevenLabs' side anyway), the agent hangs up (`end_call`
+   tool, silence timeout) or the connection fails (`error`). Typing never ends it. The call stays
+   in the chat as an entry with its lines and how it ended; the column shows the text chat if
+   anything was said (§4.2 → after the call).
 6. Closing the tab or navigating away ends the WebRTC session; ElevenLabs bills to that moment.
 
-Only one call at a time: the mic button is disabled while a call is live, and the agent's
+Only one call at a time: the call button is disabled while a call is on, and the agent's
 `agent_concurrency_limit: 1` refuses a second session from another visitor (that start fails →
 `ended: error`, shown as "busy, try again in a few minutes").
 
 ### 4.2 Surfaces (who shows what)
 
-The chat screen's state holder (`useChatState`) owns one **surface**, replacing today's separate
-"panel open" and "voice mode open" flags. The call's own state (`connecting`, `live`, error
-cards, timer, mute) stays in `useVoiceCall`; the surface only says what the visitor sees.
+The chat screen's state holder (`useChatState`) owns one **surface**. The call's own state
+(`connecting`, `live`, error cards, timer, mute) stays in `useVoiceCall`; the surface only says
+what the visitor sees.
 
 | Surface | What is shown | Comes from |
 |---|---|---|
-| `closed` | The "Ask my AI" pill and the mic (today's launcher) | Close, a call that ends folded |
-| `text` | The text chat (column / card / sheet, §4.3) | The pill, `#ask`, a call that ends with lines, typing during a call |
-| `call` | The call panel: orb, latest line as a caption, timer, Mute, End, "Show chat", minimize, error and contact cards | The mic (from `closed` or `text`), "Hide chat", a tap on the pill |
-| `callChat` | The text chat with every line of the live call, under a compact call bar (small orb, timer, Mute, End, "Hide chat") | "Show chat" |
+| `closed` | The "Talk to my AI" pill (the only launcher) | Close, a call that ends folded |
+| `text` | The text chat (column / card / sheet, §4.3) with the call button when voice is on | The pill, `#ask`, a call that ends |
+| `call` | The call panel: orb, latest line as a caption, timer, Mute, End, the **chat toggle**, a way to type, minimize, error and contact cards | The call button, Try again / Call again, the toggle from `callChat`, a tap on the pill |
+| `callChat` | The chat with every line of the live call, under the call's header (mini orb, timer, the **chat toggle**, minimize) with Mute and End at hand; the composer is **active** (§4.4) | The toggle from `call`, the `call` view's way to type, `#ask` during a call |
 | `callPill` | A small pill with the orb and the timer, where the launcher is; the page is full width | Minimize (from `call` or `callChat`), on phones also the system Back |
 
 Rules:
 
-- **Read-only chat during a call.** In `callChat` the suggestions, commands, Try again and New
-  chat are hidden. How the composer looks meanwhile (kept with a hint, or replaced by a note with
-  a "type instead" control) is the design's call (`docs/design/voice/` → Decisions); the
-  behaviour is fixed here: the visitor's first move to type (a keystroke in the composer, or
-  that control) ends the call (`end('visitor')`), the surface becomes `text`, anything typed
-  stays, and Send works as usual: the question then carries the call's transcript (§8).
-- **After the call.** From `call` or `callChat`: `text` when the call has at least one line,
-  otherwise back to where the call was started (`closed` or `text`). From `callPill`: `closed`
-  (the visitor folded it away; the pill doesn't pop the column open), the call is in the chat
-  the next time it opens. Error cards (quota, busy, blocked mic …) show in the panel, so a call
-  that fails before going live keeps `call` until the visitor dismisses the card.
+- **One chat toggle.** Show chat and Hide chat are one control in one place, the same slot in
+  `call` and `callChat` (the design picks it), dispatching one action: `toggleChat` (`call` ⇄
+  `callChat`).
+- **Typing from the orb view.** The `call` view's way to type (the design's control) switches to
+  `callChat` and focuses the composer. There is one composer, the chat's.
+- **After the call.** From `call` or `callChat`: `text`. A call always starts from the open
+  chat, so a call with no lines returns there too. From `callPill`: `closed` (the visitor folded
+  it away; the pill doesn't pop the column open), the call is in the chat the next time it opens.
+  Error cards (quota, busy, blocked mic …) show in the panel, so a call that fails before going
+  live keeps `call` until the visitor dismisses the card; leaving the card lands in `text`.
 - **Visual tools.** The page is visible beside the column, above the bottom sheet and behind
-  the pill, so a scroll or a highlight needs no special mode (no fog, no "fog parts"). Only
-  `callChat` on a phone covers the page: there a visual action returns the surface to `call`
-  (the bottom sheet), as the text chat's sheet closes for a visual action today
-  (`../chat/AGENT.md` → Mobile sheet).
+  the pill, so a scroll or a highlight needs no special mode. Only `callChat` on a phone covers
+  the page: there a visual action returns the surface to `call` (the bottom sheet), as the text
+  chat's sheet closes for a visual action today (`../chat/AGENT.md` → Mobile sheet). Text the
+  visitor was typing stays in the composer.
 - **Esc** and the exact controls of each surface are the design's (`docs/design/voice/`).
 - New chat clears the conversation, so it is not offered during a call.
 
-### 4.3 Layout: dock, breakpoints, the shell
+### 4.3 Layout: dock, breakpoints, the shell, the animation
 
 The chat derives a **dock** from the surface and the viewport and reports it to the app shell;
-the shell reserves the space; the CV page (`src/screens/home/`) doesn't change: it has no fixed
-widths and no viewport media queries (auto-fit grids, `max-width`, `clamp()`), so it reflows into
-the narrower box (ADR-0009 → Decision 3).
+the shell reserves the space and animates the page into it; the CV page (`src/screens/home/`)
+doesn't change: it has no fixed widths and no viewport media queries (auto-fit grids,
+`max-width`, `clamp()`), so it reflows into the narrower box (ADR-0009 → Decision 3, ADR-0010 →
+Decision 2).
 
 | Viewport | `text` | `call` | `callChat` | `closed`, `callPill` |
 |---|---|---|---|---|
 | ≥ 1024 px wide and ≥ 500 px tall | column, dock `side` | column, `side` | column, `side` | `none` |
-| 600–1023 px wide, ≥ 500 px tall | floating card over the page (today's card), `none` | floating panel in the card's place, `none` | floating card, `none` | `none` |
-| ≤ 599 px wide or ≤ 499 px tall (`CHAT_SHEET_QUERY`) | full-screen sheet (today's), `none` | bottom sheet, dock `bottom` | full-screen sheet, `none` | `none` |
+| 600–1023 px wide, ≥ 500 px tall | floating card over the page, `none` | floating panel in the card's place, `none` | floating card, `none` | `none` |
+| ≤ 599 px wide or ≤ 499 px tall (`CHAT_SHEET_QUERY`) | full-screen sheet, `none` | bottom sheet, dock `bottom` | full-screen sheet, `none` | `none` |
 
 - **Contract between the shell and the chat** (one type, defined by its producer, the chat
   screen: `src/screens/chat/chatDock.ts`):
   ```ts
   export type ChatDock = 'none' | 'side' | 'bottom';
   export interface ChatRouteProps {
-    /** Called on mount and whenever the dock changes; `none` on unmount. */
+    /** Called on mount and whenever the dock changes, before paint; `none` on unmount. */
     onDockChange?: (dock: ChatDock) => void;
   }
   ```
   `useLazyChat` types its component as `ComponentType<ChatRouteProps>` (a type import; the chunk
   stays lazy). `App` keeps the dock in state and writes `document.documentElement.dataset.chatDock`.
-  When the show hides the chat, the chat unmounts and reports `none`.
+  Both sides use **`useLayoutEffect`** (the chat to report, the shell to write the attribute), so
+  the column's entry and the page's transition start on the same frame. The dock follows the
+  surface, not the column's presence: on close or minimize the page widens while the column
+  leaves. When the show hides the chat, the chat unmounts and reports `none`.
 - **Reserving space** (`src/app/App.module.css`, `:global(:root[data-chat-dock=…])`):
   `side` → `main` gets `padding-inline-end: var(--chat-dock-width)`; `bottom` → `main` gets
   `padding-block-end: var(--voice-sheet-height)` and the root `scroll-padding-bottom` of the same
-  value, so the agent's scroll and highlight land above the sheet. The page reflows at once (no
-  animated width: animating layout reflows the whole CV every frame); the column itself animates
-  in (design). Scroll position: browser scroll anchoring keeps the reader's place where
-  supported (§15).
+  value, so the agent's scroll and highlight land above the sheet.
+- **The animation** (ADR-0010 → Decision 2). `main` transitions `padding-inline-end`: opening
+  with `--chat-motion-duration` (on the `side` rule), closing with `--chat-motion-exit-duration`
+  (on the base rule), easing `--chat-motion-easing`; the column's own entry and exit use the same
+  tokens (or the dock tokens the design package names instead). `prefers-reduced-motion:
+  reduce`: no transition, the page reflows at once and the column is opacity-only. The bottom
+  dock and the floating card don't animate the page. Performance budget: the Scaffold ticket
+  traces open and close at 1280 × 800 with 4× CPU throttling; frames over 16 ms during the
+  transition → the transition rule goes and the page reflows at once (the ADR's fallback).
+- **Scroll position.** Browsers with CSS scroll anchoring (Chromium, Firefox) keep the reader's
+  place through the transition. Where `CSS.supports('overflow-anchor', 'auto')` is false
+  (Safari), a shell hook (`src/app/usePageAnchor.ts`) takes the element just below the top of
+  `main`'s visible box (`document.elementFromPoint`, plain DOM, nothing from home), and on each
+  animation frame until `transitionend` / `transitioncancel` on `main` (at most the duration +
+  50 ms) scrolls by its drift; wheel, touch or a key cancels it; under reduced motion it runs
+  once after the reflow.
 - **Tokens** (Theme, values from `docs/design/voice/`): `--chat-dock-width` (the column plus its
-  gutters: what the page gives up), `--voice-sheet-height`, the pill's size and the column's
-  geometry. The fog's tokens go when the fog components go.
+  gutters: what the page gives up), `--voice-sheet-height`, the pill's size, the column's
+  geometry and the motion tokens above.
 - **Page snapshot.** `AgentPageStateV4.chat` stays `'card' | 'sheet'`: the column counts as
   `card` (the page is visible beside the chat), so the contract doesn't change.
 - **Phone history.** Every open sheet owns one history entry, as the text sheet does today
   (`useChatHistoryEntry`), so the system Back never leaves the site mid-call: Back from the text
   sheet closes it; from `callChat` returns to `call`; from `call` folds it into `callPill` (the
   call goes on).
+
+### 4.4 Typing during a call (one composer, two destinations)
+
+ADR-0010 → Decision 1. The composer is the chat's only text input; where Send goes depends on the
+call's state **at the moment of sending**, decided in one place (the chat's state holder):
+
+| Call state | Composer | Send goes to |
+|---|---|---|
+| none (no call, or it ended or failed) | as the text chat | `/api/chat` (the question carries the calls since the last one in `voiceCalls`, §8) |
+| `connecting` | editable, Send disabled | — |
+| `live` | active; the placeholder is the design's mid-call copy | the agent: `VoiceCall.sendText(text)` |
+
+- **The typed line in the transcript.** On a live Send, the chat clears the field and appends
+  the text at once to the live call entry as a visitor line (`callLine`, id `typed-<n>`); the
+  agent's spoken answer arrives as an ordinary agent line. The screen model doesn't mark it as
+  typed (nor does the wire, §8). The SDK doesn't call `onMessage` for a sent `user_message`; in
+  case the platform echoes it as a `user_transcript`, `ElevenLabsVoiceClient` keeps the typed
+  texts it sent in the last 10 s and drops a visitor transcript that exactly matches the oldest
+  of them (trimmed), so the line never shows twice. The build ticket records on a real call
+  whether an echo comes.
+- **The agent and the typist.** While a call is live, input in the composer calls
+  `VoiceCall.typing()` (`sendUserActivity`, throttled by the SDK to once per second: it resets
+  the agent's turn timeout and holds it from speaking for a moment). The client never cuts the
+  agent's speech for a typed line; whether the platform does is recorded in the golden check
+  (§12). Mute affects only the microphone; typing works muted.
+- **The call ends while the visitor types.** The text stays in the field; the call's end shows
+  in the chat (its closing divider) and the next Send goes to `/api/chat`, with the call in
+  `voiceCalls`. The visitor sees which brain they talk to by the call's header and dividers.
+- **Limits.** A typed line is capped by the composer's `maxUserMessageChars` (1,000), the same
+  as `maxVoiceLineChars`. Typed call lines are call lines: they never count toward the 10
+  questions; the call's 3 minutes and the month's 30 bound them; they count toward the call's
+  4,000-char transcript cap when sent to `/api/chat` (the client keeps the last lines).
+- **Trust.** Typed text to the agent is visitor input, exactly as speech (§10): same prompt rules,
+  enum-only tools, `openContact` still waits for the visitor's yes (spoken or typed). The voice
+  prompt says typed turns are ordinary visitor turns (§6, rule 6).
 
 ## 5. Limits
 
