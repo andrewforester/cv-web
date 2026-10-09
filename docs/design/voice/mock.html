@@ -3,12 +3,13 @@
   Static mock of the voice call panel (docs/design/voice/SPEC.md). Not product code.
   Open directly in a browser. Query params:
     state = launcher | text | connecting | listening (default) | speaking | muted | typed | tool |
-            confirm | warning | chat | minimized | ended | error-denied | error-failed |
-            error-busy | error-ratelimited | error-dropped | error-callcap | error-monthly | offline
+            confirm | warning | chat | minimized | pill-connecting | streaming | ended |
+            error-denied | error-failed | error-busy | error-ratelimited | error-dropped |
+            error-callcap | error-monthly | offline
     play  = replay the morph (above the phone): the panel grows out of its pill (the launcher for
             the text chat, the call pill for the call states), the page slides with it at
             >= 1584 px; click anywhere to shrink it back into the pill / grow it again.
-            play=close starts open and shrinks it (minimize, for the call states).
+            play=close starts open and shrinks it (collapse; the call states fold into the pill).
     at    = with play: freeze the morph at this many ms (the filmstrips in render.sh)
   Layouts: one floating panel bottom-right at >= 600 px; at >= 1584 px wide the page slides left by
   half the dock width beside it, at 600-1583 px it floats over the unmoved page; phone below 600.
@@ -124,8 +125,11 @@
       .i-call {
         --src: url(assets/voice_icon_call.svg);
       }
-      .i-minimize {
-        --src: url(assets/voice_icon_minimize.svg);
+      .i-stop {
+        --src: url(../../../src/shared/chat/assets/chat_icon_stop.svg);
+      }
+      .i-collapse {
+        --src: url(assets/voice_icon_collapse.svg);
       }
 
       .caption {
@@ -707,6 +711,15 @@
         color: var(--color-on-accent);
         background: var(--gradient-brand-tile);
       }
+      /* The streaming caret (src/shared/chat/StreamingCaret). */
+      .caret {
+        display: inline-block;
+        width: 2px;
+        height: 18px;
+        margin-left: 2px;
+        vertical-align: -3px;
+        background: var(--color-dark-number);
+      }
 
       /* ---- Minimized: the call pill in the launcher's place ---- */
       .callpill {
@@ -961,16 +974,14 @@
           ? `<p class="sub caption warn" role="timer">${ring(sec)}<b>0:${String(180 - sec).padStart(2, '0')}</b> left</p>`
           : `<p class="sub caption" role="timer">${ring(sec)}<b>${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}</b> / 3:00</p>`;
 
-      const minimizeBtn = `<button type="button" class="icon-btn" aria-label="Minimize call" aria-expanded="true">${icon('minimize')}</button>`;
-      const closeBtn = `<button type="button" class="icon-btn" aria-label="Close voice chat">${icon('close')}</button>`;
-      const minimizeOff = minimizeBtn.replace(
-        'aria-expanded="true"',
-        'aria-expanded="true" disabled',
-      );
-      // Show chat / Hide chat: one toggle, the same place in both views (left of minimize).
+      // Collapse: the one control at the right end of every header (text, call, chat, cards).
+      const collapseBtn = (label = 'Collapse chat') =>
+        `<button type="button" class="icon-btn" aria-label="${label}" aria-expanded="true">${icon('collapse')}</button>`;
+      const collapseCall = collapseBtn('Collapse chat. The call goes on.');
+      // Show chat / Hide chat: one toggle, the same place in both views (left of collapse).
       const toggle = (open) =>
         `<button type="button" class="btn-secondary toggle">${open ? 'Hide chat' : 'Show chat'}</button>`;
-      const callHeader = (sub, actions = toggle(false) + minimizeBtn) =>
+      const callHeader = (sub, actions = toggle(false) + collapseCall) =>
         `<header class="header"><span class="badge" aria-hidden="true">${icon('sparkle')}</span><div class="titles"><h2 class="title">Voice call</h2>${sub}</div>${actions}</header>`;
 
       // The composer row. Text: [Call] + field. Call (both views): [End][Mute] + field, no disclaimer.
@@ -988,6 +999,12 @@
           ${field({ off: connecting, ...f })}
         </div></div>`;
       const textComposer = `<div class="composer"><div class="composer-row"><button type="button" class="ctl call" aria-label="Call my AI">${icon('call')}Call</button>${field({ text: '…or type instead' })}</div><p class="caption">Answers are AI-generated and may contain mistakes.</p></div>`;
+      // While an answer streams Send is Stop, and Call stays enabled (a tap stops the answer and
+      // hands the question to the call).
+      const streamingComposer = textComposer.replace(
+        /<button type="button" class="send"[^>]*>.*?<\/button>/,
+        `<button type="button" class="send on" aria-label="Stop">${icon('stop')}</button>`,
+      );
 
       const panel = (cls, header, stage, bottom = callBar()) =>
         `<aside class="frame ${cls}" aria-label="Voice call with Andrew’s AI">${header}<div class="stage">${stage}</div>${bottom}</aside>`;
@@ -995,7 +1012,7 @@
       const errorCard = (glyph, title, body, primary, secondary) =>
         `<div class="card err" role="alert"><div class="card-head"><span class="glyph">${icon(glyph)}</span><p class="card-title">${title}</p></div><p class="card-body">${body}</p><div class="card-buttons"><button type="button" class="btn-secondary btn-primary">${primary}</button><button type="button" class="btn-secondary">${secondary}</button></div></div>`;
       const errorPanel = (...card) =>
-        panel('error', callHeader('', closeBtn), `${orb()}${errorCard(...card)}`, '');
+        panel('error', callHeader('', collapseBtn()), `${orb()}${errorCard(...card)}`, '');
 
       // The conversation: a text exchange before the call, then the call's lines (one history).
       const visitor = (t) => `<li class="row visitor"><div class="bubble">${t}</div></li>`;
@@ -1022,7 +1039,7 @@
       // A typed line during the call: an ordinary visitor row of the call.
       const typedLine = visitor('Does he use Kotlin Multiplatform?');
 
-      const chatHeader = `<header class="header"><span class="badge" aria-hidden="true">${icon('sparkle')}</span><div class="titles"><h2 class="title">Ask about Andrew</h2><p class="caption">AI assistant · answers from this page</p></div>${closeBtn.replace('Close voice chat', 'Close chat')}</header>`;
+      const chatHeader = `<header class="header"><span class="badge" aria-hidden="true">${icon('sparkle')}</span><div class="titles"><h2 class="title">Ask about Andrew</h2><p class="caption">AI assistant · answers from this page</p></div>${collapseBtn()}</header>`;
 
       const states = {
         text: () =>
@@ -1030,7 +1047,7 @@
         connecting: () =>
           panel(
             'connecting',
-            callHeader('', toggle(false) + minimizeOff),
+            callHeader(''),
             `${orb()}<p class="status">Connecting…</p><p class="say visitor">Allow the microphone when your browser asks.</p><p class="privacy caption">Calls run on ElevenLabs. Voice and text share one history. AI can make mistakes.</p>`,
             callBar({ connecting: true }),
           ),
@@ -1080,14 +1097,19 @@
           ),
         chat: () =>
           `<aside class="frame chat-view speaking" aria-label="Voice call with Andrew’s AI">
-            <header class="header">${orb(true)}<div class="titles"><h2 class="title">Voice call</h2><p class="sub caption"><span class="live">Speaking</span> · <b>1:12</b></p></div>${toggle(true)}${minimizeBtn}</header>
+            <header class="header">${orb(true)}<div class="titles"><h2 class="title">Voice call</h2><p class="sub caption"><span class="live">Speaking</span> · <b>1:12</b></p></div>${toggle(true)}${collapseCall}</header>
             <ol class="list" aria-label="Conversation">${callLines}${typedLine}${assistant('Yes: he shipped a shared Kotlin Multiplatform core for the August Home apps.')}</ol>
             ${callBar({ focus: true })}
           </aside>`,
+        streaming: () =>
+          `<aside class="frame chat-view" aria-label="Ask about Andrew">${chatHeader}<ol class="list" aria-label="Conversation">${textLines}${visitor('What did he build at Transcenda?')}${assistant('At Transcenda Andrew led the mobile apps for three products: SpotOn<span class="caret" aria-hidden="true"></span>')}</ol>${streamingComposer}</aside>`,
         ended: () =>
           `<aside class="frame chat-view" aria-label="Ask about Andrew">${chatHeader}<ol class="list" aria-label="Conversation">${callLines}${divider('Call ended · 1:24')}</ol>${textComposer}</aside>`,
         minimized: () =>
           `<div class="callpill listening" role="group" aria-label="Voice call"><button type="button" class="expand" aria-label="Open the call panel" aria-expanded="false">${orb(true)}<span class="state">Listening</span><span class="time">0:42</span></button><button type="button" class="hang" aria-label="End call">${icon('end')}</button></div>`,
+        // Collapsed while connecting: no time yet; End cancels the attempt.
+        'pill-connecting': () =>
+          `<div class="callpill connecting" role="group" aria-label="Voice call"><button type="button" class="expand" aria-label="Open the call panel" aria-expanded="false">${orb(true)}<span class="state">Connecting…</span></button><button type="button" class="hang" aria-label="End call">${icon('end')}</button></div>`,
         launcher: () =>
           `<div class="launcher"><button type="button" class="pill"><span class="badge" aria-hidden="true">${icon('sparkle')}</span>Talk to my AI</button></div>`,
         'error-denied': () =>
@@ -1158,7 +1180,7 @@
 
       // The page behind. Slide: shifted left while the panel is open (not for the launcher and
       // the pill); overlay and phone: never moves.
-      const open = !['launcher', 'minimized'].includes(state);
+      const open = !['launcher', 'minimized', 'pill-connecting'].includes(state);
       const backdrop = `${state === 'tool' ? 'tool' : 'top'}_${form}`;
       const body = document.body;
       const app = document.getElementById('app');

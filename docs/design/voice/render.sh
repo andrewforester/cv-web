@@ -44,8 +44,8 @@ mobile() { # <out.png> <state>
 }
 
 desktop screenshot.png listening
-for s in launcher text connecting listening speaking muted typed tool confirm warning chat minimized ended \
-  error-denied error-failed error-busy error-ratelimited error-dropped error-callcap error-monthly offline; do
+for s in launcher text streaming connecting listening speaking muted typed tool confirm warning chat \
+  minimized pill-connecting ended error-denied error-failed error-busy error-ratelimited error-dropped error-callcap error-monthly offline; do
   desktop "assets/voice_state_${s}_desktop.png" "$s"
   mobile "assets/voice_state_${s}_mobile.png" "$s"
 done
