@@ -1,11 +1,11 @@
 # docs/voice
 
 Why it exists: the design record of the voice agent. A visitor of the one CV page opens the
-chat with the "Talk to my AI" pill and taps its call button to talk to the CV's AI in the chat's
-right column (the CV card keeps its width and slides left; where there is no room beside the
-card, a floating card over the page; a bottom sheet on phones; it folds into a pill): an
-ElevenLabs agent answers by voice from the CV, in the visitor's language, and can scroll,
-highlight and open a contact on the page. The visitor can also type mid-call; the agent answers
+chat with the "Talk to my AI" pill, which grows into a floating panel bottom-right (on wide
+screens the CV card keeps its width and slides left beside it; elsewhere the panel floats over
+the page; a bottom sheet on phones), and taps its call button to talk to the CV's AI there (the
+call folds back into a pill): an ElevenLabs agent answers by voice from the CV, in the
+visitor's language, and can scroll, highlight and open a contact on the page. The visitor can also type mid-call; the agent answers
 aloud. Text and voice are one conversation: every line of the call lands in the chat and
 reaches the text model with the next question, and a call starts knowing the earlier chat. At
 most 3 minutes per call and 30 minutes a month in total; hidden behind a flag and a server kill
@@ -13,8 +13,8 @@ switch.
 
 What to read for what:
 - [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md): the flow (browser → our session endpoint → ElevenLabs
-  token → WebRTC call), pieces and layers, the panel's surfaces, slide vs overlay and
-  typing during a call (§4), limits, flag, prompt and agent sync, client tools, one
+  token → WebRTC call), pieces and layers, the panel's surfaces, slide vs overlay, the morph
+  and typing during a call (§4), limits, flag, prompt and agent sync, client tools, one
   conversation across text and voice (§8), testing, the ElevenLabs agent checklist and env, and
   the build split.
 - [`API.md`](API.md): the wire contract of `POST /api/voice-session` (code mirror:
@@ -23,12 +23,14 @@ What to read for what:
   the cap is counted from ElevenLabs' conversation list, why the agent config is synced by the
   production function, and the cost of two prompts.
 - [ADR-0009](../adr/0009-voice-panel-shared-conversation.md): why the call lives in the chat's
-  column, why the chat reports a dock and the shell reserves the space, and how each brain gets
+  panel, why the chat reports a dock and the shell reserves the space, and how each brain gets
   the other channel's lines.
 - [ADR-0010](../adr/0010-voice-panel-v2-typing-in-call-animated-dock.md): why typing during a
   call goes to the voice agent (`sendUserMessage`).
 - [ADR-0011](../adr/0011-voice-panel-v3-card-slides-or-chat-overlays.md): why the CV card slides
-  left with a transform instead of narrowing, and why the column docks only from 1584 px.
+  left with a transform instead of narrowing, and why only from 1584 px.
+- [ADR-0012](../adr/0012-voice-panel-v3-morph-from-the-pill.md): why the panel floats (not full
+  height) at every width above the phone and morphs out of the pill with a clip-path.
 - The look and copy: `docs/design/voice/`. The text chat it joins: `docs/chat/` (`API.md` →
   Voice calls in the history).
 
@@ -36,7 +38,8 @@ Domain terms: *call* (one voice session, ≤ 180 s), *session endpoint* (mints t
 sync* (the production function writes the agent's prompt and tools from the code), *voice call
 entry* (a call as it appears in the chat), *surface* (what the chat shows: closed, text, call,
 call with chat, pill), *chat toggle* (Show chat / Hide chat, one control), *dock* (the room the
-shell makes for it: none, side (the page slides left), bottom), *typed call line* (a line typed
+shell makes for it: none, side (the page slides left), bottom), *morph* (the pill growing into
+the panel and the panel shrinking back into a pill), *typed call line* (a line typed
 mid-call: it goes to the agent and joins the call's transcript), *earlier conversation* (the
 contextual update a call starts with).
 
