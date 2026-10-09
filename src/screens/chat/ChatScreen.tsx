@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useStrings } from '../../i18n';
 import chat from '../../shared/chat/chat.module.css';
 import { ChatLauncher } from './ChatLauncher';
@@ -10,6 +10,7 @@ import { chatStrings } from './strings';
 import { chatTestIds } from './testIds';
 import { usePresence } from './usePresence';
 import { callEndText } from './voice/callEndText';
+import { VoiceCallComposer } from './voice/VoiceCallComposer';
 import { VoiceCallPill } from './voice/VoiceCallPill';
 import { VoicePanel } from './voice/VoicePanel';
 
@@ -32,6 +33,18 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
   const fabRef = useRef<HTMLButtonElement>(null);
   const micRef = useRef<HTMLButtonElement>(null);
   const focusFabOnClose = useRef(false);
+  const callInputRef = useRef<HTMLTextAreaElement>(null);
+  // On a phone, typing in the call sheet opens the chat (room for the keyboard) and goes on there.
+  const typeInChat = useRef(false);
+  const takeFocusRequest = useCallback(() => {
+    const requested = typeInChat.current;
+    typeInChat.current = false;
+    return requested;
+  }, []);
+  const typeInSheet = () => {
+    typeInChat.current = true;
+    actions.voice.showChat();
+  };
   const { surface, voice } = state;
   const panel = usePresence(surface === 'text' || surface === 'callChat', EXIT_MS);
   const callPanel = usePresence(surface === 'call', EXIT_MS);
@@ -84,10 +97,24 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
           actions={actions}
           closing={panel.closing}
           onKeyboardClose={closeAndFocusFab}
+          takeFocusRequest={takeFocusRequest}
         />
       )}
       {voice && callPanel.mounted && (
-        <VoicePanel state={voice} actions={actions.voice} closing={callPanel.closing} />
+        <VoicePanel
+          state={voice}
+          actions={actions.voice}
+          closing={callPanel.closing}
+          composer={
+            <VoiceCallComposer
+              state={state}
+              call={voice}
+              actions={actions}
+              inputRef={callInputRef}
+              onFocus={state.layout === 'sheet' ? typeInSheet : undefined}
+            />
+          }
+        />
       )}
       {voice && pill.mounted && (
         <VoiceCallPill

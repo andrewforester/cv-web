@@ -84,7 +84,12 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
   const question = input.trim();
   const conversationFull = exceedsConversationLimits(entries, question);
   const blocked = busy || !online || conversationFull;
-  const canSend = question !== '' && !tooLong(input) && !blocked;
+  // Where Send goes is decided by the call at the moment of sending (§4.4): a live call takes the
+  // line (never a question, so the chat's limits don't block it); while it connects, nothing does.
+  const callStatus = voice.state?.status;
+  const toCall = callStatus === 'live';
+  const destinationOpen = toCall || (callStatus !== 'connecting' && !blocked);
+  const canSend = question !== '' && !tooLong(input) && destinationOpen;
 
   const actions: ChatActions = {
     open,
@@ -92,11 +97,14 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
     dismissHint: markSeen,
     changeInput: (value) => {
       if (tooLong(value) && !tooLong(input)) announce({ kind: 'tooLong' });
+      if (toCall) voice.actions.typing();
       setInput(value);
     },
     send: () => {
       if (!canSend) return;
-      conversation.ask(question);
+      if (!toCall) conversation.ask(question);
+      // The call may have ended since this render: then the text stays for the next Send.
+      else if (!voice.actions.sendText(question)) return;
       setInput('');
     },
     ask: (suggestion) => {

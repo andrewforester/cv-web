@@ -27,7 +27,7 @@ describe('call surfaces', () => {
     history.replaceState(null, '', '/');
   });
 
-  it('Show chat opens the read-only chat with the call’s lines; Hide chat goes back', async () => {
+  it('Show chat opens the chat with the call’s lines and the call composer; Hide chat goes back', async () => {
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client });
     await liveCall(user, client);
@@ -37,10 +37,13 @@ describe('call surfaces', () => {
     expect(surface()).toBe('callChat');
     const chat = screen.getByTestId(chatTestIds.panel);
     expect(within(chat).getByText('Hello?')).toBeInTheDocument();
-    expect(within(chat).getByTestId(chatTestIds.voiceCallbar)).toHaveTextContent(
-      'Read-only during the call. End it to type.',
-    );
-    expect(within(chat).queryByTestId(chatTestIds.input)).not.toBeInTheDocument();
+    const input = within(chat).getByTestId(chatTestIds.input);
+    expect(input).toBeEnabled();
+    expect(input).toHaveAttribute('placeholder', 'Type a message…');
+    expect(input).toHaveAccessibleName('Message to the call. The AI answers by voice.');
+    expect(within(chat).getByTestId(chatTestIds.voiceEnd)).toHaveAccessibleName('End call');
+    expect(within(chat).getByTestId(chatTestIds.voiceMute)).toBeEnabled();
+    expect(within(chat).queryByTestId(chatTestIds.meta)).not.toBeInTheDocument();
     expect(within(chat).queryByTestId(chatTestIds.suggestion)).not.toBeInTheDocument();
 
     await user.click(screen.getByTestId(chatTestIds.voiceHideChat));
@@ -48,7 +51,7 @@ describe('call surfaces', () => {
     expect(await screen.findByTestId(chatTestIds.voicePanel)).toHaveFocus();
   });
 
-  it('End in the call bar lands in the text chat with the typed text kept and focused', async () => {
+  it('End in the chat during the call lands in the text chat with the draft kept and focused', async () => {
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client });
     await user.click(screen.getByTestId(chatTestIds.fab));
@@ -56,7 +59,9 @@ describe('call surfaces', () => {
     await liveCall(user, client, chatTestIds.voiceComposerMic);
     client.emit(LINE);
     await user.click(screen.getByTestId(chatTestIds.voiceShowChat));
-    await user.click(screen.getByTestId(chatTestIds.voiceCallbarEnd));
+    await user.click(
+      within(screen.getByTestId(chatTestIds.panel)).getByTestId(chatTestIds.voiceEnd),
+    );
 
     expect(client.call?.ended).toBe('visitor');
     expect(surface()).toBe('text');

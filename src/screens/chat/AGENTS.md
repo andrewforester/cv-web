@@ -6,7 +6,9 @@ and gets answers streamed from the page's content. Suggested questions help star
 also act on the page: "show his selected impact" scrolls there, "highlight his work at Transcenda" marks
 the job, and opening a contact asks for confirmation first. A link to `#ask` anywhere on the site
 opens it too. With the voice flag on, a mic beside the pill (and in the composer) starts a voice
-call (`voice/`, its own `AGENTS.md`) whose transcript lands in the same conversation. Behaviour:
+call (`voice/`, its own `AGENTS.md`) whose transcript lands in the same conversation; during the
+call the composer stays and writes to the call (the agent answers by voice), and after it the
+same field asks the text model again (docs/voice/SYSTEM_DESIGN.md §4.4). Behaviour:
 `docs/design/chat/SPEC.md` (with "Orchestrator decisions"); look:
 `docs/design/v3/SPEC.md` → Decision 6 (the pill; the panel in the loop panel's dark colours); API:
 `docs/chat/API.md` → v4; page agent: `docs/chat/AGENT.md`; copy and labels: ADR-0006 → Decision 3.

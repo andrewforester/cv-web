@@ -8,8 +8,6 @@ interface VoiceMuteButtonProps {
   muted: boolean;
   /** Off until the call is live. */
   disabled: boolean;
-  /** 44 px in the call bar, 56 in the panel. */
-  small?: boolean;
   testId: string;
   onToggle: () => void;
 }
@@ -19,12 +17,11 @@ export function VoiceMuteButton({
   className,
   muted,
   disabled,
-  small = false,
   testId,
   onToggle,
 }: VoiceMuteButtonProps) {
   const strings = useStrings(chatStrings);
-  const classes = [styles.control, styles.round, small && styles.small, className];
+  const classes = [styles.control, styles.round, className];
   return (
     <button
       type="button"

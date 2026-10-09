@@ -19,7 +19,7 @@ interface VoicePanelHeaderProps {
 
 /**
  * The call panel's header (the chat card header's anatomy): badge, "Voice call" over the timer,
- * then minimize (off while connecting), or close (×) on a card.
+ * then Show chat and minimize (off while connecting), or close (×) on a card.
  */
 export function VoicePanelHeader({ className, state, actions }: VoicePanelHeaderProps) {
   const strings = useStrings(chatStrings);
@@ -44,7 +44,17 @@ export function VoicePanelHeader({ className, state, actions }: VoicePanelHeader
           <ChatIcon name="close" />
         </button>
       ) : (
-        <VoiceMinimizeButton disabled={state.status !== 'live'} onMinimize={actions.minimize} />
+        <>
+          <button
+            type="button"
+            className={chat.secondaryButton}
+            data-testid={chatTestIds.voiceShowChat}
+            onClick={actions.showChat}
+          >
+            {strings.voiceShowChat}
+          </button>
+          <VoiceMinimizeButton disabled={state.status !== 'live'} onMinimize={actions.minimize} />
+        </>
       )}
     </header>
   );

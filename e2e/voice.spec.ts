@@ -89,7 +89,7 @@ for (const { name, size } of viewports) {
   test.describe(`voice call (${name})`, () => {
     test.use({ viewport: size });
 
-    test('a scripted call: the panel, a page tool, the chat during the call, the pill, the transcript', async ({
+    test('a scripted call: the panel, a page tool, typing, the chat during the call, the pill, the transcript', async ({
       page,
     }) => {
       const errors = collectErrors(page);
@@ -159,17 +159,44 @@ for (const { name, size } of viewports) {
       await scrollSettled(page);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-tool-${name}.png` });
 
-      // the answer, then Show chat: every line so far, read-only (the call bar, no field)
+      // the answer; then a line typed mid-call goes to the agent, never to /api/chat
       await steps(page, 1);
-      await voice.getByTestId('chat-voice-show-chat').click();
       const chat = page.getByTestId('chat-panel');
-      await expect(chat).toBeVisible();
       const list = chat.getByTestId('chat-list');
+      const typed = 'Does he know Kotlin?';
+      if (name === 'desktop') {
+        // In the call view: the sent line is the caption, the next one a draft in the field.
+        const field = voice.getByTestId('chat-input');
+        await field.fill(typed);
+        await field.press('Enter');
+        await expect(voice.getByTestId('chat-voice-caption')).toHaveText(typed);
+        await field.fill('And Swift?');
+        await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-typed-${name}.png` });
+        await voice.getByTestId('chat-voice-show-chat').click();
+        // One draft for both views.
+        await expect(chat.getByTestId('chat-input')).toHaveValue('And Swift?');
+        await chat.getByTestId('chat-input').fill('');
+      } else {
+        await voice.getByTestId('chat-voice-show-chat').click();
+        await chat.getByTestId('chat-input').fill(typed);
+        await chat.getByTestId('chat-input').press('Enter');
+      }
+      // Show chat: every line so far, spoken and typed, and the call composer
+      await expect(chat).toBeVisible();
       await expect(list.getByTestId('chat-visitor-message')).toHaveText([
         /Show me his selected impact\./,
+        /Does he know Kotlin\?/,
       ]);
-      await expect(chat.getByTestId('chat-voice-callbar')).toBeVisible();
-      await expect(chat.getByTestId('chat-input')).toHaveCount(0);
+      await expect(chat.getByTestId('chat-input')).toHaveAttribute(
+        'placeholder',
+        'Type a message…',
+      );
+      // listening, then the agent's spoken answer to the typed line
+      await steps(page, 3);
+      await expect(list.getByTestId('chat-assistant-message').last()).toContainText(
+        'You typed: “Does he know Kotlin?”',
+      );
+      expect(chatRequests).toHaveLength(0);
       await settle(chat);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-chat-${name}.png` });
 
@@ -195,7 +222,7 @@ for (const { name, size } of viewports) {
       // Desktop folded the chat view (it unfolds to it), the phone the call sheet.
       const end =
         name === 'desktop'
-          ? chat.getByTestId('chat-voice-callbar-end')
+          ? chat.getByTestId('chat-voice-end')
           : voice.getByTestId('chat-voice-end');
       await end.click();
       await expect(chat).toBeVisible();
@@ -205,6 +232,7 @@ for (const { name, size } of viewports) {
       await expect(list.getByTestId('chat-assistant-message')).toHaveText([
         /voice assistant/,
         /Here is his selected impact/,
+        /You typed/,
       ]);
       await expect(list.getByTestId('chat-action-chip')).toHaveText('Scrolled to Selected impact');
       await settle(chat);
@@ -217,7 +245,9 @@ for (const { name, size } of viewports) {
         'From the call, yes.',
       );
       const [request] = chatRequests as { messages: { voiceCalls?: { lines: unknown[] }[] }[] }[];
-      expect(request?.messages.at(-1)?.voiceCalls?.[0]?.lines).toHaveLength(3);
+      const lines = request?.messages.at(-1)?.voiceCalls?.[0]?.lines;
+      expect(lines).toHaveLength(5);
+      expect(lines).toContainEqual({ role: 'visitor', text: typed });
       expect(errors).toEqual([]);
     });
 

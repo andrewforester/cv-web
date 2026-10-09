@@ -6,8 +6,17 @@
   border-top: var(--border-card) solid var(--color-dark-line);
 }
 
+/* The field, with the call's End and Mute (or later Call) left of it, bottom-aligned as it grows. */
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
 /* 5 px inside a 1 px border puts the 44 px Send 6 px from the edge; the text starts at 16 px. */
 .field {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: flex-end;
   gap: var(--space-2);
@@ -24,6 +33,11 @@
 .field:focus-within {
   border-color: var(--color-dark-number);
   box-shadow: 0 0 0 var(--border-card) var(--color-dark-number);
+}
+
+/* A call still connecting: the agent can't take text yet (docs/design/voice/SPEC.md → Layout 2). */
+.disabled {
+  opacity: 0.5;
 }
 
 .invalid,

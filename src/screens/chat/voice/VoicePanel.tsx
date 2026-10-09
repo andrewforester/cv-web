@@ -1,11 +1,10 @@
-import { useEffect, useRef, type KeyboardEvent } from 'react';
+import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { useStrings } from '../../../i18n';
 import card from '../../../shared/chat/ChatCard.module.css';
 import column from '../ChatColumn.module.css';
 import { chatStrings } from '../strings';
 import { chatTestIds, VOICE_PANEL_ID } from '../testIds';
 import { useVoiceLevel } from './useVoiceLevel';
-import { VoiceControls } from './VoiceControls';
 import type { VoiceErrorButton } from './voiceErrorCards';
 import styles from './VoicePanel.module.css';
 import { VoicePanelHeader } from './VoicePanelHeader';
@@ -18,14 +17,17 @@ interface VoicePanelProps {
   actions: VoiceActions;
   /** Playing the close animation: no input. */
   closing: boolean;
+  /** The call composer (End, Mute, the field), shared with the chat during the call. */
+  composer: ReactNode;
 }
 
 /**
  * The call panel (docs/design/voice/SPEC.md → Layout 2): the chat's dark card in the right
  * column (a floating card on medium screens, a bottom sheet on phones) with the orb, the live
- * caption, the controls, and a card for a contact or an error. Not modal: the page stays live.
+ * caption, the call composer, and a card for a contact or an error. Not modal: the page stays
+ * live. Esc anywhere inside (the field too) minimizes.
  */
-export function VoicePanel({ className, state, actions, closing }: VoicePanelProps) {
+export function VoicePanel({ className, state, actions, closing, composer }: VoicePanelProps) {
   const strings = useStrings(chatStrings);
   const panelRef = useRef<HTMLElement>(null);
   useVoiceLevel(panelRef, actions.level);
@@ -66,7 +68,7 @@ export function VoicePanel({ className, state, actions, closing }: VoicePanelPro
     >
       <VoicePanelHeader state={state} actions={actions} />
       <VoiceStage state={state} actions={actions} onErrorButton={onErrorButton} />
-      {state.status !== 'error' && <VoiceControls state={state} actions={actions} />}
+      {state.status !== 'error' && composer}
     </aside>
   );
 }
