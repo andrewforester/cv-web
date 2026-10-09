@@ -184,7 +184,10 @@ test.describe('chat on a phone: the bottom sheet', () => {
     // The call's sheet (docs/design/voice/SPEC.md → Layout 5): full width, 472 px, at the bottom.
     const box = await chat.boundingBox();
     expect(box && [box.x, box.y, box.width, box.height].map(Math.round)).toEqual([
-      0, 844 - 472, 390, 472,
+      0,
+      844 - 472,
+      390,
+      472,
     ]);
     // The page above it still scrolls.
     await page.mouse.wheel(0, 600);
