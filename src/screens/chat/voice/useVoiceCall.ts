@@ -40,8 +40,8 @@ interface VoiceCallOptions {
   entries: readonly ChatEntry[];
   /** The attempt is over (with its card, if it has one). */
   onEnded: (outcome: CallOutcome) => void;
-  /** The call needs its panel on screen: a contact card waits for a tap, or a visual tool ran. */
-  onNeedsPanel: (reason: 'contact' | 'visual') => void;
+  /** The call needs its panel on screen: a contact card waits for a tap. */
+  onNeedsPanel: () => void;
 }
 
 /**
@@ -71,10 +71,7 @@ export function useVoiceCall({ record, entries, onEnded, onNeedsPanel }: VoiceCa
   useEffect(() => {
     surface.current = { onEnded, onNeedsPanel };
   });
-  const needsPanel = useCallback(
-    (reason: 'contact' | 'visual') => surface.current.onNeedsPanel(reason),
-    [],
-  );
+  const needsPanel = useCallback(() => surface.current.onNeedsPanel(), []);
   const tools = useVoiceTools({ record, dispatch, announce, needsPanel });
   const brief = useCallBriefing(entries);
   const typed = useCallTyping({ record, dispatch });

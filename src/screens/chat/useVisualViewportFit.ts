@@ -1,10 +1,12 @@
 import { useEffect, type RefObject } from 'react';
 
 /**
- * Fits the full-screen sheet to the visible area while the on-screen keyboard is open: Chrome
+ * Keeps the phone's bottom sheet on the visible area while the on-screen keyboard is open: Chrome
  * Android (without `interactive-widget=resizes-content`) and iOS Safari only shrink the visual
- * viewport, so `100dvh` would leave the top of the sheet off-screen. Writes `--chat-vv-height` and
- * `--chat-vv-top` on the dialog (CSS falls back to `100dvh` / `0`); does nothing when not a sheet.
+ * viewport, so a sheet at the layout viewport's bottom would sit behind the keyboard. Writes
+ * `--chat-vv-height` and `--chat-vv-top` on the panel (CSS falls back to `100dvh` / `0`): the
+ * sheet ends at the visual viewport's bottom and is capped to its height. Does nothing when not a
+ * sheet.
  */
 export function useVisualViewportFit(dialogRef: RefObject<HTMLElement | null>, sheet: boolean) {
   useEffect(() => {

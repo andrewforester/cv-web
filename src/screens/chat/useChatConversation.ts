@@ -18,7 +18,7 @@ import { conversationReducer, isBusy, textTurns, type ConversationAction } from 
 import { buildMessages, retryMessages } from './conversationRequests';
 import { loadPageContent } from './pageContent';
 import { useConfirmationDecisions } from './useConfirmationDecisions';
-import { runToolCalls, VISUAL_TOOLS } from './runToolCalls';
+import { runToolCalls } from './runToolCalls';
 import { chatStrings } from './strings';
 
 export interface Conversation {
@@ -39,9 +39,8 @@ export interface Conversation {
 
 interface ConversationOptions {
   announce: (announcement: ChatAnnouncementInput) => void;
-  /** The chat is the full-screen sheet: visual page actions close it (the conversation stays). */
+  /** The chat is the phone's bottom sheet (the page snapshot says so). */
   sheet: boolean;
-  closeSheet: () => void;
 }
 
 const streamEndedEarly: ChatError = {
@@ -63,11 +62,7 @@ const tooManyRounds: ChatError = {
  * retry re-sends the finished rounds and never runs their tools again. A running turn keeps going
  * while the panel is closed; unmount aborts it.
  */
-export function useChatConversation({
-  announce,
-  sheet,
-  closeSheet,
-}: ConversationOptions): Conversation {
+export function useChatConversation({ announce, sheet }: ConversationOptions): Conversation {
   const repository = useChatRepository();
   const cvPageRepository = useCvPageRepository();
   const executor = useAgentExecutor();
@@ -78,11 +73,6 @@ export function useChatConversation({
   const nextId = useRef(0);
   const commandsAvailable = executor.available().length > 0;
 
-  // The async loop outlives renders: it reads what changed (sheet layout, callbacks) from here.
-  const latest = useRef({ sheet, closeSheet });
-  useEffect(() => {
-    latest.current = { sheet, closeSheet };
-  });
   useEffect(() => () => controller.current?.abort(), []);
 
   const pageState = useCallback((): AgentPageStateV4 => {
@@ -162,12 +152,6 @@ export function useChatConversation({
             },
             { role: 'user', toolResults: results },
           );
-          if (
-            latest.current.sheet &&
-            calls.some((call, i) => VISUAL_TOOLS.includes(call.name) && results[i]?.result.ok)
-          ) {
-            latest.current.closeSheet();
-          }
           dispatch({ type: 'resume', id });
           announce({ kind: 'typing' });
         }

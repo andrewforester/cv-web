@@ -10,12 +10,23 @@
   transform: translateX(calc(var(--chat-dock-width) / -2));
 }
 
+/* The phone's bottom sheet (every chat view there): scroll targets land above it. */
 :global(:root[data-chat-dock='bottom']) {
   scroll-padding-bottom: var(--voice-sheet-height);
 }
 
 :global(:root[data-chat-dock='bottom']) .main {
   padding-block-end: var(--voice-sheet-height);
+}
+
+@media (max-height: 499px) {
+  :global(:root[data-chat-dock='bottom']) {
+    scroll-padding-bottom: var(--voice-sheet-height-short);
+  }
+
+  :global(:root[data-chat-dock='bottom']) .main {
+    padding-block-end: var(--voice-sheet-height-short);
+  }
 }
 
 /* Closing on the base rule, opening on the side rule, timed with the panel's morph

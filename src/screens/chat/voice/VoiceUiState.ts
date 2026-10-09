@@ -58,9 +58,9 @@ export interface VoiceUiState {
 
 /**
  * Where the focus goes in the view that takes the panel after a swap: the chat toggle stays the
- * toggle (same place, new label), the field stays the field (typing began in the phone's sheet).
+ * toggle (same place, new label).
  */
-export type FocusRequest = 'toggle' | 'field';
+export type FocusRequest = 'toggle';
 
 /** What the call itself does (`useVoiceCall`). */
 export interface VoiceCallActions {
@@ -90,6 +90,6 @@ export interface VoiceActions extends VoiceCallActions {
   toggleChat(): void;
   /** The pill's main button: the panel opens again in the view it had. */
   expand(): void;
-  /** A card's way out: `chat` (Type instead, Open chat) or `back` (Close, the phone's Back). */
+  /** A card's way out: `chat` (Type instead, Open chat) or `back` (Close). */
   leaveCard(to: 'chat' | 'back'): void;
 }

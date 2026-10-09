@@ -146,17 +146,17 @@ describe('typing during a call', () => {
     expect(chat.requests).toHaveLength(10);
   });
 
-  it('on a phone, focusing the field in the call sheet opens the chat and keeps typing there', async () => {
+  it('on a phone, the call sheet’s field types to the call without leaving the orb view', async () => {
     stubLayout('sheet');
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client });
     await liveCall(user, client);
-    await user.click(panel().getByTestId(chatTestIds.input));
-
-    expect(surface()).toBe('callChat');
-    const input = chatPanel().getByTestId(chatTestIds.input);
-    await waitFor(() => expect(input).toHaveFocus());
+    const input = panel().getByTestId(chatTestIds.input);
+    await user.click(input);
     await user.keyboard('Hello{Enter}');
+
+    expect(surface()).toBe('call');
+    expect(input).toHaveFocus();
     expect(client.call?.sentTexts).toEqual(['Hello']);
   });
 });

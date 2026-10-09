@@ -27,8 +27,8 @@ interface VoiceToolsOptions {
   record: Dispatch<ConversationAction>;
   dispatch: Dispatch<VoiceModelAction>;
   announce: (text: string) => void;
-  /** The panel must show: a contact card waits for a tap, or a visual tool ran. */
-  needsPanel: (reason: 'contact' | 'visual') => void;
+  /** The panel must show: a contact card waits for a tap. */
+  needsPanel: () => void;
 }
 
 /**
@@ -69,7 +69,7 @@ export function useVoiceTools({ record, dispatch, announce, needsPanel }: VoiceT
       }
       const channel = actionTarget(action, strings);
       dispatch({ type: 'contact', contact: { ...confirmation, href: contact.href, channel } });
-      needsPanel('contact');
+      needsPanel();
       announce(confirmation.title);
       const confirmed = await new Promise<boolean>((resolve) => {
         session.decide = resolve;
@@ -89,10 +89,7 @@ export function useVoiceTools({ record, dispatch, announce, needsPanel }: VoiceT
       const visual = VISUAL_TOOLS.includes(call.name);
       const action: ChatActionCall = { call, label: itemLabel(call, content), status: 'running' };
       if (session.callId) record({ type: 'callAction', id: session.callId, action });
-      if (visual) {
-        dispatch({ type: 'action', action, visual });
-        needsPanel('visual');
-      }
+      if (visual) dispatch({ type: 'action', action, visual });
       const result =
         call.name === 'openContact'
           ? await openContact(session, action, content)
@@ -108,7 +105,7 @@ export function useVoiceTools({ record, dispatch, announce, needsPanel }: VoiceT
       else sessionTimeout(session, () => dispatch({ type: 'actionDone' }), CHIP_MS);
       return result;
     },
-    [cvPageRepository, record, dispatch, openContact, execute, announce, strings, needsPanel],
+    [cvPageRepository, record, dispatch, openContact, execute, announce, strings],
   );
 
   /** The agent's turn ended (next *listening*): the chip leaves, not sooner than 3 s after a tool. */

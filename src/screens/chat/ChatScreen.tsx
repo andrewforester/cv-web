@@ -37,8 +37,7 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
   const focusFabOnClose = useRef(false);
   const { surface, voice } = state;
 
-  // A view swap hands the focus to the next view (the toggle stays the toggle; on a phone, typing
-  // in the call sheet opens the chat and goes on there). A request the next view didn't take is
+  // A view swap hands the focus to the next view (the toggle stays the toggle). A request the next view didn't take is
   // dropped with the next surface change, so it never fires later.
   const focusRequest = useRef<FocusRequest | null>(null);
   const takeFocusRequest = useCallback(() => {
@@ -51,10 +50,6 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
   }, [surface]);
   const swapFromToggle = () => {
     focusRequest.current = 'toggle';
-    actions.voice.toggleChat();
-  };
-  const typeInChat = () => {
-    focusRequest.current = 'field';
     actions.voice.toggleChat();
   };
   const panelActions: ChatActions = {
@@ -121,7 +116,6 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
           closing={panel.closing}
           onCollapse={collapse}
           takeFocusRequest={takeFocusRequest}
-          onCallFieldFocus={typeInChat}
         />
       )}
       {voice && pill.mounted && (

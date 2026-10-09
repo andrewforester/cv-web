@@ -1,83 +1,55 @@
-/* The frame is the shared `ChatCard`, placed by `ChatFrame`; this adds the phone's sheets (SPEC →
+/* The frame is the shared `ChatCard`, placed by `ChatFrame`; this adds the phone's sheet (SPEC →
    Layout 5). Imported after both so these overrides win. */
 @media (max-width: 599px), (max-height: 499px) {
-  /* The text chat and the chat during a call: the full-screen sheet. */
-  .panel:not(.callSheet) {
-    inset: var(--chat-vv-top, 0) 0 auto 0;
-    width: 100%;
-    /* Set by useVisualViewportFit while the keyboard is open. */
-    height: var(--chat-vv-height, 100dvh);
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    animation-name: sheet-in;
-  }
-
-  .panel:not(.callSheet)[inert] {
-    animation-name: sheet-out;
-  }
-
   /*
-   * The call's orb view: a bottom sheet of a fixed height over the live page (the shell pads it).
-   * It slides up from below the screen, no fade, with the call sheet's timing (SPEC → Motion).
+   * Every view (the text chat, the call, the chat during the call) is one bottom sheet of a fixed
+   * height over the live page (the shell pads it), so a view change swaps only its middle. It ends
+   * at the visual viewport's bottom (`useVisualViewportFit`: above the on-screen keyboard) and is
+   * capped to its height there; it slides up from below the screen, no fade (SPEC → Motion).
    */
-  .callSheet {
-    top: auto;
+  .panel {
+    --chat-sheet-height: min(var(--voice-sheet-height), var(--chat-vv-height, 100dvh));
+
+    top: calc(var(--chat-vv-top, 0px) + var(--chat-vv-height, 100dvh) - var(--chat-sheet-height));
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: auto;
     width: auto;
-    height: var(--voice-sheet-height);
+    height: var(--chat-sheet-height);
     border-bottom: 0;
     border-radius: var(--radius-card) var(--radius-card) 0 0;
-    animation: call-sheet-in var(--chat-dock-duration) var(--chat-motion-easing) both;
+    animation: sheet-in var(--chat-dock-duration) var(--chat-motion-easing) both;
   }
 
-  .callSheet[inert] {
-    animation: call-sheet-out var(--chat-dock-exit-duration) var(--chat-motion-exit-easing) both;
+  .panel[inert] {
+    animation: sheet-out var(--chat-dock-exit-duration) var(--chat-motion-exit-easing) both;
   }
 }
 
 @media (max-height: 499px) {
-  .callSheet {
-    height: var(--voice-sheet-height-short);
+  .panel {
+    --chat-sheet-height: min(var(--voice-sheet-height-short), var(--chat-vv-height, 100dvh));
   }
 }
 
-/* Every sheet only fades (the selectors match the sheets' own, so they win). */
+/* The sheet only fades (the selectors match the sheet's own, so they win). */
 @media (prefers-reduced-motion: reduce) {
-  .panel:not(.callSheet),
-  .callSheet {
+  .panel {
     animation: fade-in var(--chat-motion-exit-duration) var(--chat-motion-easing) both;
   }
 
-  .panel:not(.callSheet)[inert],
-  .callSheet[inert] {
+  .panel[inert] {
     animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
   }
 }
 
 @keyframes sheet-in {
   from {
-    opacity: 0;
-    transform: translateY(var(--space-6));
-  }
-}
-
-@keyframes sheet-out {
-  to {
-    opacity: 0;
-    transform: translateY(var(--space-6));
-  }
-}
-
-@keyframes call-sheet-in {
-  from {
     transform: translateY(100%);
   }
 }
 
-@keyframes call-sheet-out {
+@keyframes sheet-out {
   to {
     transform: translateY(100%);
   }

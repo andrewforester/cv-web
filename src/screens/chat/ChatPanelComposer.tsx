@@ -13,8 +13,6 @@ interface ChatPanelComposerProps {
   call: VoiceUiState | null;
   inputRef: RefObject<HTMLTextAreaElement | null>;
   callButtonRef: RefObject<HTMLButtonElement | null>;
-  /** The field got the focus (on a phone the call sheet then opens the chat to type in). */
-  onFocus?: () => void;
 }
 
 /**
@@ -25,7 +23,7 @@ interface ChatPanelComposerProps {
  * the focus.
  */
 export function ChatPanelComposer(props: ChatPanelComposerProps) {
-  const { className, state, actions, call, inputRef, callButtonRef, onFocus } = props;
+  const { className, state, actions, call, inputRef, callButtonRef } = props;
   const thenFocusInput = (action: () => void) => () => {
     action();
     inputRef.current?.focus();
@@ -51,7 +49,6 @@ export function ChatPanelComposer(props: ChatPanelComposerProps) {
       onChange={actions.changeInput}
       onSend={thenFocusInput(actions.send)}
       onStop={thenFocusInput(actions.stop)}
-      onFocus={onFocus}
     />
   );
 }

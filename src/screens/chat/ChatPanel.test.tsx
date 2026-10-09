@@ -1,15 +1,22 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
+import { vi } from 'vitest';
 import { FakeChatRepository } from '../../data/chat';
 import { FakeVoiceClient } from '../../data/voice';
 import { answer } from './chatTestHarness';
 import { chatTestIds } from './testIds';
-import { ManualVoiceClient, renderVoiceChat, startCall } from './voice/voiceTestHarness';
+import {
+  ManualVoiceClient,
+  renderVoiceChat,
+  startCall,
+  stubLayout,
+} from './voice/voiceTestHarness';
 
 const voicePanel = () => screen.getByTestId(chatTestIds.voicePanel);
 
-async function startLiveCall(user: UserEvent, client: ManualVoiceClient) {
-  await startCall(user);
+async function startLiveCall(user: UserEvent, client: ManualVoiceClient, open = false) {
+  if (open) await user.click(screen.getByTestId(chatTestIds.voiceCall));
+  else await startCall(user);
   await waitFor(() => expect(client.call).not.toBeNull());
   client.emit({ type: 'status', status: 'live' });
 }
@@ -147,6 +154,27 @@ describe('the panel', () => {
     await user.click(within(panel).getByTestId(chatTestIds.voiceEnd));
     expect(screen.getByRole('dialog', { name: 'Ask about Andrew' })).toBe(panel);
     expect(panel).not.toHaveAttribute('data-phase');
+  });
+
+  it('on a phone: a named region in every view, over a page that still scrolls and takes taps', async () => {
+    stubLayout('sheet');
+    const client = new ManualVoiceClient();
+    const { user } = await renderVoiceChat({ client });
+    await user.click(screen.getByTestId(chatTestIds.fab));
+    const panel = screen.getByRole('region', { name: 'Ask about Andrew' });
+    // The sheet itself takes the focus, so the on-screen keyboard stays down until a tap.
+    expect(panel).toHaveFocus();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(document.body.style.overflow).toBe('');
+    // A tap on the page leaves the sheet open: collapse is the one way to fold it.
+    await user.click(document.body);
+    expect(screen.getByTestId(chatTestIds.root)).toHaveAttribute('data-surface', 'text');
+
+    await startLiveCall(user, client, true);
+    await user.click(screen.getByTestId(chatTestIds.voiceChatToggle));
+    expect(screen.getByRole('region', { name: 'Voice call' })).toBe(panel);
+    expect(document.body.style.overflow).toBe('');
+    vi.unstubAllGlobals();
   });
 
   it('one collapse control in every header; nothing in the panel is a ×', async () => {
