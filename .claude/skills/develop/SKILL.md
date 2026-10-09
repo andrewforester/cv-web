@@ -39,7 +39,7 @@ Guessing starts when the context is full of the wrong things.
 ## Verify before every push
 - *lint* and *test* (`AGENTS.md` → Commands) must be green. Run *format* to auto-fix.
 - CI skips draft PRs, so your local run is the only gate until you mark the PR ready.
-- For UI, the *web check* from `AGENTS.md` → Commands: build, serve, screenshot at the target viewport, treat any page error or console error as a failure, compare with the design and fix visible differences.
+- For UI, the *web check* from `AGENTS.md` → Commands: build, serve, screenshot **at the desktop (1280 × 800) and the phone (390 × 844) viewport**, treat any page error or console error as a failure, compare with the design and fix visible differences. The phone is not optional: Playwright defaults to desktop, so a change nobody looked at on 390 px ships broken there. If the design package has no phone frame, the phone result must at least fit (no horizontal scroll, nothing cut or overlapping) and follow the package's responsive rules.
 - For backend changes: the endpoint/contract tests the brief names; call the changed endpoints once locally and put the request/response in your report.
 - List in your report what you could not verify (real devices, other browsers, external services).
 
@@ -47,7 +47,7 @@ Guessing starts when the context is full of the wrong things.
 0. Self-review the diff (`git diff origin/main...`): it follows the plan you posted (or says why not), no `eslint-disable`, no copy-pasted blocks, no hardcoded colours/sizes/strings, `AGENTS.md` (with its `CLAUDE.md`) present and current in each folder you touched.
 1. Re-read the brief and all comments: scope or decisions may have changed while you worked. Adjust.
 2. `git merge origin/main` again, re-run the checks, then push.
-3. Upload the web screenshot(s) to the ticket with the `linear-screenshot` skill (never into git) and write the **report** as a ticket comment:
+3. Upload the web screenshots (desktop **and** phone for UI) to the ticket with the `linear-screenshot` skill (never into git) and write the **report** as a ticket comment:
    - deviations from the design and why;
    - stubs, `TODO`s, questions and the options you took;
    - **follow-ups**: anything the feature needs that you didn't do (out of zone, "not cheap", left for later), one line each with what the user would miss without it; the orchestrator turns each into a ticket or raises it with the human;

@@ -19,7 +19,7 @@ You review one task's pull request. The developer session launched you with only
 ## Review
 Use `engineering:code-review` for the technique when it's available; the checklist below is the project's part and applies either way.
 - **Zone:** the diff stays inside the brief's zone and outside its out-of-scope list (`--stat` first).
-- **Done when:** every item of the brief's done-when is met. For UI: the ticket has the web screenshot(s); compare one or two with `docs/design/<name>/screenshot.png`.
+- **Done when:** every item of the brief's done-when is met. For UI: the ticket has the web screenshots at the desktop **and** the phone (390 px) viewport; compare one or two with `docs/design/<name>/screenshot.png`, and check the phone one fits (no horizontal scroll, nothing cut or overlapping). A UI change with no phone screenshot is a blocking finding.
 - **Architecture** (`AGENTS.md` → Architecture & code quality): layers and data flow, no business logic in components, one component per file, small files, no duplicated components or styles (look in `src/shared/` and other screens), no dead code, no speculative abstractions. The screen shape follows the reference screen.
 - **Conventions** (`AGENTS.md` → Conventions): tokens instead of literal colours and sizes, strings through `defineStrings`, test ids in `testIds.ts`.
 - **Guardrails:** no new `eslint-disable`, no loosened rules in `eslint.config.js`, `tsconfig*.json` or CI unless the brief allows it.
