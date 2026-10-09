@@ -22,6 +22,8 @@ export default defineConfig({
     baseURL: BASE_URL ?? `http://localhost:${PORT}/`,
     ...devices['Desktop Chrome'],
     viewport: { width: 1280, height: 800 },
+    // The page's motion is off, so screenshots show every part at rest (motion: unit tests).
+    contextOptions: { reducedMotion: 'reduce' },
   },
   webServer: BASE_URL
     ? undefined

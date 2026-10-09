@@ -4,6 +4,7 @@ import { HomeContacts } from './HomeContacts';
 import styles from './HomeHeader.module.css';
 import { HomeStats } from './HomeStats';
 import { homeImageUrl } from './images';
+import { motionTarget } from './motion/motionTargets';
 import { homeTestIds } from './testIds';
 
 interface HomeHeaderProps {
@@ -21,18 +22,23 @@ export function HomeHeader({ page, highlightedId }: HomeHeaderProps) {
           src={homeImageUrl(page.photo)}
           alt={page.name}
           data-testid={homeTestIds.photo}
+          {...motionTarget('avatar')}
         />
-        <div className={styles.names}>
+        <div className={styles.names} {...motionTarget('names')}>
           <div className={styles.name} data-testid={homeTestIds.name}>
             {page.name}
           </div>
           <div className={styles.tagline}>{page.tagline}</div>
         </div>
       </div>
-      <h1 className={styles.headline} data-testid={homeTestIds.headline}>
+      <h1
+        className={styles.headline}
+        data-testid={homeTestIds.headline}
+        {...motionTarget('headline')}
+      >
         {page.headline.map((part, index) =>
           part.accent ? (
-            <span key={index} className={styles.accent}>
+            <span key={index} className={styles.accent} {...motionTarget('accent')}>
               {part.text}
             </span>
           ) : (
@@ -41,7 +47,7 @@ export function HomeHeader({ page, highlightedId }: HomeHeaderProps) {
         )}
       </h1>
       <div className={styles.lead}>
-        <p className={styles.summary} data-testid={homeTestIds.summary}>
+        <p className={styles.summary} data-testid={homeTestIds.summary} {...motionTarget('lead')}>
           {page.summary.map((line, index) => (
             <span key={index} className={styles.line}>
               {line}

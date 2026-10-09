@@ -1,5 +1,6 @@
 import type { Stat } from '../../data';
 import styles from './HomeStats.module.css';
+import { motionTarget } from './motion/motionTargets';
 import { homeTestIds } from './testIds';
 
 interface HomeStatsProps {
@@ -16,8 +17,11 @@ export function HomeStats({ className, stats }: HomeStatsProps) {
           key={stat.id}
           className={stat.accent ? `${styles.tile} ${styles.accent}` : styles.tile}
           data-testid={homeTestIds.stat}
+          {...motionTarget('stat')}
         >
-          <div className={styles.value}>{stat.value}</div>
+          <div className={styles.value} {...motionTarget('count')}>
+            {stat.value}
+          </div>
           <div className={styles.label}>{stat.label}</div>
         </div>
       ))}

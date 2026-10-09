@@ -39,6 +39,12 @@ agent chat; here thin wrappers bind them to this screen's strings. Strings in `s
 (English only); tokens in the theme: the v3 ones (`--color-*`, `--gradient-*`, `--font-*`,
 `--radius-*`) plus `--chat-*` for the chat-only colours, sizes, geometry and motion.
 
+Motion: on page load the launcher rises in and its pill pulses exactly twice
+(`docs/design/motion/SPEC.md`, `useLauncherIntro.ts`), timed from load so a launcher that comes back
+after the chat closes doesn't replay it; none with reduced motion, in print or in the Show case.
+Its small token and reduced-motion checks repeat the page's (`home/motion/`): a screen can't import
+another screen.
+
 Stubs and limits: the sheet media query is repeated in the CSS modules; the composer reserves a
 slot for a future voice button. The launcher's visible label is its accessible name (WCAG 2.5.3);
 its test id is still `chat-fab`.

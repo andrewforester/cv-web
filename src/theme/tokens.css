@@ -248,6 +248,30 @@
   --agent-highlight-duration: 3s;
   --agent-scroll-margin-top: var(--space-6);
 
+  /* CV page motion (docs/design/motion/SPEC.md): easings, durations, colours; the choreography
+     (delays, offsets) is in src/screens/home/motion. Off under prefers-reduced-motion. */
+  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --motion-duration: 900ms;
+  --motion-duration-short: 700ms;
+  --motion-duration-long: 1100ms;
+  --motion-duration-headline: 1300ms;
+  --motion-count-duration: 1400ms;
+  --motion-scramble-duration: 900ms;
+  --motion-drift-duration: 3500ms;
+  --motion-pulse-duration: 2000ms;
+  --motion-pulse-color: rgba(139, 92, 246, 0.55);
+  --motion-pulse-color-end: rgba(139, 92, 246, 0);
+  --motion-pulse-spread: 14px;
+  --motion-progress-height: 3px;
+  --motion-progress-z-index: 20;
+  --gradient-brand-loop: linear-gradient(
+    90deg,
+    var(--color-brand-pink),
+    var(--color-brand-violet),
+    var(--color-brand-pink)
+  );
+
   /* Retro Rebuild show: dock, agent chat, highlight and motion (not the damage values) */
   --retro-dock-width: 400px;
   --retro-dock-inset: 16px;

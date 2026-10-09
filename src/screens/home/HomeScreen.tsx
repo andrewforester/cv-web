@@ -8,12 +8,14 @@ import { HomeFooter } from './HomeFooter';
 import { HomeImpact } from './HomeImpact';
 import { HomeLoop } from './HomeLoop';
 import { HomePage } from './HomePage';
+import { HomeProgressBar } from './HomeProgressBar';
 import styles from './HomeScreen.module.css';
 import { HomeSkills } from './HomeSkills';
 import { HomeTop } from './HomeTop';
 import type { HomeUiState } from './HomeUiState';
 import { homeStrings } from './strings';
 import { homeTestIds } from './testIds';
+import { useHomeMotion } from './motion/useHomeMotion';
 
 interface HomeScreenProps {
   className?: string;
@@ -28,10 +30,11 @@ interface HomeScreenProps {
 export function HomeScreen({ className, state, metaBarEnd, copyrightEnd }: HomeScreenProps) {
   const common = useStrings(commonStrings);
   const strings = useStrings(homeStrings);
+  const rootRef = useHomeMotion(state.status === 'ready');
 
   if (state.status !== 'ready') {
     return (
-      <HomePage className={className}>
+      <HomePage className={className} rootRef={rootRef}>
         <HomeTop metaBarEnd={metaBarEnd} highlightedId={null} />
         <p className={styles.status} data-testid={homeTestIds.status}>
           {state.status === 'loading' ? common.loading : common.loadError}
@@ -42,7 +45,7 @@ export function HomeScreen({ className, state, metaBarEnd, copyrightEnd }: HomeS
 
   const { page, highlightedId } = state;
   return (
-    <HomePage className={className}>
+    <HomePage className={className} rootRef={rootRef}>
       <HomeTop page={page} metaBarEnd={metaBarEnd} highlightedId={highlightedId} />
       <HomeSkills skills={page.skills} highlightedId={highlightedId} />
       <HomeCraft craft={page.craft} highlightedId={highlightedId} />
@@ -58,6 +61,7 @@ export function HomeScreen({ className, state, metaBarEnd, copyrightEnd }: HomeS
         <span data-testid={homeTestIds.copyright}>{strings.copyright}</span>
         {copyrightEnd}
       </div>
+      <HomeProgressBar />
     </HomePage>
   );
 }
