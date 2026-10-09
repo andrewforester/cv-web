@@ -32,7 +32,7 @@ What it guarantees today:
   pill, the transcript, reduced motion) are screenshotted against `docs/design/voice/` at the
   same `wide` (slide: the CV card 208 px left at its own width, the panel 400 × 600 beside it),
   `desktop` (overlay: the card unmoved) and `mobile` viewports; no test talks to ElevenLabs.
-  It runs with motion on (the config turns it off for every other spec), since the panel's morph
+  It runs with motion on (the config turns it off by default), since the panel's morph
   out of the pill is part of what it checks.
 
 Production smoke: tests titled `@prod` (the home page and `/new`; `/new` must end on `/`) also run
