@@ -229,7 +229,13 @@ export function useVoiceCall({ record, entries, onEnded, onNeedsPanel }: VoiceCa
     dispatch({ type: 'close' });
   };
 
-  const dismiss = useCallback(() => dispatch({ type: 'close' }), []);
+  /** Clears a card; a Try again still running under it is cancelled too. */
+  const dismiss = useCallback(() => {
+    const session = current.current;
+    if (session) closeSession(session);
+    current.current = null;
+    dispatch({ type: 'close' });
+  }, []);
 
   const actions: VoiceCallActions = {
     start: () => void start(),

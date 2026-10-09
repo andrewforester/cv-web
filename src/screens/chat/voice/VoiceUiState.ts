@@ -51,6 +51,8 @@ export interface VoiceUiState {
   readonly action: ChatActionCall | null;
   readonly contact: VoiceContactRequest | null;
   readonly error: VoiceErrorKind | null;
+  /** Try again was tapped: the card stays, busy, until the new attempt connects or fails. */
+  readonly retrying: boolean;
   readonly announcement: VoiceAnnouncement | null;
 }
 
