@@ -3,8 +3,8 @@
   visibility: hidden;
 }
 
-/* The chat's space (docs/voice/SYSTEM_DESIGN.md §4.3): beside the side column the whole page
- * slides left by half the column (ADR-0011 → Decision 1), a compositor-only move that changes no
+/* The chat's space (docs/voice/SYSTEM_DESIGN.md §4.3): while the panel is open at `side` the whole
+ * page slides left by half the dock (ADR-0011 → Decision 1), a compositor-only move that changes no
  * box; the bottom sheet's space appears at once. */
 :global(:root[data-chat-dock='side']) .main {
   transform: translateX(calc(var(--chat-dock-width) / -2));
@@ -18,8 +18,8 @@
   padding-block-end: var(--voice-sheet-height);
 }
 
-/* Closing on the base rule, opening on the side rule, timed with the column (ChatColumn.module.css);
- * reduced motion moves the page at once. */
+/* Closing on the base rule, opening on the side rule, timed with the panel's morph
+ * (ChatFrame.module.css); reduced motion moves the page at once. */
 @media (prefers-reduced-motion: no-preference) {
   .main {
     transition: transform var(--chat-slide-exit-duration) var(--chat-slide-easing);

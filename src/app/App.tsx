@@ -35,7 +35,7 @@ export function App() {
   // while the chat is off the page, whatever it reported last.
   const [reportedDock, setDock] = useState<ChatDock>('none');
   const dock = Chat ? reportedDock : 'none';
-  // Before paint, so the page's slide starts on the frame the column enters.
+  // Before paint, so the page's slide starts on the frame the panel opens.
   useLayoutEffect(() => {
     document.documentElement.dataset.chatDock = dock;
   }, [dock]);

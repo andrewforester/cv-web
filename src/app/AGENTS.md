@@ -40,13 +40,13 @@ has loaded, so the first visible frame is already the broken page. If a chunk fa
 shell stays on today's site.
 
 - **Dock** (docs/voice/SYSTEM_DESIGN.md §4.3): the space the chat asks the shell to keep free
-  (`none`, `side` column, `bottom` sheet), reported through `onDockChange`. The shell mirrors it
-  as `data-chat-dock` on `<html>` before paint (`none` while the chat is off the page);
-  `App.module.css` turns it into room: beside the `side` column the whole page slides left by
-  half the column (`transform` on `main`, ADR-0011 → Decision 1), so the CV card keeps its width
-  and nothing reflows; the slide is timed with the column (`--chat-slide-*`; reduced motion: at
-  once). The `bottom` sheet's space is padding on `main` (`--voice-sheet-height`) and appears at
-  once. The slide changes no box, so the scroll position never drifts (no anchor hook).
+  (`none`, `side` beside the floating panel, `bottom` sheet), reported through `onDockChange`. The
+  shell mirrors it as `data-chat-dock` on `<html>` before paint (`none` while the chat is off the
+  page); `App.module.css` turns it into room: at `side` the whole page slides left by half the dock
+  (`transform` on `main`, ADR-0011 → Decision 1), so the CV card keeps its width and nothing
+  reflows; the slide is timed with the panel's morph (`--chat-slide-*`; reduced motion: at once).
+  The `bottom` sheet's space is padding on `main` (`--voice-sheet-height`) and appears at once. The
+  slide changes no box, so the scroll position never drifts (no anchor hook).
 
 Rules and limits:
 - Owner: Scaffold. Screens may only register their own route in `App.tsx`.
