@@ -13,7 +13,7 @@
 |---|---|
 | `screenshot.png` (package root) | desktop, **listening** (the reference frame) |
 | `voice_state_launcher_{desktop,mobile}.png` | page with the one launcher pill "Talk to my AI" |
-| `voice_state_text_*` | the text chat open (no call): **Call** + "…or type a question" in the composer |
+| `voice_state_text_*` | the text chat open (no call): **Call** + "…or type instead" in the composer |
 | `voice_state_connecting_*` | mic permission pending / connecting |
 | `voice_state_listening_*` | listening; the visitor's line as the caption |
 | `voice_state_speaking_*` | agent speaking |
@@ -29,7 +29,7 @@
 
 ## What it is
 
-One pill, "Talk to my AI", opens the chat in the right column; the page slides left to make room, in step with the column. The composer starts with a gradient **Call** button and the placeholder "…or type a question". Call turns the column into the call: a big gradient orb that breathes with the voices, the current line under it, the timer in the header. The page stays fully visible and scrollable, so when the agent scrolls or highlights something the visitor simply sees it. The composer stays at the bottom during the call, with End and Mute in place of Call: the visitor can talk or type, and typed lines go to the voice agent, which answers by voice. One toggle in the header, **Show chat / Hide chat**, swaps the orb for the chat with every line of the call already written (text and voice are one conversation), and back. Minimize folds the call into a small pill and gives the page its full width back. On a phone the call is a bottom sheet over the page. The feature is behind a flag; with the flag off the composer has no Call and the launcher still reads "Talk to my AI".
+One pill, "Talk to my AI", opens the chat in the right column; the page slides left to make room, in step with the column. The composer starts with a gradient **Call** button and the placeholder "…or type instead". Call turns the column into the call: a big gradient orb that breathes with the voices, the current line under it, the timer in the header. The page stays fully visible and scrollable, so when the agent scrolls or highlights something the visitor simply sees it. The composer stays at the bottom during the call, with End and Mute in place of Call: the visitor can talk or type, and typed lines go to the voice agent, which answers by voice. One toggle in the header, **Show chat / Hide chat**, swaps the orb for the chat with every line of the call already written (text and voice are one conversation), and back. Minimize folds the call into a small pill and gives the page its full width back. On a phone the call is a bottom sheet over the page. The feature is behind a flag; with the flag off the composer has no Call and the launcher still reads "Talk to my AI".
 
 ## Component tree
 
@@ -40,7 +40,7 @@ src/screens/chat/  (voice lives in the chat screen, docs/voice/SYSTEM_DESIGN.md 
 │   ├─ surface `text`: ChatPanel (existing)
 │   │   ├─ ChatHeader
 │   │   ├─ MessageList
-│   │   └─ ChatComposer: [VoiceCallButton "Call"] + field "…or type a question" + Send   ← Call is new
+│   │   └─ ChatComposer: [VoiceCallButton "Call"] + field "…or type instead" + Send   ← Call is new
 │   ├─ surface `call`: VoicePanel  <aside>, ChatCard frame
 │   │   ├─ VoicePanelHeader: ChatBadge · "Voice call" / VoiceTimer · VoiceChatToggle "Show chat" · minimize | close
 │   │   ├─ VoiceStage: VoiceActionChip · VoiceOrb (full | small) · status · caption | privacy · VoiceContactCard · VoiceErrorCard
@@ -121,7 +121,7 @@ All sizes in CSS px; spacing is the v3 grid (`--space-*`).
 
 **Call button** (`VoiceCallButton`, new): in the composer row, **left of the field**, bottom-aligned with it (the row is `align-items: flex-end`, so it stays at the bottom when the textarea grows).
 - 56 high (`--voice-control-size`, the field's height: 44 textarea + 2 × 5 padding + 2 × 1 border), pill radius, padding `0 20 0 16`, gap 8: `voice_icon_call.svg` 24 (`--voice-control-icon-size`) + "Call" (16 / 600), `--color-on-accent` on `--gradient-brand`, no border. ≈ 98 wide. Hover: `--shadow-cta` (as Send). Focus: the chat's ring. Disabled (`busy`: a text answer is streaming): `--chat-fill-hover` fill, `--color-ink-4` text and icon (Send's disabled look).
-- The field keeps its look; its **placeholder is "…or type a question"** (`voicePlaceholder`), so the row reads "Call … or type a question". Width at 400: 360 = Call 98 + gap 8 + field 254 (text 180; the placeholder ≈ 150). Phone 390: field 252.
+- The field keeps its look; its **placeholder is "…or type instead"** (`voicePlaceholder`), so the row reads "Call … or type instead". Width at 400: 360 = Call 98 + gap 8 + field 254 (text 180; the placeholder ≈ 150). Phone 390: field 252.
 - Shown only when voice is available (the flag on and a bound voice client); otherwise the row is today's composer with "Ask a question…". At the monthly cap Call stays; a tap opens the column straight into the monthly card. Offline: a tap opens the offline card.
 - Why the composer, not the header (brief item 2): the composer is where the eye is when the chat opens and where the visitor acts; a labelled gradient pill there is the most visible spot in the panel, and it pairs with the placeholder into one sentence. In the header it would compete with close, squeeze the title and subtitle to ≈ 140 px, and sit far from where people type. Rendered in `voice_state_text_*` and `voice_state_ended_*`.
 - Tap → surface `call` in the same column (the orb view, **connecting**).
@@ -160,7 +160,7 @@ The toggle swaps the column's middle to the conversation (same frame, same place
 - **Header** (`VoiceCallHeader`, the `ChatCardHeader` anatomy): the **mini orb** (`--voice-orb-size-mini` = 36, in the badge's slot; live, no glow) · title "Voice call" / subtitle `Speaking · 1:12` (status in `--color-dark-number`, elapsed 500 `--color-dark-ink`; last 30 s: `0:24 left` in pink) · **chat toggle "Hide chat"** · minimize (44). Same widths as Layout 2.
 - **Composer**: the call composer of Layout 2, active. Focus stays in the field across the toggle when it was there.
 - The orb view's caption is not repeated here: the newest row is the caption.
-- When the call ends in `callChat` (the surface becomes `text`), the header turns back into `ChatHeader`, End + Mute give their place back to Call, the placeholder back to "…or type a question", the disclaimer returns, the closing divider appears (Layout 7), and focus stays in (or moves to) the field. A draft in the field survives (it goes to `/api/chat` if sent). No card: the divider says what happened ("Call dropped · 1:10", "Call ended at the 3-minute limit").
+- When the call ends in `callChat` (the surface becomes `text`), the header turns back into `ChatHeader`, End + Mute give their place back to Call, the placeholder back to "…or type instead", the disclaimer returns, the closing divider appears (Layout 7), and focus stays in (or moves to) the field. A draft in the field survives (it goes to `/api/chat` if sent). No card: the divider says what happened ("Call dropped · 1:10", "Call ended at the 3-minute limit").
 
 ### 3a. The chat toggle: Show chat / Hide chat in one place
 
@@ -191,7 +191,7 @@ Minimize (from either view) folds the column into **the call pill** in the launc
 - **Back** (system): from `callChat` → `call`; from `call` → `callPill` (the call goes on); each sheet owns one history entry (`useChatHistoryEntry`).
 - **Minimized**: the call pill (Layout 4), bottom-right, + safe-area bottom.
 - **Short** (≤ 499 px tall: landscape phones, 200 % zoom): the stage drops the big orb; the header's badge slot shows the mini orb instead, and the caption keeps 2 lines. The sheet is `--voice-sheet-height-short` (`272px + safe-bottom`; 67 + 85 + stage 120: status + 2 caption lines); the shell uses it under `(max-height: 499px)`.
-- **Text chat** (`text`): today's full-screen sheet; the composer has Call + "…or type a question" as on desktop.
+- **Text chat** (`text`): today's full-screen sheet; the composer has Call + "…or type instead" as on desktop.
 
 ### 6. Opening a contact (openContact)
 
@@ -273,7 +273,7 @@ Keys in the **chat** namespace (`src/screens/chat/strings.ts`), full names. Apos
 | `launcherLabel` | Talk to my AI | changed (was "Ask my AI"); the one launcher |
 | `voiceCall` | Call | new: the Call button's visible label |
 | `voiceCallLabel` (aria-label) | Call my AI | new: the Call button's name (starts with the visible "Call", WCAG 2.5.3) |
-| `voicePlaceholder` | …or type a question | new: the composer's placeholder next to Call; reads as one line with it. `placeholder` ("Ask a question…") stays for the composer without Call (voice off) |
+| `voicePlaceholder` | …or type instead | new: the composer's placeholder next to Call; reads as one line with it. `placeholder` ("Ask a question…") stays for the composer without Call (voice off) |
 | `voiceCallPlaceholder` | Type a message… | new: the composer's placeholder during the call |
 | `voiceInputLabel` (aria-label) | Message to the call. The AI answers by voice. | new: the textarea's name during the call (`inputLabel` "Your question" otherwise) |
 
@@ -397,7 +397,7 @@ Conservative defaults; the orchestrator may change them. v1 decisions that v2 re
 15. **Backdrops are production screenshots**, taken with the real page reflowed to the column's width.
 16. **Call lives in the composer, left of the field** (v2; replaces v1's mic in the composer): a labelled gradient pill is the most visible spot in the panel and reads as one sentence with the placeholder. In the header it would squeeze the title and sit away from where people act (Layout 1).
 17. **The phone sheet has a fixed height** (472 + safe area) so the shell reserves it from a token; the privacy line is shortened to two lines on a phone to fit.
-18. **Placeholder "…or type a question"** next to Call; "Type a message…" during the call. Without voice the composer keeps "Ask a question…" (a leading "…or" would read wrong with nothing before it).
+18. **Placeholder "…or type instead"** next to Call; "Type a message…" during the call. Without voice the composer keeps "Ask a question…" (a leading "…or" would read wrong with nothing before it).
 19. **The toggle sits in the header, left of minimize**, in both views (v2): the bottom row is the composer in both views, and the header is the one place both share.
 20. **Call starts in the orb view** (`call`), even from the chat: it's a call, the orb is its face; the toggle is one tap away.
 21. **On a phone, focusing the field in the call sheet switches to `callChat`**: the keyboard would cover the orb, and the full-screen sheet already handles the keyboard.
@@ -410,7 +410,11 @@ Conservative defaults; the orchestrator may change them. v1 decisions that v2 re
 Each has the default above; for the orchestrator or the human. Coordinated with CV-189 in its ticket comments.
 
 1. **Call placement** (Decision 16): composer, left of the field, labelled gradient pill. Alternative: a header button. Default: composer.
-2. **Placeholders** (Decision 18): "…or type a question" / "Type a message…". Alternative for the call: "Type instead of talking…" (doesn't fit at 400 px beside End + Mute). Default: as written.
+2. **Placeholders** (Decision 18): "…or type instead" / "Type a message…". Alternative for the call: "Type instead of talking…" (doesn't fit at 400 px beside End + Mute). Default: as written.
 3. **Typing on a phone during a call** (Decision 21): switch to the full-screen chat on focus. Alternative: keep the bottom sheet and lift it above the keyboard (it would cover most of the page). Default: switch.
 4. **Animated page width** (Decision 23): `padding-inline-end` transition (layout per frame for 300 ms, as the show does). If it janks on low-end devices, the fallback is v1's instant reflow under the sliding column. Default: animate.
 5. **Docked chat height** (Decision 2) and the **privacy line** (Layout 2) stay as v1 asked; no change requested.
+
+## Orchestrator decisions (2026-10-09)
+
+1. **Placeholder next to Call is "…or type instead"** (the human's wording), replacing the proposed "…or type a question" everywhere above; the rendered PNGs still show the old text, the strings table wins. Open questions 1, 3, 4, 5 take their defaults.
