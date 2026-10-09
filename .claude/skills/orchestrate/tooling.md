@@ -49,3 +49,7 @@ Claude Design project https://claude.ai/design/p/c02bb441-acb3-4cdb-ab65-ef32c13
 ## Notifications
 - To the human: chat message + `PushNotification` (reaches the phone only while Remote Control is connected). Anything the human must do (a key, a setting, a DNS record) also goes into a ticket comment with **Needs human**: the Linear app notifies the phone.
 - Production lagging behind `main` (Vercel's daily deploy limit) and backend deploy checks are `qa-release`'s (`.claude/skills/qa-release/tooling.md`).
+- A screen recording from the human (`.mov`): there is no `ffmpeg`; extract frames with AVFoundation (`swift` script: `AVAssetImageGenerator.copyCGImage` at chosen times → PNG), look at a contact sheet around the transition (0.1 s apart), and put the frames on the ticket (skill `linear-screenshot`): sessions never see the chat.
+
+## Platform limits
+Check a limit in the provider's docs **and** its live counter before relying on it or writing it into a comment as fact. Vercel: `list_deployments` (Vercel MCP, team `team_FIizwvMRA8QExsSd6Vv3ihIh`, `since` = now − 24 h) shows what counts; canceled deployments do (Oct 2026: `scripts/vercel-ignore.sh` claimed to keep us under the limit for a week while 72 of 100 deployments were its own cancellations; CV-207).
