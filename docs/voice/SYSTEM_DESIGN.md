@@ -132,8 +132,9 @@ export interface VoiceClient {
 ### 4.1 Lifecycle
 
 1. **One launcher.** The "Talk to my AI" pill opens the chat (surface `text`); no mic sits beside
-   it. With the flag on (§9), the chat shows the **call button** (phone handset; place and look:
-   `docs/design/voice/`). Tap: `useVoiceCall` opens the call panel in `connecting` (surface
+   it. With the flag on (§9), the chat shows the **call button** (phone handset, in the
+   composer's row; place and look: `docs/design/voice/`), disabled while a text answer streams.
+   Tap: `useVoiceCall` opens the call panel in `connecting` (surface
    `call`, §4.2) and calls `requestMicrophone()`. Denied → the "microphone blocked" state,
    nothing else happens.
 2. `HttpVoiceSessionRepository.create()` → `POST /api/voice-session`. An error ends in the state
@@ -179,7 +180,9 @@ Rules:
 - **One composer in both views.** `call` and `callChat` show the same composer (the chat's
   `ChatComposer`) beside Mute and End; the draft lives in the chat's state holder, so the chat
   toggle keeps what is being typed. In `call` a typed line shows as the caption, like a spoken
-  one. Its exact place is the design's (`docs/design/voice/`).
+  one. Its exact place is the design's (`docs/design/voice/`: End and Mute, then the field). On
+  a phone, focusing the field in the bottom sheet switches to `callChat` (the full-screen sheet,
+  room for the keyboard) and keeps the focus.
 - **After the call.** From `call` or `callChat`: `text`. A call always starts from the open
   chat, so a call with no lines returns there too. From `callPill`: `closed` (the visitor folded
   it away; the pill doesn't pop the column open), the call is in the chat the next time it opens.
@@ -227,9 +230,11 @@ Decision 2).
   `padding-block-end: var(--voice-sheet-height)` and the root `scroll-padding-bottom` of the same
   value, so the agent's scroll and highlight land above the sheet.
 - **The animation** (ADR-0010 → Decision 2). `main` transitions `padding-inline-end`: opening
-  with `--chat-motion-duration` (on the `side` rule), closing with `--chat-motion-exit-duration`
-  (on the base rule), easing `--chat-motion-easing`; the column's own entry and exit use the same
-  tokens (or the dock tokens the design package names instead). `prefers-reduced-motion:
+  with `--chat-dock-duration` and `--chat-motion-easing` (on the `side` rule), closing with
+  `--chat-dock-exit-duration` and `--chat-motion-exit-easing` (on the base rule); the column
+  slides in from the right edge with the same tokens, so it visibly pushes the page (token names
+  and values: `docs/design/voice/` → Tokens; 300 / 250 ms proposed). The show already does the
+  same to its page (`RetroShowScreen.module.css`, `--retro-reserve-duration`). `prefers-reduced-motion:
   reduce`: no transition, the page reflows at once and the column is opacity-only. The bottom
   dock and the floating card don't animate the page. Performance budget: the Scaffold ticket
   traces open and close at 1280 × 800 with 4× CPU throttling; frames over 16 ms during the
@@ -243,7 +248,7 @@ Decision 2).
   once after the reflow.
 - **Tokens** (Theme, values from `docs/design/voice/`): `--chat-dock-width` (the column plus its
   gutters: what the page gives up), `--voice-sheet-height`, the pill's size, the column's
-  geometry and the motion tokens above.
+  geometry and the dock's motion tokens (above).
 - **Page snapshot.** `AgentPageStateV4.chat` stays `'card' | 'sheet'`: the column counts as
   `card` (the page is visible beside the chat), so the contract doesn't change.
 - **Phone history.** Every open sheet owns one history entry, as the text sheet does today
@@ -259,8 +264,8 @@ call's state **at the moment of sending**, decided in one place (the chat's stat
 | Call state | Composer | Send goes to |
 |---|---|---|
 | none (no call, or it ended or failed) | as the text chat | `/api/chat` (the question carries the calls since the last one in `voiceCalls`, §8) |
-| `connecting` | editable, Send disabled | — |
-| `live` | active; the placeholder is the design's mid-call copy | the agent: `VoiceCall.sendText(text)` |
+| `connecting` | disabled, the draft kept | — |
+| `live` | active; the design's mid-call placeholder | the agent: `VoiceCall.sendText(text)` |
 
 - **The typed line in the transcript.** On a live Send, the chat clears the field and appends
   the text at once to the live call entry as a visitor line (`callLine`, id `typed-<n>`); the
@@ -579,7 +584,7 @@ No test or CI job talks to ElevenLabs: the server test setup deletes `ELEVENLABS
 | Client unit | `ElevenLabsVoiceClient` mapping with a stubbed SDK module (events, tool registration, result strings, corrections; `sendText` → `sendUserMessage`, `typing` → `sendUserActivity`; an echoed `user_transcript` of a typed line dropped once, a different or later one kept); `FakeVoiceClient` script (a scripted answer to a typed line); `voiceMode` parsing | `src/data/voice/*.test.ts`, `src/app/voiceMode.test.ts` |
 | Screen (one conversation) | `buildHistory`: calls attached to the next question, the trailing calls to the new question, empty calls skipped, the client-side caps, retry re-sends the same; `exceedsConversationLimits` counts voice chars; `earlierConversation`: order, channel labels, caps, nothing when empty; the update sent once on `live` (fake client records it); a typed call line goes out as a `visitor` line of its call | `src/screens/chat/*.test.ts`, `src/screens/chat/voice/*.test.ts(x)` |
 | Screen (panel) | Surface transitions of §4.2 (the pill opens `text`; the call button from `text`; `toggleChat` both ways from the same control; the composer's draft kept across the toggle; minimize and unfold; after-the-call rules, a call without lines back to `text`; phone Back); no mic beside the launcher; the dock reported per surface and viewport (§4.3) | `src/screens/chat/**/*.test.tsx` |
-| Screen (typing in a call) | Send routing by call state (§4.4): `live` → `sendText` and the line appended to the call at once, the field cleared; `connecting` → Send disabled, text kept; ended → `/api/chat` with the call in `voiceCalls`; `typing()` on input only while live; the call ending mid-typing keeps the text; a typed line never counts as a question | `src/screens/chat/**/*.test.tsx` |
+| Screen (typing in a call) | Send routing by call state (§4.4): `live` → `sendText` and the line appended to the call at once, the field cleared; `connecting` → the field disabled, the draft kept; ended → `/api/chat` with the call in `voiceCalls`; `typing()` on input only while live; the call ending mid-typing keeps the text; a typed line never counts as a question | `src/screens/chat/**/*.test.tsx` |
 | Shell | `data-chat-dock` written before paint and reset on unmount; `usePageAnchor` with stubbed `CSS.supports`, `elementFromPoint` and animation frames (corrects the drift, stops at `transitionend` or the cap, cancelled by input, idle where native anchoring exists) | `src/app/App.dock.test.tsx`, `src/app/usePageAnchor.test.ts` |
 | Screen | `useVoiceCall` + chat reducer: lines into the conversation, tools through a fake executor, `openContact` (opened, blocked → card → tap / cancel / timeout), timer end, mic denied, each session error state; UI: no button without the flag, the call panel's states | `src/screens/chat/voice/*.test.tsx` |
 | e2e | `?voice=fake` + `page.route('**/api/voice-session')`: "Talk to my AI" opens the chat (1280 px: `main` narrower by the column once the transition ends), the call button starts the scripted call with a scroll, the chat toggle (lines there), a line typed mid-call shows in the call and gets the fake agent's answer with **no** `/api/chat` request, minimize to the pill (page full width), end, transcript in the chat; a typed question after the call sends `voiceCalls` with the typed line among them (asserted on the mocked `/api/chat` request); phone (390 px): bottom sheet; reduced motion (`page.emulateMedia`): the page width changes without a transition; no console errors; screenshots `web-check/voice*.png`; without the flag no call button and the launcher still says "Talk to my AI" | `e2e/voice.spec.ts` |
@@ -636,7 +641,7 @@ after the other. Every task also needs CV-189 (this file) merged.
 ```text
 P   Backend: typed-turn rule in the voice prompt          needs: none
 V   Data: VoiceCall.sendText / typing, adapter, fakes      needs: none
-T   Theme: v2 tokens (motion, call button)                 needs: CV-190 merged; skipped if it adds none
+T   Theme: v2 tokens (dock motion, call button)            needs: CV-190 merged
 S   Scaffold: shell animates the dock, scroll anchoring    needs: T for the motion tokens (fallback ok)
 K   Chat: typing during a call                             needs: V, CV-190 merged
 L   Chat: one launcher, call button, one toggle, motion    needs: K, T, CV-190; Ready only after S merged
@@ -651,9 +656,9 @@ its brief gates Ready on S.
 |---|---|---|---|---|
 | P | **Typed-turn rule.** `server/voice/prompt/voicePrompt.ts`: rule 6 of §6, `VOICE_PROMPT_VERSION` bumped; `server/voice/agentConfig.test.ts` (the prompt contains the rule); `server/voice/prompt/AGENTS.md`. | Backend | the paths listed | none |
 | V | **The call takes typed text.** `src/data/voice/VoiceClient.ts` (`sendText`, `typing`, §3); `ElevenLabsVoiceClient.ts` (+ test): `sendUserMessage`, `sendUserActivity`, the 10-s echo filter (§4.4; a small helper file next to it if the adapter passes ≈200 lines); `FakeVoiceClient.ts` (+ test): a scripted agent answer (mode `speaking`, a line, `listening`) to each typed line, no visitor `line` event for it; `demoVoiceScript.ts`: the demo's answer to a typed line; `src/screens/chat/voice/voiceTestHarness.tsx` **only** to stub the two new methods (granted: the interface change breaks it otherwise); `src/data/voice/AGENTS.md`. No UI change. | Development (chat screen) | the paths listed | none |
-| T | **v2 tokens.** `src/theme/tokens.css`: what CV-190's SPEC → Tokens adds (motion for the dock if it names its own, the call button's size); reuse existing tokens within ≈2 px. Deleting the launcher mic's tokens is L's. | Theme | `src/theme/tokens.css` | CV-190 merged |
+| T | **v2 tokens.** `src/theme/tokens.css`: what CV-190's SPEC → Tokens adds (`--chat-dock-duration`, `--chat-dock-exit-duration`, `--chat-motion-exit-easing` as proposed, the call button's size); reuse existing tokens within ≈2 px. Deleting the launcher mic's tokens is L's. | Theme | `src/theme/tokens.css` | CV-190 merged |
 | S | **The page narrows with an animation.** `src/app/App.module.css` (the transition of §4.3 on `main`'s `padding-inline-end`, open and close durations, easing, `prefers-reduced-motion: reduce` → none); `src/app/App.tsx` (writes `data-chat-dock` in `useLayoutEffect`; mounts the anchor hook); `src/app/usePageAnchor.ts` + `usePageAnchor.test.ts` (new, §4.3 → Scroll position); `src/app/App.dock.test.tsx`; `src/app/AGENTS.md`. Before Ready: the performance trace of ADR-0010 → Decision 2 on the ticket (and the fallback applied if it fails). Until T merges, `var()` fallbacks with `TODO(theme)` are acceptable. | Scaffold | the paths listed | T for the token values |
-| K | **Typing during a call.** `src/screens/chat/**` for §4.4: Send routed by the call state in `useChatState.ts`; a new hook in `src/screens/chat/voice/` (e.g. `useCallTyping.ts`; `useVoiceCall.ts` is at the 250-line cap) that sends, appends the `typed-<n>` line through `callLine` and calls `typing()` on input; `ChatPanel.tsx` shows `ChatComposer` during a call instead of `VoiceCallBar` (whose read-only note and `voiceReadOnly` string go; Mute and End placed as CV-190 says); `ChatComposer.tsx` active mid-call (Send disabled while connecting, the design's mid-call placeholder); the same composer in the `call` view's bottom bar, one draft for both views (§4.2; `VoicePanel.tsx`, `VoiceControls.tsx`); strings, test ids, tests (§12 rows "Screen (typing in a call)"); `e2e/voice.spec.ts` (granted: the mid-call typing step); `AGENTS.md` of `src/screens/chat/` and `src/screens/chat/voice/`. | Development (chat screen) | the paths listed | V; CV-190 merged |
+| K | **Typing during a call.** `src/screens/chat/**` for §4.4: Send routed by the call state in `useChatState.ts`; a new hook in `src/screens/chat/voice/` (e.g. `useCallTyping.ts`; `useVoiceCall.ts` is at the 250-line cap) that sends, appends the `typed-<n>` line through `callLine` and calls `typing()` on input; `ChatPanel.tsx` shows `ChatComposer` during a call instead of `VoiceCallBar` (whose read-only note and `voiceReadOnly` string go; Mute and End placed as CV-190 says); `ChatComposer.tsx` active mid-call (disabled while connecting, the design's mid-call placeholder; on a phone, focus in the bottom sheet → `callChat`); the same composer in the `call` view's bottom bar, one draft for both views (§4.2; `VoicePanel.tsx`, `VoiceControls.tsx`); strings, test ids, tests (§12 rows "Screen (typing in a call)"); `e2e/voice.spec.ts` (granted: the mid-call typing step); `AGENTS.md` of `src/screens/chat/` and `src/screens/chat/voice/`. | Development (chat screen) | the paths listed | V; CV-190 merged |
 | L | **One launcher, the call button, one toggle, column motion.** `src/screens/chat/**`: `ChatLauncher.tsx` ("Talk to my AI" pill only; delete `VoiceMicButton.*` and the mic's first-visit hint if the design drops it); the call button with the phone-handset icon (a new single-colour SVG in `src/screens/chat/voice/assets/`, replacing `VoiceComposerMic`, placed per CV-190); `chatSurface.ts` (`toggleChat` replacing `showChat` / `hideChat`, `origin` removed, §4.2) and the toggle in one slot of both views; `ChatRoute.tsx` reports the dock in `useLayoutEffect`; the column's entry and exit with the motion tokens, reduced motion opacity-only (`ChatColumn.module.css`, the call panel and pill styles); strings (`launcherLabel`, the placeholder), test ids, tests (§12 row "Screen (panel)"); `src/theme/tokens.css` **only** to delete tokens that only the deleted mic used (granted; T has merged by then); `e2e/voice.spec.ts`, `e2e/chat.spec.ts` (granted, `e2e/**` is Scaffold's) for §12's e2e row; `AGENTS.md` of `src/screens/chat/` and `src/screens/chat/voice/`, and the launcher's name in `src/screens/home/AGENTS.md` and `src/shared/chat/AGENTS.md` (one word each, granted). | Development (chat screen) | the paths listed | K, T, CV-190 merged; Ready gated on S merged |
 | — | **Epic PR** `feature/voice-panel → main`, then the manual golden check of §12 (the typed-turn and earlier-conversation rules reach the agent through the production sync only). No agent or env change by hand, unless the golden check calls for the 30-s silence timeout (§13). | Orchestrator | — | all above |
 
@@ -672,7 +677,7 @@ proposes corrections in its PR where the build differs (`docs/**` is the coordin
 | A visitor in a noisy place triggers barge-ins | Agent defaults; tune turn settings after the golden check, not now. |
 | CSP or Permissions-Policy blocks the SDK in some browser | Checked by hand on a preview with a real call after SDK or header changes (Chrome, Safari, Firefox; iOS Safari for the mic). |
 | The agent treats the contextual update as weak background and asks again what the text chat already answered | Prompt rule 5 (§6), golden check; Custom LLM (one brain) is the escape hatch (ADR-0009 → Revisit). |
-| The animated width costs a page layout per frame and janks on slow machines | Wide screens only, ≤ 200 ms; S traces it at 4× CPU throttling before Ready and falls back to the instant reflow if frames pass 16 ms (ADR-0010 → Decision 2); View Transitions are the revisit. |
+| The animated width costs a page layout per frame and janks on slow machines | Wide screens only, ≤ 300 ms (the show already animates its page's padding the same way); S traces it at 4× CPU throttling before Ready and falls back to the instant reflow if frames pass 16 ms (ADR-0010 → Decision 2); View Transitions are the revisit. |
 | The page reflows when the column docks and the reader loses their place (no scroll anchoring in Safari) | Native anchoring in Chromium and Firefox; the shell's `usePageAnchor` where `overflow-anchor` is unsupported (§4.3); Safari in the golden check. |
 | The agent's handling of typed turns is undocumented (echo as a transcript, interrupting its speech, the silence timeout while the visitor types) | The adapter drops an echo either way; `typing()` keeps the turn open; the golden check records the rest and the checklist allows a 30-s silence timeout (§4.4, §13). |
 | The visitor doesn't notice which brain gets a typed line (the call ended a moment ago) | Routing by the call state at Send; the call header and the closing divider show the call's end; the design's mid-call placeholder differs from the text one. |

@@ -63,7 +63,7 @@ The chat routes Send by the call's state at the moment of sending:
 - **Call `live`:** the text goes to `sendText`. The chat appends it right away as a visitor line
   of the call, with a client id `typed-<n>`. The agent's spoken answer arrives as an ordinary
   agent line.
-- **Call connecting:** Send is disabled, and the field stays editable.
+- **Call connecting:** the field is disabled, and the draft is kept.
 - **Any other state:** `/api/chat`, as before. A call that ends while the visitor is typing
   leaves the text in the field, and the next Send goes to Claude with the call in `voiceCalls`.
 
@@ -110,11 +110,12 @@ Details:
 The shell keeps ownership of the page's box (ADR-0009 → Decision 3). `App.module.css` gives
 `main` a transition on `padding-inline-end`:
 
-- **Opening:** `--chat-motion-duration`. The transition sits on the `data-chat-dock='side'` rule,
-  so it applies on the way in.
-- **Closing:** `--chat-motion-exit-duration`, on the base rule.
-- **Easing:** `--chat-motion-easing`. If the design package adds dock-specific tokens, the shell
-  uses those instead.
+- **Opening:** `--chat-dock-duration` with `--chat-motion-easing`. The transition sits on the
+  `data-chat-dock='side'` rule, so it applies on the way in.
+- **Closing:** `--chat-dock-exit-duration` with `--chat-motion-exit-easing`, on the base rule.
+- **Values** come from the design package (`docs/design/voice/` → Tokens; 300 / 250 ms proposed
+  by CV-190). The column slides in from the right edge with the same tokens, so it visibly
+  pushes the page.
 - **`prefers-reduced-motion: reduce`:** no transition (instant reflow), and the column is
   opacity-only.
 - **Other docks:** the bottom dock (phone sheet) and the floating card (600–1023 px) don't
@@ -131,7 +132,7 @@ frame:
 
 | Option | Assessment |
 |---|---|
-| **A. CSS transition on the shell's padding (chosen)** | One owner per concern, as in ADR-0009: home stays unaware and the chat doesn't touch the page. A few lines of CSS plus a token, and reduced motion is a media query. The cost is layout per frame for ≤ 200 ms, on wide screens only. It is measured before Ready, with a one-rule fallback (below). |
+| **A. CSS transition on the shell's padding (chosen)** | One owner per concern, as in ADR-0009: home stays unaware and the chat doesn't touch the page. A few lines of CSS plus tokens, and reduced motion is a media query. The show already transitions its page's `padding-right` this way (`--retro-reserve-duration`). The cost is layout per frame for ≤ 300 ms, on wide screens only. It is measured before Ready, with a one-rule fallback (below). |
 | B. Reflow at once, animate only the column (ADR-0009, design Decision 14) | Cheapest, but reversed by the human. Kept as the fallback. |
 | C. View Transitions API (`document.startViewTransition`) | No per-frame layout, but the old and new snapshots of a text page stretch while they morph unless they are cropped by hand. The page is inert during the transition. The chat's state update would have to run inside the shell's `startViewTransition` with `flushSync`, so the chat would drive the shell's transition. Rejected; revisit if A janks. |
 | D. `transform: scaleX` on `main` | Squeezes the text. Rejected. |
@@ -165,7 +166,7 @@ touching home.
     typing). The adapter and the golden check pin them.
   - The composer serves two destinations, so the send path branches on the call state in one
     place (the chat's state holder).
-  - Each docking costs about 12 frames of page layout on wide screens.
+  - Each docking costs about 18 frames of page layout on wide screens.
 - **Ops.** The voice prompt's typed-turn rule reaches the agent only through the production sync
   (ADR-0008 → Decision 4). Previews answer typed turns with the old prompt, which still treats
   them as visitor turns.
