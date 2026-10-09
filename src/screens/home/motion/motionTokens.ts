@@ -4,8 +4,11 @@ export interface MotionTokens {
   ease: string;
   /** `SPRING`: the overshooting easing. */
   spring: string;
-  /** Default duration, ms. */
+  /** Default duration, ms; the meta bar's is short, the photo's long, the headline's longest. */
   duration: number;
+  durationShort: number;
+  durationLong: number;
+  durationHeadline: number;
   countDuration: number;
   scrambleDuration: number;
   driftDuration: number;
@@ -31,6 +34,9 @@ export function readMotionTokens(root: Element = document.documentElement): Moti
     ease: read('--motion-ease'),
     spring: read('--motion-spring'),
     duration: parseDuration(read('--motion-duration')),
+    durationShort: parseDuration(read('--motion-duration-short')),
+    durationLong: parseDuration(read('--motion-duration-long')),
+    durationHeadline: parseDuration(read('--motion-duration-headline')),
     countDuration: parseDuration(read('--motion-count-duration')),
     scrambleDuration: parseDuration(read('--motion-scramble-duration')),
     driftDuration: parseDuration(read('--motion-drift-duration')),

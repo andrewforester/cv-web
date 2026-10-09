@@ -14,7 +14,7 @@ function drift(gradient: string): Keyframe[] {
 /**
  * The intro on load (SPEC §1): meta bar, photo, name, headline (clip reveal + skew, then its
  * gradient word drifts for good), summary, stat tiles with their values counting up, contact
- * buttons. Delays and offsets are the design's choreography.
+ * buttons. Delays and offsets are the design's choreography; durations and easings are tokens.
  */
 export function playHomeIntro(motion: Motion, root: ParentNode): void {
   const { tokens } = motion;
@@ -24,7 +24,7 @@ export function playHomeIntro(motion: Motion, root: ParentNode): void {
       { opacity: 0, transform: 'translateY(-12px)' },
       { opacity: 1, transform: 'none' },
     ],
-    { duration: 700 },
+    { duration: tokens.durationShort },
   );
   motion.once(
     find(root, t.avatar),
@@ -32,7 +32,7 @@ export function playHomeIntro(motion: Motion, root: ParentNode): void {
       { opacity: 0, transform: 'scale(0.5) rotate(-12deg)', filter: 'blur(8px)' },
       { opacity: 1, transform: 'none', filter: 'blur(0px)' },
     ],
-    { duration: 1100, delay: 100, easing: tokens.spring },
+    { duration: tokens.durationLong, delay: 100, easing: tokens.spring },
   );
   motion.once(find(root, t.names), side(-24), { delay: 250 });
   motion.once(
@@ -41,7 +41,7 @@ export function playHomeIntro(motion: Motion, root: ParentNode): void {
       { opacity: 0, transform: 'translateY(0.45em) skewY(4deg)', clipPath: 'inset(0 0 100% 0)' },
       { opacity: 1, transform: 'none', clipPath: 'inset(-20% -5% -20% -5%)' },
     ],
-    { duration: 1300, delay: 300 },
+    { duration: tokens.durationHeadline, delay: 300 },
   );
   findAll(root, t.accent).forEach((word) =>
     motion.run(word, drift(tokens.gradientLoop), {

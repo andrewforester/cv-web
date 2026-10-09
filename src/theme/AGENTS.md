@@ -5,8 +5,8 @@ reference (root `AGENTS.md` → Design: `docs/design/v3/`) and a style change
 is a token change, not a hunt through components.
 
 Place in the architecture: global CSS custom properties, fonts and base styles, imported once by
-`src/main.tsx`; every CSS Module reads `var(--token)`. No TypeScript mirror: add one only when code
-needs a value.
+`src/main.tsx`; every CSS Module reads `var(--token)`. No TypeScript mirror: code that needs a
+value (the motion) reads it from `:root` at runtime.
 
 Rules and limits:
 - Owner: Theme. A screen that needs a value adds a token here (through the Theme task), not a
@@ -17,7 +17,7 @@ Rules and limits:
 Tokens (`docs/design/v3/SPEC.md`, ADR-0006 Decision 5; look-neutral role names):
 - Colours `--color-{page,card,ink,ink-2,ink-3,ink-4,accent,accent-hover,accent-pink,on-accent,surface,
   surface-pink,surface-lilac,surface-violet,line,tree-line,status,status-dot,dark-ink,dark-line,
-  dark-number,dark-note}`; gradients `--gradient-{brand,brand-tile,dark,footer}`; shadows
+  dark-number,dark-note}`; gradients `--gradient-{brand,brand-loop,brand-tile,dark,footer}`; shadows
   `--shadow-{card,dark,cta,launcher}`.
 - Fonts `--font-sans`, `--font-mono`; type `--type-<role>-{size,weight,line-height,letter-spacing}`
   for `h1`, `h2`, `name`, `tagline`, `summary`, `stat`, `card-title`, `body`, `label`, `meta`,
@@ -35,6 +35,10 @@ Tokens (`docs/design/v3/SPEC.md`, ADR-0006 Decision 5; look-neutral role names):
   own `--chat-*` colours hold only what v3 has no value for (muted ink on dark, fills,
   error/notice, panel shadow, chat type sizes, the launcher's padding). The show's agent chat
   (`src/screens/retro/`) reads the same tokens.
+- CV page motion (`docs/design/motion/SPEC.md`): `--motion-*` easings (`ease`, `spring`), durations
+  (default, short, long, headline, count, scramble, drift, pulse), the launcher's pulse ring and the
+  scroll progress bar; `--gradient-brand-loop` is the headline word's drifting gradient. The page's
+  motion and the launcher read them at runtime for the Web Animations API.
 - Page agent: `--agent-highlight-*` (colour = `--color-accent`) and the scroll landing margin.
 - The show (`docs/design/retro/SPEC.md`): `--retro-*` (dock, highlight fills, motion timings) and
   `--devtools-*` (the DevTools panel's Chrome-light surfaces, text, badge and syntax colours,
