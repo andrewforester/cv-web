@@ -6,7 +6,7 @@
   border-top: var(--border-card) solid var(--color-dark-line);
 }
 
-/* The field, with the call's End and Mute (or later Call) left of it, bottom-aligned as it grows. */
+/* The field, with Call (or the call's End and Mute) left of it, bottom-aligned as it grows. */
 .row {
   display: flex;
   align-items: flex-end;

@@ -1,4 +1,4 @@
-/* docs/design/voice/SPEC.md → Layout 4 (the call pill): the "Ask my AI" pill's place and look. */
+/* docs/design/voice/SPEC.md → Layout 4 (the call pill): the launcher pill's place and look. */
 .pill {
   --voice-level: 0;
   /* Focus on the light page: the page's accent. */
@@ -17,12 +17,14 @@
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-launcher);
   transform-origin: bottom right;
+  /* After the column has folded away (docs/design/voice/SPEC.md → Motion: Minimize). */
   animation: pill-in var(--chat-motion-duration) var(--chat-motion-easing) both;
+  animation-delay: var(--chat-motion-exit-duration);
 }
 
 .closing {
   pointer-events: none;
-  animation: pill-out var(--chat-motion-exit-duration) var(--chat-motion-easing) both;
+  animation: pill-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
 }
 
 .expand {

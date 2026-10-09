@@ -1,5 +1,5 @@
-import { act, render } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { act, render, screen } from '@testing-library/react';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { AppProviders } from '../../../app/AppProviders';
 import { buildCvPageToolSpecs, FakeChatRepository, type AgentToolCall } from '../../../data/chat';
@@ -17,6 +17,7 @@ import { AgentExecutorContext } from '../agentExecutor';
 import type { ChatDock, ChatLayout } from '../chatDock';
 import { ChatRoute } from '../ChatRoute';
 import { FakeAgentExecutor } from '../fakeAgentExecutor';
+import { chatTestIds } from '../testIds';
 
 /** A call the test drives by hand: it records what the call asked of it. */
 export class ManualVoiceCall implements VoiceCall {
@@ -135,4 +136,10 @@ export async function renderVoiceChat({
     </AppProviders>,
   );
   return { user, executor, sessions };
+}
+
+/** The visitor's way into a call: the "Talk to my AI" pill opens the chat, then Call. */
+export async function startCall(user: UserEvent) {
+  await user.click(screen.getByTestId(chatTestIds.fab));
+  await user.click(screen.getByTestId(chatTestIds.voiceCall));
 }

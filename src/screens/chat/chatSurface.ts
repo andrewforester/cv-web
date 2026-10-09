@@ -20,25 +20,25 @@ export interface CallOutcome {
 
 export interface SurfaceModel {
   readonly surface: ChatSurface;
-  /** Where the call was started: a call that leaves nothing behind returns there. */
-  readonly origin: 'closed' | 'text';
   /** The view the pill unfolds to. */
   readonly expandTo: 'call' | 'callChat';
   /** The last call went live: leaving its card opens the chat, where the call is. */
   readonly wasLive: boolean;
   /** The call ended while folded: the pill says how for a moment (the surface is `closed`). */
   readonly endedPill: boolean;
+  /** The chat is back from a call that left nothing: the focus goes to Call, not the field. */
+  readonly focusCall: boolean;
 }
 
 export type SurfaceAction =
-  /** The "Ask my AI" pill, `#ask`, a tap on the ended pill. */
+  /** The "Talk to my AI" pill, `#ask`, a tap on the ended pill. */
   | { type: 'openChat'; call: CallStatus }
   /** The text chat's ×, or a visual page action on the phone's text sheet. */
   | { type: 'close' }
-  /** The mic (the launcher's or the composer's), Try again, Call again. */
+  /** Call (in the chat's composer), Try again, Call again. */
   | { type: 'callStart' }
-  | { type: 'showChat' }
-  | { type: 'hideChat' }
+  /** The one chat toggle: Show chat in the call panel, Hide chat in the chat during the call. */
+  | { type: 'toggleChat' }
   | { type: 'minimize'; call: CallStatus }
   | { type: 'expand' }
   | ({ type: 'callEnded' } & CallOutcome)
@@ -53,10 +53,10 @@ export type SurfaceAction =
 
 export const initialSurface: SurfaceModel = {
   surface: 'closed',
-  origin: 'closed',
   expandTo: 'call',
   wasLive: false,
   endedPill: false,
+  focusCall: false,
 };
 
 const inCall = (surface: ChatSurface) =>
@@ -67,9 +67,12 @@ export function cardStays(model: SurfaceModel, outcome: CallOutcome): boolean {
   return model.surface === 'call' || (model.surface === 'callChat' && !outcome.wasLive);
 }
 
-/** After a call without a card, or when its card is left: the chat if the call left lines. */
-function afterCall(model: SurfaceModel, toChat: boolean): SurfaceModel {
-  return { ...model, surface: toChat ? 'text' : model.origin };
+/**
+ * After a call without a card, or when its card is left: the chat, where every call starts. With
+ * nothing said (cancelled while connecting, a start error closed) the focus goes back to Call.
+ */
+function afterCall(model: SurfaceModel, leftSomething: boolean): SurfaceModel {
+  return { ...model, surface: 'text', focusCall: !leftSomething };
 }
 
 export function surfaceReducer(model: SurfaceModel, action: SurfaceAction): SurfaceModel {
@@ -79,16 +82,13 @@ export function surfaceReducer(model: SurfaceModel, action: SurfaceAction): Surf
       if (action.call === 'connecting' || action.call === 'live') {
         return inCall(surface) ? { ...model, surface: 'callChat' } : model;
       }
-      return { ...model, surface: 'text', endedPill: false };
+      return { ...model, surface: 'text', endedPill: false, focusCall: false };
     case 'close':
-      return surface === 'text' ? { ...model, surface: 'closed' } : model;
-    case 'callStart': {
-      const origin = surface === 'closed' || surface === 'text' ? surface : model.origin;
-      return { ...model, surface: 'call', origin, expandTo: 'call', endedPill: false };
-    }
-    case 'showChat':
-      return surface === 'call' ? { ...model, surface: 'callChat' } : model;
-    case 'hideChat':
+      return surface === 'text' ? { ...model, surface: 'closed', focusCall: false } : model;
+    case 'callStart':
+      return { ...model, surface: 'call', expandTo: 'call', endedPill: false, focusCall: false };
+    case 'toggleChat':
+      if (surface === 'call') return { ...model, surface: 'callChat' };
       return surface === 'callChat' ? { ...model, surface: 'call' } : model;
     case 'minimize':
       if (action.call !== 'live' || (surface !== 'call' && surface !== 'callChat')) return model;
@@ -111,7 +111,7 @@ export function surfaceReducer(model: SurfaceModel, action: SurfaceAction): Surf
       return covered || contact ? { ...model, surface: 'call' } : model;
     }
     case 'back':
-      if (surface === 'text') return { ...model, surface: 'closed' };
+      if (surface === 'text') return { ...model, surface: 'closed', focusCall: false };
       if (surface === 'callChat') return { ...model, surface: 'call' };
       if (surface !== 'call') return model;
       if (action.call === 'card') return afterCall(model, model.wasLive);

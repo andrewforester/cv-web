@@ -1,15 +1,9 @@
-import type { CSSProperties } from 'react';
 import { useStrings } from '../../../i18n';
 import chat from '../../../shared/chat/chat.module.css';
-import icon from '../../../shared/chat/ChatIcon.module.css';
 import { chatStrings } from '../strings';
 import { chatTestIds, VOICE_PANEL_ID } from '../testIds';
-import minimize from './assets/chat_voice_icon_minimize.svg';
+import { VoiceAssetIcon } from './VoiceAssetIcon';
 import styles from './VoiceMinimizeButton.module.css';
-
-// TODO(theme): the chevron joins the shared chat icons (`ChatIcon` name `minimize`,
-// docs/design/voice/SPEC.md → Icons); until then it is this screen's asset on `ChatIcon`'s mask.
-const iconStyle = { '--chat-icon-src': `url(${JSON.stringify(minimize)})` } as CSSProperties;
 
 interface VoiceMinimizeButtonProps {
   className?: string;
@@ -32,7 +26,7 @@ export function VoiceMinimizeButton({ className, disabled, onMinimize }: VoiceMi
       data-testid={chatTestIds.voiceMinimize}
       onClick={onMinimize}
     >
-      <span className={icon.icon} style={iconStyle} aria-hidden="true" />
+      <VoiceAssetIcon name="minimize" />
     </button>
   );
 }

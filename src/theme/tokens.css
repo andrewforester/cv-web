@@ -307,8 +307,6 @@
   --devtools-plate-shadow: 0 1px 4px rgba(0, 0, 0, 0.24);
 
   /* Voice call (docs/design/voice/SPEC.md) */
-  --voice-mic-size: var(--pill-height);
-  --voice-mic-icon-size: 22px;
   --voice-control-size: 56px;
   --voice-control-icon-size: 24px;
   --voice-orb-size: 200px;
@@ -325,7 +323,6 @@
   --voice-spin-listening: 12s;
   --voice-spin-speaking: 6s;
   --voice-breathe: 3.2s;
-  --voice-mic-sheen: 6s;
   --voice-orb-size-small: 120px;
   --voice-orb-size-mini: var(--chat-badge-size);
   --voice-glow-pink: rgba(255, 79, 184, 0.7);

@@ -1,13 +1,15 @@
 # chat/voice
 
-Why it exists: a visitor can talk to the CV's AI instead of typing. A round gradient mic left of
-the "Ask my AI" pill (or in the open chat's composer) starts a call in the chat's place: the
-right column on wide screens while the page shifts left and stays readable, a floating card on
-medium ones, a bottom sheet on phones. A shimmering orb follows the voices, the latest line shows
-as a caption, and the agent can scroll, highlight and open a contact on the page, which stays
+Why it exists: a visitor can talk to the CV's AI instead of typing. The gradient Call button
+left of the open chat's field (`VoiceCallButton`) starts a call in the chat's place: the right
+column on wide screens while the page shifts left and stays readable, a floating card on medium
+ones, a bottom sheet on phones. A shimmering orb follows the voices, the latest line shows as a
+caption, and the agent can scroll, highlight and open a contact on the page, which stays
 visible. The visitor can also type mid-call: the line goes to the agent, which answers by voice,
-and joins the transcript at once. "Show chat" turns the panel into the chat with every line so
-far; minimize folds it into a pill with the live orb and the timer. Look and copy:
+and joins the transcript at once. One chat toggle (`VoiceChatToggle`: Show chat / Hide chat, the
+same slot left of minimize in both views) swaps the orb for the chat with every line so far and
+back, keeping the draft and the focus on the toggle; minimize folds the call into a pill with
+the live orb and the timer. A call always starts from the chat and returns there. Look and copy:
 `docs/design/voice/SPEC.md`; flow, surfaces and limits: `docs/voice/SYSTEM_DESIGN.md` (ADR-0008,
 ADR-0009).
 
@@ -37,8 +39,8 @@ caps; `useCallBriefing`).
 
 What the visitor can rely on: one call at a time, at most 3 minutes (the timer counts down the
 last 30 s, the agent is told to wrap up at 2:30); Mute (typing still works muted); End (the
-call composer or the pill) ends it and the chat opens when anything was said; Esc minimizes,
-never ends; every failure has its own card
+call composer or the pill) ends it and the chat is back with the transcript (with nothing said,
+the focus returns to Call); Esc minimizes, never ends; every failure has its own card
 in the panel (microphone blocked, offline, too many calls, the month's minutes used up, busy,
 dropped, the call cap, an old client). A call that ends while folded says how on the pill for a
 moment. Opening a contact needs the agent's spoken yes; when the browser blocks the new tab, a
@@ -50,6 +52,7 @@ agent line cut to what was spoken before the visitor interrupted), *call divider
 start and end in the chat), *pill* (the folded call).
 
 Limits: the audio level is polled per animation frame and written to `--voice-level` (no React
-render); the minimize chevron is this screen's asset until it joins the shared chat icons; a real
+render); the handset (Call, the call's opening divider) and the minimize chevron are this
+screen's assets (`VoiceAssetIcon`) until they join the shared chat icons; a real
 call (ElevenLabs, microphone, CSP) is only checked by hand with `?voice=1`; tests and e2e use
 `FakeVoiceClient` or a hand-driven client.

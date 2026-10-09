@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { ChatCard } from '../../shared/chat/ChatCard';
-import column from './ChatColumn.module.css';
+// Before the panel's own CSS: the frame's placement (`ChatColumn`), which the phone sheet overrides.
+import { frameClasses, type FrameMotion } from './useFrameMotion';
 import { ChatComposer } from './ChatComposer';
 import { ChatHeader } from './ChatHeader';
 import styles from './ChatPanel.module.css';
@@ -11,19 +12,21 @@ import { OfflineNotice } from './OfflineNotice';
 import { CHAT_PANEL_ID, chatTestIds } from './testIds';
 import { useDialogBehavior } from './useDialogBehavior';
 import { useVisualViewportFit } from './useVisualViewportFit';
+import { VoiceCallButton } from './voice/VoiceCallButton';
 import { VoiceCallComposer } from './voice/VoiceCallComposer';
 import { VoiceCallHeader } from './voice/VoiceCallHeader';
-import { VoiceComposerMic } from './voice/VoiceComposerMic';
+import type { FocusRequest } from './voice/VoiceUiState';
 
 interface ChatPanelProps {
   className?: string;
   state: ChatUiState;
   actions: ChatActions;
   closing: boolean;
+  motion: FrameMotion;
   /** Close by keyboard or the × button: focus returns to the FAB. */
   onKeyboardClose: () => void;
-  /** On open: `true` when the field must get the focus (typing began in the phone's call sheet). */
-  takeFocusRequest?: () => boolean;
+  /** On open: where the focus goes when a view swap handed it over (the toggle, the field). */
+  takeFocusRequest?: () => FocusRequest | null;
 }
 
 const noop = () => undefined;
@@ -38,6 +41,7 @@ export function ChatPanel({
   state,
   actions,
   closing,
+  motion,
   onKeyboardClose,
   takeFocusRequest,
 }: ChatPanelProps) {
@@ -45,6 +49,8 @@ export function ChatPanel({
   const subtitleId = useId();
   const dialogRef = useRef<HTMLElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const callButtonRef = useRef<HTMLButtonElement>(null);
   const sheet = state.layout === 'sheet';
   const modal = state.layout !== 'column';
   // The view (chat or chat during a call) freezes while the panel plays its exit.
@@ -63,17 +69,24 @@ export function ChatPanel({
     onOutsidePointerDown: call ? noop : actions.close,
   });
   useVisualViewportFit(dialogRef, sheet);
-  // After the dialog's own initial focus: typing that began in the call sheet goes on here.
+  // On every (re)opening, also when reopened mid-exit: a view swap hands the focus over (the
+  // toggle stays the toggle; typing begun in the phone's call sheet goes on here), a call that left
+  // nothing gives it back to Call; otherwise the dialog's rule (the field, the sheet itself).
+  const { focusCall } = state;
   useEffect(() => {
-    if (takeFocusRequest?.()) inputRef.current?.focus();
-  }, [takeFocusRequest]);
+    if (closing) return;
+    const request = takeFocusRequest?.();
+    const fallback = focusCall ? callButtonRef : sheet ? dialogRef : inputRef;
+    const target = request === 'toggle' ? toggleRef : request === 'field' ? inputRef : fallback;
+    target.current?.focus();
+  }, [closing, takeFocusRequest, focusCall, sheet]);
 
   // The call ended here: the composer is back, and the focus goes to it.
   const wasCall = useRef(call !== null);
   useEffect(() => {
-    if (wasCall.current && !call) inputRef.current?.focus();
+    if (wasCall.current && !call && !focusCall) inputRef.current?.focus();
     wasCall.current = call !== null;
-  }, [call]);
+  }, [call, focusCall]);
 
   // After sending, stopping or retrying, the question field keeps / gets the focus.
   const thenFocusInput = (action: () => void) => () => {
@@ -85,9 +98,7 @@ export function ChatPanel({
     <ChatCard
       ref={dialogRef}
       id={CHAT_PANEL_ID}
-      className={[column.frame, styles.panel, closing && column.closing, className]
-        .filter(Boolean)
-        .join(' ')}
+      className={[frameClasses(motion, closing), styles.panel, className].filter(Boolean).join(' ')}
       role={modal ? 'dialog' : undefined}
       aria-modal={modal || undefined}
       aria-labelledby={titleId}
@@ -98,7 +109,12 @@ export function ChatPanel({
       onKeyDown={onKeyDown}
     >
       {call ? (
-        <VoiceCallHeader titleId={titleId} state={call} actions={actions.voice} />
+        <VoiceCallHeader
+          titleId={titleId}
+          state={call}
+          actions={actions.voice}
+          toggleRef={toggleRef}
+        />
       ) : (
         <ChatHeader
           titleId={titleId}
@@ -135,7 +151,15 @@ export function ChatPanel({
           maxLength={state.maxInputLength}
           canSend={state.canSend}
           busy={state.busy}
-          voiceSlot={state.voice && <VoiceComposerMic onStart={actions.voice.start} />}
+          leading={
+            state.voice && (
+              <VoiceCallButton
+                buttonRef={callButtonRef}
+                disabled={state.busy}
+                onStart={actions.voice.start}
+              />
+            )
+          }
           onChange={actions.changeInput}
           onSend={thenFocusInput(actions.send)}
           onStop={thenFocusInput(actions.stop)}

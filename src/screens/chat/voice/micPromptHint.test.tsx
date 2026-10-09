@@ -2,7 +2,7 @@ import { act, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import { chatTestIds } from '../testIds';
 import { MIC_HINT_DELAY_MS } from './micPromptHint';
-import { ManualVoiceClient, renderVoiceChat } from './voiceTestHarness';
+import { ManualVoiceClient, renderVoiceChat, startCall } from './voiceTestHarness';
 
 const HINT = 'Allow the microphone when your browser asks.';
 
@@ -30,7 +30,7 @@ async function startPending() {
     client,
     advanceTimers: (ms) => void vi.advanceTimersByTime(ms),
   });
-  await user.click(screen.getByTestId(chatTestIds.voiceMic));
+  await startCall(user);
   return client;
 }
 

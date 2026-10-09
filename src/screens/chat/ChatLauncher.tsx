@@ -5,59 +5,53 @@ import { ChatBadge } from '../../shared/chat/ChatBadge';
 import styles from './ChatLauncher.module.css';
 import { chatStrings } from './strings';
 import { CHAT_PANEL_ID, chatTestIds } from './testIds';
-import { VoiceMicButton } from './voice/VoiceMicButton';
 
 interface ChatLauncherProps {
   className?: string;
   fabRef: Ref<HTMLButtonElement>;
   hintVisible: boolean;
+  /** The column (or the call pill) is taking its place: the pill fades out, no input. */
+  closing: boolean;
+  /** Coming back after the chat closed: it waits for the column to leave, then grows in. */
+  returning: boolean;
   onOpen: () => void;
   onDismissHint: () => void;
-  /** Shows the mic left of the pill (a voice client is bound). */
-  voiceAvailable?: boolean;
-  micRef?: Ref<HTMLButtonElement>;
-  onStartVoice?: () => void;
 }
 
 /**
- * The closed state: the "Ask my AI" pill (its label is the button's name), the first-visit hint,
- * and the voice mic between them when voice is on.
+ * The closed state (docs/design/voice/SPEC.md → Layout 1): the one launcher, the "Talk to my AI"
+ * pill (its label is the button's name), and the first-visit hint. A call starts from the chat.
  */
 export function ChatLauncher({
   className,
   fabRef,
   hintVisible,
+  closing,
+  returning,
   onOpen,
   onDismissHint,
-  voiceAvailable = false,
-  micRef,
-  onStartVoice,
 }: ChatLauncherProps) {
   const strings = useStrings(chatStrings);
   const hintId = useId();
+  const classes = [styles.launcher, returning && styles.returning, closing && styles.closing];
 
   return (
-    <div className={className ? `${styles.launcher} ${className}` : styles.launcher}>
+    <div className={[...classes, className].filter(Boolean).join(' ')} inert={closing}>
       {hintVisible && <ChatHint textId={hintId} onDismiss={onDismissHint} />}
-      <div className={styles.row}>
-        {voiceAvailable && onStartVoice && (
-          <VoiceMicButton buttonRef={micRef} onStart={onStartVoice} />
-        )}
-        <button
-          ref={fabRef}
-          type="button"
-          className={styles.pill}
-          aria-haspopup="dialog"
-          aria-expanded={false}
-          aria-controls={CHAT_PANEL_ID}
-          aria-describedby={hintVisible ? hintId : undefined}
-          data-testid={chatTestIds.fab}
-          onClick={onOpen}
-        >
-          <ChatBadge />
-          {strings.launcherLabel}
-        </button>
-      </div>
+      <button
+        ref={fabRef}
+        type="button"
+        className={styles.pill}
+        aria-haspopup="dialog"
+        aria-expanded={false}
+        aria-controls={CHAT_PANEL_ID}
+        aria-describedby={hintVisible ? hintId : undefined}
+        data-testid={chatTestIds.fab}
+        onClick={onOpen}
+      >
+        <ChatBadge />
+        {strings.launcherLabel}
+      </button>
     </div>
   );
 }

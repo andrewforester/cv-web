@@ -6,16 +6,24 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  transform-origin: bottom right;
 }
 
-/* [mic] [pill]: stays one row on a phone, where the hint goes above it. */
-.row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
+/*
+ * docs/design/voice/SPEC.md → Motion: the pill leaves on the frame the column starts to enter, and
+ * comes back once the column has gone.
+ */
+.closing {
+  pointer-events: none;
+  animation: launcher-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
 }
 
-/* The "Ask my AI" pill (docs/design/v3/SPEC.md, Structure 11): ✦ badge + label on white. */
+.returning:not(.closing) {
+  animation: launcher-in var(--chat-motion-duration) var(--chat-motion-easing) both;
+  animation-delay: var(--chat-dock-exit-duration);
+}
+
+/* The "Talk to my AI" pill (docs/design/v3/SPEC.md, Structure 11): ✦ badge + label on white. */
 .pill {
   flex: none;
   display: flex;
@@ -48,5 +56,42 @@
   .launcher {
     flex-direction: column;
     align-items: flex-end;
+  }
+}
+
+@keyframes launcher-out {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes launcher-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .closing {
+    animation-name: fade-out;
+  }
+
+  .returning:not(.closing) {
+    animation-name: fade-in;
+    animation-duration: var(--chat-motion-exit-duration);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
   }
 }

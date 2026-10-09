@@ -70,8 +70,7 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
       dispatchSurface({ type: 'callStart' });
       voice.actions.start();
     },
-    showChat: () => dispatchSurface({ type: 'showChat' }),
-    hideChat: () => dispatchSurface({ type: 'hideChat' }),
+    toggleChat: () => dispatchSurface({ type: 'toggleChat' }),
     minimize: () => dispatchSurface({ type: 'minimize', call }),
     expand: () => dispatchSurface({ type: 'expand' }),
     leaveCard: (to) => {
@@ -123,6 +122,7 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
   const state: ChatUiState = {
     surface: surface.surface,
     endedPill: surface.endedPill,
+    focusCall: surface.focusCall,
     layout,
     hintVisible: hint.visible && surface.surface === 'closed' && !surface.endedPill,
     online,

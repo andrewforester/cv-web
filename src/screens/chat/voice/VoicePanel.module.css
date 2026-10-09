@@ -3,7 +3,10 @@
   --voice-level: 0;
 }
 
-/* The phone's call: a bottom sheet of a fixed height over the live page (the shell pads it). */
+/*
+ * The phone's call: a bottom sheet of a fixed height over the live page (the shell pads it). It
+ * slides up from below the screen, no fade, with the column's timing (SPEC → Motion).
+ */
 @media (max-width: 599px), (max-height: 499px) {
   .panel {
     top: auto;
@@ -14,11 +17,11 @@
     height: var(--voice-sheet-height);
     border-bottom: 0;
     border-radius: var(--radius-card) var(--radius-card) 0 0;
-    animation-name: sheet-in;
+    animation: sheet-in var(--chat-dock-duration) var(--chat-motion-easing) both;
   }
 
   .panel[inert] {
-    animation-name: sheet-out;
+    animation: sheet-out var(--chat-dock-exit-duration) var(--chat-motion-exit-easing) both;
   }
 }
 
@@ -30,25 +33,23 @@
 
 @media (prefers-reduced-motion: reduce) {
   .panel {
-    animation-name: fade-in;
+    animation: fade-in var(--chat-motion-exit-duration) var(--chat-motion-easing) both;
   }
 
   .panel[inert] {
-    animation-name: fade-out;
+    animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
   }
 }
 
 @keyframes sheet-in {
   from {
-    opacity: 0;
-    transform: translateY(var(--space-6));
+    transform: translateY(100%);
   }
 }
 
 @keyframes sheet-out {
   to {
-    opacity: 0;
-    transform: translateY(var(--space-6));
+    transform: translateY(100%);
   }
 }
 

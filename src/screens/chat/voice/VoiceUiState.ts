@@ -54,9 +54,15 @@ export interface VoiceUiState {
   readonly announcement: VoiceAnnouncement | null;
 }
 
+/**
+ * Where the focus goes in the view that takes the column after a swap: the chat toggle stays the
+ * toggle (same place, new label), the field stays the field (typing began in the phone's sheet).
+ */
+export type FocusRequest = 'toggle' | 'field';
+
 /** What the call itself does (`useVoiceCall`). */
 export interface VoiceCallActions {
-  /** The mic tap (also Try again / Call again): starts a call. */
+  /** Call in the chat's composer (also Try again / Call again): starts a call. */
   start(): void;
   /** End: hangs up; while connecting, cancels. */
   end(): void;
@@ -78,8 +84,8 @@ export interface VoiceCallActions {
 
 /** The call's actions plus where it shows (the chat's surface, docs/voice/SYSTEM_DESIGN.md §4.2). */
 export interface VoiceActions extends VoiceCallActions {
-  showChat(): void;
-  hideChat(): void;
+  /** The one chat toggle: the call panel ⇄ the chat during the call. */
+  toggleChat(): void;
   /** Folds the panel into the pill (only while live). */
   minimize(): void;
   /** The pill's main button: the panel opens again in the view it had. */

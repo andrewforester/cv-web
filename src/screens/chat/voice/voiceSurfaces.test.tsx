@@ -4,18 +4,18 @@ import { afterEach, vi } from 'vitest';
 import type { ChatDock } from '../chatDock';
 import { chatTestIds } from '../testIds';
 import { ENDED_PILL_MS } from '../useChatSurface';
-import { ManualVoiceClient, renderVoiceChat, stubLayout } from './voiceTestHarness';
+import { ManualVoiceClient, renderVoiceChat, startCall, stubLayout } from './voiceTestHarness';
 
 // docs/voice/SYSTEM_DESIGN.md §4.2–4.3: what the chat shows during and after a call.
 const surface = () => screen.getByTestId(chatTestIds.root).getAttribute('data-surface');
 const LINE = { type: 'line', line: { id: 'visitor-1', role: 'visitor', text: 'Hello?' } } as const;
 
-async function liveCall(
-  user: UserEvent,
-  client: ManualVoiceClient,
-  mic: string = chatTestIds.voiceMic,
-) {
-  await user.click(screen.getByTestId(mic));
+const toggle = () => screen.getByTestId(chatTestIds.voiceChatToggle);
+
+/** Call from the open chat (`open`: the chat is already open), then the call goes live. */
+async function liveCall(user: UserEvent, client: ManualVoiceClient, open = false) {
+  if (open) await user.click(screen.getByTestId(chatTestIds.voiceCall));
+  else await startCall(user);
   await waitFor(() => expect(client.call).not.toBeNull());
   client.emit({ type: 'status', status: 'live' });
 }
@@ -27,12 +27,17 @@ describe('call surfaces', () => {
     history.replaceState(null, '', '/');
   });
 
-  it('Show chat opens the chat with the call’s lines and the call composer; Hide chat goes back', async () => {
+  it('the one toggle: Show chat opens the chat with the call’s lines, Hide chat goes back', async () => {
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client });
     await liveCall(user, client);
     client.emit(LINE);
-    await user.click(screen.getByTestId(chatTestIds.voiceShowChat));
+    expect(toggle()).toHaveAccessibleName('Show chat');
+    await user.type(
+      within(screen.getByTestId(chatTestIds.voicePanel)).getByTestId(chatTestIds.input),
+      'draft',
+    );
+    await user.click(toggle());
 
     expect(surface()).toBe('callChat');
     const chat = screen.getByTestId(chatTestIds.panel);
@@ -45,10 +50,19 @@ describe('call surfaces', () => {
     expect(within(chat).getByTestId(chatTestIds.voiceMute)).toBeEnabled();
     expect(within(chat).queryByTestId(chatTestIds.meta)).not.toBeInTheDocument();
     expect(within(chat).queryByTestId(chatTestIds.suggestion)).not.toBeInTheDocument();
+    // Same slot, new label; the focus stays on it; one draft for both views.
+    const hide = within(chat).getByTestId(chatTestIds.voiceChatToggle);
+    expect(hide).toHaveAccessibleName('Hide chat');
+    await waitFor(() => expect(hide).toHaveFocus());
+    expect(input).toHaveValue('draft');
 
-    await user.click(screen.getByTestId(chatTestIds.voiceHideChat));
+    await user.click(hide);
     expect(surface()).toBe('call');
-    expect(await screen.findByTestId(chatTestIds.voicePanel)).toHaveFocus();
+    const panel = await screen.findByTestId(chatTestIds.voicePanel);
+    const show = within(panel).getByTestId(chatTestIds.voiceChatToggle);
+    expect(show).toHaveAccessibleName('Show chat');
+    await waitFor(() => expect(show).toHaveFocus());
+    expect(within(panel).getByTestId(chatTestIds.input)).toHaveValue('draft');
   });
 
   it('End in the chat during the call lands in the text chat with the draft kept and focused', async () => {
@@ -56,9 +70,9 @@ describe('call surfaces', () => {
     const { user } = await renderVoiceChat({ client });
     await user.click(screen.getByTestId(chatTestIds.fab));
     await user.type(screen.getByTestId(chatTestIds.input), 'draft');
-    await liveCall(user, client, chatTestIds.voiceComposerMic);
+    await liveCall(user, client, true);
     client.emit(LINE);
-    await user.click(screen.getByTestId(chatTestIds.voiceShowChat));
+    await user.click(screen.getByTestId(chatTestIds.voiceChatToggle));
     await user.click(
       within(screen.getByTestId(chatTestIds.panel)).getByTestId(chatTestIds.voiceEnd),
     );
@@ -74,7 +88,7 @@ describe('call surfaces', () => {
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client });
     await liveCall(user, client);
-    await user.click(screen.getByTestId(chatTestIds.voiceShowChat));
+    await user.click(screen.getByTestId(chatTestIds.voiceChatToggle));
     const chat = within(screen.getByTestId(chatTestIds.panel));
     await user.click(chat.getByTestId(chatTestIds.voiceMinimize));
 
@@ -82,7 +96,7 @@ describe('call surfaces', () => {
     const expand = await screen.findByTestId(chatTestIds.voicePillExpand);
     expect(expand).toHaveFocus();
     expect(expand).toHaveAccessibleName('Open the call panel: Listening 0:00');
-    expect(screen.queryByTestId(chatTestIds.fab)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByTestId(chatTestIds.fab)).not.toBeInTheDocument());
 
     await user.click(expand);
     expect(surface()).toBe('callChat');
@@ -132,11 +146,44 @@ describe('call surfaces', () => {
     await liveCall(user, client);
     expect(docks.at(-1)).toBe('side');
     // Docked, the chat is a region beside the page, not a modal dialog.
-    await user.click(screen.getByTestId(chatTestIds.voiceShowChat));
+    await user.click(screen.getByTestId(chatTestIds.voiceChatToggle));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     const chat = within(screen.getByTestId(chatTestIds.panel));
     await user.click(chat.getByTestId(chatTestIds.voiceMinimize));
     expect(docks.at(-1)).toBe('none');
+  });
+
+  it('on a phone, a tap on the sheet’s field during the chat’s exit types in the chat, once', async () => {
+    stubLayout('sheet');
+    const client = new ManualVoiceClient();
+    const { user } = await renderVoiceChat({ client });
+    await liveCall(user, client);
+    await user.click(toggle());
+    await user.click(
+      within(screen.getByTestId(chatTestIds.panel)).getByTestId(chatTestIds.voiceChatToggle),
+    );
+    // The chat sheet is still playing its exit: the field hands the typing back to it.
+    await user.click(
+      within(screen.getByTestId(chatTestIds.voicePanel)).getByTestId(chatTestIds.input),
+    );
+    expect(surface()).toBe('callChat');
+    const chatInput = () =>
+      within(screen.getByTestId(chatTestIds.panel)).getByTestId(chatTestIds.input);
+    await waitFor(() => expect(chatInput()).toHaveFocus());
+
+    // Later toggles move the focus with the toggle; the field never takes it unasked.
+    await user.click(
+      within(screen.getByTestId(chatTestIds.panel)).getByTestId(chatTestIds.voiceChatToggle),
+    );
+    await waitFor(() => expect(surface()).toBe('call'));
+    await user.click(
+      within(screen.getByTestId(chatTestIds.voicePanel)).getByTestId(chatTestIds.voiceChatToggle),
+    );
+    const hide = within(screen.getByTestId(chatTestIds.panel)).getByTestId(
+      chatTestIds.voiceChatToggle,
+    );
+    await waitFor(() => expect(hide).toHaveFocus());
+    expect(chatInput()).not.toHaveFocus();
   });
 
   it('on a phone: a bottom sheet (dock `bottom`), and Back steps out one view at a time', async () => {
@@ -146,7 +193,7 @@ describe('call surfaces', () => {
     const { user } = await renderVoiceChat({ client, onDockChange: (dock) => docks.push(dock) });
     await liveCall(user, client);
     expect(docks.at(-1)).toBe('bottom');
-    await user.click(screen.getByTestId(chatTestIds.voiceShowChat));
+    await user.click(screen.getByTestId(chatTestIds.voiceChatToggle));
     expect(docks.at(-1)).toBe('none');
 
     act(() => history.back());

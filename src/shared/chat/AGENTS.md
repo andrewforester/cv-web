@@ -9,7 +9,7 @@ What is here: the card frame (`ChatCard`: the v3 dark panel, the loop panel's co
 header (`ChatCardHeader`: badge, title, subtitle, one trailing action: close on the site, minimise in the
 show), message bubbles (`MessageRow`, `NoticeRow`), the waiting and streaming cues
 (`TypingIndicator`, `StreamingCaret`), `SendButton` (Send, or Stop while busy), `OfflineNotice`,
-`ChatBadge` (the ✦ on the gradient: the header's badge and the site's "Ask my AI" pill),
+`ChatBadge` (the ✦ on the gradient: the header's badge and the site's "Talk to my AI" pill),
 `ChatIcon` with its `assets/` (the voice mode's mic, mute, end, offline, alert and timer icons
 included: the chat's call divider uses the mic too), and `chat.module.css` (caption, screen-reader-only, icon and
 secondary buttons).
