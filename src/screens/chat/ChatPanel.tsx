@@ -154,11 +154,7 @@ export function ChatPanel({
           busy={state.busy}
           leading={
             state.voice && (
-              <VoiceCallButton
-                buttonRef={callButtonRef}
-                disabled={state.busy}
-                onStart={actions.voice.start}
-              />
+              <VoiceCallButton buttonRef={callButtonRef} onStart={actions.voice.start} />
             )
           }
           onChange={actions.changeInput}

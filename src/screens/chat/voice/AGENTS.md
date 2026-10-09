@@ -35,7 +35,10 @@ One conversation (docs/voice/SYSTEM_DESIGN.md §8): the text model gets a call's
 next question (`voiceHistory.ts`, used by the chat's request builders: lines only, within the
 API's caps); the agent gets the chat so far once, when the call is live and connected
 (`earlierConversation.ts`: one labelled line per entry, oldest first, cut to the contract's
-caps; `useCallBriefing`).
+caps; `useCallBriefing`). Only finished text answers count, except the *handed-over turn*: when
+the entry just before the call is a text answer that never finished (Call stopped it, the
+visitor did, or it failed), its question and what was written of it (or `…`) go last, under the
+contract's unfinished label, so the agent answers that question by voice (ADR-0013).
 
 What the visitor can rely on: one call at a time, at most 3 minutes (the timer counts down the
 last 30 s, the agent is told to wrap up at 2:30); Mute (typing still works muted); End (the
@@ -47,7 +50,8 @@ moment. Opening a contact needs the agent's spoken yes; when the browser blocks 
 card asks for the tap (30 s, then "declined").
 
 Domain terms: *call* (one voice session), *line* (a final transcript line, spoken or typed),
-*typed call line* (typed mid-call: to the agent, into the call's transcript), *correction* (an
+*typed call line* (typed mid-call: to the agent, into the call's transcript), *handed-over
+turn* (the unfinished text answer the call's briefing ends with), *correction* (an
 agent line cut to what was spoken before the visitor interrupted), *call divider* (the call's
 start and end in the chat), *pill* (the folded call).
 

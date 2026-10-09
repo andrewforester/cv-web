@@ -9,8 +9,9 @@ first. A link to `#ask` anywhere on the site opens it too. With the voice flag o
 starts with a Call button ("Call … or type instead"): it turns the chat into a voice call
 (`voice/`, its own `AGENTS.md`) whose transcript lands in the same conversation; during the call
 the composer stays and writes to the call (the agent answers by voice), and after it the same
-field asks the text model again (docs/voice/SYSTEM_DESIGN.md §4.4). Call waits while a text
-answer streams: one channel speaks at a time. Behaviour:
+field asks the text model again (docs/voice/SYSTEM_DESIGN.md §4.4). Call never waits for a text
+answer: a tap while one streams stops it (the chat's Stop; what was written stays) and hands the
+question to the call, so one channel speaks at a time (ADR-0013 → Decision 3). Behaviour:
 `docs/design/chat/SPEC.md` (with "Orchestrator decisions"); look:
 `docs/design/v3/SPEC.md` → Decision 6 (the pill; the panel in the loop panel's dark colours); API:
 `docs/chat/API.md` → v4; page agent: `docs/chat/AGENT.md`; copy and labels: ADR-0006 → Decision 3.
