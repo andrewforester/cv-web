@@ -5,7 +5,12 @@ export interface AnimateCall {
   el: Element;
   keyframes: Keyframe[];
   options: KeyframeAnimationOptions;
-  animation: Animation & { cancel: ReturnType<typeof vi.fn> };
+  animation: Animation & {
+    cancel: ReturnType<typeof vi.fn>;
+    play: ReturnType<typeof vi.fn>;
+    pause: ReturnType<typeof vi.fn>;
+    finish: ReturnType<typeof vi.fn>;
+  };
 }
 
 /** The motion tokens as `src/theme/tokens.css` has them (jsdom doesn't load the theme). */
@@ -33,20 +38,28 @@ const TOKENS: Record<string, string> = {
   '--gradient-brand-loop': 'linear-gradient(90deg, #ff4fb8, #8b5cf6, #ff4fb8)',
 };
 
+/** Where a watched element is when the fake IntersectionObserver reports it. */
+type Place = 'in' | 'below' | 'above';
+
 /**
  * Gives jsdom what the page's motion needs, for tests only: the motion tokens on `:root`,
- * `matchMedia` answering `reduce` as asked, an IntersectionObserver stub and a recording
- * `Element.animate`. Returns the recorded calls; `vi.restoreAllMocks` + `uninstall` undo it.
+ * `matchMedia` answering `reduce`, `print` and the hover pointer as asked, an IntersectionObserver
+ * that reports what `scroll` says, and a recording `Element.animate` (`finish` ends at once).
+ * Returns the recorded calls; `vi.restoreAllMocks` + `uninstall` undo it.
  */
-export function installMotionEnv({ reduced = false, print = false } = {}) {
+export function installMotionEnv({ reduced = false, print = false, hover = true } = {}) {
   const calls: AnimateCall[] = [];
+  const observers: { callback: IntersectionObserverCallback; watched: Set<Element> }[] = [];
   Object.entries(TOKENS).forEach(([name, value]) =>
     document.documentElement.style.setProperty(name, value),
   );
   vi.stubGlobal(
     'matchMedia',
     vi.fn((query: string) => ({
-      matches: (reduced && query.includes('reduce')) || (print && query === 'print'),
+      matches:
+        (reduced && query.includes('reduce')) ||
+        (print && query === 'print') ||
+        (hover && query.includes('hover')),
       media: query,
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
@@ -54,8 +67,14 @@ export function installMotionEnv({ reduced = false, print = false } = {}) {
   );
   vi.stubGlobal(
     'IntersectionObserver',
-    vi.fn(function IntersectionObserverStub() {
-      return { observe: vi.fn(), unobserve: vi.fn(), disconnect: vi.fn() };
+    vi.fn(function IntersectionObserverStub(callback: IntersectionObserverCallback) {
+      const watched = new Set<Element>();
+      observers.push({ callback, watched });
+      return {
+        observe: vi.fn((el: Element) => watched.add(el)),
+        unobserve: vi.fn((el: Element) => watched.delete(el)),
+        disconnect: vi.fn(() => watched.clear()),
+      };
     }),
   );
   Element.prototype.animate = vi.fn(function animate(
@@ -67,6 +86,7 @@ export function installMotionEnv({ reduced = false, print = false } = {}) {
       cancel: vi.fn(),
       pause: vi.fn(),
       play: vi.fn(),
+      finish: vi.fn(() => animation.onfinish?.call(animation, new Event('finish') as never)),
       onfinish: null,
       currentTime: 0,
     } as unknown as AnimateCall['animation'];
@@ -79,5 +99,19 @@ export function installMotionEnv({ reduced = false, print = false } = {}) {
     vi.unstubAllGlobals();
     delete (Element.prototype as Partial<Element>).animate;
   };
-  return { calls, uninstall };
+  /** Reports `el` (if watched) as in view, still below or already scrolled past. */
+  const scroll = (el: Element, place: Place = 'in') =>
+    observers.forEach(({ callback, watched }) => {
+      if (!watched.has(el)) return;
+      const entry = {
+        target: el,
+        isIntersecting: place === 'in',
+        boundingClientRect: { bottom: place === 'above' ? -10 : 500 },
+        rootBounds: { top: 0 },
+      } as unknown as IntersectionObserverEntry;
+      callback([entry], {} as IntersectionObserver);
+    });
+  /** Whether any observer still watches `el`. */
+  const watching = (el: Element) => observers.some(({ watched }) => watched.has(el));
+  return { calls, uninstall, scroll, watching };
 }
