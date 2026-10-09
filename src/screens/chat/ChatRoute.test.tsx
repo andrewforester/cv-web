@@ -7,7 +7,7 @@ import { ChatRoute } from './ChatRoute';
 import { chatTestIds } from './testIds';
 
 describe('chat widget', () => {
-  it('opens from the Talk to my AI pill (its label is its name), shows the empty state, closes with × and returns focus', async () => {
+  it('opens from the Talk to my AI pill (its label is its name), shows the empty state, collapses and returns focus', async () => {
     const user = userEvent.setup();
     render(
       <AppProviders chatRepository={new FakeChatRepository()}>
@@ -24,12 +24,12 @@ describe('chat widget', () => {
     expect(within(dialog).getAllByTestId(chatTestIds.suggestion)).toHaveLength(4);
     expect(within(dialog).getByRole('button', { name: 'Send' })).toBeDisabled();
 
-    await user.click(screen.getByRole('button', { name: 'Close chat' }));
+    await user.click(screen.getByRole('button', { name: 'Collapse chat' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(screen.getByTestId(chatTestIds.fab)).toHaveFocus();
   });
 
-  it('closes on Esc and returns focus to the FAB; the conversation survives reopening', async () => {
+  it('collapses on Esc and returns focus to the FAB; the conversation survives reopening', async () => {
     const { repository, user } = await renderOpenChat();
     repository.reply(...answer('Since 2012.'));
     await user.click(screen.getByRole('button', { name: 'How does he build with AI agents?' }));

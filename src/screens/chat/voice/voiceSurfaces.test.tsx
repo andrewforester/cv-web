@@ -86,13 +86,13 @@ describe('call surfaces', () => {
     await waitFor(() => expect(input).toHaveFocus());
   });
 
-  it('minimize folds the call into the pill; the pill unfolds to the view it had', async () => {
+  it('collapse folds the call into the pill; the pill unfolds to the view it had', async () => {
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client });
     await liveCall(user, client);
     await user.click(screen.getByTestId(chatTestIds.voiceChatToggle));
     const chat = within(screen.getByTestId(chatTestIds.panel));
-    await user.click(chat.getByTestId(chatTestIds.voiceMinimize));
+    await user.click(chat.getByTestId(chatTestIds.collapse));
 
     expect(surface()).toBe('callPill');
     const expand = await screen.findByTestId(chatTestIds.voicePillExpand);
@@ -104,13 +104,66 @@ describe('call surfaces', () => {
     expect(surface()).toBe('callChat');
   });
 
+  it('collapse while connecting: the pill says Connecting… until live, then status and time', async () => {
+    const client = new ManualVoiceClient();
+    const { user } = await renderVoiceChat({ client });
+    await startCall(user);
+    const collapse = screen.getByTestId(chatTestIds.collapse);
+    expect(collapse).toBeEnabled();
+    expect(collapse).toHaveAccessibleName('Collapse chat. The call goes on.');
+    await user.click(collapse);
+
+    expect(surface()).toBe('callPill');
+    const expand = await screen.findByTestId(chatTestIds.voicePillExpand);
+    expect(expand).toHaveAccessibleName('Open the call panel: Connecting…');
+    expect(screen.getByTestId(chatTestIds.voicePill)).toHaveAttribute('data-phase', 'connecting');
+    await waitFor(() => expect(client.call).not.toBeNull());
+    client.emit({ type: 'status', status: 'live' });
+    expect(expand).toHaveAccessibleName('Open the call panel: Listening 0:00');
+    expect(client.call?.ended).toBeNull();
+  });
+
+  it('a start that fails while folded unfolds the panel with its card', async () => {
+    const client = new ManualVoiceClient();
+    const { user } = await renderVoiceChat({ client });
+    await startCall(user);
+    await user.click(screen.getByTestId(chatTestIds.collapse));
+    expect(surface()).toBe('callPill');
+    await waitFor(() => expect(client.call).not.toBeNull());
+    client.emit({ type: 'ended', reason: 'error' });
+
+    expect(surface()).toBe('call');
+    const card = await screen.findByTestId(chatTestIds.voiceError);
+    expect(card).toHaveAttribute('data-error', 'busy');
+    // The card's collapse folds the panel into the launcher: there is no call to keep.
+    const collapse = screen.getByTestId(chatTestIds.collapse);
+    expect(collapse).toHaveAccessibleName('Collapse chat');
+    await user.click(collapse);
+    expect(surface()).toBe('closed');
+    await waitFor(() => expect(screen.getByTestId(chatTestIds.fab)).toHaveFocus());
+  });
+
+  it('End on the connecting pill cancels the attempt and the launcher returns', async () => {
+    const client = new ManualVoiceClient();
+    const { user } = await renderVoiceChat({ client });
+    await startCall(user);
+    await user.click(screen.getByTestId(chatTestIds.collapse));
+    await user.click(await screen.findByTestId(chatTestIds.voicePillEnd));
+
+    expect(surface()).toBe('closed');
+    await waitFor(() => expect(screen.getByTestId(chatTestIds.fab)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.queryByTestId(chatTestIds.voicePill)).not.toBeInTheDocument(),
+    );
+  });
+
   it('a call that ends while folded says how on the pill, then the launcher returns', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client, advanceTimers: vi.advanceTimersByTime });
     await liveCall(user, client);
     client.emit(LINE);
-    await user.click(screen.getByTestId(chatTestIds.voiceMinimize));
+    await user.click(screen.getByTestId(chatTestIds.collapse));
     await user.click(screen.getByTestId(chatTestIds.voicePillEnd));
 
     expect(surface()).toBe('closed');
@@ -132,7 +185,7 @@ describe('call surfaces', () => {
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client });
     await liveCall(user, client);
-    await user.click(screen.getByTestId(chatTestIds.voiceMinimize));
+    await user.click(screen.getByTestId(chatTestIds.collapse));
     vi.stubGlobal('open', () => null);
     void client.tool({ name: 'openContact', input: { channel: 'whatsapp' } });
 
@@ -151,41 +204,30 @@ describe('call surfaces', () => {
     await user.click(screen.getByTestId(chatTestIds.voiceChatToggle));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     const chat = within(screen.getByTestId(chatTestIds.panel));
-    await user.click(chat.getByTestId(chatTestIds.voiceMinimize));
+    await user.click(chat.getByTestId(chatTestIds.collapse));
     expect(docks.at(-1)).toBe('none');
   });
 
-  it('on a phone, a tap on the sheet’s field during the chat’s exit types in the chat, once', async () => {
+  it('on a phone, a tap on the call sheet’s field opens the chat and keeps typing in it', async () => {
     stubLayout('sheet');
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client });
     await liveCall(user, client);
-    await user.click(toggle());
-    await user.click(
-      within(screen.getByTestId(chatTestIds.panel)).getByTestId(chatTestIds.voiceChatToggle),
-    );
-    // The chat sheet is still playing its exit: the field hands the typing back to it.
-    await user.click(
-      within(screen.getByTestId(chatTestIds.voicePanel)).getByTestId(chatTestIds.input),
-    );
+    const field = within(screen.getByTestId(chatTestIds.voicePanel)).getByTestId(chatTestIds.input);
+    await user.click(field);
     expect(surface()).toBe('callChat');
-    const chatInput = () =>
-      within(screen.getByTestId(chatTestIds.panel)).getByTestId(chatTestIds.input);
-    await waitFor(() => expect(chatInput()).toHaveFocus());
+    // One composer: the same field, still focused, now in the full-screen chat.
+    expect(within(screen.getByTestId(chatTestIds.panel)).getByTestId(chatTestIds.input)).toBe(
+      field,
+    );
+    await waitFor(() => expect(field).toHaveFocus());
 
     // Later toggles move the focus with the toggle; the field never takes it unasked.
-    await user.click(
-      within(screen.getByTestId(chatTestIds.panel)).getByTestId(chatTestIds.voiceChatToggle),
-    );
+    await user.click(toggle());
     await waitFor(() => expect(surface()).toBe('call'));
-    await user.click(
-      within(screen.getByTestId(chatTestIds.voicePanel)).getByTestId(chatTestIds.voiceChatToggle),
-    );
-    const hide = within(screen.getByTestId(chatTestIds.panel)).getByTestId(
-      chatTestIds.voiceChatToggle,
-    );
-    await waitFor(() => expect(hide).toHaveFocus());
-    expect(chatInput()).not.toHaveFocus();
+    await user.click(toggle());
+    await waitFor(() => expect(toggle()).toHaveFocus());
+    expect(field).not.toHaveFocus();
   });
 
   it('on a phone: a bottom sheet (dock `bottom`), and Back steps out one view at a time', async () => {
