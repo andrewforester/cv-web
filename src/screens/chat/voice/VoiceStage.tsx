@@ -43,7 +43,7 @@ export function VoiceStage({ className, state, actions }: VoiceStageProps) {
       {state.action && <VoiceActionChip action={state.action} />}
       <VoiceOrb className={styles.orb} />
       {state.error ? (
-        <VoiceErrorCard error={state.error} onButton={onErrorButton} />
+        <VoiceErrorCard error={state.error} busy={state.retrying} onButton={onErrorButton} />
       ) : state.contact ? (
         <VoiceContactCard
           contact={state.contact}

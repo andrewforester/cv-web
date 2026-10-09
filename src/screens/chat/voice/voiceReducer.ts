@@ -33,6 +33,11 @@ export interface VoiceModel {
   readonly toolShown: boolean;
   readonly contact: VoiceContactRequest | null;
   readonly error: VoiceErrorKind | null;
+  /**
+   * Try again on a card: the card stays (no connecting view, no toggle) until the attempt gets a
+   * token or the microphone prompt shows, so a quick second failure doesn't flash the stage.
+   */
+  readonly retrying: boolean;
 }
 
 export type VoiceModelAction =
@@ -67,18 +72,19 @@ export const initialVoiceModel: VoiceModel = {
   toolShown: false,
   contact: null,
   error: null,
+  retrying: false,
 };
 
 export function voiceReducer(model: VoiceModel, action: VoiceModelAction): VoiceModel {
   switch (action.type) {
     case 'open':
-      return { ...initialVoiceModel, open: true };
+      return { ...initialVoiceModel, open: true, error: model.error, retrying: !!model.error };
     case 'micPrompt':
-      return { ...model, micHint: true };
+      return { ...model, micHint: true, error: null, retrying: false };
     case 'micGranted':
       return { ...model, micHint: false };
     case 'session':
-      return { ...model, maxCallSeconds: action.maxCallSeconds };
+      return { ...model, maxCallSeconds: action.maxCallSeconds, error: null, retrying: false };
     case 'live':
       return { ...model, live: true, elapsedSec: 0 };
     case 'mode':
@@ -109,6 +115,7 @@ export function voiceReducer(model: VoiceModel, action: VoiceModelAction): Voice
         open: true,
         live: false,
         error: action.error,
+        retrying: false,
         contact: null,
         action: null,
         toolShown: false,
@@ -148,6 +155,7 @@ export function toVoiceUiState(
     action: model.action,
     contact: model.contact,
     error: model.error,
+    retrying: model.retrying,
     announcement,
   };
 }

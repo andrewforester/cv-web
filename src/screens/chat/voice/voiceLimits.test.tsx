@@ -75,6 +75,43 @@ describe('call errors and limits', () => {
     online.mockRestore();
   });
 
+  it('Try again keeps the card still until the new attempt gets a token or fails', async () => {
+    const sessions = new StubSessionRepository(sessionError('rate_limited'));
+    const { user } = await callWith(new ManualVoiceClient(), sessions);
+    const card = await screen.findByRole('alert');
+    let answer: (result: typeof sessions.result) => void = () => undefined;
+    sessions.create = () => {
+      sessions.requests += 1;
+      return new Promise((resolve) => (answer = resolve));
+    };
+
+    await user.click(screen.getByRole('button', { name: 'Try again' }));
+    await waitFor(() => expect(sessions.requests).toBe(2));
+    // No connecting stage and no chat toggle flash while the token is asked for.
+    expect(screen.getByRole('alert')).toBe(card);
+    expect(card).toHaveAttribute('aria-busy', 'true');
+    expect(screen.queryByTestId(chatTestIds.voiceChatToggle)).not.toBeInTheDocument();
+    expect(screen.queryByTestId(chatTestIds.voiceStatus)).not.toBeInTheDocument();
+
+    act(() => answer(sessionError('rate_limited')));
+    await waitFor(() => expect(card).toHaveAttribute('aria-busy', 'false'));
+    expect(screen.getByRole('alert')).toBe(card);
+    expect(card).toHaveAttribute('data-error', 'rateLimited');
+  });
+
+  it('Try again shows the connecting stage once the token comes', async () => {
+    const client = new ManualVoiceClient();
+    const sessions = new StubSessionRepository(sessionError('rate_limited'));
+    const { user } = await callWith(client, sessions);
+    await screen.findByRole('alert');
+    sessions.result = new StubSessionRepository().result;
+
+    await user.click(screen.getByRole('button', { name: 'Try again' }));
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
+    expect(screen.getByTestId(chatTestIds.voiceChatToggle)).toBeInTheDocument();
+    await waitFor(() => expect(client.call).not.toBeNull());
+  });
+
   it('a start that fails after the token reads as "busy"', async () => {
     const client = new ManualVoiceClient();
     client.failStart = true;

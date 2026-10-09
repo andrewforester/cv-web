@@ -47,7 +47,8 @@ last 30 s, the agent is told to wrap up at 2:30); Mute (typing still works muted
 call composer or the pill) ends it and the chat is back with the transcript (with nothing said,
 the focus returns to Call); collapse and Esc fold, never end; every failure has its own card
 in the panel (microphone blocked, offline, too many calls, the month's minutes used up, busy,
-dropped, the call cap, an old client), and collapse there folds the panel into the launcher (no
+dropped, the call cap, an old client); Try again keeps the card still until the new attempt has
+a token (or the microphone prompt shows), so a quick second failure doesn't flash the stage; collapse there folds the panel into the launcher (no
 call to keep). A call that ends while folded says how on the pill for a
 moment. Opening a contact needs the agent's spoken yes; when the browser blocks the new tab, a
 card asks for the tap (30 s, then "declined").

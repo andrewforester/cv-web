@@ -10,11 +10,13 @@ import type { VoiceErrorKind } from './VoiceUiState';
 interface VoiceErrorCardProps {
   className?: string;
   error: VoiceErrorKind;
+  /** Try again is running: the card holds still, its primary button inactive. */
+  busy?: boolean;
   onButton: (button: VoiceErrorButton) => void;
 }
 
 /** Why there is no call (or why it stopped), and what to do instead: two buttons. */
-export function VoiceErrorCard({ className, error, onButton }: VoiceErrorCardProps) {
+export function VoiceErrorCard({ className, error, busy = false, onButton }: VoiceErrorCardProps) {
   const strings = useStrings(chatStrings);
   const card = VOICE_ERROR_CARDS[error];
   const [primaryLabel, primary] = card.primary;
@@ -25,6 +27,7 @@ export function VoiceErrorCard({ className, error, onButton }: VoiceErrorCardPro
       role="alert"
       data-testid={chatTestIds.voiceError}
       data-error={error}
+      aria-busy={busy}
     >
       <div className={styles.head}>
         <span className={styles.glyph}>
@@ -38,6 +41,7 @@ export function VoiceErrorCard({ className, error, onButton }: VoiceErrorCardPro
           type="button"
           className={`${chat.secondaryButton} ${styles.primary}`}
           data-testid={chatTestIds.voiceErrorPrimary}
+          aria-disabled={busy}
           onClick={() => onButton(primary)}
         >
           {strings[primaryLabel]}
