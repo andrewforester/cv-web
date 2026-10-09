@@ -17,7 +17,7 @@ import type { FocusRequest } from './voice/VoiceUiState';
 
 /** Matches `--chat-motion-exit-duration` (the launcher's and the pill's close animation). */
 const EXIT_MS = 150;
-/** Matches `--chat-slide-exit-duration`: the longest exit of a frame (it closes with the page's slide). */
+/** Matches `--chat-slide-exit-duration`: a frame's longest exit (it closes with the page's slide). */
 const FRAME_EXIT_MS = 400;
 
 interface ChatScreenProps {
