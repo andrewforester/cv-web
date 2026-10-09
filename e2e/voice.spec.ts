@@ -50,9 +50,6 @@ async function steps(page: Page, count: number) {
   for (let i = 0; i < count; i += 1) await page.clock.runFor(STEP_MS);
 }
 
-// `wide` gets the slide (≥ 1584 px: the page moves left beside the floating panel), `desktop` a
-// 1280 px laptop the overlay (the same panel over the unmoved page), `mobile` the one bottom
-// sheet (§4.3).
 // The composer row's distance from the panel's bottom edge: it must not move between views.
 async function rowOffset(panel: Locator) {
   const [outer, input] = await Promise.all([
@@ -63,6 +60,9 @@ async function rowOffset(panel: Locator) {
   return Math.round(outer.y + outer.height - (input.y + input.height));
 }
 
+// `wide` gets the slide (≥ 1584 px: the page moves left beside the floating panel), `desktop` a
+// 1280 px laptop the overlay (the same panel over the unmoved page), `mobile` the one bottom
+// sheet (§4.3).
 const viewports = [
   { name: 'wide', size: { width: 1600, height: 900 } },
   { name: 'desktop', size: { width: 1280, height: 800 } },

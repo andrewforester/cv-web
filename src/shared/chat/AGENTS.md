@@ -7,8 +7,7 @@ when the site's chat is restyled the show follows, and the show doesn't import t
 
 What is here: the card frame (`ChatCard`: the v3 dark panel, the loop panel's colours) and its
 header (`ChatCardHeader`: badge, title, subtitle, one trailing action: collapse on the site,
-minimise in the
-show), message bubbles (`MessageRow`, `NoticeRow`), the waiting and streaming cues
+minimise in the show), message bubbles (`MessageRow`, `NoticeRow`), the waiting and streaming cues
 (`TypingIndicator`, `StreamingCaret`), `SendButton` (Send, or Stop while busy), `OfflineNotice`,
 `ChatBadge` (the ✦ on the gradient: the header's badge and the site's "Talk to my AI" pill),
 `ChatIcon` with its `assets/` (the voice mode's mic, mute, end, offline, alert and timer icons
@@ -19,8 +18,7 @@ secondary buttons).
 Place in the architecture: stateless components below the screens: props in, callbacks out. They
 hold no chat state and no strings: each screen passes its own texts (author prefixes, button
 labels, offline text) from its own strings namespace. Tokens are in the theme: the v3 ones
-(`--color-*`,
-`--gradient-*`, `--font-*`, `--radius-*`) and `--chat-*` for the chat-only values.
+(`--color-*`, `--gradient-*`, `--font-*`, `--radius-*`) and `--chat-*` for the chat-only values.
 Used by `src/screens/chat/` (which binds its strings in thin wrappers) and the retro show's agent
 chat (`src/screens/retro/`).
 
