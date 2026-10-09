@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, type RefObject } from 'react';
 import { useStrings } from '../../../i18n';
 import chat from '../../../shared/chat/chat.module.css';
 import { ChatIcon } from '../../../shared/chat/ChatIcon';
@@ -13,6 +13,8 @@ import type { VoiceActions, VoiceUiState } from './VoiceUiState';
 
 interface VoiceCallPillProps {
   className?: string;
+  /** The pill's box: its level target, and the shape the panel morphs into and out of. */
+  rootRef: RefObject<HTMLDivElement | null>;
   state: VoiceUiState;
   actions: VoiceActions;
   /** The call ended while folded: how it ended ("Call ended · 1:24"); a tap opens the chat. */
@@ -26,9 +28,8 @@ interface VoiceCallPillProps {
  * orb, the status and the time (one button that unfolds the panel), and its own End.
  */
 export function VoiceCallPill(props: VoiceCallPillProps) {
-  const { className, state, actions, endedText, closing } = props;
+  const { className, rootRef, state, actions, endedText, closing } = props;
   const strings = useStrings(chatStrings);
-  const rootRef = useRef<HTMLDivElement>(null);
   const expandRef = useRef<HTMLButtonElement>(null);
   useVoiceLevel(rootRef, actions.level);
   // Minimize moves focus here, in the commit that shows the pill.

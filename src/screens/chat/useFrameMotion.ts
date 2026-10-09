@@ -4,10 +4,10 @@ import type { ChatSurface } from './chatSurface';
 
 /**
  * How a frame (the chat, the call panel) leaves (docs/design/voice/SPEC.md → Motion): `swap`
- * another view takes the panel (crossfade), `fold` the call folds into the pill, `close` the
- * panel goes.
+ * another view takes the panel (crossfade), `morph` the panel shrinks into the pill that takes its
+ * place (the launcher on close, the call pill on minimize).
  */
-export type FrameExit = 'close' | 'swap' | 'fold';
+export type FrameExit = 'swap' | 'morph';
 
 /** How a frame enters and leaves; read by `ChatFrame.module.css`'s classes. */
 export interface FrameMotion {
@@ -38,16 +38,15 @@ function useEntry(open: boolean, swapped: boolean): boolean {
 /** The motion of the chat's two frames for the current surface. */
 export function useFrameMotion(surface: ChatSurface): { chat: FrameMotion; call: FrameMotion } {
   const swapped = useSwapped(surface);
-  const exit: FrameExit = inPanel(surface) ? 'swap' : surface === 'callPill' ? 'fold' : 'close';
+  const exit: FrameExit = inPanel(surface) ? 'swap' : 'morph';
   const chatSwapIn = useEntry(surface === 'text' || surface === 'callChat', swapped);
   const callSwapIn = useEntry(surface === 'call', swapped);
   return { chat: { swapIn: chatSwapIn, exit }, call: { swapIn: callSwapIn, exit } };
 }
 
 const exitClass: Record<FrameExit, string | undefined> = {
-  close: undefined,
   swap: frame.swapOut,
-  fold: frame.foldOut,
+  morph: undefined,
 };
 
 /** A frame's placement and motion classes (`ChatFrame.module.css`). */
