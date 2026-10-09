@@ -59,6 +59,8 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
     endCall: voice.actions.end,
     dismissCard: dismiss,
   });
+  // Stable, so the panel's outside-pointer listener isn't re-added on every streamed token.
+  const collapse = useCallback(() => dispatchSurface({ type: 'collapse', call }), [call]);
   // Only the call panel shows a card; one the panel never showed (the chat or pill was up) goes.
   useEffect(() => {
     if (call === 'card' && surface.surface !== 'call') dismiss();
@@ -94,7 +96,7 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
 
   const actions: ChatActions = {
     open,
-    collapse: () => dispatchSurface({ type: 'collapse', call }),
+    collapse,
     dismissHint: markSeen,
     changeInput: (value) => {
       if (tooLong(value) && !tooLong(input)) announce({ kind: 'tooLong' });

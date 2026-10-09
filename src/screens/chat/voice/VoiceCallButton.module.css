@@ -1,4 +1,4 @@
-/* docs/design/voice/SPEC.md → Layout 1: the field's height; Send's glow and disabled look. */
+/* docs/design/voice/SPEC.md → Layout 1: the field's height and Send's glow; never disabled. */
 .call {
   flex: none;
   height: var(--voice-control-size);
@@ -19,14 +19,8 @@
   transition: box-shadow var(--chat-transition);
 }
 
-.call:hover:enabled {
+.call:hover {
   box-shadow: var(--shadow-cta);
-}
-
-.call:disabled {
-  color: var(--color-ink-4);
-  background: var(--chat-fill-hover);
-  cursor: default;
 }
 
 .icon {
