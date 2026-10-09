@@ -21,9 +21,8 @@ describe('CHAT_SLIDE_QUERY', () => {
   });
 
   it('counts the panel and its gutter, the strip --chat-dock-width reserves', () => {
-    expect(tokensCss).toContain(
-      '--chat-dock-width: calc(var(--chat-panel-width) + var(--space-4));',
-    );
+    const dockWidth = /--chat-dock-width:([^;]+);/.exec(tokensCss)?.[1]?.replace(/\s+/g, '');
+    expect(dockWidth).toBe('calc(var(--chat-panel-width)+var(--space-4))');
   });
 });
 

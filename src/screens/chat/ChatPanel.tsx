@@ -33,8 +33,9 @@ const noop = () => undefined;
 
 /**
  * The open chat: the floating panel, a region beside the slid page (wide) or a modal card over it
- * (medium), or a full-screen sheet (phones). During a call (`callChat`) the call's header and composer take the
- * chat's place: typed lines go to the call; suggestions and Try again wait for its end.
+ * (medium), or a full-screen sheet (phones). During a call (`callChat`) the call's header and
+ * composer take the chat's place: typed lines go to the call; suggestions and Try again wait for
+ * its end.
  */
 export function ChatPanel({
   className,

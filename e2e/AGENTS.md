@@ -12,7 +12,9 @@ What it guarantees today:
   production redirects it).
 - The chat sends `v: 4` (no page id, no locale) and answers a question with a streamed reply;
   it offers the page's four first questions, and rate limiting shows its notice. A `#ask` link
-  opens it; its look is screenshotted empty and answered, desktop and phone.
+  opens it; its look is screenshotted empty and answered at three viewports: `wide` 1600 × 900
+  (the slide: the page moves left beside the panel), `desktop` 1280 × 800 (the overlay: the same
+  panel over the unmoved page) and `phone`.
 - The page agent on the one page (`agent.png`): scrolls to the selected impact, highlights the
   Transcenda job (and the next snapshot says so), and opens LinkedIn in a new tab only after the
   visitor confirms; Cancel opens nothing.
@@ -26,9 +28,10 @@ What it guarantees today:
   styling nothing.
 - The voice call (`voice.spec.ts`): the scripted `FakeVoiceClient` (`?voice=fake`) with a mocked
   `/api/voice-session`; the "Talk to my AI" pill opens the chat, its Call button starts the call
-  in the chat's column (a bottom sheet on a phone), and its states (typing, the chat toggle, the
-  pill, the transcript, reduced motion) are screenshotted against `docs/design/voice/`; no test
-  talks to ElevenLabs.
+  in the floating panel (a bottom sheet on a phone), and its states (typing, the chat toggle, the
+  pill, the transcript, reduced motion) are screenshotted against `docs/design/voice/` at the
+  same `wide` (slide: the CV card 208 px left at its own width, the panel 400 × 600 beside it),
+  `desktop` (overlay: the card unmoved) and `mobile` viewports; no test talks to ElevenLabs.
 
 Production smoke: tests titled `@prod` (the home page and `/new`; `/new` must end on `/`) also run
 against the live site right after CI deploys production (`.github/workflows/prod-smoke.yml`, called
