@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import type { ChatDock } from '../screens/chat/chatDock';
 import { HomeRoute } from '../screens/home/HomeRoute';
 import { ShowCaseButton } from '../shared/ShowCaseButton';
@@ -7,7 +7,6 @@ import styles from './App.module.css';
 import { AppSpeedInsights } from './AppSpeedInsights';
 import { SHOW_SCENARIO } from './showScenarios';
 import { useLazyChat } from './useLazyChat';
-import { usePageAnchor } from './usePageAnchor';
 import { useRetroMode } from './useRetroMode';
 import { useShowCase } from './useShowCase';
 import { useShowCaseAvailable } from './useShowCaseAvailable';
@@ -36,14 +35,11 @@ export function App() {
   // while the chat is off the page, whatever it reported last.
   const [reportedDock, setDock] = useState<ChatDock>('none');
   const dock = Chat ? reportedDock : 'none';
-  const mainRef = useRef<HTMLElement>(null);
-  // Before the attribute: the anchor is noted at the old layout. Both run before paint, so the
-  // page's width transition starts on the frame the column enters.
-  usePageAnchor(mainRef, dock);
+  // Before paint, so the page's slide starts on the frame the panel opens.
   useLayoutEffect(() => {
     document.documentElement.dataset.chatDock = dock;
   }, [dock]);
-  // Removed only on unmount: a dock change never passes through "no attribute" (padding 0).
+  // Removed only on unmount: a dock change never passes through "no attribute" (no slide).
   useLayoutEffect(
     () => () => {
       delete document.documentElement.dataset.chatDock;
@@ -57,7 +53,7 @@ export function App() {
         className={pending ? styles.pending : undefined}
         data-retro-stage={showing ? '' : undefined}
       >
-        <main ref={mainRef} className={styles.main}>
+        <main className={styles.main}>
           <HomeRoute
             metaBarEnd={canShow && <ShowCaseButton onClick={start} />}
             copyrightEnd={showAvailable && <ShowCaseLink onClick={start} />}
