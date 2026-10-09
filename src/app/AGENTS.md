@@ -42,18 +42,19 @@ shell stays on today's site.
 - **Dock** (docs/voice/SYSTEM_DESIGN.md §4.3): the space the chat asks the shell to keep free
   (`none`, `side` column, `bottom` sheet), reported through `onDockChange`. The shell mirrors it
   as `data-chat-dock` on `<html>` before paint (`none` while the chat is off the page);
-  `App.module.css` turns it into padding on `main` (`--chat-dock-width`, `--voice-sheet-height`).
-  The side column's width animates with the column (ADR-0010 → Decision 2; reduced motion: at
-  once), the bottom sheet's space appears at once. The page itself reflows into the box.
-- **Page anchor** (`usePageAnchor`): the padding change switches off the browser's own scroll
-  anchoring (Chromium included), so the shell keeps the element at the top of the page in place
-  while the width moves; the visitor's wheel, touch or key ends it.
+  `App.module.css` turns it into room: beside the `side` column the whole page slides left by
+  half the column (`transform` on `main`, ADR-0011 → Decision 1), so the CV card keeps its width
+  and nothing reflows; the slide is timed with the column (`--chat-slide-*`; reduced motion: at
+  once). The `bottom` sheet's space is padding on `main` (`--voice-sheet-height`) and appears at
+  once. The slide changes no box, so the scroll position never drifts (no anchor hook).
 
 Rules and limits:
 - Owner: Scaffold. Screens may only register their own route in `App.tsx`.
 - One page, no router: every path renders `HomeRoute`; production redirects `/new` to `/`
   (`vercel.json`), Vite dev/preview fall back to `index.html` by themselves.
 - Entry point is `src/main.tsx` (global styles, providers, `App`).
+- Nothing inside `main` is `position: fixed` or `sticky`: the slid `main` is their containing
+  block. Overlays (the chat, its launcher and call pill, the show) are siblings of `main`.
 - The show starts from the footer Show case link (`ShowCaseLink`, CV-148; `useShowCaseAvailable`:
   a scenario and ≥ 1024 px) and with `?retro=1`.
 - The Show case button is hidden (`SHOW_CASE_BUTTON_ENABLED = false` in `App.tsx`, CV-144); the footer link
