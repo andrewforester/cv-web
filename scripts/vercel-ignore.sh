@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 # Vercel "Ignored Build Step" (vercel.json -> ignoreCommand), see AGENTS.md -> Git & CI.
 # Exit 0 = skip the build, exit 1 = build. Any doubt builds: only a clear case skips.
-# Keeps the project under the Hobby limit of 100 deployments a day.
+# A skipped build is still a deployment (it shows up CANCELED) and counts toward the Hobby limit of
+# 100 deployments a day. What keeps session branches under it is vercel.json -> git.deploymentEnabled
+# ("claude/**": false: no deployment is created at all); this script only trims other branches' builds.
 
 # Production (main) always builds.
 [ "$VERCEL_GIT_COMMIT_REF" = "main" ] && exit 1
 [ "$VERCEL_ENV" = "production" ] && exit 1
 
-# Session branches (claude/*): no preview, CI is the referee.
+# Session branches (claude/*): fallback only, in case deploymentEnabled stops matching.
 case "$VERCEL_GIT_COMMIT_REF" in
   claude/*)
     echo "claude/* branch: skipping the preview build."
