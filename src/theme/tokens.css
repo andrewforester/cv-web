@@ -337,5 +337,9 @@
   --chat-dock-exit-duration: 250ms;
   --chat-motion-exit-easing: var(--retro-close-easing);
   --voice-orb-travel-duration: var(--chat-dock-duration);
+  /* Voice panel v3: the CV card slides with the column (docs/design/voice/SPEC.md → Motion) */
+  --chat-slide-duration: 500ms;
+  --chat-slide-exit-duration: 400ms;
+  --chat-slide-easing: cubic-bezier(0.4, 0, 0.2, 1);
   --voice-chat-toggle-width: 112px;
 }
