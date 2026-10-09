@@ -381,6 +381,71 @@ for (const { name, size } of viewports) {
   });
 }
 
+/**
+ * `/api/chat` that streams the first words of an answer and then stays open, as a slow answer
+ * does (`route.fulfill` only sends a whole body, so `fetch` is stubbed in the page); an abort
+ * errors the stream like the browser's own `fetch`.
+ */
+async function stallingChat(page: Page, firstWords: string) {
+  await page.addInitScript(
+    (delta) => {
+      const original = window.fetch.bind(window);
+      window.fetch = (input, init) => {
+        const url = input instanceof Request ? input.url : String(input);
+        if (!url.endsWith('/api/chat')) return original(input, init);
+        const body = new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode(delta));
+            init?.signal?.addEventListener('abort', () =>
+              controller.error(new DOMException('Aborted', 'AbortError')),
+            );
+          },
+        });
+        const headers = { 'Content-Type': 'text/event-stream', 'X-Chat-Api-Version': '4' };
+        return Promise.resolve(new Response(body, { headers }));
+      };
+    },
+    `event: delta\ndata: ${JSON.stringify({ text: firstWords })}\n\n`,
+  );
+}
+
+test.describe('Call while an answer streams', () => {
+  test.use({ viewport: viewports[1].size });
+
+  test('stops the answer, keeps what was written and starts the call', async ({ page }) => {
+    const errors = collectErrors(page);
+    const firstWords = 'At Transcenda Andrew led the mobile apps';
+    await mockSession(page);
+    await stallingChat(page, firstWords);
+    await page.goto(VOICE_SITE);
+    await page.getByTestId('chat-fab').click();
+    const chat = page.getByTestId('chat-panel');
+    await chat.getByTestId('chat-input').fill('What did he build at Transcenda?');
+    await chat.getByTestId('chat-input').press('Enter');
+    const answer = chat.getByTestId('chat-assistant-message');
+    await expect(answer).toContainText(firstWords);
+    await expect(chat.getByRole('button', { name: 'Stop answer' })).toBeVisible();
+    await expect(chat.getByTestId('chat-voice-call')).toBeEnabled();
+    await settle(chat);
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-streaming.png` });
+
+    await chat.getByTestId('chat-voice-call').click();
+    const voice = page.getByTestId('chat-voice-panel');
+    await expect(voice).toBeVisible();
+    await expect(voice).toHaveAttribute('data-phase', 'connecting');
+    await settle(voice);
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-call-while-streaming.png` });
+
+    // The chat during the call: the answer as far as it got, stopped.
+    await voice.getByTestId('chat-voice-chat-toggle').click();
+    await expect(answer).toContainText(firstWords);
+    await expect(chat.getByTestId('chat-caption')).toHaveText('Answer stopped.');
+    await settle(chat);
+    await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-call-while-streaming-chat.png` });
+    expect(errors).toEqual([]);
+  });
+});
+
 test('without the flag there is no Call, and the launcher still says Talk to my AI', async ({
   page,
 }) => {
