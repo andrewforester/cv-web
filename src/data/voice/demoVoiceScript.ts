@@ -54,7 +54,7 @@ const DEMO_STEP_MS = 1200;
 
 /**
  * The `?voice=demo` client of `npm run demo`: a call that never hangs up by itself, so every panel
- * state (mute, Show chat, minimize, the time warning and cap, End, typing mid-call) can be tried.
+ * state (mute, Show chat, collapse, the time warning and cap, End, typing mid-call) can be tried.
  * No network, no microphone, no audio.
  */
 export function createDemoVoiceClient(): FakeVoiceClient {

@@ -200,10 +200,14 @@ for (const { name, size } of viewports) {
       await settle(chat);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-text-${name}.png` });
 
+      // One panel (ADR-0013): the chat's element turns into the call, no second frame.
+      const panelNode = await chat.elementHandle();
       await chat.getByTestId('chat-voice-call').click();
       const voice = page.getByTestId('chat-voice-panel');
       await expect(voice).toBeVisible();
       await expect(voice).toHaveAttribute('data-phase', 'connecting');
+      expect(await voice.evaluate((element, node) => element === node, panelNode)).toBe(true);
+      await expect(page.locator('[id="chat-panel"]')).toHaveCount(1);
       await settle(voice);
       if (name === 'wide') await expectSlide(page, card, voice);
       else if (name === 'desktop') await expectOverlay(page, card, voice);
@@ -294,12 +298,12 @@ for (const { name, size } of viewports) {
         // The system Back steps out of the chat to the call sheet, not off the site.
         await page.goBack();
         await expect(voice).toBeVisible();
-        await voice.getByTestId('chat-voice-minimize').click();
+        await voice.getByTestId('chat-collapse').click();
       } else {
-        await chat.getByTestId('chat-voice-minimize').click();
+        await chat.getByTestId('chat-collapse').click();
       }
 
-      // minimized: the pill in the launcher's place, the page back in the centre
+      // collapsed: the pill in the launcher's place, the page back in the centre
       const pill = page.getByTestId('chat-voice-pill');
       await expect(pill).toBeVisible();
       if (name !== 'mobile') {
@@ -350,9 +354,42 @@ for (const { name, size } of viewports) {
       expect(errors).toEqual([]);
     });
 
-    test('the monthly cap shows its card; closing it gives the focus back to Call', async ({
+    test('collapse while connecting: the pill says Connecting…, End cancels the attempt', async ({
       page,
     }) => {
+      const errors = collectErrors(page);
+      // Paused: the call stays connecting until the clock runs the script.
+      await page.clock.install({ time: CLOCK_START });
+      await page.clock.pauseAt(new Date(CLOCK_START.getTime() + 1000));
+      await mockSession(page);
+      await page.goto(VOICE_SITE);
+      await page.getByTestId('chat-fab').click();
+      await page.getByTestId('chat-voice-call').click();
+      const voice = page.getByTestId('chat-voice-panel');
+      await expect(voice).toHaveAttribute('data-phase', 'connecting');
+      const collapse = voice.getByTestId('chat-collapse');
+      await expect(collapse).toBeEnabled();
+      await expect(collapse).toHaveAccessibleName('Collapse chat. The call goes on.');
+      await collapse.click();
+
+      const pill = page.getByTestId('chat-voice-pill');
+      await expect(pill).toHaveAttribute('data-phase', 'connecting');
+      const expand = pill.getByTestId('chat-voice-pill-expand');
+      await expect(expand).toHaveAccessibleName('Open the call panel: Connecting…');
+      await expect(expand).toBeFocused();
+      await expect(page.locator('html')).toHaveAttribute('data-chat-dock', 'none');
+      await page.clock.runFor(500);
+      await expect(voice).toHaveCount(0);
+      await settle(pill);
+      await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-pill-connecting-${name}.png` });
+
+      await pill.getByTestId('chat-voice-pill-end').click();
+      await expect(page.getByTestId('chat')).toHaveAttribute('data-surface', 'closed');
+      await expect(page.getByTestId('chat-fab')).toBeVisible();
+      expect(errors).toEqual([]);
+    });
+
+    test('the monthly cap shows its card; Close gives the focus back to Call', async ({ page }) => {
       const errors = collectErrors(page);
       await mockSession(page, 503, {
         error: {
@@ -372,9 +409,15 @@ for (const { name, size } of viewports) {
       await settle(voice);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-error-monthly-${name}.png` });
 
-      await voice.getByTestId('chat-voice-close').click();
+      // The card's own Close leads back to the chat; collapse would fold the panel away.
+      await voice.getByTestId('chat-voice-error-secondary').click();
       await expect(voice).toBeHidden();
       await expect(page.getByTestId('chat-voice-call')).toBeFocused();
+      await page.getByTestId('chat-voice-call').click();
+      await expect(voice.getByTestId('chat-voice-error')).toBeVisible();
+      await voice.getByTestId('chat-collapse').click();
+      await expect(page.getByTestId('chat')).toHaveAttribute('data-surface', 'closed');
+      await expect(page.getByTestId('chat-fab')).toBeFocused();
       // The browser logs the failed request itself; only app errors count here.
       expect(errors.filter((error) => !error.includes('503'))).toEqual([]);
     });
