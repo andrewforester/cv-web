@@ -24,7 +24,7 @@ While `AGENTS.md` or a skill's `tooling.md` still contain `TODO(scaffold)`, the 
   ## Zone                  (may change / must not change; see Hot spots)
   ## Out of scope
   ## Dependencies          (blocked by / starts on branch of; mirrors the relations)
-  ## Done when
+  ## Done when           (for UI: name the viewports, at least desktop 1280 and phone 390)
   ```
 - Everything about the process is on the ticket: launch (session name/id), scope changes, answers, decisions, your audit. Sessions write their plan, questions and report there too, so there is nothing to mirror. Never keep task tables or status in the repo.
 
