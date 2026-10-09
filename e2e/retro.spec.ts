@@ -6,7 +6,7 @@ import {
   SHOW_LIMIT_MS,
   stageSelector,
 } from './retroShow';
-import { collectErrors, SCREENSHOT_DIR, SHOW_URLS } from './support';
+import { collectErrors, screenshotPath, SHOW_URLS } from './support';
 
 // The Show case end to end (docs/retro/ARCHITECTURE.md §11 → Guards): the v3 page opens as its
 // 2001 version and the show fixes it, on the page's `home-*` hooks and v3 tokens, until it is the
@@ -16,7 +16,7 @@ test.use({ locale: 'en-US' });
 test.describe('with reduced motion', () => {
   test.use({ contextOptions: { reducedMotion: 'reduce' } });
 
-  test('at t = 0 the page is the broken 2001 page, alone', async ({ page }) => {
+  test('at t = 0 the page is the broken 2001 page, alone @mobile', async ({ page, isMobile }) => {
     const errors = collectErrors(page);
     await page.clock.install();
     await page.goto(SHOW_URLS.show);
@@ -29,8 +29,8 @@ test.describe('with reduced motion', () => {
     await expect(page.locator('#page-footer')).toContainText('AI Builders Webring');
     await expect(page.getByTestId('home-meta-bar')).toBeHidden();
     await expect(page.getByTestId('retro-dock')).toHaveCount(0);
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/retro-start.png` });
-    await page.screenshot({ path: `${SCREENSHOT_DIR}/retro-start-full.png`, fullPage: true });
+    await page.screenshot({ path: screenshotPath('retro-start', isMobile) });
+    await page.screenshot({ path: screenshotPath('retro-start-full', isMobile), fullPage: true });
     expect(errors).toEqual([]);
   });
 
