@@ -8,7 +8,8 @@ Place in the architecture: the pipeline hands it a model request (`../prompt/`) 
 stream of text deltas, tool calls and one final result, which `../streamAnswer.ts` turns into SSE.
 Two implementations: the real Claude client (the only importer of `@anthropic-ai/sdk`) and a
 scripted fake used by every test and by `CHAT_FAKE_LLM=1` in dev (it understands a few commands
-and phrases, including page-tool rounds, so the whole UI can be exercised without a key).
+and phrases, including page-tool rounds, and cycles through a few canned answers and a scroll
+round, `devFakeAnswers.ts`, so the whole UI can be exercised without a key, e.g. in `npm run demo`).
 
 Rules and limits:
 - Errors are classified as retryable or not; failures before the first byte become `502`, so the

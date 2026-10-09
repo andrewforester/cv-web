@@ -23,7 +23,8 @@ Place in the architecture: data layer below `src/screens/chat/` (the voice mode,
   `ElevenLabsVoiceClient` is the only importer of `@elevenlabs/*` (lint enforces it): the SDK and
   `livekit-client` are a lazy chunk fetched at the mic tap, the audio worklets are same-origin
   assets (CSP `script-src 'self'`). `FakeVoiceClient` plays a scripted call for tests, e2e and
-  `?voice=fake`.
+  `?voice=fake`; `demoVoiceScript.ts` is its endless variant for `npm run demo` (`?voice=demo`),
+  a call that never hangs up by itself, so every panel state can be tried locally for free.
 
 Domain terms: *call* (one voice session, at most `VOICE_MAX_CALL_SECONDS`), *session endpoint*
 (mints the token after the guards and the month's minutes check), *conversation token*

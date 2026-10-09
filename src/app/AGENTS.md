@@ -15,9 +15,10 @@ Domain terms:
   today's site stays until the show's chunk has loaded, then the page scrolls to the top and turns
   broken in one commit. The AI chat is off the page while the show runs (its open conversation is
   lost) until the show's last step loads it.
-- **Voice mode** (`voiceMode.ts`, docs/voice/SYSTEM_DESIGN.md §9): `off`, `real` or `fake` at page
-  load. `?voice=1` turns the mic button on and remembers it in `localStorage` (`cv.voice`),
-  `?voice=0` forgets it, `?voice=fake` uses the scripted client for that load only. Off by default;
+- **Voice mode** (`voiceMode.ts`, docs/voice/SYSTEM_DESIGN.md §9): `off`, `real`, `fake` or `demo`
+  at page load. `?voice=1` turns the mic button on and remembers it in `localStorage` (`cv.voice`),
+  `?voice=0` forgets it, `?voice=fake` uses the scripted client for that load only, `?voice=demo`
+  the endless demo call of `npm run demo` (dev server only, `off` in a production build). Off by default;
   not a security layer (the server's `VOICE_ENABLED` is).
 - **Stage:** the shell's wrapper (page + chat) carrying `data-retro-stage` while the show runs;
   the show's damage layers select only under it.

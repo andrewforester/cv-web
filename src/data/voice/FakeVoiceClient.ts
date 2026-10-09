@@ -45,6 +45,8 @@ export interface FakeVoiceClientOptions {
   /** `start()` rejects after one step, like a failed connection or a busy agent. */
   failStart?: boolean;
   script?: readonly FakeVoiceStep[];
+  /** Steps played over and over after `script` until the call ends (line ids get a round suffix). */
+  loop?: readonly FakeVoiceStep[];
 }
 
 /**
@@ -61,6 +63,7 @@ export class FakeVoiceClient implements VoiceClient {
       microphone: 'granted',
       failStart: false,
       script: FAKE_VOICE_SCRIPT,
+      loop: [],
       ...options,
     };
   }
@@ -75,7 +78,8 @@ export class FakeVoiceClient implements VoiceClient {
       await delay(this.options.stepMs);
       throw new Error('FakeVoiceClient: start failed');
     }
-    const call = new FakeVoiceCall(handlers, this.options.script, this.options.stepMs);
+    const { script, loop, stepMs } = this.options;
+    const call = new FakeVoiceCall(handlers, script, stepMs, loop);
     this.calls.push(call);
     return call;
   }
@@ -89,9 +93,14 @@ export class FakeVoiceCall implements VoiceCall {
   private done = false;
   private toolCalls = 0;
 
-  constructor(handlers: VoiceCallHandlers, script: readonly FakeVoiceStep[], stepMs: number) {
+  constructor(
+    handlers: VoiceCallHandlers,
+    script: readonly FakeVoiceStep[],
+    stepMs: number,
+    loop: readonly FakeVoiceStep[] = [],
+  ) {
     this.handlers = handlers;
-    void this.play(script, stepMs);
+    void this.playAll(script, loop, stepMs);
   }
 
   end(reason: 'visitor' | 'time_limit' = 'visitor'): Promise<void> {
@@ -113,6 +122,20 @@ export class FakeVoiceCall implements VoiceCall {
     this.contextualUpdates.push(text);
   }
 
+  private async playAll(
+    script: readonly FakeVoiceStep[],
+    loop: readonly FakeVoiceStep[],
+    stepMs: number,
+  ): Promise<void> {
+    await this.play(script, stepMs);
+    for (let round = 1; loop.length > 0 && !this.done; round += 1) {
+      await this.play(
+        loop.map((step) => inRound(step, round)),
+        stepMs,
+      );
+    }
+  }
+
   private async play(script: readonly FakeVoiceStep[], stepMs: number): Promise<void> {
     for (const step of script) {
       await delay(stepMs);
@@ -132,6 +155,17 @@ export class FakeVoiceCall implements VoiceCall {
     if (event.type === 'ended') this.done = true;
     this.handlers.onEvent(event);
   }
+}
+
+/** A looped step with its line ids made unique for this round. */
+function inRound(step: FakeVoiceStep, round: number): FakeVoiceStep {
+  if ('tool' in step) return step;
+  const { event } = step;
+  if (event.type === 'line') {
+    return { event: { ...event, line: { ...event.line, id: `${event.line.id}-r${round}` } } };
+  }
+  if (event.type === 'correction') return { event: { ...event, id: `${event.id}-r${round}` } };
+  return step;
 }
 
 function delay(ms: number): Promise<void> {

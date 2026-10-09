@@ -1,7 +1,11 @@
 import { ElevenLabsVoiceClient, FakeVoiceClient, type VoiceClient } from '../data/voice';
+import { createDemoVoiceClient } from '../data/voice/demoVoiceScript';
 
-/** `real`: mic button with ElevenLabs; `fake`: mic button with the scripted client; `off`: none. */
-export type VoiceMode = 'off' | 'real' | 'fake';
+/**
+ * `real`: mic button with ElevenLabs; `fake`: mic button with the short scripted client (e2e);
+ * `demo`: the endless scripted call of `npm run demo` (dev server only); `off`: none.
+ */
+export type VoiceMode = 'off' | 'real' | 'fake' | 'demo';
 
 export const VOICE_PARAM = 'voice';
 /** `localStorage` key that remembers `?voice=1` (docs/voice/SYSTEM_DESIGN.md §9). */
@@ -11,13 +15,19 @@ type VoiceStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
 /**
  * The client flag (SYSTEM_DESIGN §9): `?voice=1` turns voice on and remembers it, `?voice=0`
- * forgets it, `?voice=fake` uses the scripted client for this page load only; otherwise the
+ * forgets it, `?voice=fake` uses the scripted client for this page load only, and so does
+ * `?voice=demo` on the dev server (`dev`; ignored in a production build); otherwise the
  * remembered choice. Not a security layer: the server's `VOICE_ENABLED` is the switch.
  */
-export function decideVoiceMode(search: string, storage: VoiceStorage | null): VoiceMode {
+export function decideVoiceMode(
+  search: string,
+  storage: VoiceStorage | null,
+  dev = import.meta.env.DEV,
+): VoiceMode {
   const param = new URLSearchParams(search).get(VOICE_PARAM);
   try {
     if (param === 'fake') return 'fake';
+    if (param === 'demo' && dev) return 'demo';
     if (param === '1') {
       storage?.setItem(VOICE_STORAGE_KEY, '1');
       return 'real';
@@ -42,6 +52,8 @@ export function readVoiceMode(): VoiceMode {
 export function createVoiceClient(mode: VoiceMode): VoiceClient | null {
   if (mode === 'real') return new ElevenLabsVoiceClient();
   if (mode === 'fake') return new FakeVoiceClient();
+  // The DEV check lets a production build drop the demo script.
+  if (mode === 'demo' && import.meta.env.DEV) return createDemoVoiceClient();
   return null;
 }
 

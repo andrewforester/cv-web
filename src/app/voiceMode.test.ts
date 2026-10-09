@@ -42,6 +42,13 @@ describe('decideVoiceMode', () => {
     expect(empty.items.size).toBe(0);
   });
 
+  it('uses the endless demo call for ?voice=demo on the dev server only', () => {
+    const storage = memoryStorage();
+    expect(decideVoiceMode('?voice=demo', storage, true)).toBe('demo');
+    expect(decideVoiceMode('?voice=demo', storage, false)).toBe('off');
+    expect(storage.items.size).toBe(0);
+  });
+
   it('falls back to the URL alone when storage throws', () => {
     const blocked = {
       getItem: () => {
@@ -60,9 +67,10 @@ describe('decideVoiceMode', () => {
 });
 
 describe('createVoiceClient', () => {
-  it('binds the real client, the fake one, or none', () => {
+  it('binds the real client, a scripted one, or none', () => {
     expect(createVoiceClient('real')).toBeInstanceOf(ElevenLabsVoiceClient);
     expect(createVoiceClient('fake')).toBeInstanceOf(FakeVoiceClient);
+    expect(createVoiceClient('demo')).toBeInstanceOf(FakeVoiceClient);
     expect(createVoiceClient('off')).toBeNull();
   });
 });
