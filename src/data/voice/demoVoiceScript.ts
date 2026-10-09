@@ -45,18 +45,23 @@ export const DEMO_VOICE_LOOP: readonly FakeVoiceStep[] = [
   listening,
 ];
 
+/** The demo agent's spoken answer to any typed line: nothing is read, as nothing is heard. */
+export const DEMO_TYPED_ANSWER =
+  'I got your typed line. This is a demo call, so I don’t read it, but a real call answers it out loud.';
+
 /** Delay between demo steps: a page tool every ~6 s. */
 const DEMO_STEP_MS = 1200;
 
 /**
  * The `?voice=demo` client of `npm run demo`: a call that never hangs up by itself, so every panel
- * state (mute, Show chat, minimize, the time warning and cap, End) can be tried. No network, no
- * microphone, no audio.
+ * state (mute, Show chat, minimize, the time warning and cap, End, typing mid-call) can be tried.
+ * No network, no microphone, no audio.
  */
 export function createDemoVoiceClient(): FakeVoiceClient {
   return new FakeVoiceClient({
     script: DEMO_VOICE_INTRO,
     loop: DEMO_VOICE_LOOP,
     stepMs: DEMO_STEP_MS,
+    answerTyped: () => DEMO_TYPED_ANSWER,
   });
 }
