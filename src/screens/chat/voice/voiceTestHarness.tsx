@@ -22,7 +22,9 @@ import { FakeAgentExecutor } from '../fakeAgentExecutor';
 export class ManualVoiceCall implements VoiceCall {
   muted = false;
   ended: string | null = null;
+  typings = 0;
   readonly contextualUpdates: string[] = [];
+  readonly sentTexts: string[] = [];
   constructor(private readonly handlers: VoiceCallHandlers) {}
 
   end(reason: 'visitor' | 'time_limit' = 'visitor'): Promise<void> {
@@ -38,6 +40,12 @@ export class ManualVoiceCall implements VoiceCall {
   }
   sendContextualUpdate(text: string) {
     this.contextualUpdates.push(text);
+  }
+  sendText(text: string) {
+    this.sentTexts.push(text);
+  }
+  typing() {
+    this.typings += 1;
   }
 }
 

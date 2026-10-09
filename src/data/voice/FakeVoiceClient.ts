@@ -10,6 +10,10 @@ const GREETING =
 const ANSWER =
   'Here is his selected impact, the work he is proudest of. Let me walk you through each card in turn.';
 
+/** The fake agent's spoken answer to a typed line. */
+export const answerTypedLine = (text: string): string =>
+  `You typed: “${text}”. I answer typed questions out loud, just like spoken ones.`;
+
 /**
  * Greeting, a visitor line, a scroll, an answer the visitor interrupts (so it gets a correction),
  * goodbye, and the agent hangs up (docs/voice/SYSTEM_DESIGN.md §3).
@@ -47,6 +51,8 @@ export interface FakeVoiceClientOptions {
   script?: readonly FakeVoiceStep[];
   /** Steps played over and over after `script` until the call ends (line ids get a round suffix). */
   loop?: readonly FakeVoiceStep[];
+  /** The agent's answer to a typed line (default `answerTypedLine`). */
+  answerTyped?: (text: string) => string;
 }
 
 /**
@@ -64,6 +70,7 @@ export class FakeVoiceClient implements VoiceClient {
       failStart: false,
       script: FAKE_VOICE_SCRIPT,
       loop: [],
+      answerTyped: answerTypedLine,
       ...options,
     };
   }
@@ -78,19 +85,29 @@ export class FakeVoiceClient implements VoiceClient {
       await delay(this.options.stepMs);
       throw new Error('FakeVoiceClient: start failed');
     }
-    const { script, loop, stepMs } = this.options;
-    const call = new FakeVoiceCall(handlers, script, stepMs, loop);
+    const { script, loop, stepMs, answerTyped } = this.options;
+    const call = new FakeVoiceCall(handlers, script, stepMs, loop, answerTyped);
     this.calls.push(call);
     return call;
   }
 }
 
+/**
+ * One scripted call. A typed line is answered (speaking, an agent line, listening) before the
+ * script's next step, or at once when the script has run out; it gets no visitor `line` event.
+ */
 export class FakeVoiceCall implements VoiceCall {
   muted = false;
+  typings = 0;
   readonly contextualUpdates: string[] = [];
+  readonly sentTexts: string[] = [];
   private readonly handlers: VoiceCallHandlers;
+  private readonly stepMs: number;
+  private readonly answerTyped: (text: string) => string;
+  private readonly answers: FakeVoiceStep[] = [];
   private mode: 'listening' | 'speaking' = 'listening';
   private done = false;
+  private idle = false;
   private toolCalls = 0;
 
   constructor(
@@ -98,9 +115,12 @@ export class FakeVoiceCall implements VoiceCall {
     script: readonly FakeVoiceStep[],
     stepMs: number,
     loop: readonly FakeVoiceStep[] = [],
+    answerTyped: (text: string) => string = answerTypedLine,
   ) {
     this.handlers = handlers;
-    void this.playAll(script, loop, stepMs);
+    this.stepMs = stepMs;
+    this.answerTyped = answerTyped;
+    void this.playAll(script, loop);
   }
 
   end(reason: 'visitor' | 'time_limit' = 'visitor'): Promise<void> {
@@ -122,30 +142,64 @@ export class FakeVoiceCall implements VoiceCall {
     this.contextualUpdates.push(text);
   }
 
+  sendText(text: string): void {
+    if (this.done) return;
+    this.sentTexts.push(text);
+    const id = `agent-typed-${this.sentTexts.length}`;
+    this.answers.push(
+      { event: { type: 'mode', mode: 'speaking' } },
+      { event: { type: 'line', line: { id, role: 'agent', text: this.answerTyped(text) } } },
+      { event: { type: 'mode', mode: 'listening' } },
+    );
+    if (this.idle) void this.answerWhileIdle();
+  }
+
+  typing(): void {
+    if (!this.done) this.typings += 1;
+  }
+
   private async playAll(
     script: readonly FakeVoiceStep[],
     loop: readonly FakeVoiceStep[],
-    stepMs: number,
   ): Promise<void> {
-    await this.play(script, stepMs);
+    await this.play(script);
     for (let round = 1; loop.length > 0 && !this.done; round += 1) {
-      await this.play(
-        loop.map((step) => inRound(step, round)),
-        stepMs,
-      );
+      await this.play(loop.map((step) => inRound(step, round)));
+    }
+    await this.playAnswers();
+    this.idle = true;
+  }
+
+  private async play(script: readonly FakeVoiceStep[]): Promise<void> {
+    for (const step of script) {
+      await this.playAnswers();
+      if (this.done) return;
+      await this.step(step);
     }
   }
 
-  private async play(script: readonly FakeVoiceStep[], stepMs: number): Promise<void> {
-    for (const step of script) {
-      await delay(stepMs);
-      if (this.done) return;
-      if ('tool' in step) {
-        this.toolCalls += 1;
-        await this.handlers.onToolCall({ id: `voice-${this.toolCalls}`, ...step.tool });
-      } else {
-        this.emit(step.event);
-      }
+  /** Plays the queued answers to typed lines. */
+  private async playAnswers(): Promise<void> {
+    for (let answer = this.answers.shift(); answer && !this.done; answer = this.answers.shift()) {
+      await this.step(answer);
+    }
+  }
+
+  /** The script has run out: a typed line is answered at once. */
+  private async answerWhileIdle(): Promise<void> {
+    this.idle = false;
+    await this.playAnswers();
+    this.idle = true;
+  }
+
+  private async step(step: FakeVoiceStep): Promise<void> {
+    await delay(this.stepMs);
+    if (this.done) return;
+    if ('tool' in step) {
+      this.toolCalls += 1;
+      await this.handlers.onToolCall({ id: `voice-${this.toolCalls}`, ...step.tool });
+    } else {
+      this.emit(step.event);
     }
   }
 
