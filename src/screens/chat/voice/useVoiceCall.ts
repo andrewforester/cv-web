@@ -28,6 +28,7 @@ import type {
   VoiceUiState,
 } from './VoiceUiState';
 import { useCallBriefing } from './useCallBriefing';
+import { useCallTyping } from './useCallTyping';
 import { useCallGuards } from './useCallGuards';
 import { useVoiceTimer, WRAP_UP_UPDATE } from './useVoiceTimer';
 import { useVoiceTools } from './useVoiceTools';
@@ -47,7 +48,7 @@ interface VoiceCallOptions {
  * State holder of the call (docs/voice/SYSTEM_DESIGN.md §4, docs/design/voice/SPEC.md → States
  * and behaviour): mic tap → microphone → session token → call; status, mode, lines and
  * corrections from the `VoiceClient`; the transcript goes into the chat's conversation as it
- * arrives; timer, mute, page tools, and one error card per cause. Where the call shows is the
+ * arrives; typed lines, timer, mute, page tools, and one error card per cause. Where the call shows is the
  * chat's surface, told through `onEnded` / `onNeedsPanel`. `state` is `null` when no voice client
  * is bound (the flag is off).
  */
@@ -76,6 +77,7 @@ export function useVoiceCall({ record, entries, onEnded, onNeedsPanel }: VoiceCa
   );
   const tools = useVoiceTools({ record, dispatch, announce, needsPanel });
   const brief = useCallBriefing(entries);
+  const typed = useCallTyping({ record, dispatch });
 
   /** The attempt is over, with or without a card; the surface says where to go. */
   const conclude = useCallback((session: CallSession, error: VoiceErrorKind | null) => {
@@ -241,6 +243,8 @@ export function useVoiceCall({ record, entries, onEnded, onNeedsPanel }: VoiceCa
       announce(session.muted ? strings.voiceMicOff : strings.voiceListening);
     },
     dismiss,
+    sendText: (text) => typed.sendText(current.current, text),
+    typing: () => typed.typing(current.current),
     reload: () => window.location.reload(),
     contactOpened: () => current.current?.decide?.(true),
     contactCancelled: () => current.current?.decide?.(false),

@@ -5,16 +5,14 @@ import styles from './VoiceControls.module.css';
 
 interface VoiceEndButtonProps {
   className?: string;
-  /** 44 px high in the call bar, 56 in the panel. */
-  small?: boolean;
   testId: string;
   onEnd: () => void;
 }
 
-/** End: the one light control on the dark card; while connecting it cancels. */
-export function VoiceEndButton({ className, small = false, testId, onEnd }: VoiceEndButtonProps) {
+/** End: the one light control on the dark card, icon-only; while connecting it cancels. */
+export function VoiceEndButton({ className, testId, onEnd }: VoiceEndButtonProps) {
   const strings = useStrings(chatStrings);
-  const classes = [styles.control, styles.labelled, styles.end, small && styles.small, className];
+  const classes = [styles.control, styles.round, styles.end, className];
   return (
     <button
       type="button"
@@ -24,7 +22,6 @@ export function VoiceEndButton({ className, small = false, testId, onEnd }: Voic
       onClick={onEnd}
     >
       <ChatIcon className={styles.icon} name="end" />
-      {strings.voiceEnd}
     </button>
   );
 }

@@ -63,6 +63,10 @@ export interface VoiceCallActions {
   toggleMute(): void;
   /** Clears a card: the call is over. */
   dismiss(): void;
+  /** A line typed during a live call goes to the agent; `false`: no live call took it. */
+  sendText(text: string): boolean;
+  /** The visitor is typing during a live call (holds the agent's turn open). */
+  typing(): void;
   /** "Reload page" on the "Voice was updated" card. */
   reload(): void;
   /** The contact card's Open link was tapped (the link itself opens the contact). */

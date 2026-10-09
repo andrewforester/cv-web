@@ -11,7 +11,7 @@ import { OfflineNotice } from './OfflineNotice';
 import { CHAT_PANEL_ID, chatTestIds } from './testIds';
 import { useDialogBehavior } from './useDialogBehavior';
 import { useVisualViewportFit } from './useVisualViewportFit';
-import { VoiceCallBar } from './voice/VoiceCallBar';
+import { VoiceCallComposer } from './voice/VoiceCallComposer';
 import { VoiceCallHeader } from './voice/VoiceCallHeader';
 import { VoiceComposerMic } from './voice/VoiceComposerMic';
 
@@ -22,16 +22,25 @@ interface ChatPanelProps {
   closing: boolean;
   /** Close by keyboard or the × button: focus returns to the FAB. */
   onKeyboardClose: () => void;
+  /** On open: `true` when the field must get the focus (typing began in the phone's call sheet). */
+  takeFocusRequest?: () => boolean;
 }
 
 const noop = () => undefined;
 
 /**
  * The open chat: the docked column (wide, a region beside the page), a modal card (medium) or a
- * full-screen sheet (phones). During a call (`callChat`) it is read-only, with the call's header
- * and call bar in place of the chat's header and composer.
+ * full-screen sheet (phones). During a call (`callChat`) the call's header and composer take the
+ * chat's place: typed lines go to the call; suggestions and Try again wait for its end.
  */
-export function ChatPanel({ className, state, actions, closing, onKeyboardClose }: ChatPanelProps) {
+export function ChatPanel({
+  className,
+  state,
+  actions,
+  closing,
+  onKeyboardClose,
+  takeFocusRequest,
+}: ChatPanelProps) {
   const titleId = useId();
   const subtitleId = useId();
   const dialogRef = useRef<HTMLElement>(null);
@@ -54,6 +63,10 @@ export function ChatPanel({ className, state, actions, closing, onKeyboardClose 
     onOutsidePointerDown: call ? noop : actions.close,
   });
   useVisualViewportFit(dialogRef, sheet);
+  // After the dialog's own initial focus: typing that began in the call sheet goes on here.
+  useEffect(() => {
+    if (takeFocusRequest?.()) inputRef.current?.focus();
+  }, [takeFocusRequest]);
 
   // The call ended here: the composer is back, and the focus goes to it.
   const wasCall = useRef(call !== null);
@@ -111,9 +124,10 @@ export function ChatPanel({ className, state, actions, closing, onKeyboardClose 
       />
       <LiveAnnouncer announcement={state.announcement} maxInputLength={state.maxInputLength} />
       {call ? (
-        <VoiceCallBar state={call} actions={actions.voice} />
+        <VoiceCallComposer state={state} call={call} actions={actions} inputRef={inputRef} />
       ) : (
         <ChatComposer
+          mode={state.voice ? 'voice' : 'text'}
           inputRef={inputRef}
           input={state.input}
           tooLong={state.inputTooLong}

@@ -1,11 +1,8 @@
-/* docs/design/voice/SPEC.md → Layout 2 (controls) and 3 (the call bar's 44 px versions). */
+/* docs/design/voice/SPEC.md → Layout 2: End and Mute, 56 circles left of the call composer's field. */
 .controls {
   flex: none;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-6) var(--space-6);
+  gap: var(--space-2);
 }
 
 .control {
@@ -14,13 +11,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
   padding: 0;
-  font-family: var(--font-sans);
-  font-size: var(--type-button-size);
-  line-height: var(--chat-ui-line-height);
-  font-weight: var(--type-button-weight);
-  white-space: nowrap;
   color: var(--color-dark-ink);
   background: var(--chat-fill);
   border: var(--border-card) solid var(--color-dark-line);
@@ -38,10 +29,6 @@
 
 .round {
   width: var(--voice-control-size);
-}
-
-.labelled {
-  padding: 0 var(--space-5) 0 var(--space-4);
 }
 
 .round[aria-pressed='true'],
@@ -70,24 +57,4 @@
 .icon {
   width: var(--voice-control-icon-size);
   height: var(--voice-control-icon-size);
-}
-
-/* The call bar's controls: 44 high, icons 20. */
-.small {
-  height: var(--chat-control-size);
-}
-
-.small.round {
-  width: var(--chat-control-size);
-}
-
-.small .icon {
-  width: var(--chat-icon-size);
-  height: var(--chat-icon-size);
-}
-
-@media (max-width: 599px), (max-height: 499px) {
-  .controls {
-    padding: var(--space-2) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
-  }
 }

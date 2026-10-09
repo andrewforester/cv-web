@@ -1,6 +1,3 @@
-import { useStrings } from '../../../i18n';
-import { ChatIcon } from '../../../shared/chat/ChatIcon';
-import { chatStrings } from '../strings';
 import { chatTestIds } from '../testIds';
 import styles from './VoiceControls.module.css';
 import { VoiceEndButton } from './VoiceEndButton';
@@ -13,27 +10,20 @@ interface VoiceControlsProps {
   actions: VoiceActions;
 }
 
-/** Mute · Show chat · End under the stage. Mute works once the call is live. */
+/**
+ * End and Mute, left of the call composer's field (docs/design/voice/SPEC.md → Layout 2), where
+ * the call was started. Mute works once the call is live; End cancels while connecting.
+ */
 export function VoiceControls({ className, state, actions }: VoiceControlsProps) {
-  const strings = useStrings(chatStrings);
   return (
     <div className={className ? `${styles.controls} ${className}` : styles.controls}>
+      <VoiceEndButton testId={chatTestIds.voiceEnd} onEnd={actions.end} />
       <VoiceMuteButton
         muted={state.muted}
         disabled={state.status !== 'live'}
         testId={chatTestIds.voiceMute}
         onToggle={actions.toggleMute}
       />
-      <button
-        type="button"
-        className={`${styles.control} ${styles.labelled}`}
-        data-testid={chatTestIds.voiceShowChat}
-        onClick={actions.showChat}
-      >
-        <ChatIcon className={styles.icon} name="chat" />
-        {strings.voiceShowChat}
-      </button>
-      <VoiceEndButton testId={chatTestIds.voiceEnd} onEnd={actions.end} />
     </div>
   );
 }
