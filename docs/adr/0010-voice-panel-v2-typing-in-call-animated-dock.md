@@ -7,6 +7,9 @@
 "the chat is read-only during a call; typing ends the call" (Context, item 3) and, in Decision 3,
 the page reflowing at once. The rest of ADR-0009 stands: one conversation, `voiceCalls`, the
 contextual update at call start, the chat reports a dock and the shell reserves the space.
+**Superseded in part by:** [ADR-0011](0011-voice-panel-v3-card-slides-or-chat-overlays.md):
+Decision 2 (the page no longer narrows; the CV card slides left with a transform, or the chat
+floats over the page). Decision 1 stands.
 **Related:** [ADR-0008](0008-voice-agent-elevenlabs.md) (the agent, its prompt sync),
 [`docs/voice/SYSTEM_DESIGN.md`](../voice/SYSTEM_DESIGN.md) §4 and §8,
 [`docs/chat/API.md`](../chat/API.md) → Voice calls in the history, `docs/design/voice/`,
