@@ -45,6 +45,7 @@ export function ChatPanelComposer(props: ChatPanelComposerProps) {
       canSend={state.canSend}
       busy={!call && state.busy}
       disabled={call !== null && call.status !== 'live'}
+      connecting={call?.status === 'connecting'}
       leading={leading}
       onChange={actions.changeInput}
       onSend={thenFocusInput(actions.send)}

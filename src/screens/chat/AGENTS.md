@@ -29,6 +29,9 @@ What the visitor can rely on:
   sheet over the page (the call's, Layout 5): Call and Show / Hide chat swap only its middle, so
   it never changes size; it stays above the on-screen keyboard, the page stays usable above it
   (not modal; page actions leave it open), and the system Back is never intercepted.
+- Under the field, one line of fine print in every view: "AI can make mistakes.", the call's
+  privacy note while it connects, the counter and the too-long message on the same line; so the
+  composer row never moves between the text chat and the call (docs/design/voice/SPEC.md → 1a).
 - Stop at any time; Try again after a failure; clear, neutral notices for rate limits, offline,
   refusals and a full conversation ("Start a new chat").
 - The conversation (text turns and voice calls, in order) survives closing and reopening, not a
