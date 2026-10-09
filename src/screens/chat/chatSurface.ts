@@ -44,7 +44,7 @@ export type SurfaceAction =
   | ({ type: 'callEnded' } & CallOutcome)
   /** A card's way out: `chat` (Type instead, Open chat) or `back` (×, Close, Esc). */
   | { type: 'leaveCard'; to: 'chat' | 'back' }
-  /** The call needs its panel: a contact card, or a visual tool while a phone sheet covers it. */
+  /** The call needs its panel: a contact card, or a visual tool while the phone's chat sheet covers the page. */
   | { type: 'needsPanel'; reason: 'contact' | 'visual'; sheet: boolean }
   /** The system Back on a phone (each open sheet owns a history entry). */
   | { type: 'back'; call: CallStatus }
@@ -106,8 +106,10 @@ export function surfaceReducer(model: SurfaceModel, action: SurfaceAction): Surf
       if (surface !== 'call') return model;
       return afterCall(model, action.to === 'chat' || model.wasLive);
     case 'needsPanel': {
-      const covered = surface === 'callPill' || (surface === 'callChat' && action.sheet);
-      const contact = action.reason === 'contact' && surface === 'callChat';
+      // The pill leaves the page visible, so only a contact card (it needs a tap) unfolds it.
+      const contact =
+        action.reason === 'contact' && (surface === 'callChat' || surface === 'callPill');
+      const covered = surface === 'callChat' && action.sheet;
       return covered || contact ? { ...model, surface: 'call' } : model;
     }
     case 'back':

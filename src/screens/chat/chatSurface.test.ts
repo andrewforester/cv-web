@@ -121,6 +121,14 @@ describe('surfaceReducer', () => {
     expect(surfaceReducer(at('callChat'), { ...visual, sheet: false }).surface).toBe('callChat');
   });
 
+  it('a visual tool keeps the folded call a pill, on desktop and phone', () => {
+    const visual = { type: 'needsPanel', reason: 'visual' } as const;
+    for (const sheet of [false, true]) {
+      expect(surfaceReducer(at('callPill'), { ...visual, sheet }).surface).toBe('callPill');
+      expect(surfaceReducer(at('call'), { ...visual, sheet }).surface).toBe('call');
+    }
+  });
+
   it('Back steps out one view at a time', () => {
     const back = (call: 'live' | 'card' | 'idle') => ({ type: 'back', call }) as const;
     expect(surfaceReducer(at('text'), back('idle')).surface).toBe('closed');
