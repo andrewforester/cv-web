@@ -1,4 +1,4 @@
-import { countText, easeOutExpo, scrambleText } from './countUp';
+import { countText, easeOutExpo } from './countUp';
 import cvPage from '../../../data/cv/cvPage.json';
 
 describe('countText', () => {
@@ -19,7 +19,7 @@ describe('countText', () => {
     expect(countText('12+', 0.5)).toBe('6+');
   });
 
-  it('leaves non-numeric values to the scramble', () => {
+  it('does not count non-numeric values (no scramble: `AI` stays as it is)', () => {
     expect(countText('AI', 0)).toBeNull();
   });
 });
@@ -29,12 +29,5 @@ describe('easeOutExpo', () => {
     expect(easeOutExpo(0)).toBe(0);
     expect(easeOutExpo(0.5)).toBeGreaterThan(0.9);
     expect(easeOutExpo(1)).toBe(1);
-  });
-});
-
-describe('scrambleText', () => {
-  it('draws one glyph per character from the design set', () => {
-    expect(scrambleText('AI', () => 0)).toBe('00');
-    expect(scrambleText('AI', () => 0.99)).toBe('II');
   });
 });

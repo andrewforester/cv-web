@@ -20,6 +20,7 @@
   font-weight: var(--type-stat-weight);
   line-height: var(--type-stat-line-height);
   letter-spacing: var(--type-stat-letter-spacing);
+  font-variant-numeric: tabular-nums;
 }
 
 .label {

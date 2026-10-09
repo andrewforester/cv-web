@@ -22,7 +22,6 @@ const TOKENS: Record<string, string> = {
   '--motion-duration-long': '1100ms',
   '--motion-duration-headline': '1300ms',
   '--motion-count-duration': '1400ms',
-  '--motion-scramble-duration': '900ms',
   '--motion-drift-duration': '3500ms',
   '--motion-duration-block': '1200ms',
   '--motion-duration-type': '1800ms',
