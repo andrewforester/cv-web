@@ -36,9 +36,10 @@ Tokens (`docs/design/v3/SPEC.md`, ADR-0006 Decision 5; look-neutral role names):
   error/notice, panel shadow, chat type sizes, the launcher's padding). The show's agent chat
   (`src/screens/retro/`) reads the same tokens.
 - CV page motion (`docs/design/motion/SPEC.md`): `--motion-*` easings (`ease`, `spring`), durations
-  (default, short, long, headline, count, scramble, drift, pulse), the launcher's pulse ring and the
-  scroll progress bar; `--gradient-brand-loop` is the headline word's drifting gradient. The page's
-  motion and the launcher read them at runtime for the Web Animations API.
+  (default, short, long, headline, count, scramble, drift, pulse, block, type, branch, tilt, follow,
+  settle, CTA drift), the launcher's pulse ring, the scroll progress bar, the loop cards' glow and
+  the loop panel's cursor spotlight; `--gradient-brand-loop` is the headline word's drifting
+  gradient. The page's motion and the launcher read them at runtime for the Web Animations API.
 - Page agent: `--agent-highlight-*` (colour = `--color-accent`) and the scroll landing margin.
 - The show (`docs/design/retro/SPEC.md`): `--retro-*` (dock, highlight fills, motion timings) and
   `--devtools-*` (the DevTools panel's Chrome-light surfaces, text, badge and syntax colours,

@@ -1,4 +1,6 @@
 .panel {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   gap: var(--space-5-5);
@@ -7,6 +9,7 @@
   background: var(--gradient-dark);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-dark);
+  overflow: hidden;
 }
 
 .lead {
@@ -51,4 +54,18 @@
   font-weight: var(--type-medium-weight);
   line-height: var(--type-meta-line-height);
   color: var(--color-dark-note);
+}
+
+/* The cursor spotlight (motion): behind the panel's content, invisible until the cursor moves in. */
+.spotlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: var(--motion-spotlight-size);
+  height: var(--motion-spotlight-size);
+  pointer-events: none;
+  background: var(--motion-spotlight);
+  border-radius: 50%;
+  opacity: 0;
 }

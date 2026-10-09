@@ -5,6 +5,7 @@ import { agentTargetProps } from '../../shared/agentTarget';
 import styles from './HomeCard.module.css';
 import { homeStrings } from './strings';
 import { homeTestIds } from './testIds';
+import { motionTarget } from './motion/motionTargets';
 
 interface HomeEducationProps {
   education: Education;
@@ -19,6 +20,7 @@ export function HomeEducation({ education, highlightedId }: HomeEducationProps) 
       className={`${styles.root} ${styles.violet}`}
       data-testid={homeTestIds.education}
       {...agentTargetProps('section', 'education', highlightedId)}
+      {...motionTarget('column')}
     >
       <span className={styles.label}>{strings.educationLabel}</span>
       <div className={styles.title}>{education.title}</div>

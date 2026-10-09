@@ -47,30 +47,55 @@ function tween(motion: Motion, duration: number, draw: (p: number) => void): voi
 }
 
 /**
- * Counts the value in `el` (its first text node) up from 0 after `delay` ms, or scrambles a short
- * non-numeric one; the text is the original again at the end and when the motion stops.
+ * Readies the value in `el` (its first text node) to count up from 0, or to scramble when it is a
+ * short non-numeric one: a number shows its start text from now. Returns how to `play` it after
+ * `delay` ms and how to `show` the original at once; `null` when it doesn't move. The text is the
+ * original again at the end and when the motion stops.
  */
-export function countUp(motion: Motion, el: Element | null, delay: number): void {
+function prepareCount(
+  motion: Motion,
+  el: Element | null,
+): { play: (delay: number) => void; show: () => void } | null {
   const node = el?.firstChild;
-  if (!(node instanceof Text)) return;
+  if (!(node instanceof Text)) return null;
   const text = node.data;
   const start = countText(text, 0);
-  if (start === null && text.length > SCRAMBLE_MAX_LENGTH) return;
-  motion.onStop(() => {
+  if (start === null && text.length > SCRAMBLE_MAX_LENGTH) return null;
+  const show = () => {
     node.data = text;
-  });
-  if (start === null) {
-    motion.later(() => {
-      tween(motion, motion.tokens.scrambleDuration, (p) => {
-        node.data = p < 1 ? scrambleText(text) : text;
-      });
-    }, delay);
-    return;
-  }
-  node.data = start;
-  motion.later(() => {
-    tween(motion, motion.tokens.countDuration, (p) => {
-      node.data = countText(text, easeOutExpo(p)) ?? text;
-    });
-  }, delay);
+  };
+  motion.onStop(show);
+  const { tokens } = motion;
+  const scramble = start === null;
+  const draw = (p: number) =>
+    scramble ? (p < 1 ? scrambleText(text) : text) : (countText(text, easeOutExpo(p)) ?? text);
+  if (!scramble) node.data = start;
+  return {
+    show,
+    play: (delay) =>
+      motion.later(() => {
+        tween(motion, scramble ? tokens.scrambleDuration : tokens.countDuration, (p) => {
+          node.data = draw(p);
+        });
+      }, delay),
+  };
+}
+
+/** Counts the value in `el` up from 0 after `delay` ms (see `prepareCount`). */
+export function countUp(motion: Motion, el: Element | null, delay: number): void {
+  prepareCount(motion, el)?.play(delay);
+}
+
+/**
+ * Counts the value in `el` up `delay` ms after `trigger` scrolls into view; until then it shows
+ * its start, and when shown at once it shows the original.
+ */
+export function countOnReveal(
+  motion: Motion,
+  trigger: Element,
+  el: Element | null,
+  delay: number,
+): void {
+  const count = prepareCount(motion, el);
+  if (count) motion.onReveal(trigger, (instant) => (instant ? count.show() : count.play(delay)));
 }

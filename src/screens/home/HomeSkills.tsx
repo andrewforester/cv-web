@@ -6,6 +6,7 @@ import { HomeSection } from './HomeSection';
 import styles from './HomeSkills.module.css';
 import { homeStrings } from './strings';
 import { homeTestIds } from './testIds';
+import { motionTarget } from './motion/motionTargets';
 
 interface HomeSkillsProps {
   skills: SkillGroup[];
@@ -21,13 +22,14 @@ export function HomeSkills({ skills, highlightedId }: HomeSkillsProps) {
       testId={homeTestIds.skills}
       attributes={agentTargetProps('section', 'skills', highlightedId)}
     >
-      <div className={styles.grid}>
+      <div className={styles.grid} {...motionTarget('skills')}>
         {skills.map((group) => (
           <div
             key={group.id}
             className={styles.group}
             data-testid={homeTestIds.skill}
             {...agentTargetProps('skill', group.id, highlightedId)}
+            {...motionTarget('skill')}
           >
             <div className={styles.title}>{group.title}</div>
             <div className={styles.items}>{group.items}</div>

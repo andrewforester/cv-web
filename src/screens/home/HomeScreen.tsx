@@ -16,6 +16,7 @@ import type { HomeUiState } from './HomeUiState';
 import { homeStrings } from './strings';
 import { homeTestIds } from './testIds';
 import { useHomeMotion } from './motion/useHomeMotion';
+import { motionTarget } from './motion/motionTargets';
 
 interface HomeScreenProps {
   className?: string;
@@ -52,7 +53,7 @@ export function HomeScreen({ className, state, metaBarEnd, copyrightEnd }: HomeS
       <HomeLoop loop={page.loop} highlightedId={highlightedId} />
       <HomeImpact impact={page.impact} highlightedId={highlightedId} />
       <HomeExperience jobs={page.jobs} highlightedId={highlightedId} />
-      <div className={styles.cards}>
+      <div className={styles.cards} {...motionTarget('columns')}>
         <HomeEducation education={page.education} highlightedId={highlightedId} />
         <HomeAbout about={page.about} highlightedId={highlightedId} />
       </div>

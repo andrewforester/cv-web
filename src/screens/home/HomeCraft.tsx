@@ -6,6 +6,7 @@ import styles from './HomeCraft.module.css';
 import { HomeSection } from './HomeSection';
 import { homeStrings } from './strings';
 import { homeTestIds } from './testIds';
+import { motionTarget } from './motion/motionTargets';
 
 /** Card tones by position: hand-written code on neutral, the agentic process on pink. */
 const TONES = [styles.neutral, styles.pink];
@@ -24,12 +25,13 @@ export function HomeCraft({ craft, highlightedId }: HomeCraftProps) {
       testId={homeTestIds.craft}
       attributes={agentTargetProps('section', 'craft', highlightedId)}
     >
-      <div className={styles.cards}>
+      <div className={styles.cards} {...motionTarget('craft')}>
         {craft.map((card, index) => (
           <div
             key={card.id}
             className={`${styles.card} ${TONES[index % TONES.length] ?? ''}`}
             data-testid={homeTestIds.craftCard}
+            {...motionTarget('card')}
           >
             <span className={styles.label}>{card.label}</span>
             <div className={styles.title}>{card.title}</div>

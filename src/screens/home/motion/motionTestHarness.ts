@@ -19,6 +19,17 @@ const TOKENS: Record<string, string> = {
   '--motion-count-duration': '1400ms',
   '--motion-scramble-duration': '900ms',
   '--motion-drift-duration': '3500ms',
+  '--motion-duration-block': '1200ms',
+  '--motion-duration-type': '1800ms',
+  '--motion-duration-branch': '400ms',
+  '--motion-duration-tilt': '250ms',
+  '--motion-duration-follow': '500ms',
+  '--motion-duration-settle': '600ms',
+  '--motion-cta-drift-duration': '7000ms',
+  '--color-dark-number': '#ff7acb',
+  '--motion-glow': 'rgba(255, 79, 184, 0.55)',
+  '--motion-glow-surface': 'rgba(255, 255, 255, 0.04)',
+  '--color-dark-line': '#3a3248',
   '--gradient-brand-loop': 'linear-gradient(90deg, #ff4fb8, #8b5cf6, #ff4fb8)',
 };
 

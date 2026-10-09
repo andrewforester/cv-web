@@ -6,6 +6,7 @@ import styles from './HomeCard.module.css';
 import { homeImageUrl } from './images';
 import { homeStrings } from './strings';
 import { homeTestIds } from './testIds';
+import { motionTarget } from './motion/motionTargets';
 
 interface HomeAboutProps {
   about: CvAbout;
@@ -20,6 +21,7 @@ export function HomeAbout({ about, highlightedId }: HomeAboutProps) {
       className={`${styles.root} ${styles.neutral}`}
       data-testid={homeTestIds.about}
       {...agentTargetProps('section', 'about', highlightedId)}
+      {...motionTarget('column')}
     >
       <span className={styles.label}>{strings.aboutLabel}</span>
       <div className={styles.books}>
@@ -31,6 +33,7 @@ export function HomeAbout({ about, highlightedId }: HomeAboutProps) {
             alt={book.title}
             data-testid={homeTestIds.book}
             {...agentTargetProps('book', book.id, highlightedId)}
+            {...motionTarget('badge')}
           />
         ))}
       </div>

@@ -4,6 +4,7 @@ import { agentTargetProps } from '../../shared/agentTarget';
 import styles from './HomeFooter.module.css';
 import { contactFor, linkProps } from './homeTargets';
 import { homeTestIds } from './testIds';
+import { motionTarget } from './motion/motionTargets';
 
 /** The footer's messenger pills, in the design's order (the email has its own pill above). */
 const PILL_CHANNELS = ['whatsapp', 'linkedin'] as const;
@@ -27,11 +28,12 @@ export function HomeFooter({ footer, contacts, highlightedId }: HomeFooterProps)
       className={styles.root}
       data-testid={homeTestIds.footer}
       {...agentTargetProps('section', 'contacts', highlightedId)}
+      {...motionTarget('cta')}
     >
       <h2 className={styles.title}>
         <a className={styles.titleLink} {...linkProps(footer.href)}>
           {footer.label}
-          <span className={styles.arrow} aria-hidden="true">
+          <span className={styles.arrow} aria-hidden="true" {...motionTarget('arrow')}>
             ↗
           </span>
         </a>
