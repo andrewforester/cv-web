@@ -42,6 +42,12 @@ describe('decideVoiceMode', () => {
     expect(empty.items.size).toBe(0);
   });
 
+  it('ignores ?voice=fake when the build does not enable it (production)', () => {
+    const storage = memoryStorage({ [VOICE_STORAGE_KEY]: '1' });
+    expect(decideVoiceMode('?voice=fake', storage, false, false)).toBe('real');
+    expect(decideVoiceMode('?voice=fake', memoryStorage(), false, false)).toBe('off');
+  });
+
   it('uses the endless demo call for ?voice=demo on the dev server only', () => {
     const storage = memoryStorage();
     expect(decideVoiceMode('?voice=demo', storage, true)).toBe('demo');

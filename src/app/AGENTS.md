@@ -17,8 +17,8 @@ Domain terms:
   lost) until the show's last step loads it.
 - **Voice mode** (`voiceMode.ts`, docs/voice/SYSTEM_DESIGN.md §9): `off`, `real`, `fake` or `demo`
   at page load. `?voice=1` turns the mic button on and remembers it in `localStorage` (`cv.voice`),
-  `?voice=0` forgets it, `?voice=fake` uses the scripted client for that load only, `?voice=demo`
-  the endless demo call of `npm run demo` (dev server only, `off` in a production build). Off by default;
+  `?voice=0` forgets it, `?voice=fake` uses the scripted client for that load only (dev server and `npm run build:e2e`;
+  `off` in a production build), `?voice=demo` the endless demo call of `npm run demo` (dev server only). Off by default;
   not a security layer (the server's `VOICE_ENABLED` is).
 - **Stage:** the shell's wrapper (page + chat) carrying `data-retro-stage` while the show runs;
   the show's damage layers select only under it.
