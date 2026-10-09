@@ -48,6 +48,17 @@ describe('buildVoiceAgentConfig', () => {
     );
   });
 
+  it('answers typed mid-call messages aloud as ordinary visitor turns', () => {
+    expect(config.prompt).toContain(
+      'Typed messages\n- The visitor can also type during the call. A typed message reaches you as an ordinary visitor turn.',
+    );
+    expect(config.prompt).toContain('Answer it aloud in the same spoken style.');
+    expect(config.prompt).toContain("Don't read out links, code or long pasted text.");
+    expect(config.prompt.indexOf('Typed messages')).toBeLessThan(
+      config.prompt.lastIndexOf(knowledge),
+    );
+  });
+
   it('caps the call at 180 s, opens in English and carries the prompt version', () => {
     expect(config.maxDurationSeconds).toBe(180);
     expect(config.promptVersion).toBe(VOICE_PROMPT_VERSION);
