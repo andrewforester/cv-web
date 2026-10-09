@@ -2,10 +2,10 @@ import { useStrings } from '../../../i18n';
 import { ActionChip } from '../ActionChip';
 import { MessageRow } from '../MessageRow';
 import roundStyles from '../RoundView.module.css';
-import { chatStrings, formatString, type ChatStrings } from '../strings';
+import { chatStrings } from '../strings';
 import { chatTestIds } from '../testIds';
 import type { ChatVoiceAction, ChatVoiceCall, ChatVoiceItem, ChatVoiceLine } from './callReducer';
-import { formatTime } from './formatTime';
+import { callEndText } from './callEndText';
 import { VoiceCallDivider } from './VoiceCallDivider';
 
 /** Lines one by one; consecutive chips share one row, as in a text turn's tool round. */
@@ -20,14 +20,7 @@ function groupItems(items: readonly ChatVoiceItem[]): (ChatVoiceLine | ChatVoice
   return groups;
 }
 
-function endText(call: ChatVoiceCall, strings: ChatStrings): string {
-  const duration = formatTime(call.durationSec ?? 0);
-  if (call.endReason === 'time_limit') return strings.voiceCallEndedLimit;
-  if (call.endReason === 'error') return formatString(strings.voiceCallDropped, { duration });
-  return formatString(strings.voiceCallEnded, { duration });
-}
-
-/** A voice call in the chat (SPEC → Layout 6): its lines and chips between two call dividers. */
+/** A voice call in the chat (SPEC → Layout 7): its lines and chips between two call dividers. */
 export function VoiceCallView({ call }: { call: ChatVoiceCall }) {
   const strings = useStrings(chatStrings);
   return (
@@ -52,7 +45,7 @@ export function VoiceCallView({ call }: { call: ChatVoiceCall }) {
           </MessageRow>
         ),
       )}
-      {call.status === 'ended' && <VoiceCallDivider text={endText(call, strings)} />}
+      {call.status === 'ended' && <VoiceCallDivider text={callEndText(call, strings)} />}
     </>
   );
 }

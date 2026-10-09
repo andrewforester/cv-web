@@ -11,7 +11,7 @@ interface VoiceActionChipProps {
   action: ChatActionCall;
 }
 
-/** What the agent is doing on the page, under the top bar (the text chat's action texts). */
+/** What the agent is doing on the page, over the stage (the text chat's action texts). */
 export function VoiceActionChip({ className, action }: VoiceActionChipProps) {
   const strings = useStrings(chatStrings);
   return (

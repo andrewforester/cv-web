@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import alert from './assets/chat_icon_alert.svg';
 import chat from './assets/chat_icon_chat.svg';
 import close from './assets/chat_icon_close.svg';
+import collapse from './assets/chat_icon_collapse.svg';
 import end from './assets/chat_icon_end.svg';
 import mic from './assets/chat_icon_mic.svg';
 import micOff from './assets/chat_icon_mic_off.svg';
@@ -16,6 +17,7 @@ const ICONS = {
   alert,
   chat,
   close,
+  collapse,
   end,
   mic,
   micOff,

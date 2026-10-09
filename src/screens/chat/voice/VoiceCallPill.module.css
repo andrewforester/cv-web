@@ -1,0 +1,105 @@
+/* docs/design/voice/SPEC.md → Layout 4 (the call pill): the launcher pill's place and look. */
+.pill {
+  --voice-level: 0;
+  /* Focus on the light page: the page's accent. */
+  --chat-focus-ring-color: var(--color-accent);
+
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  /* One layer above the panel (Decision 32): it fades on top of the morph. */
+  z-index: calc(var(--chat-z-index) + 1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1-5);
+  color: var(--color-ink);
+  background: var(--color-card);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-launcher);
+  /*
+   * docs/design/voice/SPEC.md → Motion (collapse / expand during a call): it fades in over the last moments of
+   * the panel shrinking into it and fades out as the panel grows out of it. Opacity only.
+   */
+  animation: fade-in var(--chat-motion-duration) var(--chat-motion-easing) both;
+  animation-delay: calc(var(--chat-slide-exit-duration) - var(--chat-motion-duration));
+}
+
+.closing {
+  pointer-events: none;
+  animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
+}
+
+.expand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2-5);
+  padding: 0 var(--space-1) 0 0;
+  font-family: var(--font-sans);
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: color var(--chat-transition);
+}
+
+.status {
+  font-size: var(--type-body-size);
+  line-height: var(--chat-launcher-line-height);
+  font-weight: var(--type-button-weight);
+  white-space: nowrap;
+}
+
+.expand:hover .status {
+  color: var(--color-accent);
+}
+
+.time {
+  font-family: var(--font-mono);
+  font-size: var(--type-meta-size);
+  line-height: var(--chat-launcher-line-height);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink-3);
+}
+
+.warning {
+  color: var(--color-accent-pink);
+}
+
+.end {
+  flex: none;
+  width: var(--voice-pill-end-size);
+  height: var(--voice-pill-end-size);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--color-on-accent);
+  background: var(--color-ink);
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color var(--chat-transition);
+}
+
+.end:hover {
+  background: var(--color-ink-2);
+}
+
+@media (max-width: 599px), (max-height: 499px) {
+  .pill {
+    bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}

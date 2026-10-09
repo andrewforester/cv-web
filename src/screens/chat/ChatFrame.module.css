@@ -1,0 +1,116 @@
+/*
+ * Where the one panel sits (docs/voice/SYSTEM_DESIGN.md §4.3, ADR-0012): floating bottom-right,
+ * never full height, at every width above the phone, for the text chat and both call views; from
+ * 1584 px the shell slides the page left beside it, below it floats over the page. The panel adds
+ * its phone sheets. Imported after the card. Its views change inside it: the frame never swaps.
+ */
+.frame {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: var(--chat-z-index);
+  width: var(--chat-panel-width);
+  height: min(var(--chat-panel-height), calc(100dvh - 2 * var(--space-4)));
+  /* The phone sheets' timing: the panel's phone CSS names its own keyframes. */
+  animation: fade-in var(--chat-motion-duration) var(--chat-motion-easing) both;
+}
+
+.frame:focus {
+  outline: none;
+}
+
+.closing {
+  pointer-events: none;
+}
+
+.frame.closing {
+  animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-easing) both;
+}
+
+/*
+ * The morph (docs/design/voice/SPEC.md → Motion, ADR-0012 → Decision 2): the panel keeps its
+ * final size and its clip grows out of the pill's box (`--chat-morph-w` / `-h`, written by
+ * `useMorphOrigin`) at the bottom-right corner, and shrinks back into it. The clip hides the
+ * shadow, so the shadow fades in as the panel lands; the content fades in after the shape starts
+ * and out first; a header, middle or composer slot that a view change mounts fades in the same
+ * way. Open and collapse into the launcher here; collapse during a call and expand are the same
+ * morph with the call pill.
+ */
+@media (min-width: 600px) and (min-height: 500px) and (prefers-reduced-motion: no-preference) {
+  .frame {
+    animation:
+      morph-in var(--chat-slide-duration) var(--chat-slide-easing) backwards,
+      shadow-in var(--chat-motion-exit-duration) var(--chat-motion-easing)
+        var(--chat-slide-duration) backwards;
+  }
+
+  .frame > * {
+    animation: fade-in var(--chat-motion-duration) var(--chat-motion-easing)
+      var(--chat-motion-exit-duration) backwards;
+  }
+
+  .frame.closing {
+    animation: morph-out var(--chat-slide-exit-duration) var(--chat-slide-easing) forwards;
+  }
+
+  .frame.closing > * {
+    animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) forwards;
+  }
+}
+
+/* No morph: the panel fades in and out. */
+@media (prefers-reduced-motion: reduce) {
+  .frame {
+    animation: fade-in var(--chat-motion-exit-duration) var(--chat-motion-easing) both;
+  }
+
+  .frame.closing {
+    animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
+  }
+}
+
+@keyframes morph-in {
+  from {
+    clip-path: inset(
+      calc(100% - var(--chat-morph-h, var(--space-9))) 0 0
+        calc(100% - var(--chat-morph-w, var(--space-9))) round
+        calc(var(--chat-morph-h, var(--space-9)) / 2)
+    );
+  }
+
+  to {
+    clip-path: inset(0 round var(--radius-card));
+  }
+}
+
+@keyframes morph-out {
+  from {
+    clip-path: inset(0 round var(--radius-card));
+  }
+
+  to {
+    clip-path: inset(
+      calc(100% - var(--chat-morph-h, var(--space-9))) 0 0
+        calc(100% - var(--chat-morph-w, var(--space-9))) round
+        calc(var(--chat-morph-h, var(--space-9)) / 2)
+    );
+  }
+}
+
+@keyframes shadow-in {
+  from {
+    box-shadow: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}

@@ -3,6 +3,7 @@ import type {
   AgentToolResult,
   AgentToolResultItem,
   ChatMessageV4,
+  ChatVoiceCallV4,
 } from '../../../src/data/chat/contract.js';
 import type { LlmAssistantBlock, LlmContentBlock, LlmMessage } from '../llm/LlmClient.js';
 import { rebuildAssistantTurn } from '../providerState.js';
@@ -10,6 +11,15 @@ import { rebuildAssistantTurn } from '../providerState.js';
 /** The page snapshot as a data block in front of the question (docs/chat/AGENT.md §3). */
 export function pageStateBlock(page: AgentPageStateV4): string {
   return `<page_state>${JSON.stringify(page)}</page_state>`;
+}
+
+/**
+ * A voice call's transcript as a data block in front of the question (docs/chat/API.md → Voice
+ * calls in the history). `<` is escaped (`\u003c`, still valid JSON) so a line can't close it.
+ */
+export function voiceCallBlock(call: ChatVoiceCallV4): string {
+  const json = JSON.stringify({ lines: call.lines }).replaceAll('<', '\\u003c');
+  return `<voice_call>${json}</voice_call>`;
 }
 
 /** A call the server did not stream (over the per-response cap) answers like the client would. */
@@ -36,8 +46,9 @@ function toolResultBlocks(
 }
 
 /**
- * Validated v4 messages (the tool dialect) as model messages: questions carry `<page_state>` + text, tool-use turns
- * are rebuilt from `providerState`, results become `tool_result` blocks. Append-only: an earlier
+ * Validated v4 messages (the tool dialect) as model messages: questions carry their
+ * `<voice_call>` blocks, `<page_state>` and text; tool-use turns are rebuilt from
+ * `providerState`; results become `tool_result` blocks. Append-only: an earlier
  * message always renders the same, so the conversation prefix stays cacheable.
  */
 export function renderMessagesV2(messages: ChatMessageV4[]): LlmMessage[] {
@@ -64,6 +75,10 @@ export function renderMessagesV2(messages: ChatMessageV4[]): LlmMessage[] {
     return {
       role: 'user',
       content: [
+        ...(message.voiceCalls ?? []).map((call): LlmContentBlock => ({
+          type: 'text',
+          text: voiceCallBlock(call),
+        })),
         { type: 'text', text: pageStateBlock(message.page) },
         { type: 'text', text: message.content },
       ],

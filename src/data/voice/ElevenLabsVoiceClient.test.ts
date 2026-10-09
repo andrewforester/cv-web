@@ -26,6 +26,8 @@ function stubSdk({ fail = false } = {}) {
     }),
     setMicMuted: vi.fn(),
     sendContextualUpdate: vi.fn(),
+    sendUserMessage: vi.fn(),
+    sendUserActivity: vi.fn(),
     getInputVolume: vi.fn(() => 0.4),
     getOutputVolume: vi.fn(() => 1.7),
   };
@@ -133,6 +135,68 @@ describe('ElevenLabsVoiceClient', () => {
       { type: 'ended', reason: 'time_limit' },
     ]);
     expect(call.levels()).toEqual({ input: 0, output: 0 });
+  });
+
+  describe('typed lines', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    async function liveCall() {
+      const sdk = stubSdk();
+      const { events, handlers } = recorder();
+      const call = await new ElevenLabsVoiceClient(sdk.load).start(session, handlers);
+      const visitorLines = () =>
+        events.flatMap((e) =>
+          e.type === 'line' && e.line.role === 'visitor' ? [e.line.text] : [],
+        );
+      return { sdk, call, events, visitorLines, options: sdk.sdkOptions() };
+    }
+
+    it('sends a typed line as the visitor turn and typing as user activity, with no line event', async () => {
+      const { sdk, call, events } = await liveCall();
+      call.typing();
+      call.sendText('What does he do now?');
+      expect(sdk.conversation.sendUserActivity).toHaveBeenCalledTimes(1);
+      expect(sdk.conversation.sendUserMessage).toHaveBeenCalledWith('What does he do now?');
+      expect(events.some((e) => e.type === 'line')).toBe(false);
+    });
+
+    it('drops the echo of a typed line once; a different line and a repeat are kept', async () => {
+      const { call, options, visitorLines } = await liveCall();
+      call.sendText('  Where does he work?');
+      options.onMessage({ role: 'agent', message: 'Where does he work?', event_id: 1 });
+      options.onMessage({ role: 'user', message: 'Something else', event_id: 2 });
+      options.onMessage({ role: 'user', message: 'Where does he work? ', event_id: 3 });
+      options.onMessage({ role: 'user', message: 'Where does he work?', event_id: 4 });
+      expect(visitorLines()).toEqual(['Something else', 'Where does he work?']);
+    });
+
+    it('matches only the oldest typed line, in the order they were sent', async () => {
+      const { call, options, visitorLines } = await liveCall();
+      call.sendText('first');
+      call.sendText('second');
+      options.onMessage({ role: 'user', message: 'second', event_id: 1 });
+      options.onMessage({ role: 'user', message: 'first', event_id: 2 });
+      options.onMessage({ role: 'user', message: 'second', event_id: 3 });
+      expect(visitorLines()).toEqual(['second']);
+    });
+
+    it('keeps a matching visitor line that comes more than 10 s after the typed one', async () => {
+      const { call, options, visitorLines } = await liveCall();
+      call.sendText('Tell me about his apps');
+      vi.advanceTimersByTime(10_001);
+      options.onMessage({ role: 'user', message: 'Tell me about his apps', event_id: 1 });
+      expect(visitorLines()).toEqual(['Tell me about his apps']);
+    });
+
+    it('sends nothing after the call ended', async () => {
+      const { sdk, call } = await liveCall();
+      await call.end();
+      call.sendText('too late');
+      call.typing();
+      expect(sdk.conversation.sendUserMessage).not.toHaveBeenCalled();
+      expect(sdk.conversation.sendUserActivity).not.toHaveBeenCalled();
+    });
   });
 
   it('rejects when the session fails to start, with no ended event', async () => {

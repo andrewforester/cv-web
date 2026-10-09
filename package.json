@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "vite",
+    "demo": "CHAT_FAKE_LLM=1 VOICE_FAKE=1 VOICE_ENABLED=true ANTHROPIC_API_KEY= ELEVENLABS_API_KEY= ELEVENLABS_AGENT_ID= vite --open '/?voice=demo'",
     "build": "tsc -b && vite build",
+    "build:e2e": "VITE_VOICE_FAKE=1 npm run build",
     "preview": "vite preview --port 4173 --strictPort",
     "lint": "eslint . --max-warnings 0 && prettier --check . && tsc -b",
     "format": "prettier --write . && eslint . --fix",

@@ -13,7 +13,9 @@ Shared with the server (framework-free, `.js` import specifiers):
 - `contract.ts`: request/response types, limits and error codes of `v: 4`, the one-page chat (no
   page id, no locale; `CV_SECTION_IDS`, `CV_CONTACT_CHANNELS`). Its tool dialect (tool calls and
   results, provider state) was first defined by the retired v2, so those types keep the `V2`
-  names. v1 and v2 are gone: the server answers them `unsupported_version`. The show's `v: 3`
+  names. A question may carry the voice calls since the previous one (`voiceCalls`, ADR-0009:
+  text and voice are one conversation) with their own caps in `CHAT_LIMITS_V2`. v1 and v2 are
+  gone: the server answers them `unsupported_version`. The show's `v: 3`
   (`src/data/retro/contract.ts`) reuses the shared parts.
 - `agentTools.ts`: the page-agent tool catalogue built from `CvPage` (three tools: scroll,
   highlight, open a contact) so its targets match the page; the browser registry (`src/agent/`)

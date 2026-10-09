@@ -32,6 +32,13 @@ export interface VoiceCall {
   setMuted(muted: boolean): void;
   /** Tells the agent something without a spoken turn (e.g. "30 seconds left"). */
   sendContextualUpdate(text: string): void;
+  /**
+   * A line the visitor typed mid-call, sent as their turn; the agent answers by voice. No `line`
+   * event follows for it: the caller records it (docs/voice/SYSTEM_DESIGN.md §4.4).
+   */
+  sendText(text: string): void;
+  /** The visitor is typing: holds the agent's turn open for a moment (throttled to 1/s). */
+  typing(): void;
 }
 
 /**
