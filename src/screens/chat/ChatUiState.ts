@@ -76,6 +76,8 @@ export interface ChatUiState {
   readonly surface: ChatSurface;
   /** A folded call just ended: the pill says how for a moment (the surface is `closed`). */
   readonly endedPill: boolean;
+  /** The chat is back from a call that left nothing: Call gets the focus, not the field. */
+  readonly focusCall: boolean;
   /** Where the chat sits at this viewport: docked column, floating card or phone sheets. */
   readonly layout: ChatLayout;
   readonly hintVisible: boolean;
@@ -99,7 +101,7 @@ export interface ChatUiState {
   readonly suggestions: readonly string[];
   /** The page's example commands; empty while its tools aren't mounted. */
   readonly commands: readonly string[];
-  /** The voice call and its mic buttons; `null` when voice is off (no client bound). */
+  /** The voice call and the composer's Call; `null` when voice is off (no client bound). */
   readonly voice: VoiceUiState | null;
 }
 

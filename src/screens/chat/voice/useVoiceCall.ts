@@ -46,9 +46,9 @@ interface VoiceCallOptions {
 
 /**
  * State holder of the call (docs/voice/SYSTEM_DESIGN.md §4, docs/design/voice/SPEC.md → States
- * and behaviour): mic tap → microphone → session token → call; status, mode, lines and
- * corrections from the `VoiceClient`; the transcript goes into the chat's conversation as it
- * arrives; typed lines, timer, mute, page tools, and one error card per cause. Where the call shows is the
+ * and behaviour): Call → microphone → session token → call; status, mode, lines and corrections
+ * from the `VoiceClient`; the transcript goes into the chat's conversation as it arrives; typed
+ * lines, timer, mute, page tools, and one error card per cause. Where the call shows is the
  * chat's surface, told through `onEnded` / `onNeedsPanel`. `state` is `null` when no voice client
  * is bound (the flag is off).
  */

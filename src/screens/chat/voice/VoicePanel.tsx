@@ -1,15 +1,15 @@
 import { useEffect, useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { useStrings } from '../../../i18n';
 import card from '../../../shared/chat/ChatCard.module.css';
-import column from '../ChatColumn.module.css';
 import { chatStrings } from '../strings';
 import { chatTestIds, VOICE_PANEL_ID } from '../testIds';
+import { frameClasses, type FrameMotion } from '../useFrameMotion';
 import { useVoiceLevel } from './useVoiceLevel';
 import type { VoiceErrorButton } from './voiceErrorCards';
 import styles from './VoicePanel.module.css';
 import { VoicePanelHeader } from './VoicePanelHeader';
 import { VoiceStage } from './VoiceStage';
-import type { VoiceActions, VoiceUiState } from './VoiceUiState';
+import type { FocusRequest, VoiceActions, VoiceUiState } from './VoiceUiState';
 
 interface VoicePanelProps {
   className?: string;
@@ -17,8 +17,11 @@ interface VoicePanelProps {
   actions: VoiceActions;
   /** Playing the close animation: no input. */
   closing: boolean;
+  motion: FrameMotion;
   /** The call composer (End, Mute, the field), shared with the chat during the call. */
   composer: ReactNode;
+  /** On open: `toggle` when the chat toggle handed the focus over (it stays on the toggle). */
+  takeFocusRequest?: () => FocusRequest | null;
 }
 
 /**
@@ -27,15 +30,19 @@ interface VoicePanelProps {
  * caption, the call composer, and a card for a contact or an error. Not modal: the page stays
  * live. Esc anywhere inside (the field too) minimizes.
  */
-export function VoicePanel({ className, state, actions, closing, composer }: VoicePanelProps) {
+export function VoicePanel(props: VoicePanelProps) {
+  const { className, state, actions, closing, motion, composer, takeFocusRequest } = props;
   const strings = useStrings(chatStrings);
   const panelRef = useRef<HTMLElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   useVoiceLevel(panelRef, actions.level);
   // On open (also when reopened mid-exit), focus moves to the panel so a screen reader hears its
-  // label; End never gets it.
+  // label (End never gets it); after the chat toggle, to the toggle in the same place.
   useEffect(() => {
-    if (!closing) panelRef.current?.focus();
-  }, [closing]);
+    if (closing) return;
+    const toToggle = takeFocusRequest?.() === 'toggle';
+    ((toToggle && toggleRef.current) || panelRef.current)?.focus();
+  }, [closing, takeFocusRequest]);
 
   const onErrorButton = (button: VoiceErrorButton) => {
     if (button === 'retry') actions.start();
@@ -55,7 +62,7 @@ export function VoicePanel({ className, state, actions, closing, composer }: Voi
     <aside
       ref={panelRef}
       id={VOICE_PANEL_ID}
-      className={[card.card, column.frame, styles.panel, closing && column.closing, className]
+      className={[card.card, frameClasses(motion, closing), styles.panel, className]
         .filter(Boolean)
         .join(' ')}
       aria-label={strings.voicePanelLabel}
@@ -66,7 +73,7 @@ export function VoicePanel({ className, state, actions, closing, composer }: Voi
       data-muted={state.muted}
       onKeyDown={onKeyDown}
     >
-      <VoicePanelHeader state={state} actions={actions} />
+      <VoicePanelHeader state={state} actions={actions} toggleRef={toggleRef} />
       <VoiceStage state={state} actions={actions} onErrorButton={onErrorButton} />
       {state.status !== 'error' && composer}
     </aside>

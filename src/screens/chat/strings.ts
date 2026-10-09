@@ -6,7 +6,7 @@ import { defineStrings } from '../../i18n';
  */
 export const chatStrings = defineStrings({
   en: {
-    launcherLabel: 'Ask my AI',
+    launcherLabel: 'Talk to my AI',
     hint: 'Questions about Andrew’s experience? Ask the AI assistant.',
     hintDismiss: 'Dismiss',
     title: 'Ask about Andrew',
@@ -24,6 +24,8 @@ export const chatStrings = defineStrings({
     suggestion4: 'Is he open to new roles?',
     inputLabel: 'Your question',
     placeholder: 'Ask a question…',
+    voiceCall: 'Call',
+    voiceCallLabel: 'Call my AI',
     voicePlaceholder: '…or type instead',
     voiceCallPlaceholder: 'Type a message…',
     voiceInputLabel: 'Message to the call. The AI answers by voice.',
@@ -76,7 +78,6 @@ export const chatStrings = defineStrings({
     channelWhatsapp: 'WhatsApp',
     channelLinkedin: 'LinkedIn',
     // Voice call: docs/design/voice/SPEC.md → Texts.
-    voiceMicLabel: 'Talk to my AI by voice',
     voicePanelLabel: 'Voice call with Andrew’s AI',
     voiceTitle: 'Voice call',
     voiceConnecting: 'Connecting…',

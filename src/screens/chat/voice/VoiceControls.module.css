@@ -1,10 +1,4 @@
 /* docs/design/voice/SPEC.md → Layout 2: End and Mute, 56 circles left of the call composer's field. */
-.controls {
-  flex: none;
-  display: flex;
-  gap: var(--space-2);
-}
-
 .control {
   flex: none;
   height: var(--voice-control-size);

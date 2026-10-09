@@ -1,10 +1,12 @@
+import type { Ref } from 'react';
 import { useStrings } from '../../../i18n';
 import chat from '../../../shared/chat/chat.module.css';
 import { ChatBadge } from '../../../shared/chat/ChatBadge';
 import header from '../../../shared/chat/ChatCardHeader.module.css';
 import { ChatIcon } from '../../../shared/chat/ChatIcon';
 import { chatStrings } from '../strings';
-import { chatTestIds } from '../testIds';
+import { chatTestIds, VOICE_PANEL_ID } from '../testIds';
+import { VoiceChatToggle } from './VoiceChatToggle';
 import { VoiceMinimizeButton } from './VoiceMinimizeButton';
 import { VoiceOrb } from './VoiceOrb';
 import styles from './VoicePanelHeader.module.css';
@@ -15,13 +17,15 @@ interface VoicePanelHeaderProps {
   className?: string;
   state: VoiceUiState;
   actions: VoiceActions;
+  /** The chat toggle, for the focus hand-off when the view swaps. */
+  toggleRef?: Ref<HTMLButtonElement>;
 }
 
 /**
  * The call panel's header (the chat card header's anatomy): badge, "Voice call" over the timer,
- * then Show chat and minimize (off while connecting), or close (×) on a card.
+ * then the chat toggle (Show chat) and minimize (off while connecting), or close (×) on a card.
  */
-export function VoicePanelHeader({ className, state, actions }: VoicePanelHeaderProps) {
+export function VoicePanelHeader({ className, state, actions, toggleRef }: VoicePanelHeaderProps) {
   const strings = useStrings(chatStrings);
   return (
     <header className={className ? `${header.header} ${className}` : header.header}>
@@ -45,14 +49,12 @@ export function VoicePanelHeader({ className, state, actions }: VoicePanelHeader
         </button>
       ) : (
         <>
-          <button
-            type="button"
-            className={chat.secondaryButton}
-            data-testid={chatTestIds.voiceShowChat}
-            onClick={actions.showChat}
-          >
-            {strings.voiceShowChat}
-          </button>
+          <VoiceChatToggle
+            buttonRef={toggleRef}
+            view="call"
+            controls={VOICE_PANEL_ID}
+            onToggle={actions.toggleChat}
+          />
           <VoiceMinimizeButton disabled={state.status !== 'live'} onMinimize={actions.minimize} />
         </>
       )}

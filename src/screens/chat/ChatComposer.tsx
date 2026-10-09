@@ -24,10 +24,8 @@ interface ChatComposerProps {
   busy: boolean;
   /** The field takes no text yet (a call still connecting); the draft stays. */
   disabled?: boolean;
-  /** Left of the field: the call's End and Mute (docs/design/voice/SPEC.md → Layout 2). */
+  /** Left of the field: Call, or the call's End and Mute (docs/design/voice/ → Layout 1, 2). */
   leading?: ReactNode;
-  /** Slot inside the field between the text and Send: the mic that starts a call. */
-  voiceSlot?: ReactNode;
   onChange: (value: string) => void;
   onSend: () => void;
   onStop: () => void;
@@ -91,7 +89,6 @@ export function ChatComposer(props: ChatComposerProps) {
               props.onSend();
             }}
           />
-          {props.voiceSlot}
           <SendButton busy={props.busy} canSend={props.canSend} onStop={props.onStop} />
         </div>
       </div>

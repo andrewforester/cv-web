@@ -9,7 +9,7 @@ import type { ChatSurface } from './chatSurface';
 export type ChatDock = 'none' | 'side' | 'bottom';
 
 export interface ChatRouteProps {
-  /** Called on mount and whenever the dock changes; `none` on unmount. */
+  /** Called on mount and whenever the dock changes, before paint; `none` on unmount. */
   onDockChange?: (dock: ChatDock) => void;
 }
 

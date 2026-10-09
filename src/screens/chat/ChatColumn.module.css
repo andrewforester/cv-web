@@ -23,16 +23,34 @@
   animation: card-out var(--chat-motion-exit-duration) var(--chat-motion-easing) both;
 }
 
+/*
+ * docs/design/voice/SPEC.md → Motion. The column slides in from beyond the right edge while the
+ * shell narrows the page with the same timing, so it pushes the page; it leaves the same way.
+ */
 @media (min-width: 1024px) and (min-height: 500px) {
   .frame {
     top: var(--space-4);
     height: auto;
-    animation-name: column-in;
+    animation: column-in var(--chat-dock-duration) var(--chat-motion-easing) both;
   }
 
   .closing {
-    animation-name: column-out;
+    animation: column-out var(--chat-dock-exit-duration) var(--chat-motion-exit-easing) both;
   }
+}
+
+/* A view swap inside the column (text ⇄ call ⇄ call chat): the frame stays, the views crossfade. */
+.frame.swapIn {
+  animation: fade-in var(--chat-motion-duration) var(--chat-motion-easing) both;
+}
+
+.frame.closing.swapOut {
+  animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
+}
+
+/* Minimize: the column folds toward the pill's corner. */
+.frame.closing.foldOut {
+  animation: fold-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
 }
 
 @keyframes card-in {
@@ -51,26 +69,34 @@
 
 @keyframes column-in {
   from {
-    opacity: 0;
-    transform: translateX(var(--space-6));
+    transform: translateX(calc(100% + var(--space-4)));
   }
 }
 
 @keyframes column-out {
   to {
-    opacity: 0;
-    transform: translateX(var(--space-6));
+    transform: translateX(calc(100% + var(--space-4)));
   }
 }
 
+@keyframes fold-out {
+  to {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+/* No slide, no scale: every frame fades in and out. */
 @media (prefers-reduced-motion: reduce) {
-  .frame {
-    animation-name: fade-in;
-    animation-duration: var(--chat-motion-exit-duration);
+  .frame,
+  .frame.swapIn {
+    animation: fade-in var(--chat-motion-exit-duration) var(--chat-motion-easing) both;
   }
 
-  .closing {
-    animation-name: fade-out;
+  .closing,
+  .frame.closing.swapOut,
+  .frame.closing.foldOut {
+    animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
   }
 }
 

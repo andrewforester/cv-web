@@ -1,12 +1,12 @@
-import { ChatIcon } from '../../../shared/chat/ChatIcon';
 import chat from '../../../shared/chat/chat.module.css';
 import { chatTestIds } from '../testIds';
+import { VoiceAssetIcon } from './VoiceAssetIcon';
 import styles from './VoiceCallDivider.module.css';
 
 interface VoiceCallDividerProps {
   className?: string;
   text: string;
-  /** The start divider carries the mic. */
+  /** The start divider carries the call's handset. */
   withIcon?: boolean;
 }
 
@@ -18,7 +18,7 @@ export function VoiceCallDivider({ className, text, withIcon = false }: VoiceCal
       data-testid={chatTestIds.voiceDivider}
     >
       <span className={styles.label}>
-        {withIcon && <ChatIcon className={styles.icon} name="mic" />}
+        {withIcon && <VoiceAssetIcon className={styles.icon} name="call" />}
         {text}
       </span>
     </li>

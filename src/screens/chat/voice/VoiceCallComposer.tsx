@@ -1,7 +1,9 @@
 import type { RefObject } from 'react';
 import { ChatComposer } from '../ChatComposer';
 import type { ChatActions, ChatUiState } from '../ChatUiState';
-import { VoiceControls } from './VoiceControls';
+import { chatTestIds } from '../testIds';
+import { VoiceEndButton } from './VoiceEndButton';
+import { VoiceMuteButton } from './VoiceMuteButton';
 import type { VoiceUiState } from './VoiceUiState';
 
 interface VoiceCallComposerProps {
@@ -16,9 +18,9 @@ interface VoiceCallComposerProps {
 
 /**
  * The call composer (docs/design/voice/SPEC.md → Layout 2), the same in the call panel and in the
- * chat during the call: End and Mute, then the chat's field writing to the call (one draft, the
- * chat's). Send goes to the agent and keeps the focus in the field; while connecting the field
- * waits with the draft.
+ * chat during the call: End (where Call was; it cancels while connecting) and Mute (once live),
+ * then the chat's field writing to the call (one draft, the chat's). Send goes to the agent and
+ * keeps the focus in the field; while connecting the field waits with the draft.
  */
 export function VoiceCallComposer({
   className,
@@ -40,7 +42,17 @@ export function VoiceCallComposer({
       canSend={state.canSend}
       busy={false}
       disabled={call.status !== 'live'}
-      leading={<VoiceControls state={call} actions={actions.voice} />}
+      leading={
+        <>
+          <VoiceEndButton testId={chatTestIds.voiceEnd} onEnd={actions.voice.end} />
+          <VoiceMuteButton
+            muted={call.muted}
+            disabled={call.status !== 'live'}
+            testId={chatTestIds.voiceMute}
+            onToggle={actions.voice.toggleMute}
+          />
+        </>
+      }
       onChange={actions.changeInput}
       onSend={() => {
         actions.send();
