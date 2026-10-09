@@ -1,6 +1,6 @@
 # Chat AI disclaimer: the composer row stays put — design package
 
-> **Look is v3** (`docs/design/v3/`; tokens in `src/theme/tokens.css`) on the chat's dark card. Ticket CV-223 (two variants for the human to choose from); implementation CV-224. The panel and composer this changes are `docs/design/voice/` (Layouts 1, 2, 3, 5) and `docs/design/chat/` (meta row); the phone layout is CV-222's one bottom sheet. **Status: waiting for the human's choice** (Decisions → D0).
+> **Look is v3** (`docs/design/v3/`; tokens in `src/theme/tokens.css`) on the chat's dark card. Ticket CV-223 (two variants for the human to choose from); implementation CV-224. The panel and composer this changes are `docs/design/voice/` (Layouts 1, 2, 3, 5) and `docs/design/chat/` (meta row); the phone layout is CV-222's one bottom sheet. **Status: Variant A chosen by the human (2026-10-09)** (Decisions → D0); Variant B is kept only until CV-224 folds A into `docs/design/voice/SPEC.md` and deletes this package.
 
 ## Source
 
@@ -156,7 +156,7 @@ None new. Both variants change `ChatComposer` / `ComposerMeta` (screen `chat`); 
 
 ## Decisions
 
-- **D0. The variant: A or B.** The human's choice; the orchestrator records it here and CV-224 builds only that one (then this package keeps only the chosen variant, per "only the current state").
+- **D0. The variant: A** (the human, 2026-10-09). CV-224 builds only A, folds it into `docs/design/voice/SPEC.md` and deletes this package ("only the current state").
 - **D1. A's copy.** "AI can make mistakes." is the shortest honest line and the call's own words; the longer "Answers are AI-generated and may contain mistakes." can't share one line with the counter (≈ 405 px alone). If the human wants the full sentence in A, it needs a 2-line reserved row (+18 px everywhere), which I'd advise against.
 - **D2. A's privacy note** moves from the connecting stage into the fine-print row and is shortened to one line ("Calls run on ElevenLabs and see your chat."). It keeps the two facts (the provider, and that the earlier chat goes with the call: ADR-0009) and drops "AI can make mistakes.", which the row says the rest of the time. The conservative alternative, keeping the paragraph on the stage, doesn't fit A's 26 px smaller panel stage (content 427 in 386).
 - **D3. A's short sheet** grows by 26 px rather than dropping the fine print in landscape: the rule is "the same in every surface".
