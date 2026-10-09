@@ -37,8 +37,8 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
   const focusFabOnClose = useRef(false);
   const { surface, voice } = state;
 
-  // A view swap hands the focus to the next view (the toggle stays the toggle). A request the next view didn't take is
-  // dropped with the next surface change, so it never fires later.
+  // A view swap hands the focus to the next view (the toggle stays the toggle). A request the next
+  // view didn't take is dropped with the next surface change, so it never fires later.
   const focusRequest = useRef<FocusRequest | null>(null);
   const takeFocusRequest = useCallback(() => {
     const request = focusRequest.current;
