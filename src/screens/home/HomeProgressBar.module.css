@@ -1,0 +1,20 @@
+/* Scroll progress (docs/design/motion/SPEC.md §3). Empty until the motion sets its scaleX, so it
+   never shows with reduced motion, in the Show case or without JS. */
+.root {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: var(--motion-progress-z-index);
+  height: var(--motion-progress-height);
+  background: var(--gradient-brand);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
+@media print {
+  .root {
+    display: none;
+  }
+}

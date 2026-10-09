@@ -4,6 +4,7 @@ import { useStrings } from '../../i18n';
 import { agentTargetProps } from '../../shared/agentTarget';
 import styles from './HomeContacts.module.css';
 import { linkProps } from './homeTargets';
+import { motionTarget } from './motion/motionTargets';
 import { homeStrings } from './strings';
 import { homeTestIds } from './testIds';
 
@@ -26,6 +27,7 @@ export function HomeContacts({ contacts, highlightedId }: HomeContactsProps) {
             {...linkProps(contact.href)}
             {...agentTargetProps('contact', contact.id, highlightedId)}
             data-testid={homeTestIds.contact}
+            {...motionTarget('button')}
           >
             {email ? strings.emailMe : contact.label}
             {email && <span aria-hidden="true">↗</span>}

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import type { CvPageMeta } from '../../data';
 import { useStrings } from '../../i18n';
 import styles from './HomeMetaBar.module.css';
+import { motionTarget } from './motion/motionTargets';
 import { homeStrings } from './strings';
 import { homeTestIds } from './testIds';
 
@@ -16,7 +17,7 @@ interface HomeMetaBarProps {
 export function HomeMetaBar({ meta, end }: HomeMetaBarProps) {
   const strings = useStrings(homeStrings);
   return (
-    <nav className={styles.root} data-testid={homeTestIds.metaBar}>
+    <nav className={styles.root} data-testid={homeTestIds.metaBar} {...motionTarget('nav')}>
       <span className={styles.item}>{strings.handle}</span>
       <div className={styles.facts}>
         {meta && <span className={styles.item}>{meta.location}</span>}
