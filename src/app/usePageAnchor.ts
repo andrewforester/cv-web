@@ -36,9 +36,9 @@ function findAnchor(main: HTMLElement): Element | null {
  * scroll anchoring (it is a suppression trigger in Chromium too), so on each change to or from
  * `side` the hook notes the element at the top of the page and, on every animation frame until
  * `main`'s transition ends (at most its duration + 50 ms), scrolls by that element's drift. Wheel,
- * touch, a key or a scroll it didn't make (the page agent's) ends it. With no transition (reduced motion) it
- * corrects once, after the reflow. Must run before the dock reaches the DOM, so the anchor is
- * noted at the old layout.
+ * touch, a key or a scroll it didn't make (the page agent's) ends it. With no transition (reduced
+ * motion) it corrects once, before paint. Must run before the dock reaches the DOM, so the anchor
+ * is noted at the old layout.
  */
 export function usePageAnchor(mainRef: RefObject<HTMLElement | null>, dock: ChatDock): void {
   const previous = useRef(dock);
