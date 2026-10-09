@@ -1,7 +1,7 @@
 import { createCvPageKnowledgeLoader } from '../chat/knowledge/assembleKnowledge.js';
 import { CV_PAGE_KNOWLEDGE_SOURCES } from '../chat/knowledge/sources.js';
 import { CV_PAGE } from '../chat/cvPageData.js';
-import { RateLimiter } from '../http/rateLimiter.js';
+import { RateLimiter, type RateLimits } from '../http/rateLimiter.js';
 import { buildVoiceAgentConfig } from './agentConfig.js';
 import { createAgentSync } from './agentSync.js';
 import { readVoiceConfig } from './config.js';
@@ -10,6 +10,14 @@ import { FakeElevenLabsApi } from './FakeElevenLabsApi.js';
 import { VOICE_RATE_LIMITS, type VoiceDeps } from './handler.js';
 import { HttpElevenLabsApi } from './HttpElevenLabsApi.js';
 import { consoleVoiceLogger } from './log.js';
+
+/** Local dev server (no `VERCEL_ENV`): enough calls to test often; the month quota still applies. */
+export const VOICE_DEV_RATE_LIMITS: RateLimits = {
+  ...VOICE_RATE_LIMITS,
+  perIpMinute: 100,
+  perIpDay: 1000,
+  perInstanceHour: 1000,
+};
 
 /**
  * Production dependencies from the environment, built once per instance: the in-memory fake when
@@ -41,7 +49,7 @@ export function createVoiceDeps(env: Record<string, string | undefined>): VoiceD
     config,
     api,
     agentId,
-    limiter: new RateLimiter(VOICE_RATE_LIMITS),
+    limiter: new RateLimiter(env.VERCEL_ENV ? VOICE_RATE_LIMITS : VOICE_DEV_RATE_LIMITS),
     agentSync,
     log,
   };

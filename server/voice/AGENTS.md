@@ -31,6 +31,7 @@ Rules and limits:
 - No test talks to ElevenLabs (`server/test/setup.ts` deletes the voice env).
 - Env (`VOICE_ENABLED`, `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID`, `VOICE_FAKE`) is read in
   `config.ts`; `VOICE_FAKE` is ignored on Vercel. Preview and dev never write the agent.
+- Local dev server (no `VERCEL_ENV`) uses `VOICE_DEV_RATE_LIMITS` (100/min, 1000/day per IP) so calls can be tested often; Vercel keeps 2/min, 4/day.
 - Limits are per instance except the month quota and the agent's own limits (180 s, concurrency
   1, 20 a day), which hold across instances. The log line never holds the IP or the token.
 - The sync's PATCH sends only our fields and relies on ElevenLabs merging them into the agent's
