@@ -96,12 +96,12 @@ test('shows the rate-limit notice for a platform 429', async ({ page }) => {
 
 // The chat look on the v3 palette (docs/design/v3): opened by the `#ask` link, empty and answered,
 // in the floating panel on a wide screen (≥ 1584 px: the page slides left beside it) and on a
-// laptop (over the unmoved page; docs/design/voice/SPEC.md → Layout zones), and in the phone
-// sheet. Compare the screenshots with the package's PNGs.
+// laptop (over the unmoved page; docs/design/voice/SPEC.md → Layout zones), and in the phone's
+// bottom sheet. Compare the screenshots with the package's PNGs.
 const viewports = [
   { name: 'wide', size: { width: 1600, height: 900 }, dock: 'side' },
   { name: 'desktop', size: { width: 1280, height: 800 }, dock: 'none' },
-  { name: 'phone', size: { width: 390, height: 844 }, dock: 'none' },
+  { name: 'phone', size: { width: 390, height: 844 }, dock: 'bottom' },
 ] as const;
 
 for (const { name, size, dock } of viewports) {
@@ -124,7 +124,7 @@ for (const { name, size, dock } of viewports) {
 
       const chat = page.getByTestId('chat-panel');
       await expect(chat).toBeVisible();
-      await expect(page).toHaveURL(/\/(#chat)?$/);
+      await expect(page).toHaveURL(/\/$/);
       await expect(page.locator('html')).toHaveAttribute('data-chat-dock', dock);
       // Let the open animation finish so the screenshot shows the final look.
       await chat.evaluate((panel) =>
@@ -165,18 +165,35 @@ test('offers the page’s first questions', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test.describe('chat on a phone: system Back', () => {
+test.describe('chat on a phone: the bottom sheet', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test('closes the full-screen chat and stays on the page', async ({ page }) => {
+  test('opens over the page without a history entry, so Back stays the page’s', async ({
+    page,
+  }) => {
     const errors = collectErrors(page);
     await page.goto(NORMAL_SITE);
+    const length = await page.evaluate(() => history.length);
     await page.getByTestId('chat-fab').click();
-    await expect(page.getByTestId('chat-panel')).toBeVisible();
-    await expect(page).toHaveURL(/#chat$/);
-
-    await page.goBack();
-    await expect(page.getByTestId('chat-panel')).toBeHidden();
+    const chat = page.getByTestId('chat-panel');
+    await expect(chat).toBeVisible();
+    await expect(page.locator('html')).toHaveAttribute('data-chat-dock', 'bottom');
+    await chat.evaluate((panel) =>
+      Promise.all(panel.getAnimations().map((animation) => animation.finished)),
+    );
+    // The call's sheet (docs/design/voice/SPEC.md → Layout 5): full width, 472 px, at the bottom.
+    const box = await chat.boundingBox();
+    expect(box && [box.x, box.y, box.width, box.height].map(Math.round)).toEqual([
+      0,
+      844 - 472,
+      390,
+      472,
+    ]);
+    // The page above it still scrolls.
+    await page.mouse.wheel(0, 600);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    await expect(chat).toBeVisible();
+    expect(await page.evaluate(() => history.length)).toBe(length);
     await expect(page).toHaveURL(/\/\?retro=0$/);
     expect(errors).toEqual([]);
   });

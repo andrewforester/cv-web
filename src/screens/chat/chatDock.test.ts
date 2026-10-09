@@ -30,9 +30,9 @@ describe('chatDock', () => {
   // The §4.3 table: surface → dock per layout (slide, overlay, phone).
   const table: Record<ChatSurface, Record<ChatLayout, ChatDock>> = {
     closed: { slide: 'none', card: 'none', sheet: 'none' },
-    text: { slide: 'side', card: 'none', sheet: 'none' },
+    text: { slide: 'side', card: 'none', sheet: 'bottom' },
     call: { slide: 'side', card: 'none', sheet: 'bottom' },
-    callChat: { slide: 'side', card: 'none', sheet: 'none' },
+    callChat: { slide: 'side', card: 'none', sheet: 'bottom' },
     callPill: { slide: 'none', card: 'none', sheet: 'none' },
   };
 

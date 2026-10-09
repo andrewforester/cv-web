@@ -29,7 +29,6 @@ interface ChatComposerProps {
   onChange: (value: string) => void;
   onSend: () => void;
   onStop: () => void;
-  onFocus?: () => void;
 }
 
 const placeholders: Record<ComposerMode, keyof ChatStrings> = {
@@ -82,7 +81,6 @@ export function ChatComposer(props: ChatComposerProps) {
             enterKeyHint="send"
             data-testid={chatTestIds.input}
             onChange={(event) => props.onChange(event.target.value)}
-            onFocus={props.onFocus}
             onKeyDown={(event) => {
               if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return;
               event.preventDefault();

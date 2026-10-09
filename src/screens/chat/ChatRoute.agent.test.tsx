@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AgentToolRegistry, type AgentPageView } from '../../agent';
 import { AppProviders } from '../../app/AppProviders';
@@ -295,7 +295,7 @@ describe('chat tool loop failures and layout', () => {
     expect(repository.requests[2]?.messages).toHaveLength(3);
   });
 
-  it('closes the mobile sheet after a visual action and keeps the conversation', async () => {
+  it('keeps the phone sheet open after a visual action: the page shows above it', async () => {
     const matchMedia = vi.fn((query: string) => ({
       matches: query.includes('max-width: 599px'),
       addEventListener: vi.fn(),
@@ -307,10 +307,10 @@ describe('chat tool loop failures and layout', () => {
 
     await ask(user, 'Apps');
 
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    await user.click(screen.getByTestId(chatTestIds.fab));
     expect(await inList().findByText('Here.')).toBeInTheDocument();
+    expect(screen.getByTestId(chatTestIds.panel)).toBeInTheDocument();
     expect(screen.getByTestId(chatTestIds.actionChip)).toBeInTheDocument();
+    expect(screen.getByTestId(chatTestIds.root)).toHaveAttribute('data-surface', 'text');
     vi.unstubAllGlobals();
   });
 

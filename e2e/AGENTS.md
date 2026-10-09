@@ -26,9 +26,8 @@ What it guarantees today:
 - The page agent on the one page (`agent.png`, `agent-mobile.png`): scrolls to the selected
   impact, highlights the Transcenda job (and the next snapshot says so), and opens LinkedIn in a
   new tab only after the visitor confirms; Cancel opens nothing. On the phone the chat is the
-  full-screen sheet (snapshot `viewport: 'mobile'`, `chat: 'sheet'`) and a visual action folds it
-  into its pill; there the scroll and the highlight are expected failures until CV-221 (the
-  sheet's Back restores the scroll to the top), the confirm/cancel pair passes.
+  bottom sheet (snapshot `viewport: 'mobile'`, `chat: 'sheet'`); it stays open through a visual
+  action and the target lands above it. The chat adds no history entry on any width.
 - The Show case (`retro.spec.ts`, `retro-4`, helpers in `retroShow.ts` on `SHOW_URLS`): at t = 0
   the broken page alone (`retro-start.png`; also on the phone, `retro-start-mobile.png`; the
   rest of the show is desktop only), guard 4 after every chunk (`retro-mid.png`), guard 3
@@ -40,7 +39,8 @@ What it guarantees today:
   styling nothing.
 - The voice call (`voice.spec.ts`): the scripted `FakeVoiceClient` (`?voice=fake`, which only the `build:e2e` build honours) with a mocked
   `/api/voice-session`; the "Talk to my AI" pill opens the chat, its Call button starts the call
-  in the floating panel (a bottom sheet on a phone), and its states (typing, the chat toggle, the
+  in the floating panel (on a phone the same bottom sheet as the text chat, its box unchanged
+  across Call, Show chat / Hide chat and the end of the call), and its states (typing, the chat toggle, the
   pill, the transcript, reduced motion) are screenshotted against `docs/design/voice/` at the
   same `wide` (slide: the CV card 208 px left at its own width, the panel 400 × 600 beside it),
   `desktop` (overlay: the card unmoved) and `mobile` viewports; no test talks to ElevenLabs.

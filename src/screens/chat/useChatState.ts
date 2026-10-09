@@ -38,27 +38,17 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
   const { markSeen } = hint;
   const layout = useChatLayout();
   const sheet = layout === 'sheet';
-  // A visual page action on the phone's text sheet folds it (no call there).
-  const closeSheet = useCallback(() => dispatchSurface({ type: 'collapse', call: 'idle' }), []);
-  const conversation = useChatConversation({ announce, sheet, closeSheet });
+  const conversation = useChatConversation({ announce, sheet });
   const { entries, busy } = conversation;
   const voice = useVoiceCall({
     record: conversation.record,
     entries,
     onEnded: (outcome: CallOutcome) => dispatchSurface({ type: 'callEnded', ...outcome }),
-    onNeedsPanel: (reason) => dispatchSurface({ type: 'needsPanel', reason, sheet }),
+    onNeedsPanel: () => dispatchSurface({ type: 'needsPanel' }),
   });
   const call = callStatusOf(voice.state?.status);
   const { dismiss } = voice.actions;
-  const open = useChatSurface({
-    model: surface,
-    dispatch: dispatchSurface,
-    sheet,
-    markSeen,
-    call,
-    endCall: voice.actions.end,
-    dismissCard: dismiss,
-  });
+  const open = useChatSurface({ model: surface, dispatch: dispatchSurface, markSeen, call });
   // Stable, so the panel's outside-pointer listener isn't re-added on every streamed token.
   const collapse = useCallback(() => dispatchSurface({ type: 'collapse', call }), [call]);
   // Only the call panel shows a card; one the panel never showed (the chat or pill was up) goes.

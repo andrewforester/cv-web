@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useRef, type Dispatch } from 'react';
 import { CHAT_SLIDE_QUERY, type ChatLayout } from './chatDock';
-import {
-  historyDepth,
-  type CallStatus,
-  type SurfaceAction,
-  type SurfaceModel,
-} from './chatSurface';
+import type { CallStatus, SurfaceAction, SurfaceModel } from './chatSurface';
 import { useAskHash } from './useAskHash';
-import { useChatHistoryEntry } from './useChatHistoryEntry';
 import { CHAT_SHEET_QUERY, useMediaQuery } from './useMediaQuery';
 import type { VoiceStatus } from './voice/VoiceUiState';
 
@@ -30,49 +24,33 @@ export function useChatLayout(): ChatLayout {
 interface ChatSurfaceOptions {
   model: SurfaceModel;
   dispatch: Dispatch<SurfaceAction>;
-  sheet: boolean;
   /** The first-visit hint is done with once the chat or a call opens. */
   markSeen: () => void;
-  /** Where the call is right now (read by the stable callbacks below). */
+  /** Where the call is right now (read by the stable "open the chat" action). */
   call: CallStatus;
-  /** Ends the call (the system Back while it is still connecting). */
-  endCall: () => void;
-  /** Clears the call's card (Back from a card). */
-  dismissCard: () => void;
 }
 
 /**
  * Drives what the chat shows (`chatSurface.ts`, docs/voice/SYSTEM_DESIGN.md §4.2) besides the
- * visitor's taps: `#ask`, the phone's history entries (the system Back) and the ended pill's
- * timer. Returns the stable "open the chat" action.
+ * visitor's taps: `#ask` and the ended pill's timer. The system Back is never intercepted: it
+ * behaves as on any page. Returns the stable "open the chat" action.
  */
 export function useChatSurface({
   model,
   dispatch,
-  sheet,
   markSeen,
   call,
-  endCall,
-  dismissCard,
 }: ChatSurfaceOptions): () => void {
-  const latest = useRef({ call, surface: model.surface, endCall, dismissCard });
+  const latestCall = useRef(call);
   useEffect(() => {
-    latest.current = { call, surface: model.surface, endCall, dismissCard };
+    latestCall.current = call;
   });
 
   const open = useCallback(() => {
     markSeen();
-    dispatch({ type: 'openChat', call: latest.current.call });
+    dispatch({ type: 'openChat', call: latestCall.current });
   }, [markSeen, dispatch]);
   useAskHash(open);
-
-  const onBack = useCallback(() => {
-    const { call: status, surface } = latest.current;
-    if (surface === 'call' && status === 'connecting') return latest.current.endCall();
-    if (surface === 'call' && status === 'card') latest.current.dismissCard();
-    dispatch({ type: 'back', call: status });
-  }, [dispatch]);
-  useChatHistoryEntry(historyDepth(model.surface), sheet, onBack);
 
   useEffect(() => {
     if (!model.endedPill) return;

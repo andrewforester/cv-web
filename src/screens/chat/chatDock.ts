@@ -2,8 +2,8 @@ import type { ChatSurface } from './chatSurface';
 
 /**
  * The space the chat asks the app shell to keep free for it (docs/voice/SYSTEM_DESIGN.md §4.3):
- * `side` the panel's strip on the right (the page slides left), `bottom` a bottom sheet's height
- * (phones during a call), `none` nothing (the chat floats over the page or is closed). Defined
+ * `side` the panel's strip on the right (the page slides left), `bottom` the phone's bottom sheet's
+ * height (every open view), `none` nothing (the chat floats over the page or is closed). Defined
  * here, by its producer; the shell (`src/app/`) reserves the space.
  */
 export type ChatDock = 'none' | 'side' | 'bottom';
@@ -32,7 +32,7 @@ export const CHAT_SLIDE_QUERY = '(min-width: 1584px) and (min-height: 500px)';
 
 /** The dock for a surface at a layout (the §4.3 table). */
 export function chatDock(surface: ChatSurface, layout: ChatLayout): ChatDock {
-  if (layout === 'sheet') return surface === 'call' ? 'bottom' : 'none';
   const open = surface === 'text' || surface === 'call' || surface === 'callChat';
-  return layout === 'slide' && open ? 'side' : 'none';
+  if (!open) return 'none';
+  return layout === 'sheet' ? 'bottom' : layout === 'slide' ? 'side' : 'none';
 }

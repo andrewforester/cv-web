@@ -34,8 +34,8 @@ export type SurfaceAction =
   /** The "Talk to my AI" pill, `#ask`, a tap on the ended pill. */
   | { type: 'openChat'; call: CallStatus }
   /**
-   * The one collapse control in every header, Esc, a pointer-down outside the text chat, a visual
-   * page action on the phone's text sheet: folds the whole panel into the pill that takes its place.
+   * The one collapse control in every header, Esc, a pointer-down outside the text chat over the
+   * page: folds the whole panel into the pill that takes its place.
    */
   | { type: 'collapse'; call: CallStatus }
   /** Call (in the chat's composer), Try again, Call again. */
@@ -44,12 +44,10 @@ export type SurfaceAction =
   | { type: 'toggleChat' }
   | { type: 'expand' }
   | ({ type: 'callEnded' } & CallOutcome)
-  /** A card's way out: `chat` (Type instead, Open chat) or `back` (Close, the phone's Back). */
+  /** A card's way out: `chat` (Type instead, Open chat) or `back` (Close). */
   | { type: 'leaveCard'; to: 'chat' | 'back' }
-  /** The call needs its panel: a contact card, or a visual tool while the phone's chat sheet covers the page. */
-  | { type: 'needsPanel'; reason: 'contact' | 'visual'; sheet: boolean }
-  /** The system Back on a phone (each open sheet owns a history entry). */
-  | { type: 'back'; call: CallStatus }
+  /** A contact card waits for a tap: the call needs its panel. */
+  | { type: 'needsPanel' }
   /** The ended pill's time is up. */
   | { type: 'pillGone' };
 
@@ -120,26 +118,12 @@ export function surfaceReducer(model: SurfaceModel, action: SurfaceAction): Surf
     case 'leaveCard':
       if (surface !== 'call') return model;
       return afterCall(model, action.to === 'chat' || model.wasLive);
-    case 'needsPanel': {
-      // The pill leaves the page visible, so only a contact card (it needs a tap) unfolds it.
-      const contact =
-        action.reason === 'contact' && (surface === 'callChat' || surface === 'callPill');
-      const covered = surface === 'callChat' && action.sheet;
-      return covered || contact ? { ...model, surface: 'call' } : model;
-    }
-    case 'back':
-      if (surface === 'text') return { ...model, surface: 'closed', focusCall: false };
-      if (surface === 'callChat') return { ...model, surface: 'call' };
-      if (surface !== 'call') return model;
-      if (action.call === 'card') return afterCall(model, model.wasLive);
-      return action.call === 'live' ? { ...model, surface: 'callPill', expandTo: 'call' } : model;
+    case 'needsPanel':
+      // The card shows in the orb view; the page stays visible in every view, so nothing else does.
+      return surface === 'callChat' || surface === 'callPill'
+        ? { ...model, surface: 'call' }
+        : model;
     case 'pillGone':
       return { ...model, endedPill: false };
   }
-}
-
-/** History entries an open sheet owns on a phone, so Back steps out one view at a time. */
-export function historyDepth(surface: ChatSurface): number {
-  if (surface === 'callChat') return 2;
-  return surface === 'text' || surface === 'call' ? 1 : 0;
 }

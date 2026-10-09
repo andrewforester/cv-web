@@ -11,7 +11,7 @@ import type { ConversationAction } from './conversation';
 import type { ChatPageContent } from './pageContent';
 import type { ChatStrings } from './strings';
 
-/** Tools that change what the visitor sees on the page; on the mobile sheet they close the chat. */
+/** Tools that change what the visitor sees on the page (a call's chip holds while they show). */
 export const VISUAL_TOOLS: readonly string[] = ['scrollToSection', 'highlightElement'];
 
 export interface ToolRunEnv {

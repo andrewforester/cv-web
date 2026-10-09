@@ -208,43 +208,32 @@ describe('call surfaces', () => {
     expect(docks.at(-1)).toBe('none');
   });
 
-  it('on a phone, a tap on the call sheet’s field opens the chat and keeps typing in it', async () => {
-    stubLayout('sheet');
-    const client = new ManualVoiceClient();
-    const { user } = await renderVoiceChat({ client });
-    await liveCall(user, client);
-    const field = within(screen.getByTestId(chatTestIds.voicePanel)).getByTestId(chatTestIds.input);
-    await user.click(field);
-    expect(surface()).toBe('callChat');
-    // One composer: the same field, still focused, now in the full-screen chat.
-    expect(within(screen.getByTestId(chatTestIds.panel)).getByTestId(chatTestIds.input)).toBe(
-      field,
-    );
-    await waitFor(() => expect(field).toHaveFocus());
-
-    // Later toggles move the focus with the toggle; the field never takes it unasked.
-    await user.click(toggle());
-    await waitFor(() => expect(surface()).toBe('call'));
-    await user.click(toggle());
-    await waitFor(() => expect(toggle()).toHaveFocus());
-    expect(field).not.toHaveFocus();
-  });
-
-  it('on a phone: a bottom sheet (dock `bottom`), and Back steps out one view at a time', async () => {
+  it('on a phone: every view is the one bottom sheet (dock `bottom`), Back is left alone', async () => {
     stubLayout('sheet');
     const docks: ChatDock[] = [];
+    const length = history.length;
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client, onDockChange: (dock) => docks.push(dock) });
-    await liveCall(user, client);
+    await user.click(screen.getByTestId(chatTestIds.fab));
+    const sheet = screen.getByTestId(chatTestIds.panel);
+    const frame = sheet.className;
     expect(docks.at(-1)).toBe('bottom');
-    await user.click(screen.getByTestId(chatTestIds.voiceChatToggle));
-    expect(docks.at(-1)).toBe('none');
 
-    act(() => history.back());
-    await waitFor(() => expect(surface()).toBe('call'));
-    act(() => history.back());
-    await waitFor(() => expect(surface()).toBe('callPill'));
-    expect(client.call?.ended).toBeNull();
+    // Call, Show chat, Hide chat, End: the same element in the same frame, only its middle swaps.
+    await liveCall(user, client, true);
+    expect(screen.getByTestId(chatTestIds.voicePanel)).toBe(sheet);
+    await user.click(toggle());
+    expect(surface()).toBe('callChat');
+    await user.click(toggle());
+    expect(surface()).toBe('call');
+    await user.click(screen.getByTestId(chatTestIds.voiceEnd));
+    await waitFor(() => expect(surface()).toBe('text'));
+    expect(screen.getByTestId(chatTestIds.panel)).toBe(sheet);
+    expect(sheet.className).toBe(frame);
+    expect(new Set(docks.slice(docks.indexOf('bottom')))).toEqual(new Set(['bottom']));
+    // No history entry of its own: the system Back behaves as on any page.
+    expect(history.length).toBe(length);
+    expect(window.location.hash).toBe('');
   });
 
   it('Call while an answer streams stops it and hands the unfinished turn to the call', async () => {

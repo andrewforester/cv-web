@@ -27,10 +27,8 @@ interface ChatPanelProps {
   closing: boolean;
   /** Collapse by the header control or Esc: the focus goes to the pill that takes the panel's place. */
   onCollapse: () => void;
-  /** On a view change: where the focus goes when a swap handed it over (the toggle, the field). */
+  /** On a view change: where the focus goes when a swap handed it over (the toggle). */
   takeFocusRequest?: () => FocusRequest | null;
-  /** The field got the focus in the phone's call sheet: the chat opens to type in. */
-  onCallFieldFocus?: () => void;
 }
 
 const noop = () => undefined;
@@ -42,11 +40,11 @@ const isView = (surface: ChatSurface): surface is PanelView =>
  * call's orb view and the chat during the call are views of this one element, so it never
  * remounts between them; only the header, the middle and the composer's left slot change. Its
  * semantics follow the view: the text chat and the chat during the call are a dialog over the page
- * (medium widths, phones) or a region beside the slid page; the orb view is a named region, never
- * modal. Esc collapses in every view.
+ * at medium widths, a region beside the slid page and in the phone's sheet; the orb view is a named
+ * region, never modal. Esc collapses in every view.
  */
 export function ChatPanel(props: ChatPanelProps) {
-  const { className, state, actions, closing, onCollapse, onCallFieldFocus } = props;
+  const { className, state, actions, closing, onCollapse } = props;
   const strings = useStrings(chatStrings);
   const titleId = useId();
   const subtitleId = useId();
@@ -56,10 +54,10 @@ export function ChatPanel(props: ChatPanelProps) {
   const call = shown === 'text' ? null : state.voice;
   const view: PanelView = call ? shown : 'text';
   const orb = view === 'call';
+  // On a phone every view is the same bottom sheet over the live page (SPEC → Layout 5).
   const sheet = state.layout === 'sheet';
-  // The phone's call is a bottom sheet over the live page; the chat views fill the screen.
-  const fullSheet = sheet && !orb;
-  const modal = !orb && state.layout !== 'slide';
+  // Only the overlay is modal: beside the slid page and above the phone's sheet the page stays usable.
+  const modal = !orb && state.layout === 'card';
   const panelRef = useRef<HTMLElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -67,13 +65,13 @@ export function ChatPanel(props: ChatPanelProps) {
   const onKeyDown = useDialogBehavior({
     dialogRef: panelRef,
     initialFocusRef: inputRef,
-    sheet: fullSheet,
+    sheet,
     modal,
     active: !closing,
     onEscape: onCollapse,
     onOutsidePointerDown: view === 'text' ? actions.collapse : noop,
   });
-  useVisualViewportFit(panelRef, fullSheet);
+  useVisualViewportFit(panelRef, sheet);
   // After the dialog's initial focus: a view's own rule wins.
   usePanelFocus({
     view,
@@ -92,7 +90,7 @@ export function ChatPanel(props: ChatPanelProps) {
     inputRef.current?.focus();
   };
 
-  const classes = [frame.frame, closing && frame.closing, styles.panel, orb && styles.callSheet];
+  const classes = [frame.frame, closing && frame.closing, styles.panel];
   return (
     <ChatCard
       ref={panelRef}
@@ -154,7 +152,6 @@ export function ChatPanel(props: ChatPanelProps) {
           call={call}
           inputRef={inputRef}
           callButtonRef={callButtonRef}
-          onFocus={orb && sheet ? onCallFieldFocus : undefined}
         />
       )}
     </ChatCard>

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  historyDepth,
   initialSurface,
   surfaceReducer,
   type ChatSurface,
@@ -142,41 +141,17 @@ describe('surfaceReducer', () => {
     });
   });
 
-  it('a contact card or a visual tool on a phone brings the panel back', () => {
-    const contact = { type: 'needsPanel', reason: 'contact', sheet: false } as const;
+  it('a contact card brings the panel back; nothing else does (the page shows in every view)', () => {
+    const contact = { type: 'needsPanel' } as const;
     expect(surfaceReducer(at('callChat'), contact).surface).toBe('call');
     expect(surfaceReducer(at('callPill'), contact).surface).toBe('call');
-    const visual = { type: 'needsPanel', reason: 'visual' } as const;
-    expect(surfaceReducer(at('callChat'), { ...visual, sheet: true }).surface).toBe('call');
-    expect(surfaceReducer(at('callChat'), { ...visual, sheet: false }).surface).toBe('callChat');
-  });
-
-  it('a visual tool keeps the folded call a pill, on desktop and phone', () => {
-    const visual = { type: 'needsPanel', reason: 'visual' } as const;
-    for (const sheet of [false, true]) {
-      expect(surfaceReducer(at('callPill'), { ...visual, sheet }).surface).toBe('callPill');
-      expect(surfaceReducer(at('call'), { ...visual, sheet }).surface).toBe('call');
-    }
-  });
-
-  it('Back steps out one view at a time', () => {
-    const back = (call: 'live' | 'card' | 'idle') => ({ type: 'back', call }) as const;
-    expect(surfaceReducer(at('text'), back('idle')).surface).toBe('closed');
-    expect(surfaceReducer(at('callChat'), back('live')).surface).toBe('call');
-    expect(surfaceReducer(at('call'), back('live')).surface).toBe('callPill');
-    expect(surfaceReducer(at('call'), back('card')).surface).toBe('text');
+    expect(surfaceReducer(at('call'), contact).surface).toBe('call');
+    expect(surfaceReducer(at('text'), contact).surface).toBe('text');
   });
 
   it('`#ask` during a call opens the chat over it', () => {
     expect(surfaceReducer(at('callPill'), { type: 'openChat', call: 'live' }).surface).toBe(
       'callChat',
     );
-  });
-});
-
-describe('historyDepth', () => {
-  it('gives each open sheet one entry', () => {
-    expect([historyDepth('closed'), historyDepth('text'), historyDepth('call')]).toEqual([0, 1, 1]);
-    expect([historyDepth('callChat'), historyDepth('callPill')]).toEqual([2, 0]);
   });
 });

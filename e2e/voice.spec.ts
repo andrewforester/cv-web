@@ -51,7 +51,8 @@ async function steps(page: Page, count: number) {
 }
 
 // `wide` gets the slide (≥ 1584 px: the page moves left beside the floating panel), `desktop` a
-// 1280 px laptop the overlay (the same panel over the unmoved page), `mobile` the sheets (§4.3).
+// 1280 px laptop the overlay (the same panel over the unmoved page), `mobile` the one bottom
+// sheet (§4.3).
 const viewports = [
   { name: 'wide', size: { width: 1600, height: 900 } },
   { name: 'desktop', size: { width: 1280, height: 800 } },
@@ -111,6 +112,25 @@ async function expectOverlay(page: Page, card: CardBox, frame: Locator) {
   await expect(page.locator('html')).toHaveAttribute('data-chat-dock', 'none');
   await expectPanel(page, frame);
   expect(await cardBox(page)).toEqual(card);
+}
+
+/**
+ * The phone's one bottom sheet (docs/design/voice/SPEC.md → Layout 5), once settled: dock
+ * `bottom`, full width, the sheet's height (`--voice-sheet-height` 472) at the screen's bottom.
+ * Every view has this box, so a view change only swaps the middle.
+ */
+async function expectSheet(page: Page, frame: Locator) {
+  await expect(page.locator('html')).toHaveAttribute('data-chat-dock', 'bottom');
+  await settle(frame);
+  const viewport = page.viewportSize();
+  const box = await frame.boundingBox();
+  if (!viewport || !box) throw new Error('no sheet');
+  expect({
+    x: Math.round(box.x),
+    y: Math.round(box.y),
+    width: Math.round(box.width),
+    height: Math.round(box.height),
+  }).toEqual({ x: 0, y: viewport.height - 472, width: viewport.width, height: 472 });
 }
 
 /** A fixed layer's stacking order. */
@@ -197,6 +217,7 @@ for (const { name, size } of viewports) {
       );
       if (name === 'wide') await expectSlide(page, card, chat);
       if (name === 'desktop') await expectOverlay(page, card, chat);
+      if (name === 'mobile') await expectSheet(page, chat);
       await settle(chat);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-text-${name}.png` });
 
@@ -211,12 +232,8 @@ for (const { name, size } of viewports) {
       await settle(voice);
       if (name === 'wide') await expectSlide(page, card, voice);
       else if (name === 'desktop') await expectOverlay(page, card, voice);
-      else {
-        // A bottom sheet over the live page; the page pads its end by the sheet's height.
-        await expect(html).toHaveAttribute('data-chat-dock', 'bottom');
-        const box = await voice.boundingBox();
-        expect(box && Math.round(box.y + box.height)).toBe(size.height);
-      }
+      // The same bottom sheet over the live page; the page pads its end by the sheet's height.
+      else await expectSheet(page, voice);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-connecting-${name}.png` });
 
       // live → speaking → greeting
@@ -257,23 +274,18 @@ for (const { name, size } of viewports) {
       // the answer; then a line typed mid-call goes to the agent, never to /api/chat
       await steps(page, 1);
       const typed = 'Does he know Kotlin?';
-      if (name !== 'mobile') {
-        // In the call view: the sent line is the caption, the next one a draft in the field.
-        const field = voice.getByTestId('chat-input');
-        await field.fill(typed);
-        await field.press('Enter');
-        await expect(voice.getByTestId('chat-voice-caption')).toHaveText(typed);
-        await field.fill('And Swift?');
-        await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-typed-${name}.png` });
-        await voice.getByTestId('chat-voice-chat-toggle').click();
-        // One draft for both views.
-        await expect(chat.getByTestId('chat-input')).toHaveValue('And Swift?');
-        await chat.getByTestId('chat-input').fill('');
-      } else {
-        await voice.getByTestId('chat-voice-chat-toggle').click();
-        await chat.getByTestId('chat-input').fill(typed);
-        await chat.getByTestId('chat-input').press('Enter');
-      }
+      // In the call view (on a phone too): the sent line is the caption, the next one a draft.
+      const field = voice.getByTestId('chat-input');
+      await field.fill(typed);
+      await field.press('Enter');
+      await expect(voice.getByTestId('chat-voice-caption')).toHaveText(typed);
+      await expect(page.getByTestId('chat')).toHaveAttribute('data-surface', 'call');
+      await field.fill('And Swift?');
+      await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-typed-${name}.png` });
+      await voice.getByTestId('chat-voice-chat-toggle').click();
+      // One draft for both views.
+      await expect(chat.getByTestId('chat-input')).toHaveValue('And Swift?');
+      await chat.getByTestId('chat-input').fill('');
       // Show chat: every line so far, spoken and typed, and the call composer; the toggle flips
       await expect(chat).toBeVisible();
       await expect(chat.getByTestId('chat-voice-chat-toggle')).toHaveText('Hide chat');
@@ -291,17 +303,19 @@ for (const { name, size } of viewports) {
         'You typed: “Does he know Kotlin?”',
       );
       expect(chatRequests).toHaveLength(0);
+      if (name === 'mobile') {
+        // Show chat and Hide chat change only the middle: the same sheet, no history entry.
+        await expectSheet(page, chat);
+        const toggle = page.getByTestId('chat-voice-chat-toggle');
+        await toggle.click();
+        await expectSheet(page, voice);
+        await toggle.click();
+        await expectSheet(page, chat);
+        await expect(page).toHaveURL(/voice=fake$/);
+      }
       await settle(chat);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-chat-${name}.png` });
-
-      if (name === 'mobile') {
-        // The system Back steps out of the chat to the call sheet, not off the site.
-        await page.goBack();
-        await expect(voice).toBeVisible();
-        await voice.getByTestId('chat-collapse').click();
-      } else {
-        await chat.getByTestId('chat-collapse').click();
-      }
+      await chat.getByTestId('chat-collapse').click();
 
       // collapsed: the pill in the launcher's place, the page back in the centre
       const pill = page.getByTestId('chat-voice-pill');
@@ -320,12 +334,8 @@ for (const { name, size } of viewports) {
 
       // unfold and end: the chat shows the transcript between the call dividers
       await pill.getByTestId('chat-voice-pill-expand').click();
-      // Wider screens folded the chat view (it unfolds to it), the phone the call sheet.
-      const end =
-        name === 'mobile'
-          ? voice.getByTestId('chat-voice-end')
-          : chat.getByTestId('chat-voice-end');
-      await end.click();
+      // The chat view was folded: it unfolds to it.
+      await chat.getByTestId('chat-voice-end').click();
       await expect(chat).toBeVisible();
       const dividers = list.getByTestId('chat-voice-divider');
       await expect(dividers.first()).toHaveText('Voice call');
@@ -338,6 +348,7 @@ for (const { name, size } of viewports) {
       await expect(list.getByTestId('chat-action-chip')).toHaveText('Scrolled to Selected impact');
       // Call is back in End's place.
       await expect(chat.getByTestId('chat-voice-call')).toBeVisible();
+      if (name === 'mobile') await expectSheet(page, chat);
       await settle(chat);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-ended-${name}.png` });
 
