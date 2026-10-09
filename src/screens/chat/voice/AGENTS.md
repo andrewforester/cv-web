@@ -3,7 +3,7 @@
 Why it exists: a visitor can talk to the CV's AI instead of typing. The gradient Call button
 left of the open chat's field (`VoiceCallButton`) turns the same panel into the call (the call is
 a view of the chat's one panel, ADR-0013): floating bottom-right (from 1584 px the page slides left beside it and stays readable; on
-600–1583 px laptops it floats over the page), a bottom sheet on phones. A shimmering orb follows
+600–1583 px laptops it floats over the page), on phones the same bottom sheet as the text chat. A shimmering orb follows
 the voices, the latest line shows as a caption, and the agent can scroll, highlight and open a contact on the page, which stays
 visible. The visitor can also type mid-call: the line goes to the agent, which answers by voice,
 and joins the transcript at once. One chat toggle (`VoiceChatToggle`: Show chat / Hide chat, the
@@ -22,7 +22,7 @@ called by the chat's `useChatState`; it talks only to the seams in `src/data/voi
 flag) and runs the agent's page tools through the chat's executor (`src/agent/`). It writes the
 call into the chat's reducer (`callReducer`: lines and tool chips in order, how and when the
 call ended). Where the call shows is the chat's surface (`../chatSurface.ts`), told when an
-attempt ends or needs its panel (a contact card; a visual tool under a phone's chat sheet). The
+attempt ends or needs its panel (a contact card). The
 rest are stateless components; the chat's call header fills `ChatPanel`'s header slot.
 
 Typing during a call (docs/voice/SYSTEM_DESIGN.md §4.4): one composer, the chat's, with End and
@@ -31,7 +31,7 @@ views, one field and one draft. Where Send goes is decided by the chat's state h
 that moment: live → the agent (`useCallTyping`: the line is recorded as a visitor line
 `typed-<n>` and shown as the caption; input holds the agent's turn); connecting → the field waits
 with the draft; otherwise `/api/chat`. A typed line is a call line, never a question. On a phone
-the field in the call sheet opens the chat (room for the keyboard) and the typing goes on there.
+typing stays in the view it began in: the one sheet rides above the keyboard.
 
 One conversation (docs/voice/SYSTEM_DESIGN.md §8): the text model gets a call's lines with the
 next question (`voiceHistory.ts`, used by the chat's request builders: lines only, within the

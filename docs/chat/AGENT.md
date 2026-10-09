@@ -64,9 +64,10 @@ Behaviour:
   token-based outline that fades, held by the home screen's state holder (the component renders
   it; no DOM class toggling from the executor). The chat's live announcer says what happened;
   focus stays in the composer.
-- **Mobile sheet** (chat full-screen under 600 px): a visual action closes the sheet (the
-  conversation is kept, like closing it by hand) so the visitor sees the result; the desktop card
-  stays open.
+- **Mobile sheet** (under 600 px wide or 500 px tall: the chat is a bottom sheet over the page,
+  docs/design/voice/SPEC.md → Layout 5): a visual action leaves it open; the page shows above it,
+  and the shell pads the page by the sheet's height so the scroll target lands above the sheet.
+  The desktop card stays open too.
 - `openContact`: the chat shows a confirmation card whose text is built by the client from the
   spec and the page's data, never from model text. The Confirm click is the user gesture that
   opens `mailto:` / the URL (`noopener`). Cancel returns `declined`.
