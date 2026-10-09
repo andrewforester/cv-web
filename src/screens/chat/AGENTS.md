@@ -26,10 +26,11 @@ What the visitor can rely on:
   launcher, or into the call pill while a call connects or is live. Above the phone one floating
   panel bottom-right, never full height (ADR-0012). From 1584 px the page slides left beside it at
   its own width (the **slide**; the chat is a region, not modal); on 600–1583 px laptops it floats
-  over the unmoved page (the **overlay**, a dialog). There is no column. On a phone every view is one bottom
-  sheet over the page (the call's, Layout 5): Call and Show / Hide chat swap only its middle, so
-  it never changes size; it stays above the on-screen keyboard, the page stays usable above it
-  (not modal; page actions leave it open), and the system Back is never intercepted.
+  over the unmoved page (the **overlay**, a dialog). There is no column. On a phone every
+  view is one bottom sheet over the page (the call's, Layout 5): Call and Show / Hide chat swap
+  only its middle, so it never changes size; it stays above the on-screen keyboard, the page stays
+  usable above it (not modal; page actions leave it open), and the system Back is never
+  intercepted.
 - Under the field, one line of fine print in every view: "AI can make mistakes.", the call's
   privacy note while it connects, the counter and the too-long message on the same line; so the
   composer row never moves between the text chat and the call (docs/design/voice/SPEC.md → 1a).
