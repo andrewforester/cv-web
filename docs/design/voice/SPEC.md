@@ -1,6 +1,6 @@
 # Voice call panel — design package
 
-> **Look is v3** (`docs/design/v3/`; tokens in `src/theme/tokens.css`) on the chat's dark card (`src/shared/chat/ChatCard`). Project *Voice panel: call in the right column, one conversation* (P-CV-15), tickets CV-181, CV-190 (v2: one launcher, Call in the composer, typing during a call, one chat toggle, motion) CV-198 (v3 layout: the CV card keeps its width and slides left, or the chat floats over the page) CV-202 (v3 morph: the panel grows out of the launcher pill and floats, not full height) and CV-208 (v4: text and call are one panel view, one collapse control in every header, Call also while an answer streams). The call lives in the chat's floating panel bottom-right, where the text chat lives; on wide screens the white CV card slides left at its own width beside it, on narrower desktops the panel floats over the page. Behaviour follows the architecture: ADR-0009 (the dock, one conversation), ADR-0011 (the slide), ADR-0012 (one floating panel, the morph), ADR-0013 (one view, collapse, Call while streaming) and `docs/voice/SYSTEM_DESIGN.md` §4.2–4.3 (surfaces `closed | text | call | callChat | callPill`, dock `none | side | bottom`), with the v2 changes of CV-189 (typing during a call goes to the voice agent); this package is the look, copy, motion and accessibility on top of it.
+> **Look is v3** (`docs/design/v3/`; tokens in `src/theme/tokens.css`) on the chat's dark card (`src/shared/chat/ChatCard`). Project *Voice panel: call in the right column, one conversation* (P-CV-15), tickets CV-181, CV-190 (v2: one launcher, Call in the composer, typing during a call, one chat toggle, motion) CV-198 (v3 layout: the CV card keeps its width and slides left, or the chat floats over the page) CV-202 (v3 morph: the panel grows out of the launcher pill and floats, not full height) and CV-208 (v4: text and call are one panel view, one collapse control in every header, Call also while an answer streams) and CV-224 (one line of fine print under the field in every view, so the composer row never moves). The call lives in the chat's floating panel bottom-right, where the text chat lives; on wide screens the white CV card slides left at its own width beside it, on narrower desktops the panel floats over the page. Behaviour follows the architecture: ADR-0009 (the dock, one conversation), ADR-0011 (the slide), ADR-0012 (one floating panel, the morph), ADR-0013 (one view, collapse, Call while streaming) and `docs/voice/SYSTEM_DESIGN.md` §4.2–4.3 (surfaces `closed | text | call | callChat | callPill`, dock `none | side | bottom`), with the v2 changes of CV-189 (typing during a call goes to the voice agent); this package is the look, copy, motion and accessibility on top of it.
 
 ## Source
 
@@ -45,11 +45,11 @@ src/screens/chat/  (voice lives in the chat screen, docs/voice/SYSTEM_DESIGN.md 
 │   ├─ surface `text`
 │   │   ├─ ChatHeader: ChatBadge · titles · ChatCollapseButton                                    ← collapse is new (v4)
 │   │   ├─ MessageList
-│   │   └─ ChatComposer: [VoiceCallButton "Call"] + field "…or type instead" + Send/Stop   ← Call never disabled (v4)
+│   │   └─ ChatComposer: [VoiceCallButton "Call"] + field "…or type instead" + Send/Stop · fine print (1a)   ← Call never disabled (v4)
 │   ├─ surface `call` (the same element)
 │   │   ├─ VoiceCallHeader: ChatBadge · "Voice call" / VoiceTimer · VoiceChatToggle "Show chat" · ChatCollapseButton
-│   │   ├─ VoiceStage: VoiceActionChip · VoiceOrb (full | small) · status · caption | privacy · VoiceContactCard · VoiceErrorCard
-│   │   └─ the call composer: [VoiceEndButton][VoiceMuteButton] + field "Type a message…" + Send   (none on an error card)
+│   │   ├─ VoiceStage: VoiceActionChip · VoiceOrb (full | small) · status · caption · VoiceContactCard · VoiceErrorCard
+│   │   └─ the call composer: [VoiceEndButton][VoiceMuteButton] + field "Type a message…" + Send · fine print (1a)   (none on an error card)
 │   └─ surface `callChat` (the same element)
 │       ├─ VoiceCallHeader: mini VoiceOrb · "Voice call" / status · elapsed · VoiceChatToggle "Hide chat" · ChatCollapseButton
 │       ├─ MessageList: the one conversation; the call between VoiceCallDivider ×2; typed and spoken lines alike
@@ -94,7 +94,7 @@ All existing tokens; the panel is the chat card, so the dark roles are the chat'
 |---|---|
 | `--gradient-dark`, `--color-dark-line`, `--chat-shadow-panel`, `--radius-card` | the panel (the `ChatCard` frame) |
 | `--color-dark-ink` `#F4F2F7` | title, agent caption, control icons/labels, timer digits, ring progress |
-| `--chat-ink-2` `#B3AABF` | visitor caption, timer "/ 3:00", privacy line, placeholders, card body |
+| `--chat-ink-2` `#B3AABF` | visitor caption, timer "/ 3:00", the composer's fine print, placeholders, card body |
 | `--color-dark-number` `#FF7ACB` | status label ("Listening"), the live status in the chat header, action-chip and divider icons, card glyph, timer in the last 30 s, muted Mute (icon + border), focus ring (the chat's) |
 | `--chat-fill` / `--chat-fill-hover` | Mute fill / hover; error card fill |
 | `--chat-notice-bg` | contact card fill (as `ConfirmationCard`); muted Mute fill; card glyph circle |
@@ -113,7 +113,7 @@ Existing roles only.
 | Role | Tokens | Where |
 |---|---|---|
 | Card title | `--chat-title-size` 18 / 600 / `--chat-ui-line-height` 22 | "Voice call" (`ChatCardHeader`) |
-| Caption | `--font-mono`, `--chat-caption-size` 13.5 / 18, `--chat-ink-2` | header subtitle (timer / status), privacy, card detail and hint, action chip, dividers |
+| Caption | `--font-mono`, `--chat-caption-size` 13.5 / 18, `--chat-ink-2` | header subtitle (timer / status), the composer's fine print and counter, card detail and hint, action chip, dividers |
 | Timer digits | the caption + `--type-medium-weight` 500, `--color-dark-ink`, `tabular-nums` | `0:42` in "0:42 / 3:00" |
 | Status label | `--font-mono`, `--type-label-size` 12.5, `--type-label-letter-spacing` | under the orb |
 | Caption (live line) | `--type-loop-lead-*` (clamp 19–23 / 1.4 / −0.01em) | under the status (23 px in the panel, 19 on a phone) |
@@ -136,6 +136,24 @@ All sizes in CSS px; spacing is the v3 grid (`--space-*`).
 - Why the composer, not the header (brief item 2): the composer is where the eye is when the chat opens and where the visitor acts; a labelled gradient pill there is the most visible spot in the panel, and it pairs with the placeholder into one sentence. In the header it would compete with close, squeeze the title and subtitle to ≈ 140 px, and sit far from where people type. Rendered in `voice_state_text_*` and `voice_state_ended_*`.
 - Tap → surface `call` in the same panel (the orb view, **connecting**).
 
+### 1a. The composer's fine print (every view)
+
+**The rule:** in `text`, `call` and `callChat`, connecting or live, with or without a draft, the counter or the too-long message, the composer row's (Call, or End + Mute, + the field) **bottom edge stays 42 px above the panel's bottom** (8 + 18 + 16; + safe area on the phone). The textarea still grows upward from that edge (up to 6 lines). Error cards have no composer, so there is no row to keep.
+
+- The composer (`ChatComposer`, every mode): top hairline, padding `12 20 16` (phone `12 16 16 + safe-bottom`), column gap 8: the row, then the **fine-print row** (`ComposerMeta`), rendered in every mode. Composer = 1 + 12 + 56 + 8 + 18 + 16 = **111** in every view.
+- Fine-print row: caption style (`--font-mono`, `--chat-caption-size` 13.5 / 18, `--chat-ink-2`), `display: flex; justify-content: space-between; gap: 12`, **`height: --chat-caption-line-height` (18), `white-space: nowrap`**; the left text `min-width: 0`, ellipsized; the counter `flex: none` with `tabular-nums` (never cut, doesn't shimmer while typing). One line by construction: the copy fits beside the widest counter in the 358 px column (panel 400 − 2 − 40, phone 390 − 32); the ellipsis only guards against a bigger font setting.
+
+| View | Fine-print row (left · right) |
+|---|---|
+| `text` (empty, conversation, streaming, after a call) | "AI can make mistakes." · counter from 800 |
+| `call` / `callChat` while **connecting** | "Calls run on ElevenLabs and see your chat." · counter from 800 |
+| `call` / `callChat`, **live** | "AI can make mistakes." · counter from 800 |
+| any view, over the limit | "Shorten to 1000 characters." (`--chat-error`) · "1043 / 1000" (`--chat-error`) |
+| `call` with an error card | no composer |
+
+- Width check (358): "AI can make mistakes." ≈ 170 + 12 + the widest counter "1043 / 1000" ≈ 89 = 271; "Shorten to 1000 characters." ≈ 219 + 12 + 89 = 320; "Calls run on ElevenLabs and see your chat." ≈ 340 alone (with a counter while connecting, which needs a pasted 800-character draft, the left text ellipsizes and the counter stays whole).
+- **Motion**: none. Only the words change at connecting → live, in the same box. The connecting stage has no privacy paragraph of its own, so the orb doesn't move at live either.
+
 ### 2. Call panel (surface `call`)
 
 `<aside>` in the `ChatCard` frame, column flex: header / stage (flex 1) / the call composer.
@@ -152,11 +170,10 @@ All sizes in CSS px; spacing is the v3 grid (`--space-*`).
 - **Orb** `--voice-orb-size` **200**, `margin-block: orb × .1` (room for the level scale), the full-screen design's layers and motion unchanged (glow, body + swirl + shimmer, shade; see Motion). The glow (`inset −22 %`, blur 24) spills onto the dark card; the card's `overflow: hidden` clips it at the edges.
 - **Status label** 12 below: mono 12.5 `--color-dark-number` ("Listening", "Speaking", "Mic off", "Connecting…").
 - **Caption** 12 below, the stage's content width (352), clamped to `--voice-caption-lines` (**3**) lines, and **3 lines are reserved** (`min-height`), so the orb doesn't move when the line wraps. The agent's line in `--color-dark-ink`, the visitor's in `--chat-ink-2`, **spoken or typed alike**. It shows the latest final line; a `correction` replaces it in place.
-- **Privacy line** (connecting only) 12 below the caption: caption style, "Calls run on ElevenLabs. Voice and text share one history. AI can make mistakes." (ADR-0009 → Consequences: the earlier chat goes to ElevenLabs, the call's lines go to the text model; two lines on a phone).
 - **Action chip** (tool ran): absolutely positioned, centred, 16 from the stage top, so nothing moves. The chat's `ActionChip` look (mono caption, hairline pill, ✦ 14 `--color-dark-number`): `Showing Transcenda…` → `Showing Transcenda`; it stays until the agent's turn ends, at least `--agent-highlight-duration` (3 s).
-- Vertical budget (the panel, 600 high at both wide layouts): 600 = header 67 + stage 446 + composer 85 (hairline + 12 + 56 + 16) + 2 border. Content 240 (orb box) + 28 (label) + 12 + 97 (3 caption lines) = 377 ≤ 446 − 32 padding, centred. The panel is shorter only on windows under 632 px tall (`100dvh − 32`), as the floating card always was.
+- Vertical budget (the panel, 600 high at both wide layouts): 600 = header 67 + stage 420 + composer 111 (hairline + 12 + 56 + 8 + 18 fine print + 16) + 2 border. Content 240 (orb box) + 28 (label) + 12 + 97 (3 caption lines) = 377 ≤ 420 − 32 padding, centred; connecting is the same 377 (its privacy note is the fine print, Layout 1a). The panel is shorter only on windows under 632 px tall (`100dvh − 32`), as the floating card always was.
 
-**The call composer** (`ChatComposer` in call mode; the same element in `call` and `callChat`): the composer's frame (top hairline, padding `12 20 16`), one row, gap 8, `align-items: flex-end`; **no disclaimer line** during the call (the privacy line said it at the start); the meta row shows only for the counter or the too-long message.
+**The call composer** (`ChatComposer` in call mode; the same element in `call` and `callChat`): the composer's frame (top hairline, padding `12 20 16`), one row, gap 8, `align-items: flex-end`; then the fine-print row (Layout 1a): the privacy note while connecting, the disclaimer once live, the counter and the too-long message on the same line.
 - **End** (left, where Call was): 56 circle, `--color-card` fill, no border, `chat_icon_end` 24 `--color-ink`, `aria-label` `voiceEndLabel` ("End call"). Hover `--color-surface`. Starting and ending the call happen in the same spot.
 - **Mute**: 56 circle, `--chat-fill`, 1 px `--color-dark-line`, `chat_icon_mic` 24 `--color-dark-ink`. Hover `--chat-fill-hover`. **Muted** (`aria-pressed`): `--chat-notice-bg` fill, `--color-dark-number` border and `chat_icon_mic_off`. **Disabled** (connecting): transparent, icon `--color-ink-4`.
 - **Field**: the composer's field (auto-growing textarea, Send inside), placeholder **"Type a message…"** (`voiceCallPlaceholder`), `aria-label` `voiceInputLabel`. **Disabled while connecting** (opacity .5, Send disabled): the agent can't take text before `live`. Width at 400: 360 = 56 + 8 + 56 + 8 + field 232 (text 158; placeholder ≈ 120). Phone: field 230.
@@ -170,7 +187,7 @@ The toggle swaps the panel's middle to the conversation (same frame, same place,
 - **Header** (`VoiceCallHeader`, the `ChatCardHeader` anatomy): the **mini orb** (`--voice-orb-size-mini` = 36, in the badge's slot; live, no glow) · title "Voice call" / subtitle `Speaking · 1:12` (status in `--color-dark-number`, elapsed 500 `--color-dark-ink`; last 30 s: `0:24 left` in pink) · **chat toggle "Hide chat"** · collapse (44). Same widths as Layout 2.
 - **Composer**: the call composer of Layout 2, active. Focus stays in the field across the toggle when it was there.
 - The orb view's caption is not repeated here: the newest row is the caption.
-- When the call ends in `callChat` (the surface becomes `text`), the header turns back into `ChatHeader`, End + Mute give their place back to Call, the placeholder back to "…or type instead", the disclaimer returns, the closing divider appears (Layout 7), and focus stays in (or moves to) the field. A draft in the field survives (it goes to `/api/chat` if sent). No card: the divider says what happened ("Call dropped · 1:10", "Call ended at the 3-minute limit").
+- When the call ends in `callChat` (the surface becomes `text`), the header turns back into `ChatHeader`, End + Mute give their place back to Call, the placeholder back to "…or type instead" (the fine print stays as it is), the closing divider appears (Layout 7), and focus stays in (or moves to) the field. A draft in the field survives (it goes to `/api/chat` if sent). No card: the divider says what happened ("Call dropped · 1:10", "Call ended at the 3-minute limit").
 
 ### 3a. The chat toggle: Show chat / Hide chat in one place
 
@@ -196,7 +213,7 @@ Collapse during a call (from either view, connecting or live) **shrinks the pane
 - **One sheet for every view** (CV-222): the text chat, the call and the chat during the call are the same **bottom sheet**; Call, Show chat, Hide chat and the end of a call change only its middle (and the header's left slot and the composer's left slot), never its frame, height, header or composer position. Opening it from the launcher slides it up (Motion → Phone sheet).
 - **Call**: a **bottom sheet** (the `ChatCard` frame with `border-radius: 24 24 0 0`, no bottom border), `left/right/bottom: 0`, **height `--voice-sheet-height`** (`472px + safe-area-inset-bottom`; 506 on an iPhone 14, 60 % of 844), over the page (no backdrop, no scroll lock: the page scrolls above it). The height is fixed so the shell can reserve it from a token (no measuring). Inside: the same header (padding-left 16), stage (flex 1, centred, padding `16 16`; orb `--voice-orb-size-small` **120**; caption **2** lines, reserved), the call composer (padding `12 16 16 + safe-bottom`).
 - Header width at 390: 16 + 36 + 12 + titles ≈ 136 + 12 + 112 + 12 + 44 + 8 = 388: the timer subtitle (≈ 115) fits.
-- Budget (stage 320 = 472 − 67 header − 85 composer): connecting is the tallest: orb box 144 + label 28 + caption 12 + 53 + privacy 12 + 36 = 285 ≤ 288 (inside the padding). Error cards (no composer) fit with room to spare.
+- Budget (stage 294 = 472 − 67 header − 111 composer): connecting and live are the same: orb box 144 + label 28 + caption 12 + 53 = 237 ≤ 262 (inside the padding). The text chat's message list gets the same 294. Error cards (no composer) fit with room to spare.
 - **Typing in the sheet** (any view): focusing the field changes nothing but the keyboard. The sheet rides the visual viewport (`useVisualViewportFit`): it ends at the keyboard's top, and where its height doesn't fit the visible area it is capped to it (the stage or the message list shrinks; the header and the composer stay). Opening the sheet focuses the sheet itself, not the field, so the keyboard comes up only on a tap.
 - **Tool**: the action chip sits 8 from the stage top (it ends at 34; the orb's body starts at ≈ 55).
 - **Chat during the call** (`callChat`): the same sheet with the call header and the call composer (Layout 3), the message list in the stage's place. The page stays visible above it, so a visual tool (scroll, highlight) changes nothing in the sheet. Hide chat → the orb again.
@@ -204,7 +221,7 @@ Collapse during a call (from either view, connecting or live) **shrinks the pane
 - **The header control** is the same **collapse** (v4) in every view, the one way to fold the sheet: into the launcher, or into the call pill during a call. No ×.
 - **Semantics**: the page stays usable above the sheet, so the sheet is a named region in every view (not `aria-modal`, no Tab trap, a tap on the page doesn't fold it).
 - **Collapsed**: the call pill (Layout 4), bottom-right, + safe-area bottom.
-- **Short** (≤ 499 px tall: landscape phones, 200 % zoom): the stage drops the big orb; the header's badge slot shows the mini orb instead, and the caption keeps 2 lines. The sheet is `--voice-sheet-height-short` (`272px + safe-bottom`; 67 + 85 + stage 120: status + 2 caption lines); the shell uses it under `(max-height: 499px)`.
+- **Short** (≤ 499 px tall: landscape phones, 200 % zoom): the stage drops the big orb; the header's badge slot shows the mini orb instead, and the caption keeps 2 lines. The sheet is `--voice-sheet-height-short` (`298px + safe-bottom`; 67 + 111 + stage 120: status + 2 caption lines); the shell uses it under `(max-height: 499px)`.
 - **Text chat** (`text`): the same sheet, the message list in the middle; the composer has Call + "…or type instead" as on desktop. A visual page action leaves it open (the page shows above it).
 
 ### 6. Opening a contact (openContact)
@@ -291,6 +308,14 @@ Keys in the **chat** namespace (`src/screens/chat/strings.ts`), full names. Apos
 | `voiceCallPlaceholder` | Type a message… | new: the composer's placeholder during the call |
 | `voiceInputLabel` (aria-label) | Message to the call. The AI answers by voice. | new: the textarea's name during the call (`inputLabel` "Your question" otherwise) |
 
+**Changed (CV-224: one line of fine print, Layout 1a)**
+
+| Key | EN | Note |
+|---|---|---|
+| `disclaimer` | AI can make mistakes. | was "Answers are AI-generated and may contain mistakes.", which wraps to 2 lines; now the call's own words, in every view |
+| `tooLong` | Shorten to {max} characters. | was "Shorten your question to {max} characters or fewer."; fits one line beside the counter, and the live region reads it once when the limit is crossed |
+| `voicePrivacy` | Calls run on ElevenLabs and see your chat. | was a 3-sentence stage paragraph; now the fine print while connecting: the provider, and that the earlier chat goes with the call (ADR-0009). "AI can make mistakes." is the fine print the rest of the time |
+
 **Changed or new (v4)**
 
 | Key | EN | Note |
@@ -300,11 +325,11 @@ Keys in the **chat** namespace (`src/screens/chat/strings.ts`), full names. Apos
 
 **Removed (v4)**: `close` ("Close chat"; the ×), `voiceMinimize` ("Minimize call"), `voiceClose` ("Close voice chat"): one collapse control replaces all three. The hint keeps its own dismiss label.
 
-**From v1, kept** (prefix `voice`): `PanelLabel` (Voice call with Andrew’s AI), `Title` (Voice call), `Privacy` (Calls run on ElevenLabs. Voice and text share one history. AI can make mistakes.), `ShowChat` (Show chat) and `HideChat` (Hide chat) as the toggle's two labels, `Expand` (Open the call panel), `Connecting`, `AllowMic`, `Listening`, `Speaking`, `MicOff`, `MutedCaption`, `Connected`, `Mute` / `Unmute`, `EndLabel` (End call), `Timer`, `TimerLeft`, `TimerLabel`, `Warning`, `OpenContact`, `TapNeeded`, `CallStarted` (also the pill's group label), `CallEnded` / `CallEndedLimit` / `CallDropped`, `Ended`, `TryAgain`, `CallAgain`, `TypeInstead`, `OpenChat`, `CloseButton`, `Reload`, and every error title/body (table in Layout 8).
+**From v1, kept** (prefix `voice`): `PanelLabel` (Voice call with Andrew’s AI), `Title` (Voice call), `ShowChat` (Show chat) and `HideChat` (Hide chat) as the toggle's two labels, `Expand` (Open the call panel), `Connecting`, `AllowMic`, `Listening`, `Speaking`, `MicOff`, `MutedCaption`, `Connected`, `Mute` / `Unmute`, `EndLabel` (End call), `Timer`, `TimerLeft`, `TimerLabel`, `Warning`, `OpenContact`, `TapNeeded`, `CallStarted` (also the pill's group label), `CallEnded` / `CallEndedLimit` / `CallDropped`, `Ended`, `TryAgain`, `CallAgain`, `TypeInstead`, `OpenChat`, `CloseButton`, `Reload`, and every error title/body (table in Layout 8).
 
 **Removed (v2)**: `voiceMicLabel` (no mic button), `voiceReadOnly` (the chat is writable during the call), `voiceEnd` (End is icon-only everywhere; its name is `voiceEndLabel`).
 
-The first-visit `hint` stays ("Questions about Andrew’s experience? Ask the AI assistant."). Confirmation titles, action-chip texts, section and channel names, `cancel`, the chat's header texts and `disclaimer` are the chat's existing keys.
+The first-visit `hint` stays ("Questions about Andrew’s experience? Ask the AI assistant."). Confirmation titles, action-chip texts, section and channel names, `cancel`, the chat's header texts and `counter` are the chat's existing keys.
 
 ## Icons
 
@@ -341,6 +366,7 @@ Tinted in code with `ChatIcon` (mask over `currentColor`), 24 × 24 viewBox, 2 p
 - **Call button**: a `<button>` named `callLabel` ("Call my AI"), its visible text "Call" first in the name.
 - **Chat toggle**: one `<button>`, its name is its visible label ("Show chat" / "Hide chat"; no `aria-pressed`, since the label changes), `aria-controls` = the panel's middle. After a toggle, focus stays on the toggle (it doesn't move: same place, new label, which a screen reader announces); if the focus was in the field, it stays there.
 - **Collapse** (one `<button>` in every header, v4) is named `collapse` ("Collapse chat") or, during a call, `voiceCollapse` ("Collapse chat. The call goes on."); `aria-expanded="true"`, `aria-controls` = the panel. The launcher and the pill's expand button have `aria-expanded="false"`. On collapse, focus moves to the pill that takes the panel's place (the launcher, or the call pill's expand button); on expand, to the panel (or the field, if it had focus before).
+- **Fine print** (Layout 1a): the fine-print row is the field's `aria-describedby` in every mode, so the field reads "Your question, AI can make mistakes." and, while a call connects, "Message to the call. The AI answers by voice. Calls run on ElevenLabs and see your chat." Over the limit: `aria-invalid` on the field, and the full `tooLong` goes to the live region once.
 - **Field during the call**: named `voiceInputLabel` ("Message to the call. The AI answers by voice."), so a screen reader knows where the text goes; `aria-disabled`/`disabled` while connecting.
 - **Keyboard**: Esc = collapse, everywhere. Mute has `aria-pressed`. Enter sends, Shift+Enter is a new line (as the chat).
 - **Live region**: one polite region announces `connected`, `micOff` / unmute, action chip texts, the contact card's title, `warning`, `ended`. Not every turn and not listening/speaking (the voice is the content; the transcript is in the chat). Typed lines are not announced (the visitor just wrote them). Error cards are `role="alert"`.
@@ -351,7 +377,7 @@ Tinted in code with `ChatIcon` (mask over `currentColor`), 24 × 24 viewBox, 2 p
 | Pair | Ratio | Needs |
 |---|---|---|
 | `--color-dark-ink` title, agent caption, labels, draft text | ≈ 16 | 4.5 |
-| `--chat-ink-2` visitor caption, timer, placeholders, card body | ≈ 8.3 | 4.5 |
+| `--chat-ink-2` visitor caption, timer, fine print, placeholders, card body | ≈ 8.3 | 4.5 |
 | `--color-dark-number` status (12.5 mono), timer warning | ≈ 7.7 | 4.5 |
 | `--color-ink` on white (End icon, pill status, launcher label) | 18 | 4.5 |
 | white "Call" on `--gradient-brand` | ≥ 4.5 across the gradient (as the chat's Confirm and Send) | 4.5 |
@@ -400,12 +426,14 @@ v2, already in `tokens.css` (`--chat-dock-*` now time only the phone sheet; `--v
 
 **Kept** (v1, in `tokens.css`): `--chat-dock-width` (the panel's reach from the right edge; half of it is the slide), `--voice-sheet-height`, `--voice-sheet-height-short`, `--voice-control-size`, `--voice-control-icon-size`, `--voice-orb-*`, `--voice-glow-*`, `--voice-caption-lines`, `--voice-pill-end-size`, `--voice-ended-pill-duration`, `--voice-level-smoothing`, `--voice-spin-listening`, `--voice-spin-speaking`, `--voice-breathe`, `--color-brand-pink`, `--color-brand-violet`.
 
+**Changed (CV-224)**: `--voice-sheet-height-short` 272 → **298** (+ safe area): the short sheet keeps its 120 px stage beside the 26 px fine print (Layout 5 → Short).
+
 **Removed (v2)**: `--voice-mic-size`, `--voice-mic-icon-size`, `--voice-mic-sheen` (the launcher mic is gone; only `VoiceMicButton` uses them).
 
 ## Shared components
 
 - **Reused as is**: `ChatCard`, `ChatCardHeader`, `ChatBadge`, `ChatIcon` + icons, the chat rows, `ActionChip`, the `secondaryButton` / `iconButton` styles, `ConfirmationCard`'s look, `SendButton`, `VoiceCallDivider` (start icon → call), `VoiceOrb`, `VoiceTimer`, `VoiceMuteButton`, `VoiceEndButton` (icon-only at 56 now), the agent highlight.
-- **Reworked**: `ChatLauncher` (one pill, no mic; above the panel, fades only), `ChatColumn.module.css` → **`ChatFrame.module.css`** (one floating placement above the phone, the morph; v3), `VoiceCallPill` (above the panel, fades only, a ref for the morph's box), `ChatComposer` (a left slot: Call, or End + Mute; a call mode: placeholder, label, no disclaimer, sends to the call), `ChatPanel` (v4: the one panel for `text`, `call` and `callChat`: the header slot, the middle = `MessageList` or `VoiceStage`, the composer), `VoiceCallHeader` (v4: one call header for both call views, `VoicePanelHeader` merged in; the toggle left of collapse), `ChatHeader` (collapse instead of ×).
+- **Reworked**: `ChatLauncher` (one pill, no mic; above the panel, fades only), `ChatColumn.module.css` → **`ChatFrame.module.css`** (one floating placement above the phone, the morph; v3), `VoiceCallPill` (above the panel, fades only, a ref for the morph's box), `ChatComposer` (a left slot: Call, or End + Mute; a call mode: placeholder, label, sends to the call; CV-224: the one-line fine print in every mode, Layout 1a), `ChatPanel` (v4: the one panel for `text`, `call` and `callChat`: the header slot, the middle = `MessageList` or `VoiceStage`, the composer), `VoiceCallHeader` (v4: one call header for both call views, `VoicePanelHeader` merged in; the toggle left of collapse), `ChatHeader` (collapse instead of ×).
 - **New**: `VoiceCallButton` (the composer's Call), `VoiceChatToggle` (one button, two labels), `useMorphOrigin` (v3: the pill's box for the morph), `ChatCollapseButton` (v4: the one collapse control).
 - **Deleted**: `VoiceMicButton`, `VoiceComposerMic`, `VoiceControls`, `VoiceCallBar`; v4: `VoicePanel` as a frame of its own (its stage moves into `ChatPanel`), `VoicePanelHeader`, `VoiceMinimizeButton`.
 
@@ -433,7 +461,7 @@ Conservative defaults; the orchestrator may change them. v1 decisions that v2 re
 14. **One launcher, "Talk to my AI"** (v2): no mic beside the pill; a call starts from the chat. The label promises talking; the chat offers both.
 15. **Backdrops are production screenshots** of the unmoved page; the slide shifts them by 208 px, which is exactly what the shell does (nothing reflows).
 16. **Call lives in the composer, left of the field** (v2; replaces v1's mic in the composer): a labelled gradient pill is the most visible spot in the panel and reads as one sentence with the placeholder. In the header it would squeeze the title and sit away from where people act (Layout 1).
-17. **The phone sheet has a fixed height** (472 + safe area) so the shell reserves it from a token; the privacy line is shortened to two lines on a phone to fit.
+17. **The phone sheet has a fixed height** (472 + safe area) so the shell reserves it from a token; the call's privacy note is the one-line fine print under the field (Layout 1a), so it costs the stage nothing.
 18. **Placeholder "…or type instead"** next to Call; "Type a message…" during the call. Without voice the composer keeps "Ask a question…" (a leading "…or" would read wrong with nothing before it).
 19. **The toggle sits in the header, left of collapse**, in both views (v2): the bottom row is the composer in both views, and the header is the one place both share.
 20. **Call starts in the orb view** (`call`), even from the chat: it's a call, the orb is its face; the toggle is one tap away.
@@ -455,6 +483,10 @@ Conservative defaults; the orchestrator may change them. v1 decisions that v2 re
 36. **Collapse works while connecting** (v4): the pill reads "Connecting…" without a time, and a start error unfolds the panel with its card. Keeping it disabled would make the one control dead in the first seconds of every call.
 37. **On a card, collapse goes to the launcher, not to the text chat**: the card's own buttons (Type instead, Open chat, Close) are the way back into the chat; the header control always means "fold the panel".
 38. **Two names for one control**: "Collapse chat", and "Collapse chat. The call goes on." during a call, so a screen-reader user knows collapsing doesn't hang up.
+39. **One line of fine print under the field in every view** (CV-224; the human chose CV-223's Variant A over "said once, under the greeting"): the composer row never moves between `text`, `call` and `callChat` (with a line only in the text chat it jumped 44 px at every Call and every end of a call), and the disclaimer stays visible during a live call. It costs the call views 26 px of stage, and they keep their full layout.
+40. **Shorter copy, so it stays one line beside the counter**: "AI can make mistakes." (the call's own words) and "Shorten to {max} characters."; the full "Answers are AI-generated and may contain mistakes." would need a reserved second line (+18 everywhere).
+41. **The privacy note is the fine print while connecting** ("Calls run on ElevenLabs and see your chat."), not a stage paragraph: it doesn't fit the 26 px smaller stage, and without it the connecting and live stages hold the same content, so the orb stays put at live.
+42. **The short sheet grows by 26 px** (298) rather than dropping the fine print in landscape: the same rule in every view.
 
 ## Open questions
 
@@ -464,7 +496,7 @@ Each has the default above; for the orchestrator or the human. Coordinated with 
 2. **Placeholders** (Decision 18): "…or type instead" / "Type a message…". Alternative for the call: "Type instead of talking…" (doesn't fit at 400 px beside End + Mute). Default: as written.
 3. **Typing on a phone during a call** (Decision 21): decided in CV-222: the sheet stays and lifts above the keyboard.
 4. **The slide** (Decisions 23, 25): a transform, the card centred in the free space. Alternative: the minimum shift that clears the panel (the card hugs the panel, more empty space on the left of a wide screen). Default: centred.
-5. **The privacy line** (Layout 2) stays as v1 asked; no change requested. (The docked column's height, which this question also covered, is gone: the human chose a floating panel in CV-202.)
+5. **The privacy note**: decided in CV-224: the fine print while connecting (Decision 41). (The docked column's height, which this question also covered, is gone: the human chose a floating panel in CV-202.)
 6. **The overlay on 600–1583 px** (Decision 26): the same floating panel over the unmoved page. Most laptops (1280–1536 px) are here.
 7. **Morph and slide timing** (Motion, Decision 30): 500 / 400 ms ease-in-out at every width. Judge it with `mock.html?state=text&play` (and `?state=listening&play=close` for a collapse during a call) at 1600 and at 1280 px; the reference's morph is ≈ 300 ms, so faster (e.g. 350 / 300 for the morph alone, two new tokens) is the alternative. Default: one timing.
 8. **The shadow arrives after the shape** (Decision 29): 150 ms fade as the panel lands. Alternative: animate the frame's size instead of a clip (the shadow follows the shape, but layout per frame; ADR-0012 → Decision 2, option B). Default: the clip; M's recording on the ticket decides.

@@ -61,9 +61,6 @@ export function VoiceStage({ className, state, actions }: VoiceStageProps) {
           >
             {captionText(state, strings)}
           </p>
-          {state.status === 'connecting' && (
-            <p className={styles.privacy}>{strings.voicePrivacy}</p>
-          )}
         </>
       )}
     </div>

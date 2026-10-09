@@ -41,14 +41,6 @@
   color: var(--chat-ink-2);
 }
 
-.privacy {
-  margin: var(--space-3) 0 0;
-  font-family: var(--font-mono);
-  font-size: var(--chat-caption-size);
-  line-height: var(--chat-caption-line-height);
-  color: var(--chat-ink-2);
-}
-
 @media (max-width: 599px), (max-height: 499px) {
   .stage {
     --voice-caption-lines: 2;

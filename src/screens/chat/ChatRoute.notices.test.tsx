@@ -95,7 +95,7 @@ describe('chat widget notices', () => {
     fireEvent.change(input, { target: { value: 'x'.repeat(1001) } });
     expect(input).toHaveAttribute('aria-invalid', 'true');
     expect(screen.getByTestId(chatTestIds.meta)).toHaveTextContent(
-      'Shorten your question to 1000 characters or fewer.1001 / 1000',
+      'Shorten to 1000 characters.1001 / 1000',
     );
     expect(screen.getByTestId(chatTestIds.send)).toBeDisabled();
   });

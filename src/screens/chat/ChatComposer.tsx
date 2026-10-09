@@ -24,6 +24,8 @@ interface ChatComposerProps {
   busy: boolean;
   /** The field takes no text yet (a call still connecting); the draft stays. */
   disabled?: boolean;
+  /** A call is connecting: the fine print carries its privacy note. */
+  connecting?: boolean;
   /** Left of the field: Call, or the call's End and Mute (docs/design/voice/ → Layout 1, 2). */
   leading?: ReactNode;
   onChange: (value: string) => void;
@@ -38,15 +40,15 @@ const placeholders: Record<ComposerMode, keyof ChatStrings> = {
 };
 
 /**
- * Question field (auto-growing), Send / Stop, and the disclaimer or limit message + counter.
- * During a call the field talks to the call: its own placeholder and name, no disclaimer.
+ * Question field (auto-growing), Send / Stop, and the one-line fine print under it in every mode
+ * (the disclaimer, the call's privacy note while connecting, or the limit message + counter).
+ * During a call the field talks to the call: its own placeholder and name.
  */
 export function ChatComposer(props: ChatComposerProps) {
   const { className, mode, inputRef, input, tooLong, counterVisible, maxLength } = props;
   const strings = useStrings(chatStrings);
   const metaId = useId();
   const call = mode === 'call';
-  const meta = !call || tooLong || counterVisible;
 
   // Auto-grow: fit the text, capped by the CSS max-height (5 lines), then scroll.
   useLayoutEffect(() => {
@@ -76,7 +78,7 @@ export function ChatComposer(props: ChatComposerProps) {
             disabled={props.disabled}
             aria-label={call ? strings.voiceInputLabel : strings.inputLabel}
             aria-invalid={tooLong || undefined}
-            aria-describedby={meta ? metaId : undefined}
+            aria-describedby={metaId}
             placeholder={strings[placeholders[mode]]}
             enterKeyHint="send"
             data-testid={chatTestIds.input}
@@ -90,15 +92,13 @@ export function ChatComposer(props: ChatComposerProps) {
           <SendButton busy={props.busy} canSend={props.canSend} onStop={props.onStop} />
         </div>
       </div>
-      {meta && (
-        <ComposerMeta
-          id={metaId}
-          disclaimer={!call}
-          tooLong={tooLong}
-          counter={counterVisible ? { count: input.length, max: maxLength } : null}
-          maxLength={maxLength}
-        />
-      )}
+      <ComposerMeta
+        id={metaId}
+        connecting={props.connecting ?? false}
+        tooLong={tooLong}
+        counter={counterVisible ? { count: input.length, max: maxLength } : null}
+        maxLength={maxLength}
+      />
     </form>
   );
 }

@@ -50,7 +50,7 @@ describe('call surfaces', () => {
     expect(input).toHaveAccessibleName('Message to the call. The AI answers by voice.');
     expect(within(chat).getByTestId(chatTestIds.voiceEnd)).toHaveAccessibleName('End call');
     expect(within(chat).getByTestId(chatTestIds.voiceMute)).toBeEnabled();
-    expect(within(chat).queryByTestId(chatTestIds.meta)).not.toBeInTheDocument();
+    expect(within(chat).getByTestId(chatTestIds.meta)).toHaveTextContent('AI can make mistakes.');
     expect(within(chat).queryByTestId(chatTestIds.suggestion)).not.toBeInTheDocument();
     // Same slot, new label; the focus stays on it; one draft for both views.
     const hide = within(chat).getByTestId(chatTestIds.voiceChatToggle);

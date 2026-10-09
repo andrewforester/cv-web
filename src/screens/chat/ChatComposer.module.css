@@ -74,11 +74,20 @@
   display: flex;
   justify-content: space-between;
   gap: var(--space-3);
+  height: var(--chat-caption-line-height);
+  white-space: nowrap;
+}
+
+/* One line in every mode: the row above never moves; a bigger font setting ellipsizes. */
+.note {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .counter {
   flex: none;
-  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .error {

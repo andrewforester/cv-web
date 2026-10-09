@@ -49,7 +49,9 @@ describe('the panel', () => {
     expect(panel).not.toHaveAttribute('aria-modal');
     expect(panel).toHaveAttribute('data-phase', 'connecting');
     expect(panel).toHaveFocus();
-    expect(within(panel).getByText(/Calls run on ElevenLabs/)).toBeInTheDocument();
+    expect(within(panel).getByTestId(chatTestIds.meta)).toHaveTextContent(
+      /Calls run on ElevenLabs/,
+    );
     expect(screen.getByTestId(chatTestIds.voiceMute)).toBeDisabled();
     expect(screen.getByTestId(chatTestIds.collapse)).toBeEnabled();
     expect(screen.getByTestId(chatTestIds.root)).toHaveAttribute('data-surface', 'call');
