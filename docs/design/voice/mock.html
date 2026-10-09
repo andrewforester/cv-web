@@ -2,9 +2,9 @@
 <!--
   Static mock of the voice call panel (docs/design/voice/SPEC.md). Not product code.
   Open directly in a browser. Query params:
-    state = launcher | connecting | listening (default) | speaking | muted | tool | confirm |
-            warning | chat | minimized | ended | error-denied | error-failed | error-busy |
-            error-ratelimited | error-dropped | error-callcap | error-monthly | offline
+    state = launcher | text | connecting | listening (default) | speaking | muted | typed | tool |
+            confirm | warning | chat | minimized | ended | error-denied | error-failed |
+            error-busy | error-ratelimited | error-dropped | error-callcap | error-monthly | offline
   Column layout at >= 1024 px wide, phone sheet below 600 px. The page behind is a screenshot of
   production (assets/voice_backdrop_*): for the column states it was taken with the page already
   reserving the column, so the narrowed page is exact.
@@ -36,6 +36,12 @@
         --voice-caption-lines: 3;
         --voice-pill-end-size: var(--chat-badge-size);
         --voice-ended-pill-duration: 4s;
+        /* v2 (CV-190) */
+        --chat-dock-duration: 300ms;
+        --chat-dock-exit-duration: 250ms;
+        --chat-motion-exit-easing: cubic-bezier(0.4, 0, 1, 1);
+        --voice-chat-toggle-width: 112px;
+        --voice-orb-travel-duration: 300ms;
       }
 
       *,
@@ -105,6 +111,9 @@
       .i-send {
         --src: url(../../../src/shared/chat/assets/chat_icon_send.svg);
       }
+      .i-call {
+        --src: url(assets/voice_icon_call.svg);
+      }
       .i-minimize {
         --src: url(assets/voice_icon_minimize.svg);
       }
@@ -116,7 +125,7 @@
         color: var(--chat-ink-2);
       }
 
-      /* ---- Launcher row (unchanged): [mic] [Ask my AI] ---- */
+      /* ---- Launcher: one pill, "Talk to my AI" ---- */
       .launcher {
         position: fixed;
         right: var(--space-4);
@@ -152,48 +161,6 @@
         background: var(--gradient-brand-tile);
         border-radius: 50%;
       }
-      .mic {
-        position: relative;
-        isolation: isolate;
-        overflow: hidden;
-        flex: none;
-        width: var(--voice-mic-size);
-        height: var(--voice-mic-size);
-        display: grid;
-        place-items: center;
-        padding: 0;
-        color: var(--color-on-accent);
-        background: var(--gradient-brand-tile);
-        border: 0;
-        border-radius: 50%;
-        box-shadow: var(--shadow-launcher);
-      }
-      .mic .icon {
-        width: var(--voice-mic-icon-size);
-        height: var(--voice-mic-icon-size);
-      }
-      .mic::before {
-        content: '';
-        position: absolute;
-        inset: -25%;
-        z-index: -1;
-        background: conic-gradient(
-          from 200deg,
-          transparent 0 55%,
-          rgba(255, 255, 255, 0.22) 70%,
-          transparent 85%
-        );
-        animation: spin var(--voice-mic-sheen) linear infinite;
-      }
-      .mic::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        z-index: -1;
-        border-radius: 50%;
-        background: radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.18), transparent 55%);
-      }
-
       /* ---- The column: fixed on the right, the page reserves its width ---- */
       .column {
         position: fixed;
@@ -538,15 +505,7 @@
         margin-top: var(--space-1);
       }
 
-      /* ---- Controls ---- */
-      .controls {
-        flex: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--space-3);
-        padding: var(--space-4) var(--space-6) var(--space-6);
-      }
+      /* ---- Call controls: 56 high, the composer field's height ---- */
       .round,
       .ctl {
         flex: none;
@@ -584,10 +543,21 @@
         color: var(--color-ink-4);
         background: transparent;
       }
-      .ctl.end {
+      /* End: the one white control on the dark card. */
+      .round.end {
         color: var(--color-ink);
         background: var(--color-card);
         border-color: transparent;
+      }
+      /* Call: the composer's primary action while no call runs (ConfirmationCard's Confirm look). */
+      .ctl.call {
+        color: var(--color-on-accent);
+        background: var(--gradient-brand);
+        border-color: transparent;
+      }
+      /* Show chat / Hide chat: one toggle, same place in both views, fixed width. */
+      .toggle {
+        min-width: var(--voice-chat-toggle-width);
       }
 
       /* ---- The chat in the column (during and after the call) ---- */
@@ -665,30 +635,7 @@
         height: var(--chat-action-icon-size);
         color: var(--color-dark-number);
       }
-      /* The call bar replaces the composer while the call is live. */
-      .callbar {
-        flex: none;
-        display: flex;
-        align-items: center;
-        gap: var(--space-3);
-        padding: var(--space-3) var(--space-5) var(--space-4);
-        border-top: var(--border-card) solid var(--color-dark-line);
-      }
-      .callbar .note {
-        flex: 1;
-        min-width: 0;
-      }
-      .callbar .round,
-      .callbar .ctl {
-        height: var(--chat-control-size);
-      }
-      .callbar .round {
-        width: var(--chat-control-size);
-      }
-      .callbar .icon {
-        width: var(--chat-icon-size);
-        height: var(--chat-icon-size);
-      }
+      /* The composer: [Call] or [End][Mute] left of the field; the same row in both call views. */
       .composer {
         flex: none;
         display: flex;
@@ -697,22 +644,42 @@
         padding: var(--space-3) var(--space-5) var(--space-4);
         border-top: var(--border-card) solid var(--color-dark-line);
       }
+      .composer-row {
+        display: flex;
+        align-items: flex-end;
+        gap: var(--space-2);
+      }
       .field {
+        flex: 1;
+        min-width: 0;
         display: flex;
         align-items: flex-end;
         gap: var(--space-2);
         padding: 5px 5px 5px 15px;
         background: var(--chat-fill);
-        border: var(--border-card) solid var(--color-dark-number);
-        box-shadow: 0 0 0 var(--border-card) var(--color-dark-number);
+        border: var(--border-card) solid var(--color-ink-4);
         border-radius: var(--radius-card);
+      }
+      .field.focus {
+        border-color: var(--color-dark-number);
+        box-shadow: 0 0 0 var(--border-card) var(--color-dark-number);
       }
       .field span {
         flex: 1;
+        min-width: 0;
         padding: 11px 0;
         font-size: var(--chat-text-size);
         line-height: var(--chat-text-line-height);
         color: var(--chat-ink-2);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .field span.draft {
+        color: var(--color-dark-ink);
+      }
+      .field.off {
+        opacity: 0.5;
       }
       .send {
         flex: none;
@@ -724,6 +691,10 @@
         background: var(--chat-fill-hover);
         border: 0;
         border-radius: 50%;
+      }
+      .send.on {
+        color: var(--color-on-accent);
+        background: var(--gradient-brand-tile);
       }
 
       /* ---- Minimized: the call pill in the launcher's place ---- */
@@ -816,13 +787,12 @@
         .action {
           top: var(--space-2);
         }
-        .controls {
-          padding: var(--space-2) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
-        }
         .list,
-        .callbar,
         .composer {
           padding-inline: var(--space-4);
+        }
+        .composer {
+          padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
         }
       }
     </style>
@@ -854,18 +824,30 @@
         'aria-expanded="true"',
         'aria-expanded="true" disabled',
       );
-      const callHeader = (sub, action = minimizeBtn) =>
-        `<header class="header"><span class="badge" aria-hidden="true">${icon('sparkle')}</span><div class="titles"><h2 class="title">Voice call</h2>${sub}</div>${action}</header>`;
+      // Show chat / Hide chat: one toggle, the same place in both views (left of minimize).
+      const toggle = (open) =>
+        `<button type="button" class="btn-secondary toggle">${open ? 'Hide chat' : 'Show chat'}</button>`;
+      const callHeader = (sub, actions = toggle(false) + minimizeBtn) =>
+        `<header class="header"><span class="badge" aria-hidden="true">${icon('sparkle')}</span><div class="titles"><h2 class="title">Voice call</h2>${sub}</div>${actions}</header>`;
 
-      const controls = ({ muted = false, disabled = false } = {}) =>
-        `<div class="controls">
-          <button type="button" class="round" aria-label="${muted ? 'Unmute microphone' : 'Mute microphone'}" aria-pressed="${muted}" ${disabled ? 'disabled' : ''}>${icon(muted ? 'mic-off' : 'mic')}</button>
-          <button type="button" class="ctl">${icon('chat')}Show chat</button>
-          <button type="button" class="ctl end" aria-label="End call">${icon('end')}End</button>
-        </div>`;
+      // The composer row. Text: [Call] + field. Call (both views): [End][Mute] + field, no disclaimer.
+      const field = ({
+        text = 'Type a message…',
+        draft = false,
+        focus = false,
+        off = false,
+      } = {}) =>
+        `<div class="field${focus ? ' focus' : ''}${off ? ' off' : ''}"><span${draft ? ' class="draft"' : ''}>${text}</span><button type="button" class="send${draft ? ' on' : ''}" aria-label="Send" ${draft ? '' : 'disabled'}>${icon('send')}</button></div>`;
+      const callBar = ({ muted = false, connecting = false, ...f } = {}) =>
+        `<div class="composer"><div class="composer-row">
+          <button type="button" class="round end" aria-label="End call">${icon('end')}</button>
+          <button type="button" class="round" aria-label="${muted ? 'Unmute microphone' : 'Mute microphone'}" aria-pressed="${muted}" ${connecting ? 'disabled' : ''}>${icon(muted ? 'mic-off' : 'mic')}</button>
+          ${field({ off: connecting, ...f })}
+        </div></div>`;
+      const textComposer = `<div class="composer"><div class="composer-row"><button type="button" class="ctl call" aria-label="Call my AI">${icon('call')}Call</button>${field({ text: '…or type a question' })}</div><p class="caption">Answers are AI-generated and may contain mistakes.</p></div>`;
 
-      const panel = (cls, header, stage, ctrls = controls()) =>
-        `<aside class="column ${cls}" aria-label="Voice call with Andrew’s AI">${header}<div class="stage">${stage}</div>${ctrls}</aside>`;
+      const panel = (cls, header, stage, bottom = callBar()) =>
+        `<aside class="column ${cls}" aria-label="Voice call with Andrew’s AI">${header}<div class="stage">${stage}</div>${bottom}</aside>`;
 
       const errorCard = (glyph, title, body, primary, secondary) =>
         `<div class="card err" role="alert"><div class="card-head"><span class="glyph">${icon(glyph)}</span><p class="card-title">${title}</p></div><p class="card-body">${body}</p><div class="card-buttons"><button type="button" class="btn-secondary btn-primary">${primary}</button><button type="button" class="btn-secondary">${secondary}</button></div></div>`;
@@ -878,27 +860,36 @@
         `<li class="row assistant"><div class="bubble">${t}</div>${extra}</li>`;
       const chip = (t) => `<p class="chip caption">${icon('sparkle')}${t}</p>`;
       const divider = (t, mic) =>
-        `<li class="divider caption" role="separator"><span>${mic ? icon('mic') : ''}${t}</span></li>`;
-      const callLines =
+        `<li class="divider caption" role="separator"><span>${mic ? icon('call') : ''}${t}</span></li>`;
+      const textLines =
         visitor('Is he open to new roles?') +
         assistant(
           'Yes. He’s open to senior product and Android roles, remote or B2B across the EU.',
-        ) +
+        );
+      const callLines =
+        textLines +
         divider('Voice call', true) +
         visitor('What did he build at Transcenda?') +
         assistant(
           'At Transcenda Andrew shipped three apps: SpotOn, Cync and August Home, each with a million-plus users.',
           chip('Showing Transcenda'),
         ) +
-        visitor('Which one was the hardest?');
+        visitor('Which one was the hardest?') +
+        assistant('SpotOn: a point-of-sale and kiosk app with strict offline rules.');
+      // A typed line during the call: an ordinary visitor row of the call.
+      const typedLine = visitor('Does he use Kotlin Multiplatform?');
+
+      const chatHeader = `<header class="header"><span class="badge" aria-hidden="true">${icon('sparkle')}</span><div class="titles"><h2 class="title">Ask about Andrew</h2><p class="caption">AI assistant · answers from this page</p></div>${closeBtn.replace('Close voice chat', 'Close chat')}</header>`;
 
       const states = {
+        text: () =>
+          `<aside class="column chat-view" aria-label="Ask about Andrew">${chatHeader}<ol class="list" aria-label="Conversation">${textLines}</ol>${textComposer}</aside>`,
         connecting: () =>
           panel(
             'connecting',
-            callHeader('', minimizeOff),
+            callHeader('', toggle(false) + minimizeOff),
             `${orb()}<p class="status">Connecting…</p><p class="say visitor">Allow the microphone when your browser asks.</p><p class="privacy caption">Calls run on ElevenLabs. Voice and text share one history. AI can make mistakes.</p>`,
-            controls({ disabled: true }),
+            callBar({ connecting: true }),
           ),
         listening: () =>
           panel(
@@ -917,7 +908,14 @@
             'muted',
             callHeader(timer(64)),
             `${orb()}<p class="status">Mic off</p><p class="say visitor">Your microphone is off. Unmute to talk.</p>`,
-            controls({ muted: true }),
+            callBar({ muted: true }),
+          ),
+        typed: () =>
+          panel(
+            'listening',
+            callHeader(timer(97)),
+            `${orb()}<p class="status">Listening</p><p class="say visitor">Does he use Kotlin Multiplatform?</p>`,
+            callBar({ text: 'And Compose?', draft: true, focus: true }),
           ),
         tool: () =>
           panel(
@@ -939,20 +937,16 @@
           ),
         chat: () =>
           `<aside class="column chat-view speaking" aria-label="Voice call with Andrew’s AI">
-            <header class="header">${orb(true)}<div class="titles"><h2 class="title">Voice call</h2><p class="sub caption"><span class="live">Speaking</span> · <b>1:12</b></p></div><button type="button" class="btn-secondary">Hide chat</button>${minimizeBtn}</header>
-            <ol class="list" aria-label="Conversation">${callLines}${assistant('SpotOn: a point-of-sale and kiosk app with strict offline rules.')}</ol>
-            <div class="callbar"><button type="button" class="round" aria-label="Mute microphone" aria-pressed="false">${icon('mic')}</button><p class="note caption">Read-only during the call. End it to type.</p><button type="button" class="ctl end" aria-label="End call">${icon('end')}End</button></div>
+            <header class="header">${orb(true)}<div class="titles"><h2 class="title">Voice call</h2><p class="sub caption"><span class="live">Speaking</span> · <b>1:12</b></p></div>${toggle(true)}${minimizeBtn}</header>
+            <ol class="list" aria-label="Conversation">${callLines}${typedLine}${assistant('Yes: he shipped a shared Kotlin Multiplatform core for the August Home apps.')}</ol>
+            ${callBar({ focus: true })}
           </aside>`,
         ended: () =>
-          `<aside class="column chat-view" aria-label="Ask about Andrew">
-            <header class="header"><span class="badge" aria-hidden="true">${icon('sparkle')}</span><div class="titles"><h2 class="title">Ask about Andrew</h2><p class="caption">AI assistant · answers from this page</p></div>${closeBtn.replace('Close voice chat', 'Close chat')}</header>
-            <ol class="list" aria-label="Conversation">${callLines}${assistant('SpotOn: a point-of-sale and kiosk app with strict offline rules.')}${divider('Call ended · 1:24')}</ol>
-            <div class="composer"><div class="field"><span>Ask a question…</span><button type="button" class="icon-btn" aria-label="Talk to my AI by voice">${icon('mic')}</button><button type="button" class="send" aria-label="Send" disabled>${icon('send')}</button></div><p class="caption">Answers are AI-generated and may contain mistakes.</p></div>
-          </aside>`,
+          `<aside class="column chat-view" aria-label="Ask about Andrew">${chatHeader}<ol class="list" aria-label="Conversation">${callLines}${divider('Call ended · 1:24')}</ol>${textComposer}</aside>`,
         minimized: () =>
           `<div class="callpill listening" role="group" aria-label="Voice call"><button type="button" class="expand" aria-label="Open the call panel" aria-expanded="false">${orb(true)}<span class="state">Listening</span><span class="time">0:42</span></button><button type="button" class="hang" aria-label="End call">${icon('end')}</button></div>`,
         launcher: () =>
-          `<div class="launcher"><button type="button" class="mic" aria-label="Talk to my AI by voice">${icon('mic')}</button><button type="button" class="pill"><span class="badge" aria-hidden="true">${icon('sparkle')}</span>Ask my AI</button></div>`,
+          `<div class="launcher"><button type="button" class="pill"><span class="badge" aria-hidden="true">${icon('sparkle')}</span>Talk to my AI</button></div>`,
         'error-denied': () =>
           errorPanel(
             'mic-off',
