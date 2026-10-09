@@ -48,8 +48,10 @@ describe('the page motion', () => {
   it('plays the intro: header parts, gradient word, stat tiles and buttons', async () => {
     env = installMotionEnv();
     await renderPage();
-    expect(animatedParts(env.calls)).toEqual(
-      new Set(['nav', 'avatar', 'names', 'headline', 'accent', 'lead', 'stat', 'button']),
+    // Everything else waits for its scroll-in (held), except the call to action's drifting background.
+    const playing = env.calls.filter(({ animation }) => animation.pause.mock.calls.length === 0);
+    expect(animatedParts(playing)).toEqual(
+      new Set(['nav', 'avatar', 'names', 'headline', 'accent', 'lead', 'stat', 'button', 'cta']),
     );
     const drift = env.calls.find(({ el }) => el.getAttribute('data-motion') === 'accent');
     expect(drift?.options).toMatchObject({ iterations: Infinity, direction: 'alternate' });

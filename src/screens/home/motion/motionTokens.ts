@@ -12,6 +12,22 @@ export interface MotionTokens {
   countDuration: number;
   scrambleDuration: number;
   driftDuration: number;
+  /** Sections (SPEC §2): the loop panel, the CTA and the loop cards' highlight run. */
+  durationBlock: number;
+  /** The loop's typewriter line. */
+  durationType: number;
+  /** A tree branch's horizontal line (its stem takes `durationShort`). */
+  durationBranch: number;
+  /** Hover (SPEC §4): tilt towards the cursor, the spotlight's lag, easing back / fading out. */
+  durationTilt: number;
+  durationFollow: number;
+  durationSettle: number;
+  ctaDriftDuration: number;
+  /** The loop cards' highlight run: pink border, its glow and the lit fill; the dark rule at rest. */
+  glowPink: string;
+  glow: string;
+  glowSurface: string;
+  darkLine: string;
   /** The brand gradient that loops back to its first colour (the H1 accent drift). */
   gradientLoop: string;
 }
@@ -40,6 +56,17 @@ export function readMotionTokens(root: Element = document.documentElement): Moti
     countDuration: parseDuration(read('--motion-count-duration')),
     scrambleDuration: parseDuration(read('--motion-scramble-duration')),
     driftDuration: parseDuration(read('--motion-drift-duration')),
+    durationBlock: parseDuration(read('--motion-duration-block')),
+    durationType: parseDuration(read('--motion-duration-type')),
+    durationBranch: parseDuration(read('--motion-duration-branch')),
+    durationTilt: parseDuration(read('--motion-duration-tilt')),
+    durationFollow: parseDuration(read('--motion-duration-follow')),
+    durationSettle: parseDuration(read('--motion-duration-settle')),
+    ctaDriftDuration: parseDuration(read('--motion-cta-drift-duration')),
+    glowPink: read('--color-dark-number'),
+    glow: read('--motion-glow'),
+    glowSurface: read('--motion-glow-surface'),
+    darkLine: read('--color-dark-line'),
     gradientLoop: read('--gradient-brand-loop'),
   };
   const complete = Object.values(tokens).every((value) =>

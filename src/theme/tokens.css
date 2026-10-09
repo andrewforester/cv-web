@@ -265,6 +265,23 @@
   --motion-pulse-spread: 14px;
   --motion-progress-height: 3px;
   --motion-progress-z-index: 20;
+  /* Sections on scroll and hover (SPEC §2, §4) */
+  --motion-duration-block: 1200ms;
+  --motion-duration-type: 1800ms;
+  --motion-duration-branch: 400ms;
+  --motion-duration-tilt: 250ms;
+  --motion-duration-follow: 500ms;
+  --motion-duration-settle: 600ms;
+  --motion-cta-drift-duration: 7000ms;
+  --motion-glow: rgba(255, 79, 184, 0.55);
+  --motion-glow-surface: rgba(255, 255, 255, 0.04);
+  --motion-spotlight: radial-gradient(
+    circle,
+    rgba(255, 79, 184, 0.26),
+    rgba(139, 92, 246, 0.12) 40%,
+    rgba(139, 92, 246, 0) 70%
+  );
+  --motion-spotlight-size: 420px;
   --gradient-brand-loop: linear-gradient(
     90deg,
     var(--color-brand-pink),

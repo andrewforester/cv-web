@@ -8,6 +8,7 @@ import { HomeStoreMeta } from './HomeStoreMeta';
 import { HomeTagLine } from './HomeTagLine';
 import { homeImageUrl } from './images';
 import { homeTestIds } from './testIds';
+import { motionTarget } from './motion/motionTargets';
 
 interface HomeJobProps {
   job: CvJob;
@@ -24,12 +25,14 @@ export function HomeJob({ job, highlightedId }: HomeJobProps) {
       className={styles.root}
       data-testid={homeTestIds.job}
       {...agentTargetProps('experience', job.id, highlightedId)}
+      {...motionTarget('job')}
     >
       <div className={styles.head}>
         <img
           className={job.logoPlain ? styles.logo : `${styles.logo} ${styles.tile}`}
           src={homeImageUrl(job.logo)}
           alt=""
+          {...motionTarget('logo')}
         />
         <div className={styles.info}>
           <div className={styles.titleRow}>
@@ -41,7 +44,9 @@ export function HomeJob({ job, highlightedId }: HomeJobProps) {
         </div>
       </div>
       {job.about && <HomeTagLine tag={job.tag} text={job.about} />}
-      {job.points.length > 0 && <HomePoints points={job.points} />}
+      {job.points.length > 0 && (
+        <HomePoints points={job.points} attributes={motionTarget('points')} />
+      )}
       {job.projects && <HomeProjects projects={job.projects} highlightedId={highlightedId} />}
     </article>
   );

@@ -6,6 +6,7 @@ import styles from './HomeImpact.module.css';
 import { HomeSection } from './HomeSection';
 import { homeStrings } from './strings';
 import { homeTestIds } from './testIds';
+import { motionTarget } from './motion/motionTargets';
 
 /** Card tones by position: lilac, pink, neutral. */
 const TONES = [styles.lilac, styles.pink, styles.neutral];
@@ -24,15 +25,18 @@ export function HomeImpact({ impact, highlightedId }: HomeImpactProps) {
       testId={homeTestIds.impact}
       attributes={agentTargetProps('section', 'impact', highlightedId)}
     >
-      <div className={styles.cards}>
+      <div className={styles.cards} {...motionTarget('impact')}>
         {impact.map((card, index) => (
           <div
             key={card.id}
             className={`${styles.card} ${TONES[index % TONES.length] ?? ''}`}
             data-testid={homeTestIds.impactCard}
             {...agentTargetProps('impact', card.id, highlightedId)}
+            {...motionTarget('card')}
           >
-            <div className={styles.value}>{card.value}</div>
+            <div className={styles.value} {...motionTarget('count')}>
+              {card.value}
+            </div>
             <div className={styles.text}>{card.text}</div>
           </div>
         ))}

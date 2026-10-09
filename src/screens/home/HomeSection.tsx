@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import styles from './HomeSection.module.css';
+import { motionTarget } from './motion/motionTargets';
 
 interface HomeSectionProps {
   className?: string;
@@ -26,8 +27,9 @@ export function HomeSection({
       className={className ? `${styles.root} ${className}` : styles.root}
       data-testid={testId}
       {...attributes}
+      {...motionTarget('section')}
     >
-      <div className={styles.heading}>
+      <div className={styles.heading} {...motionTarget('heading')}>
         <h2 className={styles.title}>{title}</h2>
         {note && <span className={styles.note}>{note}</span>}
       </div>

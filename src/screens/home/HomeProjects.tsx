@@ -7,6 +7,7 @@ import { HomeStoreMeta } from './HomeStoreMeta';
 import { HomeTagLine } from './HomeTagLine';
 import { homeImageUrl } from './images';
 import { homeTestIds } from './testIds';
+import { motionTarget } from './motion/motionTargets';
 
 interface HomeProjectsProps {
   projects: CvProject[];
@@ -26,10 +27,11 @@ export function HomeProjects({ projects, highlightedId }: HomeProjectsProps) {
           className={styles.project}
           data-testid={homeTestIds.project}
           {...agentTargetProps('app', project.id, highlightedId)}
+          {...motionTarget('project')}
         >
-          <span className={styles.stem} aria-hidden="true" />
-          <span className={styles.branch} aria-hidden="true" />
-          <div className={styles.body}>
+          <span className={styles.stem} aria-hidden="true" {...motionTarget('stem')} />
+          <span className={styles.branch} aria-hidden="true" {...motionTarget('branch')} />
+          <div className={styles.body} {...motionTarget('project-body')}>
             <div className={styles.head}>
               {project.icon ? (
                 <img className={styles.icon} src={homeImageUrl(project.icon)} alt="" />

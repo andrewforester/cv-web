@@ -2,6 +2,8 @@
 .root {
   min-height: 100vh;
   padding: var(--page-margin);
+  /* Parts sliding in from the side (motion) never widen the page; clip, not a scroll container. */
+  overflow-x: clip;
 }
 
 .card {
