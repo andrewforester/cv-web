@@ -3,6 +3,11 @@ import type { Page } from '@playwright/test';
 /** Screenshots land here; CI uploads the folder as the `e2e-screenshots` artifact. */
 export const SCREENSHOT_DIR = 'web-check';
 
+/** `web-check/<name>.png`; on the `mobile` project `<name>-mobile.png`, so both runs keep theirs. */
+export function screenshotPath(name: string, isMobile: boolean): string {
+  return `${SCREENSHOT_DIR}/${name}${isMobile ? '-mobile' : ''}.png`;
+}
+
 /** Today's site (the default since Round 5; `?retro=0` kept explicit) and the show (src/app/retroMode). */
 export const NORMAL_SITE = './?retro=0';
 export const SHOW_SITE = './?retro=1';
