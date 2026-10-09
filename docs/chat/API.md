@@ -124,7 +124,7 @@ export type AgentTargetKind = (typeof AGENT_TARGET_KINDS)[number];
 export type AgentTargetId = `${AgentTargetKind}:${string}`;
 
 export const AGENT_VIEWPORTS = ['desktop', 'mobile'] as const;
-/** The chat widget's layout: card (floating or docked in the right column, the page visible beside it) or full-screen sheet (under 600 px). */
+/** The chat widget's layout: card (floating or docked in the right column, the page visible beside it) or the phone's bottom sheet (under 600 px). */
 export const AGENT_CHAT_LAYOUTS = ['card', 'sheet'] as const;
 
 /** One `tool_use` of the model, streamed as a `tool_call` event and echoed in `toolCalls`. */

@@ -14,7 +14,7 @@
 | File | Viewport | Shows |
 |---|---|---|
 | `screenshot.png` | 1280 × 800 | panel open over the CV, conversation, answer streaming (caret, Stop button) |
-| `screenshot-mobile.png` | 390 × 844 | same state as a full-screen sheet |
+| `screenshot-mobile.png` | 390 × 844 | same state as the bottom sheet |
 | `state-launcher.png` | 1280 × 800 | closed: FAB + first-visit hint |
 | `state-empty.png` | 1280 × 800 | empty state: greeting + suggested questions |
 | `state-typing.png` | 1280 × 800 | sent, waiting for the first token (typing indicator) |
@@ -118,11 +118,10 @@ Fixed card anchored to the FAB's corner (`right`/`bottom` 24 px). **The FAB is h
 
 ### 3. Panel — mobile (viewport < 600 px wide, or < 500 px tall)
 
-- Full-screen sheet: `position: fixed; inset: 0`, width 100 %, height `100dvh`, no radius, no gradient border, no shadow. Same header/list/composer.
-- Safe areas: header top padding `12 + env(safe-area-inset-top)`, composer bottom padding `12 + env(safe-area-inset-bottom)`. The composer stays above the on-screen keyboard (`dvh` + the sheet being fixed).
+- Bottom sheet (`docs/design/voice/SPEC.md` → Layout 5): fixed to the bottom edge, full width; the same sheet holds the text chat and the call. Same header/list/composer.
+- Safe areas: the sheet never touches the top of the screen, so the header has no top inset; composer bottom padding `16 + env(safe-area-inset-bottom)`. The composer stays above the on-screen keyboard.
 - Width check at 390: list content 358, visitor max 304; textarea 284.
 - FAB and hint offsets: 16 px. Hint still fits: 240 + 12 + 56 + 16 = 324 ≤ 390.
-- Page scroll is locked while the sheet is open.
 
 ## Texts
 
@@ -149,15 +148,15 @@ Namespace `chat` (`defineStrings({ en })`, English only). Apostrophes are typogr
 | `placeholder` | Ask a question… |
 | `send` (aria-label) | Send |
 | `stop` (aria-label) | Stop answer |
-| `disclaimer` | Answers are AI-generated and may contain mistakes. |
+| `disclaimer` | AI can make mistakes. |
 | `typing` (sr-only, live) | Assistant is typing… |
 | `stopped` | Answer stopped. |
 | `error` | Sorry, I couldn’t answer. Please try again. |
 | `retry` | Try again |
 | `rateLimited` | I’m getting a lot of questions right now. Please try again in a minute. |
 | `offline` | You’re offline. Connect to the internet to ask a question. |
-| `tooLong` | Shorten your question to 500 characters or fewer. |
-| `counter` | `{count} / 500` |
+| `tooLong` | Shorten to {max} characters. |
+| `counter` | `{count} / {max}` (limit 1,000: O1) |
 
 Suggestions come from the real CV: Android since 2012 / Transcenda; the *AI Tools* card (Copilot, Cursor IDE, agents.md, MCP); the *Apps* section (Cync, August Home, Savant); lead roles (RosFines Android Lead, ivi Teamlead).
 
@@ -252,7 +251,7 @@ No mic icon yet. Inline the SVGs as components (or `mask-image` + `background: c
 
 - Colour is never the only cue: errors carry text; links are underlined; the over-limit state has a message.
 - Targets: FAB 56, close / Send / Stop 44, chips and Try again ≥ 36 high, hint dismiss 24 (≥ 24 px, 2.5.8 minimum).
-- Reflow/zoom: at 200 % zoom (640 × 400 CSS px) the viewport height drops below 500 → full-screen sheet; nothing scrolls horizontally at 320 px.
+- Reflow/zoom: at 200 % zoom (640 × 400 CSS px) the viewport height drops below 500 → the short bottom sheet; nothing scrolls horizontally at 320 px.
 
 ## New tokens (Theme adds these to `src/theme/tokens.css`)
 
@@ -313,7 +312,7 @@ Conservative defaults taken without an answer; the orchestrator may change them.
 - **9.** **Rate-limit reply looks neutral** (not red) and still offers *Try again*.
 - **11.** **Answers are announced once, when complete** (plus "typing…"), not token by token.
 - **12.** **Mobile open focuses the dialog, not the textarea**, to keep the keyboard from covering the chips.
-- **13.** **Full-screen sheet also when the viewport is < 500 px tall** (landscape phones, 200 % zoom).
+- **13.** **Bottom sheet also when the viewport is < 500 px tall** (landscape phones, 200 % zoom).
 - **14.** **Renders** come from headless Chrome via `render.sh` instead of a Playwright script (this session's machine had no Playwright browser; the result is the same Chromium render), over a simplified static CV backdrop rather than the built site.
 
 ### Orchestrator decisions (override the items above where they conflict)

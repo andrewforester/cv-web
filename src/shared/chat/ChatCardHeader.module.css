@@ -22,9 +22,9 @@
   letter-spacing: var(--type-card-title-letter-spacing);
 }
 
+/* The phone chat is a bottom sheet: no frame touches the top of the screen, so no top inset. */
 @media (max-width: 599px), (max-height: 499px) {
   .header {
-    padding-top: calc(var(--space-3) + env(safe-area-inset-top));
     padding-left: var(--space-4);
   }
 }

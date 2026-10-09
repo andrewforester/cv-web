@@ -53,6 +53,16 @@ async function steps(page: Page, count: number) {
 // `wide` gets the slide (≥ 1584 px: the page moves left beside the floating panel), `desktop` a
 // 1280 px laptop the overlay (the same panel over the unmoved page), `mobile` the one bottom
 // sheet (§4.3).
+// The composer row's distance from the panel's bottom edge: it must not move between views.
+async function rowOffset(panel: Locator) {
+  const [outer, input] = await Promise.all([
+    panel.boundingBox(),
+    panel.getByTestId('chat-input').boundingBox(),
+  ]);
+  if (!outer || !input) throw new Error('panel or field not laid out');
+  return Math.round(outer.y + outer.height - (input.y + input.height));
+}
+
 const viewports = [
   { name: 'wide', size: { width: 1600, height: 900 } },
   { name: 'desktop', size: { width: 1280, height: 800 } },
@@ -219,6 +229,7 @@ for (const { name, size } of viewports) {
       if (name === 'desktop') await expectOverlay(page, card, chat);
       if (name === 'mobile') await expectSheet(page, chat);
       await settle(chat);
+      const rowBottom = await rowOffset(chat);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-text-${name}.png` });
 
       // One panel (ADR-0013): the chat's element turns into the call, no second frame.
@@ -234,6 +245,7 @@ for (const { name, size } of viewports) {
       else if (name === 'desktop') await expectOverlay(page, card, voice);
       // The same bottom sheet over the live page; the page pads its end by the sheet's height.
       else await expectSheet(page, voice);
+      expect(await rowOffset(voice)).toBe(rowBottom);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-connecting-${name}.png` });
 
       // live → speaking → greeting
@@ -249,6 +261,7 @@ for (const { name, size } of viewports) {
       await expect(voice.getByTestId('chat-voice-caption')).toHaveText(
         'Show me his selected impact.',
       );
+      expect(await rowOffset(voice)).toBe(rowBottom);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-listening-${name}.png` });
 
       if (name !== 'mobile') {
@@ -314,6 +327,7 @@ for (const { name, size } of viewports) {
         await expect(page).toHaveURL(/voice=fake$/);
       }
       await settle(chat);
+      expect(await rowOffset(chat)).toBe(rowBottom);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-chat-${name}.png` });
       await chat.getByTestId('chat-collapse').click();
 
