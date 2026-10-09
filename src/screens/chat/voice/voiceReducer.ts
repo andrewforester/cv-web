@@ -16,7 +16,8 @@ import type {
 export interface VoiceModel {
   /** A call attempt runs, or its card shows. */
   readonly open: boolean;
-  readonly permission: 'pending' | 'granted';
+  /** The browser is probably showing its microphone prompt. */
+  readonly micHint: boolean;
   readonly live: boolean;
   readonly mode: 'listening' | 'speaking';
   readonly muted: boolean;
@@ -36,6 +37,7 @@ export interface VoiceModel {
 
 export type VoiceModelAction =
   | { type: 'open' }
+  | { type: 'micPrompt' }
   | { type: 'micGranted' }
   | { type: 'session'; maxCallSeconds: number }
   | { type: 'live' }
@@ -54,7 +56,7 @@ export type VoiceModelAction =
 
 export const initialVoiceModel: VoiceModel = {
   open: false,
-  permission: 'pending',
+  micHint: false,
   live: false,
   mode: 'listening',
   muted: false,
@@ -71,8 +73,10 @@ export function voiceReducer(model: VoiceModel, action: VoiceModelAction): Voice
   switch (action.type) {
     case 'open':
       return { ...initialVoiceModel, open: true };
+    case 'micPrompt':
+      return { ...model, micHint: true };
     case 'micGranted':
-      return { ...model, permission: 'granted' };
+      return { ...model, micHint: false };
     case 'session':
       return { ...model, maxCallSeconds: action.maxCallSeconds };
     case 'live':
@@ -136,7 +140,7 @@ export function toVoiceUiState(
   return {
     status: statusOf(model),
     phase: phaseOf(model),
-    permission: model.permission,
+    micHint: model.micHint,
     muted: model.muted,
     elapsedSec: model.elapsedSec,
     maxCallSeconds: model.maxCallSeconds,

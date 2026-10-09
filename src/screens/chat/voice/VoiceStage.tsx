@@ -18,8 +18,7 @@ interface VoiceStageProps {
 }
 
 function captionText(state: VoiceUiState, strings: ChatStrings): string {
-  if (state.status === 'connecting')
-    return state.permission === 'pending' ? strings.voiceAllowMic : '';
+  if (state.status === 'connecting') return state.micHint ? strings.voiceAllowMic : '';
   if (state.muted && state.phase === 'listening') return strings.voiceMutedCaption;
   return state.caption?.text ?? '';
 }

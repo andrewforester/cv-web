@@ -40,8 +40,8 @@ export interface VoiceAnnouncement {
 export interface VoiceUiState {
   readonly status: VoiceStatus;
   readonly phase: VoicePhase;
-  /** `pending` while the browser's microphone prompt may be showing. */
-  readonly permission: 'pending' | 'granted';
+  /** The browser is probably showing its microphone prompt: the stage says to allow it. */
+  readonly micHint: boolean;
   readonly muted: boolean;
   readonly elapsedSec: number;
   readonly maxCallSeconds: number;

@@ -11,6 +11,7 @@ import type { CallOutcome } from '../chatSurface';
 import type { ChatEntry } from '../ChatUiState';
 import type { ConversationAction } from '../conversation';
 import { chatStrings } from '../strings';
+import { watchMicPrompt } from './micPromptHint';
 import { sessionErrorKind } from './voiceErrorKind';
 import { initialVoiceModel, toVoiceUiState, voiceReducer } from './voiceReducer';
 import {
@@ -165,7 +166,9 @@ export function useVoiceCall({ record, entries, onEnded, onNeedsPanel }: VoiceCa
     current.current = session;
     dispatch({ type: 'open' });
     if (!navigator.onLine) return conclude(session, 'offline');
+    const stopHint = watchMicPrompt(() => dispatch({ type: 'micPrompt' }));
     const microphone = await client.requestMicrophone().catch(() => 'denied' as const);
+    stopHint();
     if (session.finished) return;
     if (microphone === 'denied') return conclude(session, 'micDenied');
     dispatch({ type: 'micGranted' });
