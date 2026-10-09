@@ -227,7 +227,16 @@ for (const { name, size } of viewports) {
       );
       if (name === 'wide') await expectSlide(page, card, chat);
       if (name === 'desktop') await expectOverlay(page, card, chat);
-      if (name === 'mobile') await expectSheet(page, chat);
+      if (name === 'mobile') {
+        await expectSheet(page, chat);
+        // A bottom sheet never touches the screen's top: no rule insets the header by the notch.
+        const insetTop = await page.evaluate(() =>
+          [...document.styleSheets].some((sheet) =>
+            [...sheet.cssRules].some((rule) => rule.cssText.includes('safe-area-inset-top')),
+          ),
+        );
+        expect(insetTop).toBe(false);
+      }
       await settle(chat);
       const rowBottom = await rowOffset(chat);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-text-${name}.png` });
