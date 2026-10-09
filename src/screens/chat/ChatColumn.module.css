@@ -1,8 +1,7 @@
 /*
  * Where the chat's frames sit (docs/design/voice/SPEC.md → Layout zones): the text chat and the
- * call panel share one place. Wide (≥ 1584 px, the slide): the docked right column, full height,
- * while the shell slides the page left; medium (the overlay): today's floating card over the
- * unmoved page. Each frame adds its own phone sheet. Imported after the card.
+ * call panel share one place. Wide: the docked right column, full height (the shell reserves it);
+ * medium: today's floating card. Each frame adds its own phone sheet. Imported after the card.
  */
 .frame {
   position: fixed;
@@ -26,21 +25,17 @@
 
 /*
  * docs/design/voice/SPEC.md → Motion. The column slides in from beyond the right edge while the
- * shell slides the page left with the same duration and easing, so they start and stop together;
- * it leaves the same way. 1584 px = `CHAT_COLUMN_QUERY` (src/screens/chat/chatDock.ts, the sum).
- * TODO(theme): drop the var() fallbacks once CV-199's slide tokens are on the branch.
+ * shell narrows the page with the same timing, so it pushes the page; it leaves the same way.
  */
-@media (min-width: 1584px) and (min-height: 500px) {
+@media (min-width: 1024px) and (min-height: 500px) {
   .frame {
     top: var(--space-4);
     height: auto;
-    animation: column-in var(--chat-slide-duration, 500ms)
-      var(--chat-slide-easing, cubic-bezier(0.4, 0, 0.2, 1)) both;
+    animation: column-in var(--chat-dock-duration) var(--chat-motion-easing) both;
   }
 
   .closing {
-    animation: column-out var(--chat-slide-exit-duration, 400ms)
-      var(--chat-slide-easing, cubic-bezier(0.4, 0, 0.2, 1)) both;
+    animation: column-out var(--chat-dock-exit-duration) var(--chat-motion-exit-easing) both;
   }
 }
 

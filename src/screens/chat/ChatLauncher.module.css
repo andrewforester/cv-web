@@ -20,7 +20,7 @@
 
 .returning:not(.closing) {
   animation: launcher-in var(--chat-motion-duration) var(--chat-motion-easing) both;
-  animation-delay: var(--chat-slide-exit-duration, 400ms);
+  animation-delay: var(--chat-dock-exit-duration);
 }
 
 /* The "Talk to my AI" pill (docs/design/v3/SPEC.md, Structure 11): ✦ badge + label on white. */
