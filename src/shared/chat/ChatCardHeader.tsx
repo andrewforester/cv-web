@@ -10,7 +10,7 @@ interface ChatCardHeaderProps {
   subtitleId?: string;
   title: string;
   subtitle: string;
-  /** The trailing button: close on the site, minimise in the show. */
+  /** The trailing button: the collapse control on the site (`chat-collapse`), minimise in the show. */
   action: ReactNode;
 }
 

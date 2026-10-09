@@ -81,6 +81,14 @@ export const CHAT_LIMITS_V2 = {
   maxToolCallsPerMessage: 3,
   /** Assistant `toolCalls` messages after the last text `user` message; then tools are off. */
   maxToolRoundsPerTurn: 2,
+  /** All `content` plus all voice line `text` (room for call transcripts, ADR-0009). */
+  maxTotalChars: 32_000,
+  /** `voiceCalls` on one question; the client keeps the latest. */
+  maxVoiceCallsPerQuestion: 3,
+  maxVoiceCallLines: 60,
+  maxVoiceLineChars: 1_000,
+  /** Sum of one call's line `text`; the client keeps the call's last lines. */
+  maxVoiceCallChars: 4_000,
 } as const;
 
 /** Sorted, like the tool list the model gets. */
@@ -103,7 +111,7 @@ export type AgentTargetKind = (typeof AGENT_TARGET_KINDS)[number];
 export type AgentTargetId = `${AgentTargetKind}:${string}`;
 
 export const AGENT_VIEWPORTS = ['desktop', 'mobile'] as const;
-/** The chat widget's layout: floating card (desktop) or full-screen sheet (under 600 px). */
+/** The chat widget's layout: card (floating or docked in the right column, the page visible beside it) or full-screen sheet (under 600 px). */
 export const AGENT_CHAT_LAYOUTS = ['card', 'sheet'] as const;
 
 /** One `tool_use` of the model, streamed as a `tool_call` event and echoed in `toolCalls`. */
@@ -201,11 +209,26 @@ export interface AgentPageStateV4 {
   tools: AgentToolName[];
 }
 
+/** A final line of a voice call: what the visitor said or the voice agent spoke. */
+export interface ChatVoiceLineV4 {
+  role: 'visitor' | 'agent';
+  /** Plain text, non-empty after trimming. */
+  text: string;
+}
+
+/** One voice call's transcript (docs/voice/SYSTEM_DESIGN.md §8). */
+export interface ChatVoiceCallV4 {
+  /** In spoken order; at least one. */
+  lines: ChatVoiceLineV4[];
+}
+
 export interface ChatUserMessageV4 {
   role: 'user';
   /** Plain text, non-empty after trimming. */
   content: string;
   page: AgentPageStateV4;
+  /** The voice calls since the previous question, oldest first; omitted when none. */
+  voiceCalls?: ChatVoiceCallV4[];
 }
 
 /** Tool results and assistant messages are the tool dialect's (`V2` names). */

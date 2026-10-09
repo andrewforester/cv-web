@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
+import type { ChatDock } from '../screens/chat/chatDock';
 import { HomeRoute } from '../screens/home/HomeRoute';
 import { ShowCaseButton } from '../shared/ShowCaseButton';
 import { ShowCaseLink } from '../shared/ShowCaseLink';
@@ -30,6 +31,21 @@ export function App() {
   // Today's site loads the chat at start; after a show it is already there (or loads if it failed).
   const { Chat, load } = useLazyChat(!showing && !pending);
   const loaders = useMemo(() => ({ 'ai-chat': load }), [load]);
+  // The space the chat asks the shell to keep free (docs/voice/SYSTEM_DESIGN.md §4.3); nothing
+  // while the chat is off the page, whatever it reported last.
+  const [reportedDock, setDock] = useState<ChatDock>('none');
+  const dock = Chat ? reportedDock : 'none';
+  // Before paint, so the page's slide starts on the frame the panel opens.
+  useLayoutEffect(() => {
+    document.documentElement.dataset.chatDock = dock;
+  }, [dock]);
+  // Removed only on unmount: a dock change never passes through "no attribute" (no slide).
+  useLayoutEffect(
+    () => () => {
+      delete document.documentElement.dataset.chatDock;
+    },
+    [],
+  );
 
   return (
     <>
@@ -37,13 +53,13 @@ export function App() {
         className={pending ? styles.pending : undefined}
         data-retro-stage={showing ? '' : undefined}
       >
-        <main>
+        <main className={styles.main}>
           <HomeRoute
             metaBarEnd={canShow && <ShowCaseButton onClick={start} />}
             copyrightEnd={showAvailable && <ShowCaseLink onClick={start} />}
           />
         </main>
-        {Chat && <Chat />}
+        {Chat && <Chat onDockChange={setDock} />}
       </div>
       <AppSpeedInsights />
       {showing && Show && SHOW_SCENARIO && (

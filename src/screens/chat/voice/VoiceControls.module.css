@@ -1,101 +1,54 @@
-/* docs/design/voice/SPEC.md → Layout 2 (controls). */
-.controls {
-  position: relative;
+/* docs/design/voice/SPEC.md → Layout 2: End and Mute, 56 circles left of the call composer's field. */
+.control {
+  flex: none;
+  height: var(--voice-control-size);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-4);
-  padding-top: var(--space-6);
-  animation: fade-in var(--voice-enter-duration) var(--chat-motion-easing) 200ms both;
+  padding: 0;
+  color: var(--color-dark-ink);
+  background: var(--chat-fill);
+  border: var(--border-card) solid var(--color-dark-line);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    color var(--chat-transition),
+    background-color var(--chat-transition),
+    border-color var(--chat-transition);
+}
+
+.control:hover:not(:disabled) {
+  background: var(--chat-fill-hover);
 }
 
 .round {
   width: var(--voice-control-size);
-  height: var(--voice-control-size);
-  display: grid;
-  place-items: center;
-  padding: 0;
-  color: var(--color-ink);
-  background: var(--color-card);
-  border: 0;
-  border-radius: 50%;
-  box-shadow: var(--shadow-launcher);
-  cursor: pointer;
-  transition:
-    color var(--chat-transition),
-    background-color var(--chat-transition);
-}
-
-.round:hover:not(:disabled) {
-  color: var(--color-accent);
 }
 
 .round[aria-pressed='true'],
 .round[aria-pressed='true']:hover {
-  color: var(--color-on-accent);
-  background: var(--color-ink);
+  color: var(--color-dark-number);
+  background: var(--chat-notice-bg);
+  border-color: var(--color-dark-number);
 }
 
 .round:disabled {
   color: var(--color-ink-4);
-  background: var(--color-surface);
-  box-shadow: none;
+  background: transparent;
   cursor: default;
 }
 
 .end {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  height: var(--voice-control-size);
-  padding: 0 var(--space-6) 0 var(--space-5);
-  font-family: var(--font-sans);
-  font-size: var(--type-button-size);
-  font-weight: var(--type-button-weight);
-  color: var(--color-on-accent);
-  background: var(--color-ink);
-  border: 0;
-  border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-launcher);
-  cursor: pointer;
-  transition: background-color var(--chat-transition);
+  color: var(--color-ink);
+  background: var(--color-card);
+  border-color: transparent;
 }
 
-.end:hover {
-  background: var(--color-ink-2);
-}
-
-.round:focus-visible,
-.end:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-ring-offset);
+.end:hover:not(:disabled) {
+  background: var(--color-surface);
 }
 
 .icon {
   width: var(--voice-control-icon-size);
   height: var(--voice-control-icon-size);
-}
-
-[data-closing] .controls {
-  opacity: 0;
-  transition: opacity var(--voice-exit-duration) var(--chat-motion-easing);
-}
-
-@media (max-width: 599px) {
-  .controls {
-    gap: var(--space-3);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .controls {
-    animation-duration: var(--chat-motion-exit-duration);
-    animation-delay: 0s;
-  }
 }

@@ -1,0 +1,40 @@
+/* docs/design/voice/SPEC.md → Layouts 2, 3 (the call header), 5 (short: the mini orb in the badge's slot). */
+.header {
+  --voice-level: 0;
+
+  flex: none;
+}
+
+/* In the orb view the badge holds the slot; the mini orb takes it only on short screens. */
+.mini {
+  display: none;
+}
+
+@media (max-height: 499px) {
+  .badge {
+    display: none;
+  }
+
+  .mini {
+    display: block;
+  }
+}
+
+.status {
+  margin: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.live {
+  color: var(--color-dark-number);
+}
+
+.time {
+  font-weight: var(--type-medium-weight);
+  color: var(--color-dark-ink);
+}
+
+.warning {
+  color: var(--color-dark-number);
+}

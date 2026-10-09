@@ -22,7 +22,7 @@ for the backend and frontend. The wire contract is [`API.md`](API.md), the decis
 | Functional | Text Q&A about the professional profile, streamed. Answer in the language of the visitor's message (the page is English; the site-language line is the fallback). Refuse off-topic and private questions politely. Never invent facts. |
 | Knowledge | Today: exactly what the page shows (`src/data/cv/cvPage.json`, English). Later: more professional material (detailed experience, case studies). Adding a source must be cheap. |
 | Security | The LLM key never reaches the browser. No web access. The only tools are the typed page tools of the page agent, executed in the browser (`AGENT.md`, `v: 4`). |
-| Evolution | Voice later (speech in/out) without rewriting the contract or the layers. |
+| Evolution | Voice joins the same conversation (§13): call transcripts arrive as an additive field of a question, without rewriting the contract or the layers. |
 | Platform | Vercel Hobby, Vercel Functions (Node runtime) in `api/`, deployed with the site. Stateless server: the client sends the history each turn. |
 | Cost | No new paid services (no DB/KV). Abuse protection within that. |
 | Scale | A personal CV site: tens to hundreds of conversations a month, bursts from a shared link. |
@@ -203,7 +203,7 @@ System blocks, in this order (stable first, for caching):
    `cache_control: { type: 'ephemeral' }` on this block.
 3. **Site-language line**: `Site language: English (en).` (the fallback reply language, ADR-0006).
 
-Between the instructions and the knowledge sits the page-tool rules block (`v: 4`). Then `messages` exactly as validated, plus top-level automatic caching (`cache_control` on the
+Between the instructions and the knowledge sit the page-tool rules block and the voice transcript rules (`VOICE_TRANSCRIPT_RULES`, §13) (`v: 4`). Then `messages` exactly as validated, plus top-level automatic caching (`cache_control` on the
 request) so the growing conversation is read from cache on the next turn.
 
 The instructions' exact text is `INSTRUCTIONS` in `server/chat/prompt/systemPrompt.ts` (bump
@@ -222,7 +222,7 @@ Guardrail layers, from cheapest to last resort:
 | Threat | Mitigation |
 |---|---|
 | Hallucinated facts | Grounding rules above; knowledge in one tagged block; small, focused knowledge; golden-question check before model switches (section 14). |
-| Prompt injection in the visitor message | Visitor text only ever goes in `user` messages, never into `system`; the rules above; no web and no server-side tools (page tools are typed enums run in the browser, `AGENT.md` §5), so an injection cannot fetch or exfiltrate; output rendered as plain text. |
+| Prompt injection in the visitor message (typed or spoken) | Visitor text, including call transcripts (`<voice_call>` blocks, `<` escaped), only ever goes in `user` messages, never into `system`; the rules above; no web and no server-side tools (page tools are typed enums run in the browser, `AGENT.md` §5), so an injection cannot fetch or exfiltrate; output rendered as plain text. |
 | Forged history (client sends fake `assistant` turns to steer the model, or to use the endpoint as a free general LLM) | Length and turn limits; the system prompt still governs every turn; the damage is confined to the attacker's own session and budgeted by rate and spend limits. HMAC-signed assistant turns were considered and deferred (ADR). |
 | Off-topic / private questions | Scope rules; a polite refusal is a normal `end_turn` answer. |
 | Model safety refusal | `stop_reason: refusal` maps to `done.stopReason: 'refusal'`; the widget shows a notice. |
@@ -253,7 +253,7 @@ a hard money cap.
 
 | Layer | Setting | Scope |
 |---|---|---|
-| Request shape | API.md limits: 1,000 chars per question, 20 messages, 24,000 chars, 128 KiB | Every request |
+| Request shape | API.md limits: 1,000 chars per question, 20 messages (v4: 40), 24,000 chars (v4: 32,000 with voice transcripts), 128 KiB | Every request |
 | Output cap | `max_tokens: 800`; 60 s deadline; abort on client disconnect | Every request |
 | Same-origin check | `Origin` must match the host; no CORS headers, so other sites' browsers can't call it | Casual cross-site use |
 | Vercel Firewall rate-limit rule (the one Hobby rule) | Condition: path equals `/api/chat` and method `POST`; fixed window **480 s**, limit **25**, key **IP**; action default `429` | Per IP, per region, all instances |
@@ -305,7 +305,7 @@ or the Vercel MCP `get_runtime_logs`), no visitor content:
  "anthropicRequestId":"req_...","country":"UA","limiter":"ok"}
 ```
 
-`locale` is `null` for v4 (the show, `v: 3`, logs `en`). Lines also carry `toolCalls`, `toolNames`, `toolRound`, `toolChoice`, `providerStateBytes` and
+`locale` is `null` for v4 (the show, `v: 3`, logs `en`). Lines also carry `toolCalls`, `toolNames`, `toolRound`, `toolChoice`, `providerStateBytes`, `voiceCalls` and `voiceChars` (how many call transcripts and characters the request carried; never their text) and
 `dayCostUsd` (this instance's estimated spend for the UTC day); daily total: sum `costUsd` in the
 logs or read the Anthropic Console (`AGENT.md` §6, README → Talk to the page).
 
@@ -351,26 +351,17 @@ orchestrator verify PRs without exposing the chat publicly.
   a human for a final parity check.
 - `vite preview` (the web check) does not mount the API; e2e mocks the route instead.
 
-## 13. Future voice path
+## 13. Voice
 
-Voice is a client-side adapter around the same text contract:
-
-```text
-mic -> SpeechRecognizer -> text -> ChatRepository.send (unchanged /api/chat) -> delta stream
-    -> sentence splitter -> SpeechSynthesizer -> speaker
-```
-
-- `src/data/voice/SpeechRecognizer.ts` and `SpeechSynthesizer.ts` interfaces; first
-  implementations on the browser Web Speech API (`SpeechRecognition` with `en-US`,
-  `speechSynthesis`), no backend change and no cost. `useChatState` gains voice events
-  (start/stop listening, speak answers); the stateless UI gains a mic button.
-- The streaming contract already fits: `delta` text can be spoken sentence by sentence before
-  `done`.
-- Additive change when voice ships: optional request field `inputMode: 'text' | 'voice'`
-  (old servers ignore it) so the prompt can ask for 2-3 spoken sentences without lists.
-- Browser speech quality varies by language (Chrome is the reference). Server-side
-  speech (a new `POST /api/speech` for TTS or STT) would need a paid speech provider: a new ADR,
-  outside the "no new paid services" constraint.
+Voice runs on an ElevenLabs agent, not on this endpoint (ADR-0008); its design is
+[`../voice/SYSTEM_DESIGN.md`](../voice/SYSTEM_DESIGN.md). Text and voice are one conversation
+(ADR-0009): a call's lines reach this endpoint on the next question (`voiceCalls`, `API.md` →
+Voice calls in the history), rendered as `<voice_call>` blocks under `VOICE_TRANSCRIPT_RULES`;
+the earlier text chat reaches the agent from the browser at call start. While a call is live,
+the composer sends to the voice agent instead of this endpoint, and those typed lines join the
+call's transcript (ADR-0010, `../voice/SYSTEM_DESIGN.md` §4.4). The chat's surface (launcher,
+text card, docked column, call panel, pill) is the chat screen's (`../voice/SYSTEM_DESIGN.md`
+§4).
 
 ## 14. Testing strategy
 

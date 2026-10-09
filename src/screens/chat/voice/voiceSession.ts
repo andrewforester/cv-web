@@ -1,7 +1,7 @@
 import { VOICE_MAX_CALL_SECONDS, type VoiceCall } from '../../../data/voice';
 
 /**
- * One attempt at a call, from the mic tap to its end: what the async steps and the SDK's
+ * One attempt at a call, from the Call tap to its end: what the async steps and the SDK's
  * callbacks share. A finished session ignores everything that arrives late.
  */
 export interface CallSession {
@@ -12,19 +12,17 @@ export interface CallSession {
   liveAt: number | null;
   mode: 'listening' | 'speaking';
   muted: boolean;
-  /** Final lines so far: a call with none closes without opening the chat. */
+  /** Final lines so far: a call with none doesn't open the chat when it ends. */
   lines: number;
   finished: boolean;
   /** The call must end as a failure whatever the SDK reports (offline mid-call). */
   endAsError: boolean;
-  /** The visitor asked for the text chat: it opens after the call ends. */
-  toChat: boolean;
   /** `end()` was asked for: later timer ticks and taps don't ask again. */
   hangingUp: boolean;
   /** The 2:30 warning went out. */
   warned: boolean;
   maxCallSeconds: number;
-  /** When the last visual tool ran: the fog closes no sooner than 3 s after it. */
+  /** When the last visual tool ran: its chip leaves no sooner than 3 s after it. */
   toolAt: number | null;
   /** Resolves the contact card that waits for a tap. */
   decide: ((confirmed: boolean) => void) | null;
@@ -42,7 +40,6 @@ export function newCallSession(): CallSession {
     lines: 0,
     finished: false,
     endAsError: false,
-    toChat: false,
     hangingUp: false,
     warned: false,
     maxCallSeconds: VOICE_MAX_CALL_SECONDS,

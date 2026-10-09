@@ -10,6 +10,7 @@ import {
   type ChatAssistantMessageV2,
   type ChatError,
   type ChatMessageV4,
+  type ChatUserMessageV4,
 } from '../../src/data/chat/contract.js';
 import { CV_PAGE } from './cvPageData.js';
 import { chatError } from './errors.js';
@@ -20,15 +21,14 @@ import {
   invalid,
   isOneOf,
   isRecord,
+  nonEmpty,
   type ValidationResult,
 } from './validateParts.js';
+import { checkVoiceCalls, voiceChars } from './validateVoiceCalls.js';
 
 /** The catalogue's targets and tool names (sorted): a snapshot may name only these. */
 const TARGETS: readonly string[] = cvPageTargetIds(CV_PAGE);
 const TOOL_NAMES = buildCvPageToolSpecs(CV_PAGE).map((spec) => spec.name);
-
-const nonEmpty = (value: unknown): value is string =>
-  typeof value === 'string' && value.trim() !== '';
 
 /**
  * A question's snapshot rebuilt from known fields only (enums, never free text), or an error
@@ -60,6 +60,17 @@ function checkPage(raw: unknown, where: string): AgentPageStateV4 | string {
   };
 }
 
+/** A question: its text, the page snapshot and, when sent, the voice calls before it. */
+function checkQuestion(item: Record<string, unknown>, where: string): ChatUserMessageV4 | string {
+  if (!nonEmpty(item.content)) return `${where}.content must be a non-empty string`;
+  const page = checkPage(item.page, where);
+  if (typeof page === 'string') return page;
+  if (item.voiceCalls === undefined) return { role: 'user', content: item.content, page };
+  const voiceCalls = checkVoiceCalls(item.voiceCalls, where);
+  if (typeof voiceCalls === 'string') return voiceCalls;
+  return { role: 'user', content: item.content, page, voiceCalls };
+}
+
 /** A `user` message: a question with its page snapshot, or the results of `previousCalls`. */
 function checkUser(
   item: Record<string, unknown>,
@@ -67,14 +78,14 @@ function checkUser(
   previousCalls: AgentToolCall[] | undefined,
 ): ChatMessageV4 | string {
   if (previousCalls) {
-    if (item.content !== undefined) return `${where} must carry toolResults only`;
+    if (item.content !== undefined || item.voiceCalls !== undefined) {
+      return `${where} must carry toolResults only`;
+    }
     const toolResults = checkToolResults(item.toolResults, previousCalls, where);
     return typeof toolResults === 'string' ? toolResults : { role: 'user', toolResults };
   }
   if (item.toolResults !== undefined) return `${where}.toolResults without preceding toolCalls`;
-  if (!nonEmpty(item.content)) return `${where}.content must be a non-empty string`;
-  const page = checkPage(item.page, where);
-  return typeof page === 'string' ? page : { role: 'user', content: item.content, page };
+  return checkQuestion(item, where);
 }
 
 function checkAssistant(
@@ -133,6 +144,11 @@ function lengthError(messages: ChatMessageV4[]): ChatError | undefined {
       return chatError('too_long', `messages[${index}].content exceeds ${max} characters`);
     }
     total += message.content.length;
+    if (message.role === 'user' && message.voiceCalls) {
+      const voice = voiceChars(message.voiceCalls, `messages[${index}]`);
+      if (typeof voice !== 'number') return voice;
+      total += voice;
+    }
   }
   if (total > CHAT_LIMITS_V2.maxTotalChars) {
     return chatError(
@@ -156,8 +172,9 @@ function toolRoundOf(messages: ChatMessageV4[]): number {
 
 /**
  * Validates a v4 body (docs/chat/API.md → v4) whose `v` is already checked: conversation limits,
- * alternation, questions with the one page's snapshot, tool calls and results from its catalogue,
- * lengths, and the turn's tool round. `page` and `locale` are ignored if sent.
+ * alternation, questions with the one page's snapshot and their voice calls, tool calls and
+ * results from its catalogue, lengths (voice text included), and the turn's tool round. `page`
+ * and `locale` are ignored if sent.
  */
 export function validateV4(body: Record<string, unknown>): ValidationResult {
   const raw = body.messages;

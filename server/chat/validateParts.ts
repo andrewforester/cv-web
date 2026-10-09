@@ -28,6 +28,9 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+export const nonEmpty = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim() !== '';
+
 export function isOneOf<T extends string>(list: readonly T[], value: unknown): value is T {
   return typeof value === 'string' && (list as readonly string[]).includes(value);
 }

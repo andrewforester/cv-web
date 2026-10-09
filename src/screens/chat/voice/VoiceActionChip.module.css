@@ -1,20 +1,22 @@
-/* docs/design/voice/SPEC.md → Layout 3 (action chip). */
+/* docs/design/voice/SPEC.md → Layout 2 (action chip): the chat's chip, over the stage's top. */
 .chip {
   position: absolute;
-  top: calc(var(--space-6) + var(--pill-height) + var(--space-3));
+  top: var(--space-4);
   left: 50%;
+  z-index: 1;
   max-width: calc(100% - 2 * var(--space-4));
   margin: 0;
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-1) var(--space-3);
   font-family: var(--font-mono);
-  font-size: var(--type-meta-size);
-  color: var(--color-ink);
-  background: var(--color-card);
+  font-size: var(--chat-caption-size);
+  line-height: var(--chat-caption-line-height);
+  white-space: nowrap;
+  color: var(--color-dark-ink);
+  border: var(--border-card) solid var(--color-dark-line);
   border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-launcher);
   transform: translateX(-50%);
   animation: chip-in var(--chat-motion-duration) var(--chat-motion-easing) both;
 }
@@ -22,12 +24,12 @@
 .icon {
   width: var(--chat-action-icon-size);
   height: var(--chat-action-icon-size);
-  color: var(--color-accent);
+  color: var(--color-dark-number);
 }
 
-@media (max-width: 599px) {
+@media (max-width: 599px), (max-height: 499px) {
   .chip {
-    top: calc(var(--space-4) + env(safe-area-inset-top) + var(--pill-height) + var(--space-3));
+    top: var(--space-2);
   }
 }
 

@@ -1,10 +1,4 @@
-import {
-  CHAT_LIMITS_V2,
-  type AgentPageStateV4,
-  type ChatError,
-  type ChatMessageV4,
-  type ChatStopReason,
-} from '../../data/chat';
+import type { AgentPageStateV4, ChatError, ChatStopReason } from '../../data/chat';
 import type { ChatActionCall, ChatEntry, ChatToolRound, ChatTurn } from './ChatUiState';
 import { callReducer, startCall, type CallAction } from './voice/callReducer';
 
@@ -123,68 +117,4 @@ export function textTurns(entries: readonly ChatEntry[]): ChatTurn[] {
 
 export function isBusy(entries: readonly ChatEntry[]): boolean {
   return textTurns(entries).some(isActive);
-}
-
-/** The model messages of a turn's tool rounds: the assistant message, then its results. */
-function roundMessages(rounds: readonly ChatToolRound[]): ChatMessageV4[] {
-  return rounds.flatMap((round): ChatMessageV4[] => [
-    {
-      role: 'assistant',
-      content: round.text,
-      toolCalls: round.actions.map((item) => item.call),
-      ...(round.providerState !== undefined && { providerState: round.providerState }),
-    },
-    {
-      role: 'user',
-      toolResults: round.actions.map((item) => ({
-        callId: item.call.id,
-        result: item.result ?? { ok: false, error: 'failed' },
-      })),
-    },
-  ]);
-}
-
-/** The question with its page snapshot and the finished tool rounds: what a retry re-sends. */
-export function turnMessages(turn: ChatTurn): ChatMessageV4[] {
-  return [{ role: 'user', content: turn.question, page: turn.page }, ...roundMessages(turn.rounds)];
-}
-
-/**
- * The history to send: completed turns only (a `done` answer with text, exactly as streamed, after
- * its tool rounds; stopped and failed turns are dropped with their question so roles keep
- * alternating). Voice calls are never sent (docs/voice/SYSTEM_DESIGN.md §8).
- */
-export function buildHistory(history: readonly ChatEntry[]): ChatMessageV4[] {
-  return textTurns(history)
-    .filter((turn) => turn.status === 'done' && turn.answer.trim() !== '')
-    .flatMap((turn) => [
-      ...turnMessages(turn),
-      { role: 'assistant' as const, content: turn.answer },
-    ]);
-}
-
-export function buildMessages(
-  history: readonly ChatEntry[],
-  question: string,
-  page: AgentPageStateV4,
-): ChatMessageV4[] {
-  return [...buildHistory(history), { role: 'user', content: question, page }];
-}
-
-/** Whether sending `question` after `history` would break the API's conversation limits. */
-export function exceedsConversationLimits(
-  history: readonly ChatEntry[],
-  question: string,
-): boolean {
-  const messages = buildHistory(history);
-  const questions = messages.filter((message) => 'page' in message).length + 1;
-  const chars = messages.reduce(
-    (sum, message) => sum + ('content' in message ? message.content.length : 0),
-    question.length,
-  );
-  return (
-    messages.length + 1 > CHAT_LIMITS_V2.maxMessages ||
-    questions > CHAT_LIMITS_V2.maxUserQuestions ||
-    chars > CHAT_LIMITS_V2.maxTotalChars
-  );
 }

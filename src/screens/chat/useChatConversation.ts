@@ -14,15 +14,8 @@ import { useAgentRegistry } from '../../agent';
 import { useStrings } from '../../i18n';
 import { useAgentExecutor } from './agentExecutor';
 import type { ChatAnnouncementInput, ChatEntry } from './ChatUiState';
-import {
-  buildHistory,
-  buildMessages,
-  conversationReducer,
-  isBusy,
-  textTurns,
-  turnMessages,
-  type ConversationAction,
-} from './conversation';
+import { conversationReducer, isBusy, textTurns, type ConversationAction } from './conversation';
+import { buildMessages, retryMessages } from './conversationRequests';
 import { loadPageContent } from './pageContent';
 import { useConfirmationDecisions } from './useConfirmationDecisions';
 import { runToolCalls, VISUAL_TOOLS } from './runToolCalls';
@@ -40,7 +33,7 @@ export interface Conversation {
   reset(): void;
   confirmAction(callId: string): void;
   declineAction(callId: string): void;
-  /** Records a voice call's events (the voice mode's state holder writes its transcript here). */
+  /** Records a voice call's events (the call's state holder writes its transcript here). */
   record: Dispatch<ConversationAction>;
 }
 
@@ -207,11 +200,7 @@ export function useChatConversation({
     if (last?.kind !== 'turn' || last.status !== 'error') return;
     dispatch({ type: 'retry', id: last.id });
     announce({ kind: 'typing' });
-    void run(
-      last.id,
-      [...buildHistory(entries.slice(0, -1)), ...turnMessages(last)],
-      last.rounds.length,
-    );
+    void run(last.id, retryMessages(entries.slice(0, -1), last), last.rounds.length);
   }, [entries, run, announce]);
 
   const stop = useCallback(() => {

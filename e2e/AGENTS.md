@@ -12,7 +12,9 @@ What it guarantees today:
   production redirects it).
 - The chat sends `v: 4` (no page id, no locale) and answers a question with a streamed reply;
   it offers the page's four first questions, and rate limiting shows its notice. A `#ask` link
-  opens it; its look is screenshotted empty and answered, desktop and phone.
+  opens it; its look is screenshotted empty and answered at three viewports: `wide` 1600 × 900
+  (the slide: the page moves left beside the panel), `desktop` 1280 × 800 (the overlay: the same
+  panel over the unmoved page) and `phone`.
 - The page agent on the one page (`agent.png`): scrolls to the selected impact, highlights the
   Transcenda job (and the next snapshot says so), and opens LinkedIn in a new tab only after the
   visitor confirms; Cancel opens nothing.
@@ -24,9 +26,14 @@ What it guarantees today:
 - Every selector of every damage layer (`src/screens/retro/layers/*.css`, read from disk) matches an
   element on the show's first frame (`retroLayers.spec.ts`), so editing the CV can't leave a layer
   styling nothing.
-- The voice mode (`voice.spec.ts`): the scripted `FakeVoiceClient` (`?voice=fake`) with a mocked
-  `/api/voice-session`; the mic button opens the full-screen voice mode and its states are
-  screenshotted against `docs/design/voice/`; no test talks to ElevenLabs.
+- The voice call (`voice.spec.ts`): the scripted `FakeVoiceClient` (`?voice=fake`, which only the `build:e2e` build honours) with a mocked
+  `/api/voice-session`; the "Talk to my AI" pill opens the chat, its Call button starts the call
+  in the floating panel (a bottom sheet on a phone), and its states (typing, the chat toggle, the
+  pill, the transcript, reduced motion) are screenshotted against `docs/design/voice/` at the
+  same `wide` (slide: the CV card 208 px left at its own width, the panel 400 × 600 beside it),
+  `desktop` (overlay: the card unmoved) and `mobile` viewports; no test talks to ElevenLabs.
+  It runs with motion on (the config turns it off by default), since the panel's morph
+  out of the pill is part of what it checks.
 
 Production smoke: tests titled `@prod` (the home page and `/new`; `/new` must end on `/`) also run
 against the live site right after CI deploys production (`.github/workflows/prod-smoke.yml`, called

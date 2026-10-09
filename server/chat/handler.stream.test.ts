@@ -34,8 +34,8 @@ describe('handleChat: the SSE stream', () => {
     await (await handleChat(chatRequest(body), deps)).text();
     const request = deps.llm.requests[0];
     expect(request?.model).toBe('claude-haiku-4-5');
-    expect(request?.system[2]?.text).toContain('<document id="cv" title="CV">');
-    expect(request?.system[3]?.text).toBe('Site language: English (en).');
+    expect(request?.system.at(-2)?.text).toContain('<document id="cv" title="CV">');
+    expect(request?.system.at(-1)?.text).toBe('Site language: English (en).');
     expect(request?.messages).toHaveLength(1);
     expect(JSON.stringify(request?.messages[0])).toContain('What does Andrew do?');
   });

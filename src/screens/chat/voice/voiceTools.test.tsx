@@ -1,15 +1,15 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import { chatTestIds } from '../testIds';
-import { CONTACT_TAP_MS, FOG_HOLD_MS } from './useVoiceTools';
-import { ManualVoiceClient, renderVoiceChat } from './voiceTestHarness';
+import { CONTACT_TAP_MS, CHIP_HOLD_MS } from './useVoiceTools';
+import { ManualVoiceClient, renderVoiceChat, startCall } from './voiceTestHarness';
 
-const voiceMode = () => screen.getByTestId(chatTestIds.voiceMode);
+const voicePanel = () => screen.getByTestId(chatTestIds.voicePanel);
 const linkedin = { name: 'openContact', input: { channel: 'linkedin' } } as const;
 
 async function liveCall(options: { advanceTimers?: (ms: number) => void } = {}) {
   const client = new ManualVoiceClient();
   const rendered = await renderVoiceChat({ client, ...options });
-  await rendered.user.click(screen.getByTestId(chatTestIds.voiceMic));
+  await startCall(rendered.user);
   await waitFor(() => expect(client.call).not.toBeNull());
   client.emit({ type: 'status', status: 'live' }, { type: 'mode', mode: 'speaking' });
   return { ...rendered, client };
@@ -21,7 +21,7 @@ describe('voice page tools', () => {
     vi.useRealTimers();
   });
 
-  it('a scroll parts the fog with a chip until the agent’s turn ends, 3 s at least', async () => {
+  it('a scroll shows its chip until the agent’s turn ends, 3 s at least', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     const { client, executor } = await liveCall({
       advanceTimers: (ms) => vi.advanceTimersByTime(ms),
@@ -31,13 +31,13 @@ describe('voice page tools', () => {
     );
     expect(result).toEqual({ ok: true });
     expect(executor.executed).toHaveLength(1);
-    expect(voiceMode()).toHaveAttribute('data-phase', 'tool');
+    expect(voicePanel()).toHaveAttribute('data-phase', 'tool');
     expect(screen.getByTestId(chatTestIds.voiceAction)).toHaveTextContent('Scrolled to Experience');
 
     client.emit({ type: 'mode', mode: 'listening' });
-    expect(voiceMode()).toHaveAttribute('data-phase', 'tool');
-    act(() => vi.advanceTimersByTime(FOG_HOLD_MS));
-    expect(voiceMode()).toHaveAttribute('data-phase', 'listening');
+    expect(voicePanel()).toHaveAttribute('data-phase', 'tool');
+    act(() => vi.advanceTimersByTime(CHIP_HOLD_MS));
+    expect(voicePanel()).toHaveAttribute('data-phase', 'listening');
     expect(screen.queryByTestId(chatTestIds.voiceAction)).not.toBeInTheDocument();
   });
 
@@ -72,7 +72,7 @@ describe('voice page tools', () => {
     const pending = client.tool(linkedin);
 
     const card = await screen.findByTestId(chatTestIds.voiceContact);
-    expect(voiceMode()).toHaveAttribute('data-phase', 'contact');
+    expect(voicePanel()).toHaveAttribute('data-phase', 'contact');
     expect(card).toHaveTextContent('Open Andrew’s LinkedIn profile?');
     const link = within(card).getByRole('link', { name: 'Open LinkedIn' });
     await waitFor(() => expect(link).toHaveFocus());
@@ -109,8 +109,8 @@ describe('voice page tools', () => {
     await user.click(screen.getByRole('button', { name: 'End call' }));
 
     expect(await pending).toEqual({ ok: false, error: 'declined' });
-    // No lines were said, so the chat stays closed: open it to read the call.
-    await user.click(await screen.findByTestId(chatTestIds.fab));
+    // Every call returns to the chat, where it started: the call's chip is there.
+    expect(screen.getByTestId(chatTestIds.root)).toHaveAttribute('data-surface', 'text');
     const list = within(await screen.findByTestId(chatTestIds.list));
     expect(list.getByTestId(chatTestIds.actionChip)).toHaveTextContent('Cancelled');
   });

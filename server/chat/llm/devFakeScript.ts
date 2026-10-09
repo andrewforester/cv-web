@@ -1,9 +1,7 @@
 import type { AgentToolCall } from '../../../src/data/chat/contract.js';
+import { DEV_ANSWERS, DEV_CYCLE_TOOL } from './devFakeAnswers.js';
 import type { FakeScript } from './FakeLlmClient.js';
 import { LlmError, type LlmMessage, type LlmRequest } from './LlmClient.js';
-
-const DEV_ANSWER =
-  'This is a scripted answer from the fake model (CHAT_FAKE_LLM=1). Andrew is a **Senior Android Engineer** with iOS experience.\n\n- Kotlin, Jetpack Compose\n- Cync and August Home apps';
 
 /** Tool rounds: the sentence before the calls and the answers after the results. */
 const DEV_TOOL_TEXT = {
@@ -36,6 +34,21 @@ const PARAM_BY_TOOL: Record<AgentToolCall['name'], string> = {
 /** Splits text into word-sized deltas, like a real stream. */
 export function words(text: string): string[] {
   return text.match(/\S+\s*/g) ?? [];
+}
+
+/** A visitor's question, as opposed to a turn carrying tool results. */
+function isQuestion(message: LlmMessage): boolean {
+  if (message.role !== 'user') return false;
+  return typeof message.content === 'string' || message.content[0]?.type !== 'tool_result';
+}
+
+/**
+ * Where this question falls in the cycle of `DEV_ANSWERS` followed by one tool round: the 0-based
+ * question count, so the order is deterministic and needs no server state.
+ */
+function cycleSlot(request: LlmRequest): number {
+  const questions = request.messages.filter(isQuestion).length;
+  return Math.max(questions - 1, 0) % (DEV_ANSWERS.length + 1);
 }
 
 /** The visitor's text of a message (questions carry `<page_state>` first). */
@@ -85,7 +98,12 @@ function toolScript(request: LlmRequest): FakeScript | undefined {
     return { deltas: words(failed ? text.failed : text.ok), delayMs: 60 };
   }
   if (request.tool_choice?.type !== 'auto') return undefined;
-  const toolCalls = toolCallsFor(request, textOf(last));
+  const question = textOf(last);
+  let toolCalls = toolCallsFor(request, question);
+  const cycleTool = !question.startsWith('/') && cycleSlot(request) === DEV_ANSWERS.length;
+  if (toolCalls.length === 0 && cycleTool) {
+    toolCalls = toolCallsFor(request, `/tool ${DEV_CYCLE_TOOL.name}=${DEV_CYCLE_TOOL.value}`);
+  }
   return toolCalls.length > 0 ? { deltas: words(text.before), toolCalls, delayMs: 60 } : undefined;
 }
 
@@ -93,13 +111,14 @@ function toolScript(request: LlmRequest): FakeScript | undefined {
  * Dev-mode script. The last visitor message may start with a command to exercise the widget:
  * `/error` (mid-stream upstream error), `/fail` (upstream error before the stream),
  * `/refusal`, `/long` (`max_tokens`), `/slow` (keeps the stream open, for Stop). `/tool` and the
- * `DEV_COMMANDS` phrases answer with a tool round.
+ * `DEV_COMMANDS` phrases answer with a tool round. Any other question gets the next of
+ * `DEV_ANSWERS`, and after them a scroll round (`DEV_CYCLE_TOOL`), cycling.
  */
 export function devFakeScript(request: LlmRequest): FakeScript {
   const last = textOf(request.messages.at(-1));
   const tools = toolScript(request);
   if (tools) return tools;
-  const deltas = words(DEV_ANSWER);
+  const deltas = words(DEV_ANSWERS[cycleSlot(request) % DEV_ANSWERS.length] ?? '');
   const upstream = new LlmError('Upstream overloaded_error (fake)', {
     retryable: true,
     errorType: 'overloaded_error',
