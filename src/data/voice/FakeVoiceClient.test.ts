@@ -1,5 +1,6 @@
 import type { AgentToolCall } from '../chat/contract';
 import { FAKE_VOICE_SCRIPT, FakeVoiceClient } from './FakeVoiceClient';
+import { DEMO_VOICE_INTRO, DEMO_VOICE_LOOP, createDemoVoiceClient } from './demoVoiceScript';
 import type { VoiceCallEvent, VoiceCallHandlers } from './VoiceClient';
 
 const session = { v: 1 as const, conversationToken: 'fake', maxCallSeconds: 180 };
@@ -41,6 +42,38 @@ describe('FakeVoiceClient', () => {
       { id: 'voice-1', name: 'scrollToSection', input: { section: 'impact' } },
     ]);
     expect(events.at(-1)).toEqual({ type: 'ended', reason: 'agent' });
+  });
+
+  it('repeats the loop with unique line ids until the visitor ends the call', async () => {
+    const { events, toolCalls, handlers } = recorder();
+    const client = new FakeVoiceClient({
+      stepMs: 10,
+      script: DEMO_VOICE_INTRO,
+      loop: DEMO_VOICE_LOOP,
+    });
+    const call = await client.start(session, handlers);
+    await vi.advanceTimersByTimeAsync(10 * (DEMO_VOICE_INTRO.length + 3 * DEMO_VOICE_LOOP.length));
+
+    expect(events.some((e) => e.type === 'ended')).toBe(false);
+    const ids = events.flatMap((e) => (e.type === 'line' ? [e.line.id] : []));
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids).toContain('demo-agent-2-r3');
+    expect(events).toContainEqual({
+      type: 'correction',
+      id: 'demo-agent-2-r1',
+      text: 'This is his selected impact.',
+    });
+    expect(toolCalls).toHaveLength(9);
+
+    await call.end();
+    const count = events.length;
+    await vi.advanceTimersByTimeAsync(10 * DEMO_VOICE_LOOP.length);
+    expect(events).toHaveLength(count);
+    expect(events.at(-1)).toEqual({ type: 'ended', reason: 'visitor' });
+  });
+
+  it('builds the demo client without a microphone prompt', async () => {
+    await expect(createDemoVoiceClient().requestMicrophone()).resolves.toBe('granted');
   });
 
   it('ends early with the given reason, once, and stops the script', async () => {
