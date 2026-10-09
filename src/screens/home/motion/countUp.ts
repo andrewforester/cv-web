@@ -48,9 +48,9 @@ function tween(motion: Motion, duration: number, draw: (p: number) => void): voi
 
 /**
  * Readies the value in `el` (its first text node) to count up from 0, or to scramble when it is a
- * short non-numeric one: a number shows its start text from now. Returns how to `play` it after
- * `delay` ms and how to `show` the original at once; `null` when it doesn't move. The text is the
- * original again at the end and when the motion stops.
+ * short non-numeric one. `play` shows a number's start text at once and counts after `delay` ms;
+ * `show` puts the original back. `null` when it doesn't move. The text is the original again at
+ * the end and when the motion stops.
  */
 function prepareCount(
   motion: Motion,
@@ -69,15 +69,16 @@ function prepareCount(
   const scramble = start === null;
   const draw = (p: number) =>
     scramble ? (p < 1 ? scrambleText(text) : text) : (countText(text, easeOutExpo(p)) ?? text);
-  if (!scramble) node.data = start;
   return {
     show,
-    play: (delay) =>
+    play: (delay) => {
+      if (!scramble) node.data = start;
       motion.later(() => {
         tween(motion, scramble ? tokens.scrambleDuration : tokens.countDuration, (p) => {
           node.data = draw(p);
         });
-      }, delay),
+      }, delay);
+    },
   };
 }
 
@@ -87,8 +88,8 @@ export function countUp(motion: Motion, el: Element | null, delay: number): void
 }
 
 /**
- * Counts the value in `el` up `delay` ms after `trigger` scrolls into view; until then it shows
- * its start, and when shown at once it shows the original.
+ * Counts the value in `el` up `delay` ms after `trigger` scrolls into view (its card is still
+ * hidden when the start text appears); until then, and when shown at once, it keeps the original.
  */
 export function countOnReveal(
   motion: Motion,

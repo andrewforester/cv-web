@@ -103,8 +103,10 @@ describe('the sections motion', () => {
   it('counts the impact figures up once their cards scroll in', async () => {
     env = installMotionEnv();
     await renderPage();
-    expect(impactValues()).toEqual(['0K+', '0 days', '0 day']);
+    // The real figures until the cards scroll in (screen readers, find-in-page, copy).
+    expect(impactValues()).toEqual(IMPACT_VALUES);
     env.scroll(grid('impact'));
+    expect(impactValues()).toEqual(['0K+', '0 days', '0 day']);
     act(() => vi.advanceTimersByTime(3000));
     expect(impactValues()).toEqual(IMPACT_VALUES);
   });
