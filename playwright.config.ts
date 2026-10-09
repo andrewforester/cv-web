@@ -18,11 +18,25 @@ export default defineConfig({
   outputDir: 'test-results',
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
-  use: {
-    baseURL: BASE_URL ?? `http://localhost:${PORT}/`,
-    ...devices['Desktop Chrome'],
-    viewport: { width: 1280, height: 800 },
-  },
+  use: { baseURL: BASE_URL ?? `http://localhost:${PORT}/` },
+  // `desktop` runs every test; `mobile` (a phone in the same Chromium, no device download) runs only
+  // the tests tagged `@mobile`. Specs that loop over their own viewports (chat, voice) stay untagged.
+  projects: [
+    {
+      name: 'desktop',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
+    },
+    {
+      name: 'mobile',
+      grep: /@mobile/,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 390, height: 844 },
+        isMobile: true,
+        hasTouch: true,
+      },
+    },
+  ],
   webServer: BASE_URL
     ? undefined
     : {

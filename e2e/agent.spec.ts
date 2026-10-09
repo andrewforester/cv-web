@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { collectErrors, NORMAL_SITE, SCREENSHOT_DIR } from './support';
+import { collectErrors, NORMAL_SITE, screenshotPath } from './support';
 
 // Web check of the page agent on the one page with a mocked `/api/chat` scripting a v4 tool round
 // (docs/chat/AGENT.md §7, API.md → v4, ADR-0006 → Decision 3).
@@ -55,9 +55,27 @@ async function ask(page: Page, text: string) {
   await page.getByTestId('chat-input').press('Enter');
 }
 
+/**
+ * On a phone a visual action folds the chat sheet into its pill so the page shows (AGENT.md →
+ * Mobile sheet): the screenshot is that page; the pill then opens the conversation again.
+ */
+async function reopenOnPhone(page: Page, isMobile: boolean, screenshot?: string) {
+  if (!isMobile) return;
+  if (screenshot) await page.screenshot({ path: screenshotPath(screenshot, true) });
+  await page.getByTestId('chat-fab').click();
+}
+
+// CV-221: on a phone the sheet's Back (history.go(-1)) restores the scroll to the top, undoing the
+// action; Playwright reports these two as expected failures there until it is fixed.
+const PHONE_SCROLL_BUG = 'CV-221: the chat sheet closing undoes the scroll on a phone';
+
 const TOOLS = ['highlightElement', 'openContact', 'scrollToSection'];
 
-test('scrolls to the selected impact and names it in the chip', async ({ page }) => {
+test('scrolls to the selected impact and names it in the chip @mobile', async ({
+  page,
+  isMobile,
+}) => {
+  test.fail(isMobile, PHONE_SCROLL_BUG);
   const errors = collectErrors(page);
   const requests = await scriptToolRound(page, {
     before: 'Scrolling to his impact.',
@@ -70,7 +88,8 @@ test('scrolls to the selected impact and names it in the chip', async ({ page })
 
   await ask(page, 'Show his selected impact');
 
-  await expect(impact).toBeInViewport({ ratio: 0.5 });
+  await expect.soft(impact).toBeInViewport({ ratio: 0.5 });
+  await reopenOnPhone(page, isMobile, 'agent');
   await expect(page.getByTestId('chat-action-chip').first()).toContainText('Selected impact');
   await expect(page.getByTestId('chat-assistant-message').last()).toContainText('Here it is.');
   expect(requests).toHaveLength(2);
@@ -81,8 +100,9 @@ test('scrolls to the selected impact and names it in the chip', async ({ page })
         role: 'user',
         content: 'Show his selected impact',
         page: {
-          viewport: 'desktop',
-          chat: 'card',
+          // On a phone the chat is the full-screen sheet.
+          viewport: isMobile ? 'mobile' : 'desktop',
+          chat: isMobile ? 'sheet' : 'card',
           activeSection: 'header',
           highlighted: null,
           tools: TOOLS,
@@ -91,11 +111,15 @@ test('scrolls to the selected impact and names it in the chip', async ({ page })
     ],
   });
   expect(JSON.stringify(requests[1])).toContain('"callId":"toolu_e2e_1"');
-  await page.screenshot({ path: `${SCREENSHOT_DIR}/agent.png` });
+  if (!isMobile) await page.screenshot({ path: screenshotPath('agent', false) });
   expect(errors).toEqual([]);
 });
 
-test('highlights his work at Transcenda with the highlight marker', async ({ page }) => {
+test('highlights his work at Transcenda with the highlight marker @mobile', async ({
+  page,
+  isMobile,
+}) => {
+  test.fail(isMobile, PHONE_SCROLL_BUG);
   const errors = collectErrors(page);
   const requests = await scriptToolRound(page, {
     before: 'Here.',
@@ -110,8 +134,9 @@ test('highlights his work at Transcenda with the highlight marker', async ({ pag
   await ask(page, 'Highlight his work at Transcenda');
 
   const job = page.locator('[data-agent-id="experience:transcenda"]');
-  await expect(job).toBeInViewport();
+  await expect.soft(job).toBeInViewport();
   await expect(job).toHaveAttribute('data-agent-highlighted');
+  await reopenOnPhone(page, isMobile);
   await expect(page.getByTestId('chat-action-chip').first()).toContainText('Transcenda');
   await expect(page.getByTestId('chat-assistant-message').last()).toContainText('Done.');
 
@@ -146,7 +171,7 @@ test.describe('openContact linkedin with the confirmation', () => {
   const opened = (page: Page) =>
     page.evaluate(() => (window as unknown as { __opened: string[] }).__opened);
 
-  test('asks first; Confirm opens his LinkedIn in a new tab', async ({ page }) => {
+  test('asks first; Confirm opens his LinkedIn in a new tab @mobile', async ({ page }) => {
     const errors = collectErrors(page);
     const requests = await scriptToolRound(page, script);
     await page.goto(NORMAL_SITE);
@@ -165,7 +190,7 @@ test.describe('openContact linkedin with the confirmation', () => {
     expect(errors).toEqual([]);
   });
 
-  test('Cancel opens nothing', async ({ page }) => {
+  test('Cancel opens nothing @mobile', async ({ page, isMobile }) => {
     const errors = collectErrors(page);
     await scriptToolRound(page, script);
     await page.goto(NORMAL_SITE);
@@ -178,7 +203,9 @@ test.describe('openContact linkedin with the confirmation', () => {
     await expect(card).toBeHidden();
     await expect(page.getByTestId('chat-assistant-message').last()).toContainText(script.after);
     expect(await opened(page)).toEqual([]);
-    expect(page.url()).toBe(new URL(NORMAL_SITE, page.url()).href);
+    // On a phone the open sheet keeps its own history entry (`#chat`).
+    const stays = NORMAL_SITE + (isMobile ? '#chat' : '');
+    expect(page.url()).toBe(new URL(stays, page.url()).href);
     expect(errors).toEqual([]);
   });
 });
