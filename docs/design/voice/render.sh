@@ -20,7 +20,13 @@ MOCK="file://$PWD/mock.html"
 FLAGS=(--headless=new --hide-scrollbars --force-device-scale-factor=1 --virtual-time-budget=4000
   --allow-file-access-from-files)
 
+# Desktop = the slide (>= 1584 px): 1600 x 900. Laptop = the overlay (600-1583 px): 1280 x 800.
 desktop() { # <out.png> <state>
+  "$CHROME" "${FLAGS[@]}" --window-size=1600,900 --screenshot="$PWD/$1" "$MOCK?state=$2" 2>/dev/null
+  echo "$1"
+}
+
+laptop() { # <out.png> <state>
   "$CHROME" "${FLAGS[@]}" --window-size=1280,800 --screenshot="$PWD/$1" "$MOCK?state=$2" 2>/dev/null
   echo "$1"
 }
@@ -41,6 +47,9 @@ for s in launcher text connecting listening speaking muted typed tool confirm wa
   error-denied error-failed error-busy error-ratelimited error-dropped error-callcap error-monthly offline; do
   desktop "assets/voice_state_${s}_desktop.png" "$s"
   mobile "assets/voice_state_${s}_mobile.png" "$s"
+done
+for s in text listening chat tool; do
+  laptop "assets/voice_state_${s}_laptop.png" "$s"
 done
 
 # Optional: shrink the renders (the orb's gradients need dithering, so pngquant, not a plain
