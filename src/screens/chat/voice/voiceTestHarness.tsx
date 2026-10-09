@@ -14,7 +14,7 @@ import type {
   VoiceSessionResult,
 } from '../../../data/voice';
 import { AgentExecutorContext } from '../agentExecutor';
-import type { ChatDock, ChatLayout } from '../chatDock';
+import { CHAT_COLUMN_QUERY, type ChatDock, type ChatLayout } from '../chatDock';
 import { ChatRoute } from '../ChatRoute';
 import { FakeAgentExecutor } from '../fakeAgentExecutor';
 import { chatTestIds } from '../testIds';
@@ -103,7 +103,7 @@ export function stubLayout(layout: ChatLayout) {
   const matches = (query: string) =>
     layout === 'sheet'
       ? query.includes('max-width: 599px')
-      : layout === 'column' && query.includes('min-width: 1024px');
+      : layout === 'column' && query === CHAT_COLUMN_QUERY;
   vi.stubGlobal('matchMedia', (query: string) => ({
     matches: matches(query),
     addEventListener: vi.fn(),

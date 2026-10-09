@@ -2,8 +2,8 @@
 
 Why it exists: a visitor can talk to the CV's AI instead of typing. The gradient Call button
 left of the open chat's field (`VoiceCallButton`) starts a call in the chat's place: the right
-column on wide screens while the page shifts left and stays readable, a floating card on medium
-ones, a bottom sheet on phones. A shimmering orb follows the voices, the latest line shows as a
+column from 1584 px while the page slides left and stays readable (the slide), a floating card
+over the unmoved page on 600–1583 px laptops (the overlay), a bottom sheet on phones. A shimmering orb follows the voices, the latest line shows as a
 caption, and the agent can scroll, highlight and open a contact on the page, which stays
 visible. The visitor can also type mid-call: the line goes to the agent, which answers by voice,
 and joins the transcript at once. One chat toggle (`VoiceChatToggle`: Show chat / Hide chat, the

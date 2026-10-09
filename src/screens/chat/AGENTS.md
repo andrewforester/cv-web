@@ -17,9 +17,10 @@ answer streams: one channel speaks at a time. Behaviour:
 
 What the visitor can rely on:
 - One place for the chat and the call (`chatSurface.ts`: `closed`, `text`, `call`, `callChat`,
-  `callPill`; docs/voice/SYSTEM_DESIGN.md §4.2): a column docked on the right on wide screens
-  (the page shifts left; not modal), a floating card on medium ones, full-screen sheets on phones
-  that stay above the on-screen keyboard. Each open phone sheet owns one history entry (`#chat`),
+  `callPill`; docs/voice/SYSTEM_DESIGN.md §4.2): from 1584 px a column docked on the right while
+  the page slides left at its own width (the **slide**; not modal), on 600–1583 px laptops a
+  floating card over the unmoved page (the **overlay**), full-screen sheets on phones that stay
+  above the on-screen keyboard. Each open phone sheet owns one history entry (`#chat`),
   so the system Back steps out one view and stays on the page; desktop history is untouched.
 - Stop at any time; Try again after a failure; clear, neutral notices for rate limits, offline,
   refusals and a full conversation ("Start a new chat").
@@ -42,9 +43,13 @@ mounted tools) from the agent registry. Chips and confirmation cards name the pa
 Dock and motion: the chat tells the app shell how much room to keep free for it (`chatDock.ts`:
 `none`, `side` column, `bottom` call sheet; derived from the surface and the layout, §4.3)
 through `ChatRoute`'s `onDockChange`, before paint, so the shell's page transition starts on the
-frame the column enters. The column slides in from the right edge with the page's timing (the
-dock motion tokens) and slides out the same way; swapping views inside it crossfades, minimize
-folds it toward the pill (`useFrameMotion`, `ChatColumn.module.css`); reduced motion fades only.
+frame the column enters. The column's breakpoint, 1584 px (`CHAT_COLUMN_QUERY`), is the full CV
+card + the column + a 24 px margin on each side of the card after the slide; `chatDock.test.ts`
+recomputes it from the theme's tokens, since media queries can't read them. The column slides in
+from the right edge with the page's slide timing (`--chat-slide-*`: 500 ms in, 400 ms out) and
+slides out the same way; swapping views inside it crossfades, minimize folds it toward the pill
+(`useFrameMotion`, `ChatColumn.module.css`); reduced motion fades only. The overlay card keeps its
+own short motion and moves nothing.
 
 Place in the architecture: the screen pattern (state holder → UI state → stateless components)
 over `src/data/chat/` (the conversation stream), `CvPageRepository` (labels) and `src/agent/`
