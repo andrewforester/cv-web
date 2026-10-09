@@ -14,13 +14,25 @@ function clamp01(value: number): number {
 }
 
 /**
+ * Whether the stat tiles sit beside the summary (wide layout). Stacked under it (phones), a tile
+ * drifting up would cover the summary's last lines, so there is no parallax then. Horizontal
+ * positions only: the drift moves the tiles vertically.
+ */
+function besideLead(lead: Element | null, stat: Element | undefined): boolean {
+  if (!lead || !stat) return false;
+  return stat.getBoundingClientRect().left >= lead.getBoundingClientRect().right;
+}
+
+/**
  * Scroll-linked motion (SPEC §3): the progress bar's width follows the scroll, and the header's
- * stat tiles drift up on top of their own transform (none on the headline or the photo). Updated
- * once per frame at most.
+ * stat tiles drift up on top of their own transform (none on the headline or the photo) while they
+ * sit beside the summary. Updated once per frame at most.
  */
 export function trackScroll(motion: Motion, root: ParentNode): void {
   const bar = find(root, t.progress);
-  const parallax = findAll(root, t.stat).map((stat, i) => {
+  const lead = find(root, t.lead);
+  const stats = findAll(root, t.stat);
+  const parallax = stats.map((stat, i) => {
     const shift = i % 2 ? PARALLAX_ODD : PARALLAX_EVEN;
     const animation = motion.run(
       stat,
@@ -38,7 +50,7 @@ export function trackScroll(motion: Motion, root: ParentNode): void {
     if (bar instanceof HTMLElement) {
       bar.style.transform = `scaleX(${clamp01(window.scrollY / scrollable)})`;
     }
-    const progress = clamp01(window.scrollY / PARALLAX_DISTANCE);
+    const progress = besideLead(lead, stats[0]) ? clamp01(window.scrollY / PARALLAX_DISTANCE) : 0;
     parallax.forEach((animation) => {
       if (animation) animation.currentTime = progress * SCRUB;
     });

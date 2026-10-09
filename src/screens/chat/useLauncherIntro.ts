@@ -9,14 +9,20 @@ const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 /** The shell's wrapper while the Show case runs: no intro there. */
 const RETRO_STAGE = '[data-retro-stage]';
 
+/** A token's duration in ms; the build may write `2000ms` as `2s`. */
+function ms(value: string): number {
+  const n = Number.parseFloat(value);
+  return value.endsWith('ms') ? n : value.endsWith('s') ? n * 1000 : Number.NaN;
+}
+
 /** Reads the launcher's motion tokens; `null` when the theme isn't loaded (unit tests). */
 function readTokens() {
   const style = getComputedStyle(document.documentElement);
   const read = (name: string) => style.getPropertyValue(name).trim();
   const tokens = {
     spring: read('--motion-spring'),
-    duration: Number.parseFloat(read('--motion-duration')),
-    pulseDuration: Number.parseFloat(read('--motion-pulse-duration')),
+    duration: ms(read('--motion-duration')),
+    pulseDuration: ms(read('--motion-pulse-duration')),
     pulseColor: read('--motion-pulse-color'),
     pulseColorEnd: read('--motion-pulse-color-end'),
     pulseSpread: read('--motion-pulse-spread'),

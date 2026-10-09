@@ -1,6 +1,6 @@
 import { createMotion, up } from './motionKit';
 import { installMotionEnv } from './motionTestHarness';
-import { readMotionTokens } from './motionTokens';
+import { parseDuration, readMotionTokens } from './motionTokens';
 
 describe('createMotion', () => {
   let env: ReturnType<typeof installMotionEnv>;
@@ -17,6 +17,13 @@ describe('createMotion', () => {
 
   it('reads the tokens as numbers and strings', () => {
     expect(readMotionTokens()).toMatchObject({ duration: 900, countDuration: 1400 });
+  });
+
+  it('reads durations in ms or s (the build writes 900ms as .9s)', () => {
+    expect(parseDuration('900ms')).toBe(900);
+    expect(parseDuration('.9s')).toBe(900);
+    expect(parseDuration('1.4s')).toBe(1400);
+    expect(parseDuration('fast')).toBeNaN();
   });
 
   it('plays with the tokens by default and removes a finished one-off', () => {

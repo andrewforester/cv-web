@@ -39,6 +39,7 @@ describe('the page motion', () => {
     });
   });
   afterEach(() => {
+    vi.restoreAllMocks();
     env?.uninstall();
     env = null;
     vi.useRealTimers();
@@ -65,9 +66,19 @@ describe('the page motion', () => {
     expect(statValues()).toEqual(STAT_VALUES);
   });
 
+  /** Puts the stat tiles beside the summary (wide) or under it (phone); jsdom has no layout. */
+  const layOut = (wide: boolean) =>
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function rect(
+      this: Element,
+    ) {
+      const isLead = this.getAttribute('data-motion') === 'lead';
+      return { left: isLead || !wide ? 0 : 700, right: isLead ? 650 : 300 } as DOMRect;
+    });
+
   it('fills the progress bar with the scroll and moves the stat tiles', async () => {
     env = installMotionEnv();
     const { container } = await renderPage();
+    layOut(true);
     vi.spyOn(window, 'scrollY', 'get').mockReturnValue(450);
     act(() => {
       window.dispatchEvent(new Event('scroll'));
@@ -77,6 +88,19 @@ describe('the page motion', () => {
     expect(bar?.style.transform).toBe('scaleX(1)');
     const parallax = env.calls.filter(({ options }) => options.composite === 'add');
     expect(parallax.map(({ animation }) => animation.currentTime)).toEqual([500, 500, 500, 500]);
+  });
+
+  it('keeps the stat tiles still when they sit under the summary (phone)', async () => {
+    env = installMotionEnv();
+    await renderPage();
+    layOut(false);
+    vi.spyOn(window, 'scrollY', 'get').mockReturnValue(450);
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+      vi.advanceTimersByTime(20);
+    });
+    const parallax = env.calls.filter(({ options }) => options.composite === 'add');
+    expect(parallax.map(({ animation }) => animation.currentTime)).toEqual([0, 0, 0, 0]);
   });
 
   it.each([

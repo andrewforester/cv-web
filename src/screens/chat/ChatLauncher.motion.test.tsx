@@ -7,8 +7,9 @@ import { PULSE_COUNT } from './useLauncherIntro';
 /** The launcher's motion tokens as `src/theme/tokens.css` has them (jsdom doesn't load the theme). */
 const TOKENS: Record<string, string> = {
   '--motion-spring': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
-  '--motion-duration': '900ms',
-  '--motion-pulse-duration': '2000ms',
+  '--motion-duration': '.9s',
+  // The build writes durations in seconds.
+  '--motion-pulse-duration': '2s',
   '--motion-pulse-color': 'rgba(139, 92, 246, 0.55)',
   '--motion-pulse-color-end': 'rgba(139, 92, 246, 0)',
   '--motion-pulse-spread': '14px',
