@@ -1,11 +1,11 @@
-/* docs/design/voice/SPEC.md → Layout 2 (the call panel); the placement is `ChatColumn`'s. */
+/* docs/design/voice/SPEC.md → Layout 2 (the call panel); the placement is `ChatFrame`'s. */
 .panel {
   --voice-level: 0;
 }
 
 /*
  * The phone's call: a bottom sheet of a fixed height over the live page (the shell pads it). It
- * slides up from below the screen, no fade, with the column's timing (SPEC → Motion).
+ * slides up from below the screen, no fade, with the call sheet's timing (SPEC → Motion).
  */
 @media (max-width: 599px), (max-height: 499px) {
   .panel {

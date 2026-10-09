@@ -15,7 +15,7 @@ interface VoiceCallButtonProps {
 
 /**
  * Call, left of the chat's field (docs/design/voice/SPEC.md → Layout 1): the gradient pill that
- * starts a call in the same column; it reads as one line with the placeholder "…or type instead".
+ * starts a call in the same panel; it reads as one line with the placeholder "…or type instead".
  */
 export function VoiceCallButton({ className, buttonRef, disabled, onStart }: VoiceCallButtonProps) {
   const strings = useStrings(chatStrings);

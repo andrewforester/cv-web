@@ -6,7 +6,7 @@ import { useChatState } from './useChatState';
 /**
  * Connects the chat state holder to the stateless widget and reports its dock to the app shell;
  * rendered once by the shell. The dock is reported before paint, so the page's width transition
- * starts on the same frame as the column's entry (docs/voice/SYSTEM_DESIGN.md §4.3).
+ * starts on the same frame as the panel's entry (docs/voice/SYSTEM_DESIGN.md §4.3).
  */
 export function ChatRoute({ onDockChange }: ChatRouteProps) {
   const { state, actions } = useChatState();

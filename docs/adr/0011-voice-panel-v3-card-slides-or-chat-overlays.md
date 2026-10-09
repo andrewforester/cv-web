@@ -1,6 +1,9 @@
 # ADR-0011: The CV card keeps its width and slides left for the column; without room, the chat floats over the page
 
-**Status:** Proposed (CV-198)
+**Status:** Proposed (CV-198); superseded in part by
+[ADR-0012](0012-voice-panel-v3-morph-from-the-pill.md) (CV-202): the full-height column of
+Decision 2 and the column's motion in Decision 3 gave way to one floating panel that morphs out
+of the launcher pill. Decision 1, the 1584 px breakpoint and the timing tokens stand.
 **Date:** 2026-10-09
 **Deciders:** Andrew Panasiuk (owner); orchestrator
 **Supersedes in part:** [ADR-0010](0010-voice-panel-v2-typing-in-call-animated-dock.md) Decision 2

@@ -25,10 +25,9 @@ interface VoicePanelProps {
 }
 
 /**
- * The call panel (docs/design/voice/SPEC.md → Layout 2): the chat's dark card in the right
- * column (a floating card on medium screens, a bottom sheet on phones) with the orb, the live
- * caption, the call composer, and a card for a contact or an error. Not modal: the page stays
- * live. Esc anywhere inside (the field too) minimizes.
+ * The call panel (docs/design/voice/SPEC.md → Layout 2): the chat's dark card in the floating
+ * panel (a bottom sheet on phones) with the orb, the live caption, the call composer, and a
+ * card for a contact or an error. Not modal: the page stays live. Esc anywhere inside (the field too) minimizes.
  */
 export function VoicePanel(props: VoicePanelProps) {
   const { className, state, actions, closing, motion, composer, takeFocusRequest } = props;

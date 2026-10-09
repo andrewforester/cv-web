@@ -1,4 +1,4 @@
-/* The frame is the shared `ChatCard`, placed by `ChatColumn`; this adds the phone's full-screen
+/* The frame is the shared `ChatCard`, placed by `ChatFrame`; this adds the phone's full-screen
    sheet. Imported after both so these overrides win. */
 @media (max-width: 599px), (max-height: 499px) {
   .panel {

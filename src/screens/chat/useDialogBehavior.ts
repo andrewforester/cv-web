@@ -8,7 +8,7 @@ interface DialogBehaviorOptions {
   initialFocusRef: RefObject<HTMLElement | null>;
   /** Full-screen sheet: focus the dialog itself on open, lock page scroll, no outside clicks. */
   sheet: boolean;
-  /** Off for the docked column: no Tab trap, no outside clicks, the page stays usable. */
+  /** Off beside the slid page: no Tab trap, no outside clicks, the page stays usable. */
   modal?: boolean;
   /** While closing, outside clicks are ignored. */
   active: boolean;

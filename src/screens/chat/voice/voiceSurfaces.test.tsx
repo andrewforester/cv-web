@@ -138,14 +138,14 @@ describe('call surfaces', () => {
     expect(surface()).toBe('call');
   });
 
-  it('reports the dock: the column beside the page, nothing when folded', async () => {
-    stubLayout('column');
+  it('reports the dock: the panel beside the slid page, nothing when folded', async () => {
+    stubLayout('slide');
     const docks: ChatDock[] = [];
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client, onDockChange: (dock) => docks.push(dock) });
     await liveCall(user, client);
     expect(docks.at(-1)).toBe('side');
-    // Docked, the chat is a region beside the page, not a modal dialog.
+    // Beside the slid page, the chat is a region, not a modal dialog.
     await user.click(screen.getByTestId(chatTestIds.voiceChatToggle));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     const chat = within(screen.getByTestId(chatTestIds.panel));

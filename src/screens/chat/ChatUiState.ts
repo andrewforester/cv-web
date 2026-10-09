@@ -78,7 +78,7 @@ export interface ChatUiState {
   readonly endedPill: boolean;
   /** The chat is back from a call that left nothing: Call gets the focus, not the field. */
   readonly focusCall: boolean;
-  /** Where the chat sits at this viewport: docked column, floating card or phone sheets. */
+  /** Where the chat sits at this viewport: the panel beside the slid page or over it, or sheets. */
   readonly layout: ChatLayout;
   readonly hintVisible: boolean;
   readonly online: boolean;
