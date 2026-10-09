@@ -14,7 +14,8 @@ answer: a tap while one streams stops it (the chat's Stop; what was written stay
 question to the call, so one channel speaks at a time (ADR-0013 → Decision 3). Behaviour:
 `docs/design/chat/SPEC.md` (with "Orchestrator decisions"); look:
 `docs/design/v3/SPEC.md` → Decision 6 (the pill; the panel in the loop panel's dark colours); API:
-`docs/chat/API.md` → v4; page agent: `docs/chat/AGENT.md`; copy and labels: ADR-0006 → Decision 3.
+`docs/chat/API.md` → v4; page agent: `docs/chat/AGENT.md`; copy and labels: ADR-0006 →
+Decision 3.
 
 What the visitor can rely on:
 - One panel for the chat and the call (`chatSurface.ts`: `closed`, `text`, `call`, `callChat`,
@@ -22,13 +23,14 @@ What the visitor can rely on:
   views are the text chat, the call's orb and the chat during the call; only its header, middle
   and the composer's left slot change, and its role and name follow the view. One collapse
   control (`ChatCollapseButton`, also Esc) ends every header: it folds the panel into the
-  launcher, or into the call pill while a call connects or is live. Above the phone one floating panel bottom-right,
-  never full height (ADR-0012). From 1584 px the page slides left beside it at its own width (the
-  **slide**; the chat is a region, not modal); on 600–1583 px laptops it floats over the unmoved
-  page (the **overlay**, a dialog). There is no column. On a phone every view is one bottom
-  sheet over the page (the call's, Layout 5): Call and Show / Hide chat swap only its middle, so
-  it never changes size; it stays above the on-screen keyboard, the page stays usable above it
-  (not modal; page actions leave it open), and the system Back is never intercepted.
+  launcher, or into the call pill while a call connects or is live. Above the phone one floating
+  panel bottom-right, never full height (ADR-0012). From 1584 px the page slides left beside it at
+  its own width (the **slide**; the chat is a region, not modal); on 600–1583 px laptops it floats
+  over the unmoved page (the **overlay**, a dialog). There is no column. On a phone every
+  view is one bottom sheet over the page (the call's, Layout 5): Call and Show / Hide chat swap
+  only its middle, so it never changes size; it stays above the on-screen keyboard, the page stays
+  usable above it (not modal; page actions leave it open), and the system Back is never
+  intercepted.
 - Under the field, one line of fine print in every view: "AI can make mistakes.", the call's
   privacy note while it connects, the counter and the too-long message on the same line; so the
   composer row never moves between the text chat and the call (docs/design/voice/SPEC.md → 1a).
@@ -63,7 +65,8 @@ content and then the shadow fading in) and collapses back into it; collapse and 
 call do the same with the call pill. The pills sit one layer above the panel and only fade.
 `useMorphOrigin` measures the mounted pill on each surface change (`--chat-morph-w` / `-h`; none:
 a 48 px circle). A view change never swaps the frame: the slots it mounts fade in; on a phone
-the sheet slides up from below and stays put across views; reduced motion fades only. Focus on each view change: `usePanelFocus`.
+the sheet slides up from below and stays put across views; reduced motion fades only.
+Focus on each view change: `usePanelFocus`.
 
 Place in the architecture: the screen pattern (state holder → UI state → stateless components)
 over `src/data/chat/` (the conversation stream), `CvPageRepository` (labels) and `src/agent/`

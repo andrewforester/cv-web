@@ -3,7 +3,7 @@
   Static mock of the AI chat (docs/design/chat/SPEC.md). Not product code.
   Open directly in a browser. Query params:
     state = launcher | empty | typing | streaming (default) | errors | offline
-  Desktop layout at >= 600 px wide (and >= 500 px tall), full-screen sheet below that.
+  Desktop layout at >= 600 px wide (and >= 500 px tall), bottom sheet below that.
   Screenshots: render.sh next to this file.
 -->
 <html lang="en">
@@ -549,7 +549,7 @@
         color: var(--chat-color-error);
       }
 
-      /* ---- Mobile: full-screen sheet ---- */
+      /* ---- Mobile: bottom sheet ---- */
       @media (max-width: 599px), (max-height: 499px) {
         .launcher {
           right: var(--space-4);

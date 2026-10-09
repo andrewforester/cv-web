@@ -100,3 +100,10 @@
     padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
   }
 }
+
+/* The short (landscape) sheet is 298 px: the field stops at 3 lines (4 × 22 with padding). */
+@media (max-height: 499px) {
+  .input {
+    max-height: calc(4 * var(--chat-text-line-height));
+  }
+}

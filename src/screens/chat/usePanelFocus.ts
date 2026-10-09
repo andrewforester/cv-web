@@ -37,9 +37,9 @@ function target(
 /**
  * Where the focus goes when the panel opens (also when reopened mid-exit) or changes view
  * (docs/design/voice/SPEC.md → Accessibility), so a screen reader hears the new view: a swap that
- * handed the focus over keeps it (the toggle stays the toggle); the orb view takes it on the panel itself (End never gets it); a
- * call that left nothing gives it back to Call; a call that ended here, to the field; otherwise
- * the dialog's rule (the field, the phone sheet itself).
+ * handed the focus over keeps it (the toggle stays the toggle); the orb view takes it on the panel
+ * itself (End never gets it); a call that left nothing gives it back to Call; a call that ended
+ * here, to the field; otherwise the dialog's rule (the field, the phone sheet itself).
  */
 export function usePanelFocus(options: PanelFocusOptions): void {
   const { view, closing, sheet, focusCall, takeFocusRequest } = options;
