@@ -271,7 +271,7 @@ Animate only `transform`, `opacity`, `filter`, and for the morph `clip-path` and
 | Small orb (contact card) | size change 120 ⇄ 200 as a FLIP transform | 200 ms |
 | Cards in / out | opacity + `translateY(8) → 0` | 200 / 150 ms |
 
-Interruptions: the page's slide is a CSS transition, so a quick open → collapse reverses from where it is instead of jumping. The panel's morph is keyframes on mount and unmount: a close during the open starts from the whole panel (as the old column's keyframes did; ADR-0012 → Consequences).
+Interruptions: the page's slide is a CSS transition, so a quick open → collapse reverses from where it is instead of jumping. The panel's morph is keyframes on mount and unmount: a collapse during the open starts from the whole panel (as the old column's keyframes did; ADR-0012 → Consequences).
 
 **Reduced motion** (`prefers-reduced-motion: reduce`): no morph, no slide, no travel, no scale. The card moves **at once** (no transition; nothing reflows, so nothing to anchor); the panel and the pill **crossfade** (no clip), and the sheets, pills and every view swap are **opacity-only, 150 ms** (`--chat-motion-exit-duration`); the orb doesn't travel (the stage and the list crossfade; the badge slot swaps). No spin or breathing; the orb is a still gradient and the level drives only the glow opacity (the mini orb: nothing).
 
@@ -369,7 +369,7 @@ In `src/screens/chat/testIds.ts`, values prefixed `chat-voice-`.
 - **Removed (v2)**: `chat-voice-mic` (launcher mic), `chat-voice-composer-mic`, `chat-voice-show-chat`, `chat-voice-hide-chat`, `chat-voice-callbar`, `chat-voice-callbar-end`, `chat-voice-callbar-mute` (End and Mute are one element each now, in the shared call composer: `chat-voice-end`, `chat-voice-mute`; the field and Send keep the chat's `chat-input` ids).
 - **New (v4)**: `chat-collapse` (the one collapse control, in every header).
 - **Removed (v4)**: `chat-close`, `chat-voice-minimize`, `chat-voice-close` (replaced by `chat-collapse`).
-- **Kept**: `chat-voice-panel`, `chat-voice-orb`, `chat-voice-status`, `chat-voice-caption`, `chat-voice-timer`, `chat-voice-mute`, `chat-voice-end`, `chat-voice-pill`, `chat-voice-pill-expand`, `chat-voice-pill-end`, `chat-voice-action`, `chat-voice-contact`, `chat-voice-contact-open`, `chat-voice-contact-cancel`, `chat-voice-error` (+ `data-error`), `chat-voice-error-primary`, `chat-voice-error-secondary`, `chat-voice-close`, `chat-voice-divider`, `chat-voice-announcer`.
+- **Kept**: `chat-voice-panel`, `chat-voice-orb`, `chat-voice-status`, `chat-voice-caption`, `chat-voice-timer`, `chat-voice-mute`, `chat-voice-end`, `chat-voice-pill`, `chat-voice-pill-expand`, `chat-voice-pill-end`, `chat-voice-action`, `chat-voice-contact`, `chat-voice-contact-open`, `chat-voice-contact-cancel`, `chat-voice-error` (+ `data-error`), `chat-voice-error-primary`, `chat-voice-error-secondary`, `chat-voice-divider`, `chat-voice-announcer`.
 - The panel root carries `data-phase="connecting|listening|speaking|tool|contact|error"`, `data-muted`, and the chat root `data-surface="closed|text|call|callChat|callPill"`; the pill `data-phase` too.
 
 ## Tokens
