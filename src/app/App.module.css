@@ -22,12 +22,10 @@
  * reduced motion moves the page at once. */
 @media (prefers-reduced-motion: no-preference) {
   .main {
-    transition: transform var(--chat-slide-exit-duration, 400ms)
-      var(--chat-slide-easing, cubic-bezier(0.4, 0, 0.2, 1));
+    transition: transform var(--chat-slide-exit-duration) var(--chat-slide-easing);
   }
 
   :global(:root[data-chat-dock='side']) .main {
-    transition: transform var(--chat-slide-duration, 500ms)
-      var(--chat-slide-easing, cubic-bezier(0.4, 0, 0.2, 1));
+    transition: transform var(--chat-slide-duration) var(--chat-slide-easing);
   }
 }
