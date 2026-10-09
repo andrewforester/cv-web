@@ -336,4 +336,9 @@
   --voice-sheet-height: calc(472px + env(safe-area-inset-bottom));
   --voice-sheet-height-short: calc(272px + env(safe-area-inset-bottom));
   --chat-dock-width: calc(var(--chat-panel-width) + var(--space-4));
+  --chat-dock-duration: 300ms;
+  --chat-dock-exit-duration: 250ms;
+  --chat-motion-exit-easing: var(--retro-close-easing);
+  --voice-orb-travel-duration: var(--chat-dock-duration);
+  --voice-chat-toggle-width: 112px;
 }
