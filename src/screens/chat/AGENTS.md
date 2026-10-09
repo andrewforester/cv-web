@@ -17,8 +17,12 @@ question to the call, so one channel speaks at a time (ADR-0013 → Decision 3).
 `docs/chat/API.md` → v4; page agent: `docs/chat/AGENT.md`; copy and labels: ADR-0006 → Decision 3.
 
 What the visitor can rely on:
-- One place for the chat and the call (`chatSurface.ts`: `closed`, `text`, `call`, `callChat`,
-  `callPill`; docs/voice/SYSTEM_DESIGN.md §4.2): above the phone one floating panel bottom-right,
+- One panel for the chat and the call (`chatSurface.ts`: `closed`, `text`, `call`, `callChat`,
+  `callPill`; docs/voice/SYSTEM_DESIGN.md §4.2, ADR-0013): `ChatPanel` is one element whose
+  views are the text chat, the call's orb and the chat during the call; only its header, middle
+  and the composer's left slot change, and its role and name follow the view. One collapse
+  control (`ChatCollapseButton`, also Esc) ends every header: it folds the panel into the
+  launcher, or into the call pill while a call connects or is live. Above the phone one floating panel bottom-right,
   never full height (ADR-0012). From 1584 px the page slides left beside it at its own width (the
   **slide**; the chat is a region, not modal); on 600–1583 px laptops it floats over the unmoved
   page (the **overlay**, a dialog). There is no column. Phones get full-screen sheets that stay
@@ -51,11 +55,12 @@ side of the card; media queries can't read tokens, so `chatDock.test.ts` recompu
 `tokens.css`. The frame's CSS (`ChatFrame.module.css`) has one placement for every non-phone
 width, and there the panel **morphs** (ADR-0012 → Decision 2): it opens by growing out of the
 launcher pill (a `clip-path` reveal of the final-size panel from the pill's box, bottom-right, the
-content and then the shadow fading in) and closes back into it; minimize and expand do the same
-with the call pill. The pills sit one layer above the panel and only fade. `useMorphOrigin`
-measures the mounted pill on each surface change (`--chat-morph-w` / `-h`; none: a 48 px circle).
-Swapping views inside the panel crossfades (`useFrameMotion`); phones keep their sheets; reduced
-motion fades only.
+content and then the shadow fading in) and collapses back into it; collapse and expand during a
+call do the same with the call pill. The pills sit one layer above the panel and only fade.
+`useMorphOrigin` measures the mounted pill on each surface change (`--chat-morph-w` / `-h`; none:
+a 48 px circle). A view change never swaps the frame: the slots it mounts fade in; phones keep
+their sheets (full-screen for the chat views, a bottom sheet for the orb); reduced motion fades
+only. Focus on each view change: `usePanelFocus`.
 
 Place in the architecture: the screen pattern (state holder → UI state → stateless components)
 over `src/data/chat/` (the conversation stream), `CvPageRepository` (labels) and `src/agent/`
