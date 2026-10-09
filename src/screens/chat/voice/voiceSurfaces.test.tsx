@@ -1,6 +1,8 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
 import { afterEach, vi } from 'vitest';
+import { FakeChatRepository } from '../../../data/chat';
+import { EARLIER_CONVERSATION_UNFINISHED_LABEL } from '../../../data/voice';
 import type { ChatDock } from '../chatDock';
 import { chatTestIds } from '../testIds';
 import { ENDED_PILL_MS } from '../useChatSurface';
@@ -201,5 +203,35 @@ describe('call surfaces', () => {
     act(() => history.back());
     await waitFor(() => expect(surface()).toBe('callPill'));
     expect(client.call?.ended).toBeNull();
+  });
+
+  it('Call while an answer streams stops it and hands the unfinished turn to the call', async () => {
+    const chat = new FakeChatRepository();
+    const client = new ManualVoiceClient();
+    const { user } = await renderVoiceChat({ client, chat });
+    await user.click(screen.getByTestId(chatTestIds.fab));
+    await user.type(screen.getByTestId(chatTestIds.input), 'What did he build?{Enter}');
+    await act(async () => chat.emit({ type: 'delta', text: 'At Transcenda he led' }));
+    const call = screen.getByTestId(chatTestIds.voiceCall);
+    expect(call).toBeEnabled();
+
+    await user.click(call);
+    expect(chat.isStreaming).toBe(false);
+    expect(surface()).toBe('call');
+    expect(screen.getByTestId(chatTestIds.voicePanel)).toHaveAttribute('data-phase', 'connecting');
+    await waitFor(() => expect(client.call).not.toBeNull());
+    client.emit({ type: 'status', status: 'live' });
+    expect(client.call?.contextualUpdates[0]?.split('\n').slice(-2)).toEqual([
+      'Visitor (typed): What did he build?',
+      `${EARLIER_CONVERSATION_UNFINISHED_LABEL}At Transcenda he led`,
+    ]);
+
+    // What was written stays in the chat, as a stopped answer.
+    await user.click(toggle());
+    const list = within(screen.getByTestId(chatTestIds.panel));
+    expect(list.getByTestId(chatTestIds.assistantMessage)).toHaveTextContent(
+      'At Transcenda he led',
+    );
+    expect(list.getByTestId(chatTestIds.caption)).toHaveTextContent('Answer stopped.');
   });
 });

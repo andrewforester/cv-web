@@ -65,7 +65,9 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
 
   const voiceActions: VoiceActions = {
     ...voice.actions,
+    // A text answer in flight stops first (the chat's Stop); the call's briefing hands it over.
     start: () => {
+      if (busy) conversation.stop();
       markSeen();
       dispatchSurface({ type: 'callStart' });
       voice.actions.start();

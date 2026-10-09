@@ -48,18 +48,6 @@ describe('call panel', () => {
     expect(screen.queryByTestId(chatTestIds.fab)).not.toBeInTheDocument();
   });
 
-  it('Call is disabled while a text answer streams', async () => {
-    const chat = new FakeChatRepository();
-    const { user } = await renderVoiceChat({ chat });
-    await user.click(screen.getByTestId(chatTestIds.fab));
-    await user.type(screen.getByTestId(chatTestIds.input), 'What did he lead?{Enter}');
-    await waitFor(() => expect(chat.isStreaming).toBe(true));
-    expect(screen.getByTestId(chatTestIds.voiceCall)).toBeDisabled();
-
-    chat.emit(...answer('He led mobile.'));
-    await waitFor(() => expect(screen.getByTestId(chatTestIds.voiceCall)).toBeEnabled());
-  });
-
   it('plays a scripted call into the chat: lines, a scroll, then the chat opens', async () => {
     const client = new FakeVoiceClient({ stepMs: 0 });
     const { user, executor } = await renderVoiceChat({ client });

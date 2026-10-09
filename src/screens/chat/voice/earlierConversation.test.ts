@@ -1,6 +1,10 @@
 import type { AgentPageStateV4 } from '../../../data/chat';
-import { EARLIER_CONVERSATION_HEADING, EARLIER_CONVERSATION_LIMITS } from '../../../data/voice';
-import type { ChatTurn } from '../ChatUiState';
+import {
+  EARLIER_CONVERSATION_HEADING,
+  EARLIER_CONVERSATION_LIMITS,
+  EARLIER_CONVERSATION_UNFINISHED_LABEL,
+} from '../../../data/voice';
+import type { ChatEntry, ChatTurn } from '../ChatUiState';
 import type { ChatVoiceCall } from './callReducer';
 import { earlierConversation } from './earlierConversation';
 
@@ -62,6 +66,50 @@ describe('earlierConversation', () => {
         call(['visitor', '  ']),
       ]),
     ).toBeNull();
+  });
+
+  describe('the handed-over turn: the last entry, a text answer that never finished', () => {
+    const done = turn('Which languages?', 'Kotlin and Swift.');
+    const doneLines = ['Visitor (typed): Which languages?', 'Assistant (text): Kotlin and Swift.'];
+    const lines = (...entries: ChatEntry[]) => earlierConversation(entries)?.split('\n').slice(1);
+
+    it('stopped mid-answer: the question and what was written, as unfinished', () => {
+      expect(lines(done, turn('What did he build?', 'At Transcenda\nhe led', 'stopped'))).toEqual([
+        ...doneLines,
+        'Visitor (typed): What did he build?',
+        `${EARLIER_CONVERSATION_UNFINISHED_LABEL}At Transcenda he led`,
+      ]);
+    });
+
+    it('stopped before a token or failed: the question and an ellipsis', () => {
+      for (const status of ['stopped', 'error'] as const) {
+        expect(lines(turn('What did he build?', ' ', status))).toEqual([
+          'Visitor (typed): What did he build?',
+          `${EARLIER_CONVERSATION_UNFINISHED_LABEL}…`,
+        ]);
+      }
+    });
+
+    it('an earlier unfinished turn stays out; a finished last turn is unchanged', () => {
+      expect(lines(turn('Earlier', 'partial', 'stopped'), done)).toEqual(doneLines);
+      expect(lines(turn('Earlier', 'partial', 'stopped'), call(['agent', 'Hi.']))).toEqual([
+        'Assistant (voice): Hi.',
+      ]);
+    });
+
+    it('is cut like any line and its question survives the cap before older lines', () => {
+      const { maxLineChars, maxChars } = EARLIER_CONVERSATION_LIMITS;
+      const older = Array.from({ length: 20 }, (_, i) => turn(`${i}`.padEnd(400, '.'), `${i}`));
+      const update = earlierConversation([
+        ...older,
+        turn('What did he build?', 'a'.repeat(maxLineChars * 2), 'stopped'),
+      ]);
+      expect(update?.length).toBeLessThanOrEqual(maxChars);
+      const [question, answer] = update?.split('\n').slice(-2) ?? [];
+      expect(question).toBe('Visitor (typed): What did he build?');
+      expect(answer?.startsWith(EARLIER_CONVERSATION_UNFINISHED_LABEL)).toBe(true);
+      expect(answer).toHaveLength(maxLineChars);
+    });
   });
 
   it('keeps every entry on one line, so a line cannot forge another', () => {
