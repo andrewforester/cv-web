@@ -13,7 +13,10 @@ shared rule blocks (`KNOWLEDGE_RULES`, `SCOPE_RULES`, `SAFETY_RULES` in
 `server/chat/prompt/systemPrompt.ts`), the voice style, page, earlier-conversation and typed-turn rules, and
 the same `<knowledge>` block the text chat sends. The earlier-conversation rule quotes
 `EARLIER_CONVERSATION_HEADING` from `src/data/voice/contract.ts`, the line the browser's update
-starts with, so the two can't drift. `../agentConfig.ts` wraps it with the first message, the call cap and
+starts with, so the two can't drift. When a visitor starts the call before a text answer was done,
+the update ends with that question and the unfinished answer (`EARLIER_CONVERSATION_UNFINISHED_LABEL`,
+ADR-0013); the prompt tells the agent to answer that question at the visitor's first turn.
+`../agentConfig.ts` wraps it with the first message, the call cap and
 the client tools; `../agentSync.ts` writes it to the agent on the first production voice call
 after a deploy (docs/voice/SYSTEM_DESIGN.md §6).
 

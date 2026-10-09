@@ -20,6 +20,12 @@ export const VOICE_MAX_BODY_BYTES = 1_024;
 export const EARLIER_CONVERSATION_HEADING =
   "Earlier in this conversation (the visitor's text chat and voice calls on this page, oldest first):";
 
+/**
+ * The label of a handed-over text answer that was not finished when the call started
+ * (docs/voice/SYSTEM_DESIGN.md §8, ADR-0013). The voice prompt quotes it, so the two can't drift.
+ */
+export const EARLIER_CONVERSATION_UNFINISHED_LABEL = 'Assistant (text, unfinished): ';
+
 /** Caps of that update: each line cut at `maxLineChars`, oldest lines dropped to fit `maxChars`. */
 export const EARLIER_CONVERSATION_LIMITS = {
   maxLineChars: 500,
