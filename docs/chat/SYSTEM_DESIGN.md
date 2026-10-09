@@ -357,8 +357,10 @@ Voice runs on an ElevenLabs agent, not on this endpoint (ADR-0008); its design i
 [`../voice/SYSTEM_DESIGN.md`](../voice/SYSTEM_DESIGN.md). Text and voice are one conversation
 (ADR-0009): a call's lines reach this endpoint on the next question (`voiceCalls`, `API.md` →
 Voice calls in the history), rendered as `<voice_call>` blocks under `VOICE_TRANSCRIPT_RULES`;
-the earlier text chat reaches the agent from the browser at call start. The chat's surface
-(text card, docked column, call panel, pill) is the chat screen's (`../voice/SYSTEM_DESIGN.md`
+the earlier text chat reaches the agent from the browser at call start. While a call is live,
+the composer sends to the voice agent instead of this endpoint, and those typed lines join the
+call's transcript (ADR-0010, `../voice/SYSTEM_DESIGN.md` §4.4). The chat's surface (launcher,
+text card, docked column, call panel, pill) is the chat screen's (`../voice/SYSTEM_DESIGN.md`
 §4).
 
 ## 14. Testing strategy

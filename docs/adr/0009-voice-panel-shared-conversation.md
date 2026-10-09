@@ -5,6 +5,10 @@
 **Deciders:** Andrew Panasiuk (owner); orchestrator
 **Supersedes in part:** [ADR-0008](0008-voice-agent-elevenlabs.md): Decision 1's full-screen voice
 mode and Decision 5's "the text model doesn't see the call". The rest of ADR-0008 stands.
+**Superseded in part by:** [ADR-0010](0010-voice-panel-v2-typing-in-call-animated-dock.md): the
+read-only chat during a call (typing now goes to the voice agent), and Decision 3's instant
+reflow (the page now narrows with an animation). Decisions 1 and 2 and Decision 3's ownership
+stand.
 **Related:** [ADR-0001](0001-ai-cv-chat.md) (stateless functions, no DB/KV),
 [ADR-0002](0002-page-agent-tools.md) (page tools), [ADR-0006](0006-one-page-v3.md) (one page,
 `v: 4`), [`docs/voice/SYSTEM_DESIGN.md`](../voice/SYSTEM_DESIGN.md) §4 and §8,

@@ -22,7 +22,8 @@ What to read for what:
 - Voice: [`../voice/`](../voice/AGENTS.md). A voice call runs on an ElevenLabs agent, not on
   `/api/chat`; text and voice are one conversation ([`0009`](../adr/0009-voice-panel-shared-conversation.md)):
   the call's lines reach the text model with the next question (`voiceCalls`), and the call
-  starts with the earlier chat as context.
+  starts with the earlier chat as context. Typing during a call goes to the voice agent, not
+  here ([`0010`](../adr/0010-voice-panel-v2-typing-in-call-animated-dock.md)).
 
 Rules for implementers: change the contract only through its own ticket and bump `v` for breaking
 changes; never call a real model in tests or CI; keep the code the server shares with `src/`

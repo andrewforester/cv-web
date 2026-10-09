@@ -376,7 +376,8 @@ X-Chat-Api-Version: 4
 
 Text and voice are one conversation. A voice call runs on the ElevenLabs agent, not here, but its
 final lines join the chat, and the **next question** carries them, so Claude sees what was said
-by voice. Additive: `v` stays 4 (an older server drops the unknown field; see
+by voice. A line the visitor typed during a call (it went to the voice agent, not here; ADR-0010)
+is a `visitor` line of that call like a spoken one, so this contract doesn't change. Additive: `v` stays 4 (an older server drops the unknown field; see
 [Versioning](#versioning)).
 
 | Rule | Value |
