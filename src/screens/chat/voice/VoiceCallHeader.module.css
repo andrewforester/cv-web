@@ -1,8 +1,23 @@
-/* docs/design/voice/SPEC.md → Layout 3 (the chat's header during a call). */
+/* docs/design/voice/SPEC.md → Layouts 2, 3 (the call header), 5 (short: the mini orb in the badge's slot). */
 .header {
   --voice-level: 0;
 
   flex: none;
+}
+
+/* In the orb view the badge holds the slot; the mini orb takes it only on short screens. */
+.mini {
+  display: none;
+}
+
+@media (max-height: 499px) {
+  .badge {
+    display: none;
+  }
+
+  .mini {
+    display: block;
+  }
 }
 
 .status {

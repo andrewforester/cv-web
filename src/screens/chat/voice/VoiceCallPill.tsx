@@ -3,7 +3,7 @@ import { useStrings } from '../../../i18n';
 import chat from '../../../shared/chat/chat.module.css';
 import { ChatIcon } from '../../../shared/chat/ChatIcon';
 import { chatStrings } from '../strings';
-import { chatTestIds, VOICE_PANEL_ID } from '../testIds';
+import { CHAT_PANEL_ID, chatTestIds } from '../testIds';
 import { callClock } from './callClock';
 import { useVoiceLevel } from './useVoiceLevel';
 import styles from './VoiceCallPill.module.css';
@@ -25,14 +25,15 @@ interface VoiceCallPillProps {
 
 /**
  * The folded call in the launcher's place (docs/design/voice/SPEC.md → Layout 4): the live mini
- * orb, the status and the time (one button that unfolds the panel), and its own End.
+ * orb, the status and the time (one button that unfolds the panel), and its own End. Folded while
+ * connecting it reads "Connecting…" with no time, and End cancels the attempt.
  */
 export function VoiceCallPill(props: VoiceCallPillProps) {
   const { className, rootRef, state, actions, endedText, closing } = props;
   const strings = useStrings(chatStrings);
   const expandRef = useRef<HTMLButtonElement>(null);
   useVoiceLevel(rootRef, actions.level);
-  // Minimize moves focus here, in the commit that shows the pill.
+  // Collapse moves focus here, in the commit that shows the pill.
   useLayoutEffect(() => expandRef.current?.focus(), []);
   const clock = callClock(state.elapsedSec, state.maxCallSeconds, strings);
   const ended = endedText !== null;
@@ -53,7 +54,7 @@ export function VoiceCallPill(props: VoiceCallPillProps) {
         type="button"
         className={styles.expand}
         aria-expanded={false}
-        aria-controls={ended ? undefined : VOICE_PANEL_ID}
+        aria-controls={ended ? undefined : CHAT_PANEL_ID}
         data-testid={chatTestIds.voicePillExpand}
         onClick={ended ? props.onOpenChat : actions.expand}
       >
@@ -65,9 +66,11 @@ export function VoiceCallPill(props: VoiceCallPillProps) {
         ) : (
           <>
             <span className={styles.status}>{voiceStatusText(state, strings)}</span>{' '}
-            <span className={clock.warning ? `${styles.time} ${styles.warning}` : styles.time}>
-              {clock.text}
-            </span>
+            {state.status === 'live' && (
+              <span className={clock.warning ? `${styles.time} ${styles.warning}` : styles.time}>
+                {clock.text}
+              </span>
+            )}
           </>
         )}
       </button>

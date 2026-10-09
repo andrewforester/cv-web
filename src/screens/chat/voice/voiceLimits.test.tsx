@@ -31,8 +31,9 @@ describe('call errors and limits', () => {
     expect(errorCard()).toHaveTextContent(title);
     expect(screen.getByTestId(chatTestIds.voicePanel)).toHaveAttribute('data-phase', 'error');
     expect(client.call).toBeNull();
-    // Errors replace the timer with close and drop the controls.
-    expect(screen.getByRole('button', { name: 'Close voice chat' })).toBeInTheDocument();
+    // Errors drop the timer, the toggle and the controls; collapse is the header's one action.
+    expect(screen.getByRole('button', { name: 'Collapse chat' })).toBeInTheDocument();
+    expect(screen.queryByTestId(chatTestIds.voiceChatToggle)).not.toBeInTheDocument();
     expect(screen.queryByTestId(chatTestIds.voiceEnd)).not.toBeInTheDocument();
   });
 
@@ -46,6 +47,19 @@ describe('call errors and limits', () => {
 
     await user.click(screen.getByRole('button', { name: 'Type instead' }));
     expect(await screen.findByTestId(chatTestIds.panel)).toBeInTheDocument();
+  });
+
+  it('Esc on a card folds the panel into the launcher (no call to keep) and drops the card', async () => {
+    const client = new ManualVoiceClient();
+    client.microphone = 'denied';
+    const { user } = await callWith(client);
+    expect(await screen.findByRole('alert')).toHaveAttribute('data-error', 'micDenied');
+    await user.keyboard('{Escape}');
+
+    expect(screen.getByTestId(chatTestIds.root)).toHaveAttribute('data-surface', 'closed');
+    await waitFor(() => expect(screen.getByTestId(chatTestIds.fab)).toHaveFocus());
+    await user.click(screen.getByTestId(chatTestIds.fab));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('offline at the tap shows the offline card; Try again calls again', async () => {

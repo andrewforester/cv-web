@@ -6,12 +6,13 @@ when the site's chat is restyled the show follows, and the show doesn't import t
 (a screen may not import another screen).
 
 What is here: the card frame (`ChatCard`: the v3 dark panel, the loop panel's colours) and its
-header (`ChatCardHeader`: badge, title, subtitle, one trailing action: close on the site, minimise in the
+header (`ChatCardHeader`: badge, title, subtitle, one trailing action: collapse on the site, minimise in the
 show), message bubbles (`MessageRow`, `NoticeRow`), the waiting and streaming cues
 (`TypingIndicator`, `StreamingCaret`), `SendButton` (Send, or Stop while busy), `OfflineNotice`,
 `ChatBadge` (the ✦ on the gradient: the header's badge and the site's "Talk to my AI" pill),
 `ChatIcon` with its `assets/` (the voice mode's mic, mute, end, offline, alert and timer icons
-included: the chat's call divider uses the mic too), and `chat.module.css` (caption, screen-reader-only, icon and
+included: the chat's call divider uses the mic too; `collapse`, the one control that folds the
+site's chat panel), and `chat.module.css` (caption, screen-reader-only, icon and
 secondary buttons).
 
 Place in the architecture: stateless components below the screens: props in, callbacks out. They

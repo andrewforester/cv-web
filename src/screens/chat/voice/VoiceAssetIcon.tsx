@@ -1,12 +1,10 @@
 import type { CSSProperties } from 'react';
 import icon from '../../../shared/chat/ChatIcon.module.css';
 import call from './assets/chat_voice_icon_call.svg';
-import minimize from './assets/chat_voice_icon_minimize.svg';
 
-// TODO(theme): both join the shared chat icons as `chat_icon_call.svg` / `chat_icon_minimize.svg`
-// (`ChatIcon` names `call`, `minimize`; docs/design/voice/SPEC.md → Icons). Until then they are
-// this screen's assets on `ChatIcon`'s mask.
-const ICONS = { call, minimize } as const;
+// TODO(theme): joins the shared chat icons as `chat_icon_call.svg` (`ChatIcon` name `call`;
+// docs/design/voice/SPEC.md → Icons). Until then it is this screen's asset on `ChatIcon`'s mask.
+const ICONS = { call } as const;
 
 interface VoiceAssetIconProps {
   className?: string;

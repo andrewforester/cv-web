@@ -7,19 +7,16 @@ import styles from './ChatScreen.module.css';
 import type { ChatActions, ChatUiState } from './ChatUiState';
 import { chatStrings } from './strings';
 import { chatTestIds } from './testIds';
-import { useFrameMotion } from './useFrameMotion';
 import { useMorphOrigin } from './useMorphOrigin';
 import { usePresence } from './usePresence';
 import { callEndText } from './voice/callEndText';
-import { VoiceCallComposer } from './voice/VoiceCallComposer';
 import { VoiceCallPill } from './voice/VoiceCallPill';
-import { VoicePanel } from './voice/VoicePanel';
 import type { FocusRequest } from './voice/VoiceUiState';
 
 /** Matches `--chat-motion-exit-duration`: the launcher and the call pill fade out (the morph). */
 const EXIT_MS = 150;
-/** Matches `--chat-slide-exit-duration`: a frame's longest exit (it closes with the slide). */
-const FRAME_EXIT_MS = 400;
+/** Matches `--chat-slide-exit-duration`: the panel's longest exit (it collapses with the slide). */
+const PANEL_EXIT_MS = 400;
 
 interface ChatScreenProps {
   className?: string;
@@ -29,8 +26,8 @@ interface ChatScreenProps {
 
 /**
  * The chat widget by surface (docs/voice/SYSTEM_DESIGN.md §4.2): the "Talk to my AI" launcher
- * while closed, the chat (`text`, `callChat`) or the call panel (`call`) in one place, the call
- * pill while folded.
+ * while closed, the one panel in its three views (`text`, `call`, `callChat`), the call pill while
+ * folded.
  */
 export function ChatScreen({ className, state, actions }: ChatScreenProps) {
   const strings = useStrings(chatStrings);
@@ -38,12 +35,11 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
   const fabRef = useRef<HTMLButtonElement>(null);
   const callPillRef = useRef<HTMLDivElement>(null);
   const focusFabOnClose = useRef(false);
-  const callInputRef = useRef<HTMLTextAreaElement>(null);
   const { surface, voice } = state;
 
-  // A view swap hands the focus to the view that takes the panel (the toggle stays the toggle; on
-  // a phone, typing in the call sheet opens the chat and goes on there). A request the next view
-  // didn't take is dropped with the next surface change, so it never fires later.
+  // A view swap hands the focus to the next view (the toggle stays the toggle; on a phone, typing
+  // in the call sheet opens the chat and goes on there). A request the next view didn't take is
+  // dropped with the next surface change, so it never fires later.
   const focusRequest = useRef<FocusRequest | null>(null);
   const takeFocusRequest = useCallback(() => {
     const request = focusRequest.current;
@@ -61,15 +57,14 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
     focusRequest.current = 'field';
     actions.voice.toggleChat();
   };
-  const frameActions: ChatActions = {
+  const panelActions: ChatActions = {
     ...actions,
     voice: { ...actions.voice, toggleChat: swapFromToggle },
   };
 
-  const motion = useFrameMotion(surface);
   useMorphOrigin(rootRef, surface, fabRef, callPillRef);
-  const panel = usePresence(surface === 'text' || surface === 'callChat', FRAME_EXIT_MS);
-  const callPanel = usePresence(surface === 'call', FRAME_EXIT_MS);
+  const panelOpen = surface === 'text' || surface === 'call' || surface === 'callChat';
+  const panel = usePresence(panelOpen, PANEL_EXIT_MS);
   const pill = usePresence(surface === 'callPill' || state.endedPill, EXIT_MS);
   const launcher = surface === 'closed' && !state.endedPill;
   const launcherShown = usePresence(launcher, EXIT_MS);
@@ -91,9 +86,12 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
     focusFabOnClose.current = false;
   }, [launcher]);
 
-  const closeAndFocusFab = () => {
-    focusFabOnClose.current = true;
-    actions.close();
+  // Collapse by the control or Esc: the launcher takes the focus back; the call pill (a call is
+  // on) takes it itself.
+  const callOn = voice?.status === 'live' || voice?.status === 'connecting';
+  const collapse = () => {
+    focusFabOnClose.current = !callOn;
+    actions.collapse();
   };
 
   return (
@@ -119,29 +117,11 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
       {panel.mounted && (
         <ChatPanel
           state={state}
-          actions={frameActions}
+          actions={panelActions}
           closing={panel.closing}
-          motion={motion.chat}
-          onKeyboardClose={closeAndFocusFab}
+          onCollapse={collapse}
           takeFocusRequest={takeFocusRequest}
-        />
-      )}
-      {voice && callPanel.mounted && (
-        <VoicePanel
-          state={voice}
-          actions={frameActions.voice}
-          closing={callPanel.closing}
-          motion={motion.call}
-          takeFocusRequest={takeFocusRequest}
-          composer={
-            <VoiceCallComposer
-              state={state}
-              call={voice}
-              actions={frameActions}
-              inputRef={callInputRef}
-              onFocus={state.layout === 'sheet' ? typeInChat : undefined}
-            />
-          }
+          onCallFieldFocus={typeInChat}
         />
       )}
       {voice && pill.mounted && (

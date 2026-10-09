@@ -1,7 +1,8 @@
-/* The frame is the shared `ChatCard`, placed by `ChatFrame`; this adds the phone's full-screen
-   sheet. Imported after both so these overrides win. */
+/* The frame is the shared `ChatCard`, placed by `ChatFrame`; this adds the phone's sheets (SPEC →
+   Layout 5). Imported after both so these overrides win. */
 @media (max-width: 599px), (max-height: 499px) {
-  .panel {
+  /* The text chat and the chat during a call: the full-screen sheet. */
+  .panel:not(.callSheet) {
     inset: var(--chat-vv-top, 0) 0 auto 0;
     width: 100%;
     /* Set by useVisualViewportFit while the keyboard is open. */
@@ -12,18 +13,47 @@
     animation-name: sheet-in;
   }
 
-  .panel[inert] {
+  .panel:not(.callSheet)[inert] {
     animation-name: sheet-out;
+  }
+
+  /*
+   * The call's orb view: a bottom sheet of a fixed height over the live page (the shell pads it).
+   * It slides up from below the screen, no fade, with the call sheet's timing (SPEC → Motion).
+   */
+  .callSheet {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: var(--voice-sheet-height);
+    border-bottom: 0;
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    animation: call-sheet-in var(--chat-dock-duration) var(--chat-motion-easing) both;
+  }
+
+  .callSheet[inert] {
+    animation: call-sheet-out var(--chat-dock-exit-duration) var(--chat-motion-exit-easing) both;
   }
 }
 
+@media (max-height: 499px) {
+  .callSheet {
+    height: var(--voice-sheet-height-short);
+  }
+}
+
+/* Every sheet only fades (the selectors match the sheets' own, so they win). */
 @media (prefers-reduced-motion: reduce) {
-  .panel {
-    animation-name: fade-in;
+  .panel:not(.callSheet),
+  .callSheet {
+    animation: fade-in var(--chat-motion-exit-duration) var(--chat-motion-easing) both;
   }
 
-  .panel[inert] {
-    animation-name: fade-out;
+  .panel:not(.callSheet)[inert],
+  .callSheet[inert] {
+    animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
   }
 }
 
@@ -38,6 +68,18 @@
   to {
     opacity: 0;
     transform: translateY(var(--space-6));
+  }
+}
+
+@keyframes call-sheet-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes call-sheet-out {
+  to {
+    transform: translateY(100%);
   }
 }
 

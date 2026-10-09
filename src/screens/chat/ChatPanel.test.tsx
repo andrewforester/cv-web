@@ -1,10 +1,10 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import type { UserEvent } from '@testing-library/user-event';
-import { FakeChatRepository } from '../../../data/chat';
-import { FakeVoiceClient } from '../../../data/voice';
-import { answer } from '../chatTestHarness';
-import { chatTestIds } from '../testIds';
-import { ManualVoiceClient, renderVoiceChat, startCall } from './voiceTestHarness';
+import { FakeChatRepository } from '../../data/chat';
+import { FakeVoiceClient } from '../../data/voice';
+import { answer } from './chatTestHarness';
+import { chatTestIds } from './testIds';
+import { ManualVoiceClient, renderVoiceChat, startCall } from './voice/voiceTestHarness';
 
 const voicePanel = () => screen.getByTestId(chatTestIds.voicePanel);
 
@@ -14,7 +14,9 @@ async function startLiveCall(user: UserEvent, client: ManualVoiceClient) {
   client.emit({ type: 'status', status: 'live' });
 }
 
-describe('call panel', () => {
+// The one panel (ADR-0013 → Decisions 1, 2): text, call and the chat during the call are views of
+// one element; collapse and Esc fold it.
+describe('the panel', () => {
   it('without a voice client (the flag off): no Call, and the launcher still says Talk to my AI', async () => {
     const { user } = await renderVoiceChat({ client: null });
     await user.click(screen.getByRole('button', { name: 'Talk to my AI' }));
@@ -36,16 +38,17 @@ describe('call panel', () => {
     expect(call.compareDocumentPosition(input)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     await user.click(call);
 
-    const panel = screen.getByRole('complementary', { name: 'Voice call with Andrew’s AI' });
+    const panel = screen.getByRole('region', { name: 'Voice call with Andrew’s AI' });
+    expect(panel).not.toHaveAttribute('aria-modal');
     expect(panel).toHaveAttribute('data-phase', 'connecting');
     expect(panel).toHaveFocus();
     expect(within(panel).getByText(/Calls run on ElevenLabs/)).toBeInTheDocument();
     expect(screen.getByTestId(chatTestIds.voiceMute)).toBeDisabled();
-    expect(screen.getByTestId(chatTestIds.voiceMinimize)).toBeDisabled();
+    expect(screen.getByTestId(chatTestIds.collapse)).toBeEnabled();
     expect(screen.getByTestId(chatTestIds.root)).toHaveAttribute('data-surface', 'call');
-    // The chat and the launcher leave once their exits have played.
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    expect(screen.queryByTestId(chatTestIds.fab)).not.toBeInTheDocument();
+    // The chat's dialog became the call's region: no frame plays an exit.
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByTestId(chatTestIds.fab)).not.toBeInTheDocument());
   });
 
   it('plays a scripted call into the chat: lines, a scroll, then the chat opens', async () => {
@@ -53,12 +56,10 @@ describe('call panel', () => {
     const { user, executor } = await renderVoiceChat({ client });
     await startCall(user);
 
-    // The call ends back in the chat; the call panel plays its close animation, then leaves.
+    // The call ends back in the chat, in the same panel.
     const root = screen.getByTestId(chatTestIds.root);
     await waitFor(() => expect(root).toHaveAttribute('data-surface', 'text'), { timeout: 3000 });
-    await waitFor(() =>
-      expect(screen.queryByTestId(chatTestIds.voicePanel)).not.toBeInTheDocument(),
-    );
+    expect(screen.queryByTestId(chatTestIds.voicePanel)).not.toBeInTheDocument();
     const panel = screen.getByTestId(chatTestIds.panel);
     expect(executor.executed).toEqual([
       { id: 'voice-1', name: 'scrollToSection', input: { section: 'impact' } },
@@ -121,18 +122,70 @@ describe('call panel', () => {
     expect(screen.getByTestId(chatTestIds.root)).toHaveAttribute('data-surface', 'text');
   });
 
-  it('Esc minimizes a live call (never ends it); while connecting it does nothing', async () => {
+  it('is one element across text → call → callChat → text, its semantics following the view', async () => {
+    const client = new ManualVoiceClient();
+    const { user } = await renderVoiceChat({ client });
+    await user.click(screen.getByTestId(chatTestIds.fab));
+    const panel = screen.getByRole('dialog', { name: 'Ask about Andrew' });
+    expect(panel).toHaveAttribute('aria-modal', 'true');
+    expect(panel).toHaveAccessibleDescription('AI assistant · answers from this page');
+    const field = within(panel).getByTestId(chatTestIds.input);
+
+    await user.click(screen.getByTestId(chatTestIds.voiceCall));
+    expect(screen.getByTestId(chatTestIds.voicePanel)).toBe(panel);
+    expect(panel).toHaveAccessibleName('Voice call with Andrew’s AI');
+    expect(panel).not.toHaveAttribute('role');
+    await waitFor(() => expect(client.call).not.toBeNull());
+    client.emit({ type: 'status', status: 'live' });
+
+    await user.click(screen.getByTestId(chatTestIds.voiceChatToggle));
+    expect(screen.getByRole('dialog', { name: 'Voice call' })).toBe(panel);
+    expect(panel).toHaveAttribute('data-phase', 'listening');
+    // One composer: the same field in every view.
+    expect(within(panel).getByTestId(chatTestIds.input)).toBe(field);
+
+    await user.click(within(panel).getByTestId(chatTestIds.voiceEnd));
+    expect(screen.getByRole('dialog', { name: 'Ask about Andrew' })).toBe(panel);
+    expect(panel).not.toHaveAttribute('data-phase');
+  });
+
+  it('one collapse control in every header; nothing in the panel is a ×', async () => {
+    const client = new ManualVoiceClient();
+    const { user } = await renderVoiceChat({ client });
+    await user.click(screen.getByTestId(chatTestIds.fab));
+    const collapse = screen.getByTestId(chatTestIds.collapse);
+    expect(collapse).toHaveAccessibleName('Collapse chat');
+    expect(collapse).toHaveAttribute('aria-expanded', 'true');
+    expect(collapse).toHaveAttribute('aria-controls', screen.getByTestId(chatTestIds.panel).id);
+
+    await user.click(screen.getByTestId(chatTestIds.voiceCall));
+    expect(screen.getAllByTestId(chatTestIds.collapse)).toHaveLength(1);
+    expect(screen.getByTestId(chatTestIds.collapse)).toHaveAccessibleName(
+      'Collapse chat. The call goes on.',
+    );
+    expect(screen.queryByRole('button', { name: /close/i })).not.toBeInTheDocument();
+  });
+
+  it('Esc collapses in every view and never ends the call, also while connecting', async () => {
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client });
     await startCall(user);
     await waitFor(() => expect(client.call).not.toBeNull());
     await user.keyboard('{Escape}');
-    expect(voicePanel()).toBeInTheDocument();
+    const root = screen.getByTestId(chatTestIds.root);
+    expect(root).toHaveAttribute('data-surface', 'callPill');
+    expect(await screen.findByTestId(chatTestIds.voicePillExpand)).toHaveFocus();
 
     client.emit({ type: 'status', status: 'live' });
-    await user.keyboard('{Escape}');
+    await user.click(screen.getByTestId(chatTestIds.voicePillExpand));
+    await user.click(screen.getByTestId(chatTestIds.voiceChatToggle));
+    await user.type(screen.getByTestId(chatTestIds.input), 'draft{Escape}');
+    expect(root).toHaveAttribute('data-surface', 'callPill');
     expect(client.call?.ended).toBeNull();
-    expect(await screen.findByTestId(chatTestIds.voicePillExpand)).toHaveFocus();
+
+    await user.click(await screen.findByTestId(chatTestIds.voicePillExpand));
+    expect(root).toHaveAttribute('data-surface', 'callChat');
+    expect(screen.getByTestId(chatTestIds.input)).toHaveValue('draft');
   });
 
   it('a call started after a text exchange gives the agent the earlier chat', async () => {

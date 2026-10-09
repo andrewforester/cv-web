@@ -68,6 +68,13 @@ test('asks a suggested question and renders the streamed answer', async ({ page 
     },
   ]);
   await page.screenshot({ path: `${SCREENSHOT_DIR}/chat.png` });
+
+  // The one collapse control (ADR-0013) folds the panel back into the launcher.
+  const collapse = chat.getByTestId('chat-collapse');
+  await expect(collapse).toHaveAccessibleName('Collapse chat');
+  await collapse.click();
+  await expect(chat).toBeHidden();
+  await expect(page.getByTestId('chat-fab')).toBeFocused();
   expect(errors).toEqual([]);
 });
 
