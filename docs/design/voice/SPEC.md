@@ -1,17 +1,17 @@
 # Voice call panel — design package
 
-> **Look is v3** (`docs/design/v3/`; tokens in `src/theme/tokens.css`) on the chat's dark card (`src/shared/chat/ChatCard`). Project *Voice panel: call in the right column, one conversation* (P-CV-15), tickets CV-181 and CV-190 (v2: one launcher, Call in the composer, typing during a call, one chat toggle, motion). The call lives in the right column, where the text chat lives; the CV page shifts left and stays readable. Behaviour follows the architecture: ADR-0009 (the column, the dock, one conversation) and `docs/voice/SYSTEM_DESIGN.md` §4.2–4.3 (surfaces `closed | text | call | callChat | callPill`, dock `none | side | bottom`), with the v2 changes of CV-189 (typing during a call goes to the voice agent); this package is the look, copy, motion and accessibility on top of it.
+> **Look is v3** (`docs/design/v3/`; tokens in `src/theme/tokens.css`) on the chat's dark card (`src/shared/chat/ChatCard`). Project *Voice panel: call in the right column, one conversation* (P-CV-15), tickets CV-181, CV-190 (v2: one launcher, Call in the composer, typing during a call, one chat toggle, motion) and CV-198 (v3 layout: the CV card keeps its width and slides left, or the chat floats over the page). The call lives in the right column, where the text chat lives; on wide screens the white CV card slides left at its own width to make room, on narrower desktops the chat floats over the page. Behaviour follows the architecture: ADR-0009 (the column, the dock, one conversation), ADR-0011 (slide vs overlay) and `docs/voice/SYSTEM_DESIGN.md` §4.2–4.3 (surfaces `closed | text | call | callChat | callPill`, dock `none | side | bottom`), with the v2 changes of CV-189 (typing during a call goes to the voice agent); this package is the look, copy, motion and accessibility on top of it.
 
 ## Source
 
-- Designed from a **description**: the human's four decisions in the project (2026-10-08), the brief of CV-181 and the human's v2 rework in CV-190 (2026-10-09). No screenshot or Figma frame. Reference UX: the voice widget on ElevenLabs' careers page (a panel that expands, folds and turns into a text view). Every block is drawn in the v3 language and from pieces already built: `ChatCard`, `ChatCardHeader`, `ChatBadge`, the chat rows, `ActionChip`, `ConfirmationCard`, the launcher pill, and the orb, timer, mic button and call divider of the full-screen voice mode this package replaces.
-- `mock.html` is a static HTML/CSS mock. It links the real `../../../src/theme/tokens.css` and the shared chat icons (`src/shared/chat/assets/`), and declares the token changes proposed here at the top of its `<style>`. Open it in a browser; `?state=` switches states (list in the file header). At ≥ 1024 px it shows the column, below 600 px the phone layout.
-- **The page behind** is a viewport screenshot of production (2026-10-08, launcher hidden, no scrollbar). For the column states it was taken with the page **already reserving the column** (`main { padding-right: 416px }` at 1280 × 800), so the narrowed page is the real reflow, not a scaled image: the stat tiles move under the summary at that width. The `tool` ones are scrolled to Experience with the real agent highlight (`data-agent-highlighted`) on Transcenda, 24 px from the top. To refresh: open production at 1280 × 800 and 390 × 844, hide the launcher and the scrollbar, add the padding for `column`, screenshot.
-- **Renders** (1×, CSS px = image px) come from `render.sh` (headless Chrome; phone shots go through `frame.html`, an exact 390 px iframe). Motion runs; each frame is taken at the same virtual time. Neither file is product code.
+- Designed from a **description**: the human's four decisions in the project (2026-10-08), the brief of CV-181, the human's v2 rework in CV-190 and the v3 layout request in CV-198 (2026-10-09). No screenshot or Figma frame. Reference UX: the voice widget on ElevenLabs' careers page (a panel that expands, folds and turns into a text view). Every block is drawn in the v3 language and from pieces already built: `ChatCard`, `ChatCardHeader`, `ChatBadge`, the chat rows, `ActionChip`, `ConfirmationCard`, the launcher pill, and the orb, timer, mic button and call divider of the full-screen voice mode this package replaces.
+- `mock.html` is a static HTML/CSS mock. It links the real `../../../src/theme/tokens.css` and the shared chat icons (`src/shared/chat/assets/`), and declares the token changes proposed here at the top of its `<style>`. Open it in a browser; `?state=` switches states (list in the file header). At ≥ 1584 px it shows the column and the slid page, at 600–1583 px the floating card over the unmoved page (overlay), below 600 px the phone layout. **`&play`** replays the opening at ≥ 1584 px (page and column on one timing); click anywhere to close and open again, to judge the motion.
+- **The page behind** is a viewport screenshot of production (desktop 1600 × 900 and laptop 1280 × 800 on 2026-10-09, phone 390 × 844 on 2026-10-08; launcher hidden, no scrollbar). The slide doesn't reflow anything, so the mock shifts the unmoved screenshot left by `--chat-dock-width / 2` (208 px) exactly as the shell's transform shifts the page; the strip it uncovers on the right is `--color-page`. The `tool` ones are scrolled to Experience with the real agent highlight (`data-agent-highlighted`) on Transcenda, 24 px from the top. To refresh: open production at 1600 × 900, 1280 × 800 and 390 × 844, hide the launcher and the scrollbar, screenshot (`voice_backdrop_{top,tool}_{desktop,laptop,mobile}.png`).
+- **Renders** (1×, CSS px = image px) come from `render.sh` (headless Chrome; phone shots go through `frame.html`, an exact 390 px iframe): **desktop = 1600 × 900, the slide**; **laptop = 1280 × 800, the overlay** (four states); phone = 390 × 844. Motion runs; each frame is taken at the same virtual time. Neither file is product code.
 
 | File (`assets/` unless noted) | Shows |
 |---|---|
-| `screenshot.png` (package root) | desktop, **listening** (the reference frame) |
+| `screenshot.png` (package root) | desktop 1600 × 900, **listening** (the reference frame): the card slid left, the column beside it |
 | `voice_state_launcher_{desktop,mobile}.png` | page with the one launcher pill "Talk to my AI" |
 | `voice_state_text_*` | the text chat open (no call): **Call** + "…or type instead" in the composer |
 | `voice_state_connecting_*` | mic permission pending / connecting |
@@ -23,13 +23,14 @@
 | `voice_state_confirm_*` | opening a contact when the browser needs a tap: Open / Cancel |
 | `voice_state_warning_*` | last 30 s: the timer counts down in pink |
 | `voice_state_chat_*` | **chat open during the call**: every line so far (spoken and typed), the composer active, the mini orb and Hide chat in the header |
-| `voice_state_minimized_*` | the panel folded into the call pill; the page back to full width |
+| `voice_state_minimized_*` | the panel folded into the call pill; the page back in the centre |
 | `voice_state_ended_*` | after End: the text chat with the transcript between call dividers, Call back in the composer |
 | `voice_state_error-{denied,failed,busy,ratelimited,dropped,callcap,monthly}_*`, `voice_state_offline_*` | error and limit cards |
+| `voice_state_{text,listening,chat,tool}_laptop.png` | **overlay** at 1280 × 800: the floating card (text chat, call panel, chat during the call, a page tool) over the page, which doesn't move |
 
 ## What it is
 
-One pill, "Talk to my AI", opens the chat in the right column; the page slides left to make room, in step with the column. The composer starts with a gradient **Call** button and the placeholder "…or type instead". Call turns the column into the call: a big gradient orb that breathes with the voices, the current line under it, the timer in the header. The page stays fully visible and scrollable, so when the agent scrolls or highlights something the visitor simply sees it. The composer stays at the bottom during the call, with End and Mute in place of Call: the visitor can talk or type, and typed lines go to the voice agent, which answers by voice. One toggle in the header, **Show chat / Hide chat**, swaps the orb for the chat with every line of the call already written (text and voice are one conversation), and back. Minimize folds the call into a small pill and gives the page its full width back. On a phone the call is a bottom sheet over the page. The feature is behind a flag; with the flag off the composer has no Call and the launcher still reads "Talk to my AI".
+One pill, "Talk to my AI", opens the chat in the right column; on a wide screen the white CV card slides left at its own width, slowly and in step with the column, to make room. On a laptop, where the card has no spare room beside it, the page stays put and the chat floats over it. The composer starts with a gradient **Call** button and the placeholder "…or type instead". Call turns the column into the call: a big gradient orb that breathes with the voices, the current line under it, the timer in the header. The page stays visible and scrollable (beside the column, or around the floating card), so when the agent scrolls or highlights something the visitor simply sees it. The composer stays at the bottom during the call, with End and Mute in place of Call: the visitor can talk or type, and typed lines go to the voice agent, which answers by voice. One toggle in the header, **Show chat / Hide chat**, swaps the orb for the chat with every line of the call already written (text and voice are one conversation), and back. Minimize folds the call into a small pill and the page slides back to the centre. On a phone the call is a bottom sheet over the page. The feature is behind a flag; with the flag off the composer has no Call and the launcher still reads "Talk to my AI".
 
 ## Component tree
 
@@ -60,19 +61,21 @@ Breakpoints are literal in media queries (CSS can't read tokens there), as the c
 
 | Zone | Query | The column | The page |
 |---|---|---|---|
-| **Wide** | `(min-width: 1024px) and (min-height: 500px)` | docked (dock `side`): `fixed`, `top/right/bottom: --space-4`, width `--chat-panel-width` (400), full height (768 at 800) | reserves it: the shell gives `main` `padding-inline-end: --chat-dock-width` (416 = column 400 + its right gutter 16). The page card keeps its own `--page-margin` (24), so card → column gap = 24 |
-| **Medium** | 600–1023 px wide | floats like today's chat card: `right/bottom: --space-4`, 400 × `min(--chat-panel-height, 100dvh − 32)` | not shifted (at 768 the page would be 352 wide) |
+| **Slide** (wide) | `(min-width: 1584px) and (min-height: 500px)` | docked (dock `side`): `fixed`, `top/right/bottom: --space-4`, width `--chat-panel-width` (400), full height (868 at 900) | **keeps its width and slides left**: the shell gives `main` `transform: translateX(calc(var(--chat-dock-width) / -2))` (−208 px), so the 1120 px card sits in the middle of the space left of the column: left margin = gap to the column |
+| **Overlay** (medium) | 600–1583 px wide (and ≥ 500 tall) | floats like today's chat card: `right/bottom: --space-4`, 400 × `min(--chat-panel-height, 100dvh − 32)`; the call panel takes the card's place and size | **doesn't move**: the chat floats over its bottom-right |
 | **Phone** | `(max-width: 599px), (max-height: 499px)` (`CHAT_SHEET_QUERY`) | the call: bottom sheet (dock `bottom`), **fixed height** `--voice-sheet-height`; the chat: today's full-screen sheet | not shifted; the shell gives `main` `padding-block-end` and the root `scroll-padding-bottom` of `--voice-sheet-height`, so the page's end and the agent's scroll targets land above the sheet |
 
-Width check, wide 1280: page card 24 → 840 (816 wide; content 740 inside `--page-padding-x` 38), gap 24, column 864 → 1264, 16 to the edge. At 1024 the card is 560 wide (content 498): still the v3 card, the grids reflow (`auto-fit`).
+**The breakpoint** is the full card, the column and 24 px on each side of the card after the slide: `--page-max-width` 1120 + `--chat-dock-width` 416 + 2 × `--space-6` 24 = **1584**. A literal in the chat's media query and `CHAT_COLUMN_QUERY` (CSS can't read tokens there), checked against the tokens by a unit test (`docs/voice/SYSTEM_DESIGN.md` §4.3).
 
-The **column is one place**: on wide screens the page reserves it whenever it shows anything (surfaces `text`, `call`, `callChat`; ADR-0009 → Decision 3). Closing the chat (`closed`) or minimizing the call (`callPill`) gives the width back.
+Width check, slide at 1600: the card 240 → 1360 before, 32 → 1152 after (1120 wide, unchanged), gap 32, column 1184 → 1584, 16 to the edge. At the threshold 1584: 24 | card 1120 | 24 | column 400 | 16. At 1920: 192 | 1120 | 192 | 400 | 16. Overlay at 1280: the card stays at 80 → 1200; the floating card 864 → 1264 × 184 → 784 covers the card's right 336 px from y 184 down. Who gets what: 1280, 1366, 1440, 1536 px laptops get the overlay; 1600 px and wider get the slide.
 
-| Surface | Wide | Medium | Phone |
+The **column is one place**: on wide screens the page slides for it whenever it shows anything (surfaces `text`, `call`, `callChat`; ADR-0009 → Decision 3). Closing the chat (`closed`) or minimizing the call (`callPill`) slides the page back. A resize across 1584 swaps the column and the floating card in one render; the surface and a live call carry on, and the page slides back or out.
+
+| Surface | Slide (wide) | Overlay (medium) | Phone |
 |---|---|---|---|
 | `closed` | launcher | launcher | launcher |
-| `text` | chat in the column | today's floating card | today's full-screen sheet |
-| `call` | call panel in the column (Layout 2) | call panel in the card's place | bottom sheet (Layout 5) |
+| `text` | chat in the column | today's floating card over the page | today's full-screen sheet |
+| `call` | call panel in the column (Layout 2) | call panel in the card's place (`voice_state_listening_laptop`) | bottom sheet (Layout 5) |
 | `callChat` | chat in the column with the call header and the call composer (Layout 3) | the same in the floating card | full-screen sheet, same header and composer |
 | `callPill` | the call pill (Layout 4) | the call pill | the call pill |
 
@@ -144,7 +147,7 @@ All sizes in CSS px; spacing is the v3 grid (`--space-*`).
 - **Caption** 12 below, the stage's content width (352), clamped to `--voice-caption-lines` (**3**) lines, and **3 lines are reserved** (`min-height`), so the orb doesn't move when the line wraps. The agent's line in `--color-dark-ink`, the visitor's in `--chat-ink-2`, **spoken or typed alike**. It shows the latest final line; a `correction` replaces it in place.
 - **Privacy line** (connecting only) 12 below the caption: caption style, "Calls run on ElevenLabs. Voice and text share one history. AI can make mistakes." (ADR-0009 → Consequences: the earlier chat goes to ElevenLabs, the call's lines go to the text model; two lines on a phone).
 - **Action chip** (tool ran): absolutely positioned, centred, 16 from the stage top, so nothing moves. The chat's `ActionChip` look (mono caption, hairline pill, ✦ 14 `--color-dark-number`): `Showing Transcenda…` → `Showing Transcenda`; it stays until the agent's turn ends, at least `--agent-highlight-duration` (3 s).
-- Vertical budget at 1280 × 800: column 768 = header 67 + stage 614 + composer 85 (hairline + 12 + 56 + 16) + 2 border. Content 240 (orb box) + 28 (label) + 12 + 97 (3 caption lines) = 377, centred: the orb's centre sits at y ≈ 318 (40 % of the viewport).
+- Vertical budget, slide at 1600 × 900: column 868 = header 67 + stage 714 + composer 85 (hairline + 12 + 56 + 16) + 2 border. Content 240 (orb box) + 28 (label) + 12 + 97 (3 caption lines) = 377, centred: the orb's centre sits at y ≈ 368. Overlay (600 high): stage 446 ≥ 377 + 32 padding, so the same stage fits the floating card.
 
 **The call composer** (`ChatComposer` in call mode; the same element in `call` and `callChat`): the composer's frame (top hairline, padding `12 20 16`), one row, gap 8, `align-items: flex-end`; **no disclaimer line** during the call (the privacy line said it at the start); the meta row shows only for the counter or the too-long message.
 - **End** (left, where Call was): 56 circle, `--color-card` fill, no border, `chat_icon_end` 24 `--color-ink`, `aria-label` `voiceEndLabel` ("End call"). Hover `--color-surface`. Starting and ending the call happen in the same spot.
@@ -172,7 +175,7 @@ The toggle swaps the column's middle to the conversation (same frame, same place
 
 ### 4. Minimized: the call pill
 
-Minimize (from either view) folds the column into **the call pill** in the launcher's place (`fixed`, right/bottom `--space-4`, `--chat-z-index`). On wide screens the page gets its full width back.
+Minimize (from either view) folds the column into **the call pill** in the launcher's place (`fixed`, right/bottom `--space-4`, `--chat-z-index`). On wide screens the page slides back to the centre.
 
 - White pill (`--color-card`, `--radius-pill`, `--shadow-launcher`), padding 6, gap 8, 48 high (= the launcher pill).
 - **Expand** (one `<button>`, the pill's main part): mini orb 36 · gap 10 · status (16 / 600 ink: "Listening", "Speaking", "Mic off") · gap 10 · elapsed (mono 14 `--color-ink-3`; last 30 s: `0:24 left` in `--color-accent-pink`). Hover: status `--color-accent` (as the pill). Tap → the column opens again in the view it had.
@@ -206,7 +209,7 @@ As before (`docs/voice/SYSTEM_DESIGN.md` §7): the agent asks out loud, calls `o
 - **End** (the call composer, either view) ends the call. With at least one line: the surface becomes `text`: the column shows the chat with the transcript, the normal header and composer (Call is back in End's place); focus goes to the textarea. With no lines (cancelled while connecting): back to `text` (a call always starts there) with focus on Call. End on the pill: `closed` (Layout 4).
 - The call is one entry between two **call dividers** (`VoiceCallDivider`, unchanged: two `--color-dark-line` hairlines around a mono caption; start: the call icon (`voice_icon_call`, was the mic) 14 `--color-dark-number` + "Voice call"; end, by `endReason`: "Call ended · 1:24", "Call ended at the 3-minute limit", "Call dropped · 1:10"). A call with no lines still shows both dividers.
 - The contact card's outcome is the chat's usual chip (`Opened WhatsApp` / `Cancelled`).
-- After the call the chat is the normal text chat, still in the column (the page stays shifted until it is closed). The next question goes to `/api/chat` with the call's lines, spoken and typed, in its history (the architecture's contract). Call starts a new call in place.
+- After the call the chat is the normal text chat, still in the column (the page stays slid until it is closed). The next question goes to `/api/chat` with the call's lines, spoken and typed, in its history (the architecture's contract). Call starts a new call in place.
 
 ### 8. Errors and limits
 
@@ -234,23 +237,24 @@ Same panel. The header's action is **close** (no toggle, no minimize); no timer;
 
 ## Motion
 
-Replaces v1's "the page reflows at once" (Decision 14 → Decision 23). Animate `transform`, `opacity` and `filter`, with **one exception: the page's reserved width** (the shell's `padding-inline-end`), which transitions so the page visibly makes room; the show already does the same (`--retro-reserve-duration`). The audio level is written to `--voice-level` on the panel root (or the pill) once per animation frame, no React render per frame.
+Animate only `transform`, `opacity` and `filter`: the page included (v3: the card slides with a transform, nothing reflows; Decision 23). The audio level is written to `--voice-level` on the panel root (or the pill) once per animation frame, no React render per frame.
 
-**Motion tokens** (new): `--chat-dock-duration` **300 ms** (column in + page narrows), `--chat-dock-exit-duration` **250 ms** (column out + page widens), `--chat-motion-exit-easing` `cubic-bezier(0.4, 0, 1, 1)` (accelerate out; the same curve as `--retro-close-easing`), `--voice-orb-travel-duration` **300 ms** (the orb between the stage and the header). Existing: `--chat-motion-easing` `cubic-bezier(0.2, 0, 0, 1)` (decelerate in), `--chat-motion-duration` 200, `--chat-motion-exit-duration` 150.
+**Motion tokens**: **new (v3)** `--chat-slide-duration` **500 ms** (column in + card slides left), `--chat-slide-exit-duration` **400 ms** (column out + card slides back), `--chat-slide-easing` `cubic-bezier(0.4, 0, 0.2, 1)` (standard ease-in-out, both ways: the human's "smooth, not fast"; no fast start, no abrupt stop). **Kept (v2)**: `--chat-dock-duration` 300 / `--chat-dock-exit-duration` 250 (now only the phone call sheet), `--chat-motion-exit-easing` `cubic-bezier(0.4, 0, 1, 1)` (accelerate out), `--voice-orb-travel-duration` 300 (the orb between the stage and the header). Existing: `--chat-motion-easing` `cubic-bezier(0.2, 0, 0, 1)` (decelerate in), `--chat-motion-duration` 200, `--chat-motion-exit-duration` 150.
 
 | What | How | Duration · easing |
 |---|---|---|
-| **Column opens** (wide: `closed → text`, or the pill expanding) | In **one frame**: the launcher pill leaves (opacity → 0, `scale(.96)`, origin bottom-right, 150 ms exit easing); the column slides in from **off-screen right**, `translateX(calc(100% + var(--space-4))) → 0`, no fade (it enters from outside the viewport, shadow and all); the page's reserved padding goes `0 → --chat-dock-width` with the **same duration and easing**, so the page's right edge and the column's left edge travel together: the column pushes the page. | `--chat-dock-duration` 300 · `--chat-motion-easing` |
-| **Column closes** | Reverse, together: the column slides out to the right, the padding goes back to 0. Then the launcher pill comes back: `scale(.9) → 1` + fade, origin bottom-right, starting when the column has gone (delay = the exit duration). | `--chat-dock-exit-duration` 250 · `--chat-motion-exit-easing`; pill 200 · `--chat-motion-easing` |
-| **Scroll during the width change** | The section at the top of the viewport stays there: the browser's scroll anchoring holds it frame by frame where supported; at the end the owner restores the noted offset (no jump where anchoring is missing). The grids reflow during the move (`auto-fit` tiles drop under the summary at their breakpoint); that's accepted, it reads as the page making room. Who owns the transition and the anchoring (shell or chat) is CV-189's (`docs/voice/SYSTEM_DESIGN.md`). | — |
-| **Medium card / phone chat sheet** in, out | unchanged: today's `card-in` / `sheet-in` (`translateY(8 / 24)` + fade) and their exits; the page doesn't move. | 200 / 150 |
-| **Phone call sheet** in, out | `translateY(100%) → 0`, no fade; out reverse. The page's bottom padding changes at once (it's below the fold, nothing to see). | 300 / 250, dock easings |
+| **Column opens** (slide: `closed → text`, or the pill expanding) | In **one frame**: the launcher pill leaves (opacity → 0, `scale(.96)`, origin bottom-right, 150 ms exit easing); the column slides in from **off-screen right**, `translateX(calc(100% + var(--space-4))) → 0`, no fade (it enters from outside the viewport, shadow and all); the whole page (`main`) slides left, `translateX(0 → calc(var(--chat-dock-width) / -2))`, with the **same duration and easing**. The card moves 208 px as one piece at its own width (no reflow, no text rewrapping); the column moves 416 px, so the gap between them closes steadily to its final value and they stop together. | `--chat-slide-duration` 500 · `--chat-slide-easing` |
+| **Column closes** | Reverse, together: the column slides out to the right, the page slides back to the centre. Then the launcher pill comes back: `scale(.9) → 1` + fade, origin bottom-right, starting when the column has gone (delay = the slide's exit duration). | `--chat-slide-exit-duration` 400 · `--chat-slide-easing`; pill 200 · `--chat-motion-easing` |
+| **Scroll during the slide** | Nothing to do: the page changes no size and no height, so the scroll position can't drift and the section at the top stays there. | — |
+| **Overlay card / phone chat sheet** in, out | unchanged: today's `card-in` / `sheet-in` (`translateY(8 / 24)` + fade) and their exits; the page doesn't move. | 200 / 150 |
+| **Phone call sheet** in, out | `translateY(100%) → 0`, no fade; out reverse. The page's bottom padding changes at once (it's below the fold, nothing to see). | `--chat-dock-duration` 300 / `--chat-dock-exit-duration` 250, `--chat-motion-easing` / `--chat-motion-exit-easing` |
 | **`text → call`** (Call) | The frame stays. Header: ChatHeader → call header crossfade (out 150, in 200). Middle: the message list fades out (150); the stage fades in with the orb `scale(.6) → .82` (connecting's scale) (200, starting at 100). Composer: Call `scale(.8)` + fade out (150, origin left); End then Mute `scale(.8) → 1` + fade in (200, Mute 50 later); the placeholder crossfades; the field's left edge slides 22 px to the right (the slot's width transitions, 200). | 150 / 200 · `--chat-motion-easing` |
 | **`call` / `callChat` → `text`** (End) | Reverse of the above, from whichever view; in `call` the stage fades out and the message list fades in, scrolled to the end. | 150 / 200 |
 | **`call ⇄ callChat`** (the toggle) | Header right side and composer **don't move**; the toggle's label swaps at once (fixed width, so nothing shifts). **Show chat**: the orb **travels into the header**: a FLIP transform from the stage centre (200) to the badge slot (36: `scale(.18)` + translate), status and caption fade out (150), the badge fades out under it (150), and the message list fades in with `translateY(8) → 0` (200, starting at 100); at the end the mini orb takes over (same look, no glow). **Hide chat**: reverse: the mini orb grows from the slot back to the stage centre while the list fades out. | `--voice-orb-travel-duration` 300 · `--chat-motion-easing` |
 | **Typed line sent** (`call`) | The caption crossfades to the typed line (out 150, in 200), as a spoken line does. In `callChat` the row appears as any new row. | 150 / 200 |
-| **Minimize** | the column scales to `.92` toward bottom-right + fades (150 exit easing), the page widens with the dock exit timing; then the call pill `scale(.9) → 1` + fades in (200). | 150 + 200; page 250 |
-| **Expand** | the call pill fades out (150); the column comes back as in "Column opens" (the page narrows with it). | 150 + 300 |
+| **Minimize** | the column scales to `.92` toward bottom-right + fades (150 exit easing), the page slides back with the slide's exit timing; then the call pill `scale(.9) → 1` + fades in (200). | 150 + 200; page 400 |
+| **Expand** | the call pill fades out (150); the column comes back as in "Column opens" (the card slides left with it). | 150 + 500 |
+| **Resize across 1584 px** | The column and the floating card swap in one render (no frame animation); the page slides out or back with the slide timing. | page 500 / 400 |
 | Orb: level → scale, glow | `transition` on the values; listening `× .12`, speaking `× .2`, mini orb `× .08` | `--voice-level-smoothing` 100 ms linear |
 | Orb swirl / shimmer | rotate; listening 12 s / 7.2 s reverse, speaking 6 s / 3.6 s | `--voice-spin-*` |
 | Orb glow breathing | scale 1 → 1.06, alternate | `--voice-breathe` 3.2 s |
@@ -258,9 +262,9 @@ Replaces v1's "the page reflows at once" (Decision 14 → Decision 23). Animate 
 | Small orb (contact card) | size change 120 ⇄ 200 as a FLIP transform | 200 ms |
 | Cards in / out | opacity + `translateY(8) → 0` | 200 / 150 ms |
 
-Interruptions: a new transition starts from the current values (CSS transitions, not keyframes, for the column and the padding), so a quick open → close reverses smoothly instead of jumping.
+Interruptions: the page's slide is a CSS transition, so a quick open → close reverses from where it is instead of jumping.
 
-**Reduced motion** (`prefers-reduced-motion: reduce`): no slide, no travel, no scale. The page's reserved width changes **at once** (no padding transition; scroll anchoring as above); the column, sheets, pills and every view swap are **opacity-only, 150 ms** (`--chat-motion-exit-duration`); the orb doesn't travel (the stage and the list crossfade; the badge slot swaps). No spin or breathing; the orb is a still gradient and the level drives only the glow opacity (the mini orb: nothing).
+**Reduced motion** (`prefers-reduced-motion: reduce`): no slide, no travel, no scale. The card moves **at once** (no transition; nothing reflows, so nothing to anchor); the column, sheets, pills and every view swap are **opacity-only, 150 ms** (`--chat-motion-exit-duration`); the orb doesn't travel (the stage and the list crossfade; the badge slot swaps). No spin or breathing; the orb is a still gradient and the level drives only the glow opacity (the mini orb: nothing).
 
 ## Texts
 
@@ -298,7 +302,7 @@ Tinted in code with `ChatIcon` (mask over `currentColor`), 24 × 24 viewBox, 2 p
 
 ## States and behaviour
 
-1. **Open**: the launcher pill → `text` (the column opens, the page narrows: Motion).
+1. **Open**: the launcher pill → `text` (wide: the column opens and the card slides left; medium: the floating card; Motion).
 2. **Start**: Call (in `text`) → surface `call` at once in **connecting** (no wait for the network). Offline → the offline card. Otherwise `requestMicrophone()`; the caption is `allowMic` while the prompt is pending, then empty. Then the session request and `start()`; errors → their card. While connecting: Mute and the field are disabled, End cancels, the toggle works (the chat shows the earlier text lines and the opening divider), minimize is disabled.
 3. **Live** → the agent's first message (**speaking**), then **listening**; the timer starts; `connected` is announced; the field is enabled.
 4. **Listening / speaking** follow the `mode` events; the orb's level comes from `levels()`.
@@ -314,7 +318,7 @@ Tinted in code with `ChatIcon` (mask over `currentColor`), 24 × 24 viewBox, 2 p
 ## Accessibility (WCAG 2.1 AA)
 
 - **Panel**: `<aside aria-label={voicePanelLabel}>` (a complementary landmark), **not modal**: no focus trap, no `aria-modal`; the page stays reachable. On open (Call), focus moves to the panel (`tabindex="-1"`, no ring) so a screen reader hears its label; End never gets initial focus. Tab order: toggle → minimize → (stage cards) → End → Mute → field → Send; errors: close → primary → secondary.
-- **The chat in the column** (wide) is the same kind of region while the column is docked; the medium floating card and the phone full-screen sheet keep today's dialog behaviour (`role="dialog"`, `aria-modal`, `useDialogBehavior`). The phone call sheet is not modal.
+- **The chat in the column** (slide) is the same kind of region while the column is docked; the overlay's floating card and the phone full-screen sheet keep today's dialog behaviour (`role="dialog"`, `aria-modal`, `useDialogBehavior`). The phone call sheet is not modal.
 - **Call button**: a `<button>` named `callLabel` ("Call my AI"), its visible text "Call" first in the name.
 - **Chat toggle**: one `<button>`, its name is its visible label ("Show chat" / "Hide chat"; no `aria-pressed`, since the label changes), `aria-controls` = the column's middle. After a toggle, focus stays on the toggle (it doesn't move: same place, new label, which a screen reader announces); if the focus was in the field, it stays there.
 - **Minimize** has `aria-expanded="true"` and `aria-controls` = the panel; the pill's expand button `aria-expanded="false"`. On minimize, focus moves to the pill's expand button; on expand, to the panel (or the field, if it had focus before).
@@ -353,15 +357,24 @@ In `src/screens/chat/testIds.ts`, values prefixed `chat-voice-`.
 The build task edits `src/theme/tokens.css` (the v1 voice tokens are already there); the mock declares the v2 ones at the top of its `<style>`.
 
 ```css
+/* Voice panel v3 (CV-198, docs/design/voice/SPEC.md → Motion): the CV card slides with the column */
+--chat-slide-duration: 500ms;                          /* new: column in + card slides left */
+--chat-slide-exit-duration: 400ms;                     /* new: column out + card slides back */
+--chat-slide-easing: cubic-bezier(0.4, 0, 0.2, 1);     /* new: standard ease-in-out, both ways */
+```
+
+v2, already in `tokens.css` (`--chat-dock-*` now time only the phone call sheet; `--voice-orb-travel-duration` stays 300 ms, not tied to the slide):
+
+```css
 /* Voice panel v2 (docs/design/voice/SPEC.md → Motion, Layout 3a) */
---chat-dock-duration: 300ms;                           /* new: column in + page narrows (one timing) */
---chat-dock-exit-duration: 250ms;                      /* new: column out + page widens */
+--chat-dock-duration: 300ms;                           /* the phone call sheet in */
+--chat-dock-exit-duration: 250ms;                      /* the phone call sheet out */
 --chat-motion-exit-easing: cubic-bezier(0.4, 0, 1, 1); /* new: accelerate out (= --retro-close-easing) */
 --voice-orb-travel-duration: 300ms;                    /* new: the orb stage <-> header on the toggle */
 --voice-chat-toggle-width: 112px;                      /* new: Show chat / Hide chat keep one width */
 ```
 
-**Kept** (v1, in `tokens.css`): `--chat-dock-width`, `--voice-sheet-height`, `--voice-sheet-height-short`, `--voice-control-size`, `--voice-control-icon-size`, `--voice-orb-*`, `--voice-glow-*`, `--voice-caption-lines`, `--voice-pill-end-size`, `--voice-ended-pill-duration`, `--voice-level-smoothing`, `--voice-spin-listening`, `--voice-spin-speaking`, `--voice-breathe`, `--color-brand-pink`, `--color-brand-violet`.
+**Kept** (v1, in `tokens.css`): `--chat-dock-width` (the column's reach; half of it is the slide), `--voice-sheet-height`, `--voice-sheet-height-short`, `--voice-control-size`, `--voice-control-icon-size`, `--voice-orb-*`, `--voice-glow-*`, `--voice-caption-lines`, `--voice-pill-end-size`, `--voice-ended-pill-duration`, `--voice-level-smoothing`, `--voice-spin-listening`, `--voice-spin-speaking`, `--voice-breathe`, `--color-brand-pink`, `--color-brand-violet`.
 
 **Removed (v2)**: `--voice-mic-size`, `--voice-mic-icon-size`, `--voice-mic-sheen` (the launcher mic is gone; only `VoiceMicButton` uses them).
 
@@ -381,12 +394,12 @@ From `useVoiceCall`: `phase`, `permission`, `muted`, `elapsedSec` / `maxCallSeco
 Conservative defaults; the orchestrator may change them. v1 decisions that v2 replaced are noted in place (only the current state is kept).
 
 1. **The call panel is the chat's dark card**, not the light page style of the old voice mode: the column holds both views, so one frame and one header anatomy; the orb glows better on dark.
-2. **The column is full height on wide screens** (top 16 → bottom 16), not today's 600 px card: a docked column, so the page's shift reads as intended. The text chat docked there is full height too.
-3. **The page reserves the column whenever it is open**, the text chat included (also with no call): otherwise the page would jump back under the chat when a call ends. Same as ADR-0009 → Decision 3.
-4. **Wide = ≥ 1024 px** (and ≥ 500 px tall). Between 600 and 1023 the panel floats like today's chat card and the page doesn't shift (it would be under 600 px wide). Same as ADR-0009.
+2. **The column is full height on wide screens** (top 16 → bottom 16), not today's 600 px card: a docked column, so the page's slide reads as intended. The text chat docked there is full height too.
+3. **The page slides for the column whenever it is open**, the text chat included (also with no call): otherwise the page would jump back under the chat when a call ends. Same rule as ADR-0009 → Decision 3.
+4. **Slide = ≥ 1584 px** (and ≥ 500 px tall; v3, replaces "wide = ≥ 1024 px"): the full 1120 px card, the column and 24 px on each side of the card. Between 600 and 1583 the panel floats like today's chat card and the page doesn't move (ADR-0011 → Decision 2).
 5. **During the call the composer stays and is writable** (v2; replaces v1's read-only call bar): typed lines go to the voice agent, which answers by voice; End and Mute take Call's place in the same row.
 6. **One header and one composer for both call views** (v2): only the middle (orb stage ⇄ conversation) and the header's left slot change, so nothing the visitor uses moves when they toggle.
-7. **Minimized: the page returns to full width**; the pill sits in the launcher's place and the launcher hides.
+7. **Minimized: the page slides back to the centre** (overlay: it never moved); the pill sits in the launcher's place and the launcher hides.
 8. **The pill has its own End** (36 circle), so hanging up doesn't need an expand first.
 9. **Esc minimizes**, never ends the call; the panel is not modal.
 10. **Errors show a card only in `call`**; in `callChat` and in the pill the end divider's text tells it.
@@ -394,7 +407,7 @@ Conservative defaults; the orchestrator may change them. v1 decisions that v2 re
 12. **The chat toggle is a labelled button** with a fixed width, not an icon: it's the feature's main idea (one conversation) and must be found.
 13. **End is the white control** on the dark card, not red: v3 has no red for actions; the icon (flat handset) and the name say it. In the composer it is an icon-only 56 circle (v2), like the pill's End, so End + Mute take about the width of the labelled Call (120 vs 98) and the field barely moves.
 14. **One launcher, "Talk to my AI"** (v2): no mic beside the pill; a call starts from the chat. The label promises talking; the chat offers both.
-15. **Backdrops are production screenshots**, taken with the real page reflowed to the column's width.
+15. **Backdrops are production screenshots** of the unmoved page; the slide shifts them by 208 px, which is exactly what the shell does (nothing reflows).
 16. **Call lives in the composer, left of the field** (v2; replaces v1's mic in the composer): a labelled gradient pill is the most visible spot in the panel and reads as one sentence with the placeholder. In the header it would squeeze the title and sit away from where people act (Layout 1).
 17. **The phone sheet has a fixed height** (472 + safe area) so the shell reserves it from a token; the privacy line is shortened to two lines on a phone to fit.
 18. **Placeholder "…or type instead"** next to Call; "Type a message…" during the call. Without voice the composer keeps "Ask a question…" (a leading "…or" would read wrong with nothing before it).
@@ -402,8 +415,10 @@ Conservative defaults; the orchestrator may change them. v1 decisions that v2 re
 20. **Call starts in the orb view** (`call`), even from the chat: it's a call, the orb is its face; the toggle is one tap away.
 21. **On a phone, focusing the field in the call sheet switches to `callChat`**: the keyboard would cover the orb, and the full-screen sheet already handles the keyboard.
 22. **Typed lines look like spoken ones** in the transcript and the caption: one conversation; no keyboard marker.
-23. **The page's width change is animated** (v2; replaces v1's instant reflow) together with the column, one timing (`--chat-dock-duration` / `-exit-duration`), so the column visibly pushes the page; reduced motion keeps the instant reflow and fades.
+23. **The CV card keeps its width and slides left** with the column (v3; replaces v2's animated narrowing): a `transform` on the page, one timing for both (`--chat-slide-*`, 500 / 400 ms, ease-in-out: "smooth, not fast"); reduced motion moves the card at once and fades the column.
 24. **Call is disabled while a text answer streams**: one channel speaks at a time; the stream ends in seconds.
+25. **The slid card sits in the middle of the free space** (v3): a constant shift of half the dock width, so its left margin equals its gap to the column at every width (24 at 1584, 32 at 1600, 192 at 1920), rather than hugging the column or the left edge.
+26. **Overlay = today's floating card** (v3), not a full-height column over the page: it hides less of the CV (600 px tall, bottom-right) and already exists.
 
 ## Open questions
 
@@ -412,9 +427,11 @@ Each has the default above; for the orchestrator or the human. Coordinated with 
 1. **Call placement** (Decision 16): composer, left of the field, labelled gradient pill. Alternative: a header button. Default: composer.
 2. **Placeholders** (Decision 18): "…or type instead" / "Type a message…". Alternative for the call: "Type instead of talking…" (doesn't fit at 400 px beside End + Mute). Default: as written.
 3. **Typing on a phone during a call** (Decision 21): switch to the full-screen chat on focus. Alternative: keep the bottom sheet and lift it above the keyboard (it would cover most of the page). Default: switch.
-4. **Animated page width** (Decision 23): `padding-inline-end` transition (layout per frame for 300 ms, as the show does). If it janks on low-end devices, the fallback is v1's instant reflow under the sliding column. Default: animate.
+4. **The slide** (Decisions 23, 25): a transform, the card centred in the free space. Alternative: the minimum shift that clears the column (the card hugs the column, more empty space on the left of a wide screen). Default: centred.
 5. **Docked chat height** (Decision 2) and the **privacy line** (Layout 2) stay as v1 asked; no change requested.
+6. **The overlay on 600–1583 px** (Decision 26): the floating card. Alternative: a full-height column over the unmoved page (covers the card's right ≈ 300 px top to bottom). Default: the floating card. Note that this puts most laptops (1280–1536 px) on the overlay.
+7. **Slide timing** (Motion): 500 / 400 ms ease-in-out. Judge it with `mock.html?state=text&play` at ≥ 1584 px; slower (600 / 500) is one token change.
 
 ## Orchestrator decisions (2026-10-09)
 
-1. **Placeholder next to Call is "…or type instead"** (the human's wording), replacing the proposed "…or type a question" everywhere above; the rendered PNGs still show the old text, the strings table wins. Open questions 1, 3, 4, 5 take their defaults.
+1. **Placeholder next to Call is "…or type instead"** (the human's wording), replacing the proposed "…or type a question" everywhere above (the renders show it since CV-198). Open questions 1, 3, 4, 5 take their defaults.

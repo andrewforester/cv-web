@@ -2,7 +2,8 @@
 
 Why it exists: the design record of the voice agent. A visitor of the one CV page opens the
 chat with the "Talk to my AI" pill and taps its call button to talk to the CV's AI in the chat's
-right column (the page narrows beside it; a bottom sheet on phones; it folds into a pill): an
+right column (the CV card keeps its width and slides left; where there is no room beside the
+card, a floating card over the page; a bottom sheet on phones; it folds into a pill): an
 ElevenLabs agent answers by voice from the CV, in the visitor's language, and can scroll,
 highlight and open a contact on the page. The visitor can also type mid-call; the agent answers
 aloud. Text and voice are one conversation: every line of the call lands in the chat and
@@ -12,7 +13,7 @@ switch.
 
 What to read for what:
 - [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md): the flow (browser → our session endpoint → ElevenLabs
-  token → WebRTC call), pieces and layers, the panel's surfaces, the animated page shift and
+  token → WebRTC call), pieces and layers, the panel's surfaces, slide vs overlay and
   typing during a call (§4), limits, flag, prompt and agent sync, client tools, one
   conversation across text and voice (§8), testing, the ElevenLabs agent checklist and env, and
   the build split.
@@ -25,15 +26,17 @@ What to read for what:
   column, why the chat reports a dock and the shell reserves the space, and how each brain gets
   the other channel's lines.
 - [ADR-0010](../adr/0010-voice-panel-v2-typing-in-call-animated-dock.md): why typing during a
-  call goes to the voice agent (`sendUserMessage`), and why the shell animates the page width.
+  call goes to the voice agent (`sendUserMessage`).
+- [ADR-0011](../adr/0011-voice-panel-v3-card-slides-or-chat-overlays.md): why the CV card slides
+  left with a transform instead of narrowing, and why the column docks only from 1584 px.
 - The look and copy: `docs/design/voice/`. The text chat it joins: `docs/chat/` (`API.md` →
   Voice calls in the history).
 
 Domain terms: *call* (one voice session, ≤ 180 s), *session endpoint* (mints the token), *agent
 sync* (the production function writes the agent's prompt and tools from the code), *voice call
 entry* (a call as it appears in the chat), *surface* (what the chat shows: closed, text, call,
-call with chat, pill), *chat toggle* (Show chat / Hide chat, one control), *dock* (the space
-the shell reserves and animates for it: none, side, bottom), *typed call line* (a line typed
+call with chat, pill), *chat toggle* (Show chat / Hide chat, one control), *dock* (the room the
+shell makes for it: none, side (the page slides left), bottom), *typed call line* (a line typed
 mid-call: it goes to the agent and joins the call's transcript), *earlier conversation* (the
 contextual update a call starts with).
 
