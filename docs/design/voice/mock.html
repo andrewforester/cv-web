@@ -5,9 +5,13 @@
     state = launcher | text | connecting | listening (default) | speaking | muted | typed | tool |
             confirm | warning | chat | minimized | ended | error-denied | error-failed |
             error-busy | error-ratelimited | error-dropped | error-callcap | error-monthly | offline
-    play  (no value) = replay the column's opening on load; click anywhere to close / open again
-  Layouts: slide at >= 1584 px wide (the column docks, the page slides left by half the dock
-  width), overlay at 600-1583 px (the floating card over the unmoved page), phone below 600 px.
+    play  = replay the morph (above the phone): the panel grows out of its pill (the launcher for
+            the text chat, the call pill for the call states), the page slides with it at
+            >= 1584 px; click anywhere to shrink it back into the pill / grow it again.
+            play=close starts open and shrinks it (minimize, for the call states).
+    at    = with play: freeze the morph at this many ms (the filmstrips in render.sh)
+  Layouts: one floating panel bottom-right at >= 600 px; at >= 1584 px wide the page slides left by
+  half the dock width beside it, at 600-1583 px it floats over the unmoved page; phone below 600.
   The page behind is a screenshot of production (assets/voice_backdrop_*); the slide shifts that
   image exactly as the shell's transform shifts the page (nothing reflows).
   Screenshots: render.sh next to this file.
@@ -44,7 +48,7 @@
         --chat-motion-exit-easing: cubic-bezier(0.4, 0, 1, 1);
         --voice-chat-toggle-width: 112px;
         --voice-orb-travel-duration: 300ms;
-        /* v3 (CV-198): the CV card slides left with the column */
+        /* v3 (CV-198): the CV card slides left beside the panel; the morph runs on this timing */
         --chat-slide-duration: 500ms;
         --chat-slide-exit-duration: 400ms;
         --chat-slide-easing: cubic-bezier(0.4, 0, 0.2, 1);
@@ -132,11 +136,12 @@
       }
 
       /* ---- Launcher: one pill, "Talk to my AI" ---- */
+      /* The pills sit one layer above the panel: the leaving pill fades on top of the morph. */
       .launcher {
         position: fixed;
         right: var(--space-4);
         bottom: var(--space-4);
-        z-index: var(--chat-z-index);
+        z-index: calc(var(--chat-z-index) + 1);
         display: flex;
         align-items: center;
         gap: var(--space-3);
@@ -167,14 +172,14 @@
         background: var(--gradient-brand-tile);
         border-radius: 50%;
       }
-      /* ---- The column: fixed on the right, the page reserves its width ---- */
-      .column {
+      /* ---- The panel: one floating frame bottom-right at every width above the phone ---- */
+      .frame {
         position: fixed;
-        top: var(--space-4);
         right: var(--space-4);
         bottom: var(--space-4);
         z-index: var(--chat-z-index);
         width: var(--chat-panel-width);
+        height: min(var(--chat-panel-height), calc(100dvh - 2 * var(--space-4)));
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -566,7 +571,7 @@
         min-width: var(--voice-chat-toggle-width);
       }
 
-      /* ---- The chat in the column (during and after the call) ---- */
+      /* ---- The chat in the panel (during and after the call) ---- */
       .list {
         flex: 1;
         min-height: 0;
@@ -708,7 +713,7 @@
         position: fixed;
         right: var(--space-4);
         bottom: var(--space-4);
-        z-index: var(--chat-z-index);
+        z-index: calc(var(--chat-z-index) + 1);
         display: flex;
         align-items: center;
         gap: var(--space-2);
@@ -765,28 +770,131 @@
       body.slide {
         background-position: calc(var(--chat-dock-width) / -2) 0;
       }
-      /* ?play: the page and the column move on one timing (the column's keyframes in the build). */
+      /*
+       * ?play: the morph (SPEC → Motion). The panel keeps its final size; only its clip-path moves
+       * between the pill's box (--chat-morph-w/h, measured) and the panel's own rounded box,
+       * anchored bottom-right, every corner round. The clip hides the shadow, so the shadow fades
+       * in when the panel lands. The content fades in after the shape starts and out first; the
+       * pill on top fades. At >= 1584 px the page slides on the same timing.
+       * --seek shifts every animation back (with ?at, everything is paused there).
+       */
+      @keyframes morph-in {
+        from {
+          clip-path: inset(
+            calc(100% - var(--chat-morph-h)) 0 0 calc(100% - var(--chat-morph-w)) round
+              calc(var(--chat-morph-h) / 2)
+          );
+        }
+        to {
+          clip-path: inset(0 round var(--radius-card));
+        }
+      }
+      @keyframes morph-out {
+        from {
+          clip-path: inset(0 round var(--radius-card));
+        }
+        to {
+          clip-path: inset(
+            calc(100% - var(--chat-morph-h)) 0 0 calc(100% - var(--chat-morph-w)) round
+              calc(var(--chat-morph-h) / 2)
+          );
+        }
+      }
+      @keyframes shadow-in {
+        from {
+          box-shadow: none;
+        }
+      }
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+        }
+      }
+      @keyframes fade-out {
+        to {
+          opacity: 0;
+        }
+      }
+      @keyframes page-in {
+        from {
+          background-position: 0 0;
+        }
+        to {
+          background-position: calc(var(--chat-dock-width) / -2) 0;
+        }
+      }
+      @keyframes page-out {
+        from {
+          background-position: calc(var(--chat-dock-width) / -2) 0;
+        }
+        to {
+          background-position: 0 0;
+        }
+      }
       body.play {
-        transition: background-position var(--chat-slide-exit-duration) var(--chat-slide-easing);
+        --seek: 0ms;
       }
-      body.play.slide {
-        transition-duration: var(--chat-slide-duration);
+      body.shut .frame {
+        visibility: hidden;
       }
-      body.play .column {
-        transition: transform var(--chat-slide-exit-duration) var(--chat-slide-easing);
+      body.opening .frame {
+        animation:
+          morph-in var(--chat-slide-duration) var(--chat-slide-easing) backwards,
+          shadow-in var(--chat-motion-exit-duration) var(--chat-motion-easing) backwards;
+        animation-delay: calc(0ms - var(--seek)), calc(var(--chat-slide-duration) - var(--seek));
       }
-      body.play.slide .column {
-        transition-duration: var(--chat-slide-duration);
+      body.opening .frame > * {
+        animation: fade-in var(--chat-motion-duration) var(--chat-motion-easing) backwards;
+        animation-delay: calc(var(--chat-motion-exit-duration) - var(--seek));
       }
-      body.play:not(.slide) .column {
-        transform: translateX(calc(100% + var(--space-4)));
+      body.opening .pill-of-panel {
+        animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) forwards;
+        animation-delay: calc(0ms - var(--seek));
       }
-
-      /* ---- Overlay (600-1583 px): the floating card over the page, which doesn't move ---- */
-      @media (min-width: 600px) and (max-width: 1583px) and (min-height: 500px) {
-        .column {
-          top: auto;
-          height: min(var(--chat-panel-height), calc(100dvh - 2 * var(--space-4)));
+      body.closing .frame {
+        pointer-events: none;
+        animation: morph-out var(--chat-slide-exit-duration) var(--chat-slide-easing) forwards;
+        animation-delay: calc(0ms - var(--seek));
+      }
+      body.closing .frame > * {
+        animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) forwards;
+        animation-delay: calc(0ms - var(--seek));
+      }
+      body.closing .pill-of-panel {
+        animation: fade-in var(--chat-motion-duration) var(--chat-motion-easing) both;
+        animation-delay: calc(
+          var(--chat-slide-exit-duration) - var(--chat-motion-duration) - var(--seek)
+        );
+      }
+      body.wide.opening {
+        animation: page-in var(--chat-slide-duration) var(--chat-slide-easing) both;
+        animation-delay: calc(0ms - var(--seek));
+      }
+      body.wide.closing {
+        animation: page-out var(--chat-slide-exit-duration) var(--chat-slide-easing) both;
+        animation-delay: calc(0ms - var(--seek));
+      }
+      body.frozen,
+      body.frozen * {
+        animation-play-state: paused !important;
+      }
+      /* Reduced motion: no clip, no slide; the panel and the pill crossfade. */
+      @media (prefers-reduced-motion: reduce) {
+        body.opening .frame,
+        body.closing .frame,
+        body.wide.opening,
+        body.wide.closing {
+          animation-name: none;
+        }
+        body.opening .frame {
+          animation: fade-in var(--chat-motion-exit-duration) var(--chat-motion-easing) backwards;
+        }
+        body.closing .frame {
+          animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing)
+            forwards;
+        }
+        body.wide.opening {
+          background-position: calc(var(--chat-dock-width) / -2) 0;
         }
       }
 
@@ -796,8 +904,7 @@
           --voice-orb-size: var(--voice-orb-size-small);
           --voice-caption-lines: 2;
         }
-        .column {
-          top: auto;
+        .frame {
           left: 0;
           right: 0;
           bottom: 0;
@@ -806,7 +913,7 @@
           border-bottom: 0;
           border-radius: var(--radius-card) var(--radius-card) 0 0;
         }
-        .column.chat-view {
+        .frame.chat-view {
           top: 0;
           height: auto;
           border: 0;
@@ -883,7 +990,7 @@
       const textComposer = `<div class="composer"><div class="composer-row"><button type="button" class="ctl call" aria-label="Call my AI">${icon('call')}Call</button>${field({ text: '…or type instead' })}</div><p class="caption">Answers are AI-generated and may contain mistakes.</p></div>`;
 
       const panel = (cls, header, stage, bottom = callBar()) =>
-        `<aside class="column ${cls}" aria-label="Voice call with Andrew’s AI">${header}<div class="stage">${stage}</div>${bottom}</aside>`;
+        `<aside class="frame ${cls}" aria-label="Voice call with Andrew’s AI">${header}<div class="stage">${stage}</div>${bottom}</aside>`;
 
       const errorCard = (glyph, title, body, primary, secondary) =>
         `<div class="card err" role="alert"><div class="card-head"><span class="glyph">${icon(glyph)}</span><p class="card-title">${title}</p></div><p class="card-body">${body}</p><div class="card-buttons"><button type="button" class="btn-secondary btn-primary">${primary}</button><button type="button" class="btn-secondary">${secondary}</button></div></div>`;
@@ -919,7 +1026,7 @@
 
       const states = {
         text: () =>
-          `<aside class="column chat-view" aria-label="Ask about Andrew">${chatHeader}<ol class="list" aria-label="Conversation">${textLines}</ol>${textComposer}</aside>`,
+          `<aside class="frame chat-view" aria-label="Ask about Andrew">${chatHeader}<ol class="list" aria-label="Conversation">${textLines}</ol>${textComposer}</aside>`,
         connecting: () =>
           panel(
             'connecting',
@@ -972,13 +1079,13 @@
             `${orb()}<p class="status">Speaking</p><p class="say">He’s open to new roles, remote or B2B across the EU. Want me to open his email?</p>`,
           ),
         chat: () =>
-          `<aside class="column chat-view speaking" aria-label="Voice call with Andrew’s AI">
+          `<aside class="frame chat-view speaking" aria-label="Voice call with Andrew’s AI">
             <header class="header">${orb(true)}<div class="titles"><h2 class="title">Voice call</h2><p class="sub caption"><span class="live">Speaking</span> · <b>1:12</b></p></div>${toggle(true)}${minimizeBtn}</header>
             <ol class="list" aria-label="Conversation">${callLines}${typedLine}${assistant('Yes: he shipped a shared Kotlin Multiplatform core for the August Home apps.')}</ol>
             ${callBar({ focus: true })}
           </aside>`,
         ended: () =>
-          `<aside class="column chat-view" aria-label="Ask about Andrew">${chatHeader}<ol class="list" aria-label="Conversation">${callLines}${divider('Call ended · 1:24')}</ol>${textComposer}</aside>`,
+          `<aside class="frame chat-view" aria-label="Ask about Andrew">${chatHeader}<ol class="list" aria-label="Conversation">${callLines}${divider('Call ended · 1:24')}</ol>${textComposer}</aside>`,
         minimized: () =>
           `<div class="callpill listening" role="group" aria-label="Voice call"><button type="button" class="expand" aria-label="Open the call panel" aria-expanded="false">${orb(true)}<span class="state">Listening</span><span class="time">0:42</span></button><button type="button" class="hang" aria-label="End call">${icon('end')}</button></div>`,
         launcher: () =>
@@ -1049,21 +1156,46 @@
           ),
       };
 
-      // The page behind. Slide: shifted left while the column is open (not for the launcher and
+      // The page behind. Slide: shifted left while the panel is open (not for the launcher and
       // the pill); overlay and phone: never moves.
       const open = !['launcher', 'minimized'].includes(state);
       const backdrop = `${state === 'tool' ? 'tool' : 'top'}_${form}`;
-      document.body.style.backgroundImage = `url(assets/voice_backdrop_${backdrop}.png)`;
-      document.getElementById('app').innerHTML = (states[state] || states.listening)();
-      const docked = slide && open;
-      if (docked && p.has('play')) {
-        document.body.classList.add('play');
-        requestAnimationFrame(() =>
-          requestAnimationFrame(() => document.body.classList.add('slide')),
-        );
-        addEventListener('click', () => document.body.classList.toggle('slide'));
-      } else if (docked) {
-        document.body.classList.add('slide');
+      const body = document.body;
+      const app = document.getElementById('app');
+      body.style.backgroundImage = `url(assets/voice_backdrop_${backdrop}.png)`;
+      app.innerHTML = (states[state] || states.listening)();
+      if (p.has('play') && open && !phone) {
+        // The pill this panel grows out of and shrinks into: the call pill during a call, else the
+        // launcher. Measured once, as the build's useMorphOrigin does.
+        const call = ['connecting', 'listening', 'speaking', 'muted', 'typed', 'tool', 'confirm'];
+        const inCall = [...call, 'warning', 'chat'].includes(state);
+        app.insertAdjacentHTML('beforeend', inCall ? states.minimized() : states.launcher());
+        const pill = app.lastElementChild;
+        pill.classList.add('pill-of-panel');
+        const box = (pill.querySelector('.pill') || pill).getBoundingClientRect();
+        body.style.setProperty('--chat-morph-w', `${box.width}px`);
+        body.style.setProperty('--chat-morph-h', `${box.height}px`);
+        body.classList.add('play');
+        if (slide) body.classList.add('wide');
+        const run = (phase) => {
+          body.classList.remove('shut', 'opening', 'closing');
+          void body.offsetWidth; // restart the keyframes
+          body.classList.add(phase);
+        };
+        const first = p.get('play') === 'close' ? 'closing' : 'opening';
+        if (p.has('at')) {
+          body.style.setProperty('--seek', `${Number(p.get('at'))}ms`);
+          body.classList.add('frozen');
+          run(first);
+        } else {
+          run(first === 'opening' ? 'shut' : 'opening');
+          setTimeout(() => run(first), first === 'opening' ? 700 : 1200);
+          addEventListener('click', () =>
+            run(body.classList.contains('closing') ? 'opening' : 'closing'),
+          );
+        }
+      } else if (slide && open) {
+        body.classList.add('slide');
       }
       document.documentElement.dataset.form = form;
     </script>

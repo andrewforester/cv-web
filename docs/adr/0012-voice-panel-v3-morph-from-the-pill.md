@@ -58,7 +58,7 @@ Opening grows the panel out of the pill; closing and minimizing shrink it back i
 takes its place. The panel is laid out at its final size from the first frame, anchored
 bottom-right (where the pill is), and only its **`clip-path: inset(… round …)`** animates: from
 the pill's box (its width and height, radius half its height) to the whole panel. The content
-fades in on top of the growing dark shape. The pill (the launcher, or the call pill on minimize
+fades in on top of the growing dark shape; the shadow follows once it lands. The pill (the launcher, or the call pill on minimize
 and expand) sits **above** the panel and fades, so the white pill turns into the dark card instead
 of vanishing under it.
 
@@ -70,7 +70,7 @@ the chat root; the frames read them with a 48 px fallback (`--space-9`, a circle
 
 | Option | Assessment |
 |---|---|
-| **A. `clip-path` on the final-size panel (chosen)** | No layout per frame: the content never reflows, the page is untouched; the clip is paint-only (composited where the browser supports it). The rounded corner comes from `inset(… round r)` and stays 24 px from pill to card. The shadow would be clipped, so the clip ends 96 px outside the panel (`−2 × --space-9`, past the shadow) and is removed at the end: no pop. |
+| **A. `clip-path` on the final-size panel (chosen)** | No layout per frame: the content never reflows, the page is untouched; the clip is paint-only (composited where the browser supports it). The clip stays inside the panel (`inset(0 round --radius-card)` at the end), so every corner of the growing shape is round: 24 px from pill to card. The clip also hides the panel's shadow, so the shadow fades in (150 ms, paint-only) when the panel lands; on a close it goes with the first frame, under the content's fade. |
 | B. Animate the frame's `width` / `height` with fixed-size content inside | The shadow follows for free, but every frame lays out the frame, and the panels need a new inner wrapper. Rejected: the slide was made compositor-only for the same "smooth, not fast" reason. |
 | C. `transform: scale()` from the pill (FLIP) | Cheapest, but a 172 × 48 → 400 × 600 non-uniform scale distorts the corners and the text unless every child is counter-scaled. Rejected. |
 | D. View Transitions API | Snapshots stretch the white pill into the dark card and interfere with `main`'s own transition; needs `flushSync` around React updates. Rejected for now. |
@@ -81,7 +81,8 @@ The morph uses the slide's tokens (ADR-0011 Decision 3), with no new ones: open
 `--chat-slide-duration` 500 ms, close and minimize `--chat-slide-exit-duration` 400 ms, both
 `--chat-slide-easing`. At ≥ 1584 px the page slides on the same frames, so the panel lands as the
 card stops. The content fades in from 150 to 350 ms (`--chat-motion-exit-duration` delay,
-`--chat-motion-duration`) and fades out in the first 150 ms of a close. The pill fades out in
+`--chat-motion-duration`) and fades out in the first 150 ms of a close; the shadow fades in from
+500 to 650 ms. The pill fades out in
 150 ms on open, and fades back in over the last 200 ms of a close, so it is whole when the panel is
 gone.
 
@@ -107,5 +108,5 @@ slides back and out with them. A tap on the ended pill opens the chat out of tha
     full panel instead of reversing mid-way (as the column's keyframes did); the page's slide
     still reverses smoothly.
 - **Revisit:** a taller panel on wide screens (Decision 1, option B) after the human's check on
-  a 1600+ px screen; option B of Decision 2 if a browser shows a clipped shadow or stutters on
-  the clip.
+  a 1600+ px screen; option B of Decision 2 if the shadow's late arrival reads as a pop on a real
+  screen, or a browser stutters on the clip.
