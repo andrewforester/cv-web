@@ -102,20 +102,36 @@ for (const { name, size } of viewports) {
       const html = page.locator('html');
       const fullWidth = await mainWidth(page);
 
-      const mic = page.getByTestId('chat-voice-mic');
-      await expect(mic).toBeVisible();
+      // One launcher: the pill opens the chat; a call starts from its composer.
+      const fab = page.getByTestId('chat-fab');
+      await expect(fab).toHaveText('Talk to my AI');
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-launcher-${name}.png` });
 
-      await mic.click();
+      await fab.click();
+      const chat = page.getByTestId('chat-panel');
+      const list = chat.getByTestId('chat-list');
+      await expect(chat).toBeVisible();
+      await expect(chat.getByTestId('chat-input')).toHaveAttribute(
+        'placeholder',
+        '…or type instead',
+      );
+      if (name === 'desktop') {
+        // The page shifts left: the column (400 + its 16 px gutter) is reserved beside it.
+        await expect(html).toHaveAttribute('data-chat-dock', 'side');
+        // The width animates with the column (ADR-0010 → Decision 2): wait for it to settle.
+        await expect.poll(() => mainWidth(page)).toBeLessThanOrEqual(fullWidth - 400);
+      }
+      await settle(chat);
+      await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-text-${name}.png` });
+
+      await chat.getByTestId('chat-voice-call').click();
       const voice = page.getByTestId('chat-voice-panel');
       await expect(voice).toBeVisible();
       await expect(voice).toHaveAttribute('data-phase', 'connecting');
       await settle(voice);
       if (name === 'desktop') {
-        // The page shifts left: the column (400 + its 16 px gutter) is reserved beside it.
         await expect(html).toHaveAttribute('data-chat-dock', 'side');
-        // The width animates (ADR-0010 → Decision 2): wait for it to settle.
-        await expect.poll(() => mainWidth(page)).toBeLessThanOrEqual(fullWidth - 400);
+        expect(await mainWidth(page)).toBeLessThanOrEqual(fullWidth - 400);
       } else {
         // A bottom sheet over the live page; the page pads its end by the sheet's height.
         await expect(html).toHaveAttribute('data-chat-dock', 'bottom');
@@ -161,8 +177,6 @@ for (const { name, size } of viewports) {
 
       // the answer; then a line typed mid-call goes to the agent, never to /api/chat
       await steps(page, 1);
-      const chat = page.getByTestId('chat-panel');
-      const list = chat.getByTestId('chat-list');
       const typed = 'Does he know Kotlin?';
       if (name === 'desktop') {
         // In the call view: the sent line is the caption, the next one a draft in the field.
@@ -172,17 +186,18 @@ for (const { name, size } of viewports) {
         await expect(voice.getByTestId('chat-voice-caption')).toHaveText(typed);
         await field.fill('And Swift?');
         await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-typed-${name}.png` });
-        await voice.getByTestId('chat-voice-show-chat').click();
+        await voice.getByTestId('chat-voice-chat-toggle').click();
         // One draft for both views.
         await expect(chat.getByTestId('chat-input')).toHaveValue('And Swift?');
         await chat.getByTestId('chat-input').fill('');
       } else {
-        await voice.getByTestId('chat-voice-show-chat').click();
+        await voice.getByTestId('chat-voice-chat-toggle').click();
         await chat.getByTestId('chat-input').fill(typed);
         await chat.getByTestId('chat-input').press('Enter');
       }
-      // Show chat: every line so far, spoken and typed, and the call composer
+      // Show chat: every line so far, spoken and typed, and the call composer; the toggle flips
       await expect(chat).toBeVisible();
+      await expect(chat.getByTestId('chat-voice-chat-toggle')).toHaveText('Hide chat');
       await expect(list.getByTestId('chat-visitor-message')).toHaveText([
         /Show me his selected impact\./,
         /Does he know Kotlin\?/,
@@ -235,6 +250,8 @@ for (const { name, size } of viewports) {
         /You typed/,
       ]);
       await expect(list.getByTestId('chat-action-chip')).toHaveText('Scrolled to Selected impact');
+      // Call is back in End's place.
+      await expect(chat.getByTestId('chat-voice-call')).toBeVisible();
       await settle(chat);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-ended-${name}.png` });
 
@@ -251,7 +268,9 @@ for (const { name, size } of viewports) {
       expect(errors).toEqual([]);
     });
 
-    test('the monthly cap shows its card and keeps the mic', async ({ page }) => {
+    test('the monthly cap shows its card; closing it gives the focus back to Call', async ({
+      page,
+    }) => {
       const errors = collectErrors(page);
       await mockSession(page, 503, {
         error: {
@@ -262,7 +281,8 @@ for (const { name, size } of viewports) {
         },
       });
       await page.goto(VOICE_SITE);
-      await page.getByTestId('chat-voice-mic').click();
+      await page.getByTestId('chat-fab').click();
+      await page.getByTestId('chat-voice-call').click();
       const voice = page.getByTestId('chat-voice-panel');
       const card = voice.getByTestId('chat-voice-error');
       await expect(card).toHaveAttribute('data-error', 'quotaExhausted');
@@ -272,17 +292,45 @@ for (const { name, size } of viewports) {
 
       await voice.getByTestId('chat-voice-close').click();
       await expect(voice).toBeHidden();
-      await expect(page.getByTestId('chat-voice-mic')).toBeFocused();
+      await expect(page.getByTestId('chat-voice-call')).toBeFocused();
       // The browser logs the failed request itself; only app errors count here.
       expect(errors.filter((error) => !error.includes('503'))).toEqual([]);
     });
   });
 }
 
-test('without the flag there is no mic button', async ({ page }) => {
+test('without the flag there is no Call, and the launcher still says Talk to my AI', async ({
+  page,
+}) => {
   const errors = collectErrors(page);
   await page.goto(NORMAL_SITE);
-  await expect(page.getByTestId('chat-fab')).toBeVisible();
-  await expect(page.getByTestId('chat-voice-mic')).toHaveCount(0);
+  await expect(page.getByTestId('chat-fab')).toHaveText('Talk to my AI');
+  await page.getByTestId('chat-fab').click();
+  const chat = page.getByTestId('chat-panel');
+  await expect(chat.getByTestId('chat-input')).toHaveAttribute('placeholder', 'Ask a question…');
+  await expect(page.getByTestId('chat-voice-call')).toHaveCount(0);
   expect(errors).toEqual([]);
+});
+
+test.describe('reduced motion', () => {
+  test.use({ viewport: viewports[0].size });
+
+  test('the page makes room for the column at once, with no width transition', async ({ page }) => {
+    const errors = collectErrors(page);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto(VOICE_SITE);
+    const fullWidth = await mainWidth(page);
+    const main = page.locator('main');
+    expect(await main.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe(
+      '0s',
+    );
+    await page.getByTestId('chat-fab').click();
+    await expect(page.locator('html')).toHaveAttribute('data-chat-dock', 'side');
+    // No transition: the reserved width is there on the first read, not after an animation.
+    expect(await mainWidth(page)).toBeLessThanOrEqual(fullWidth - 400);
+    // The column only fades (no slide): its box is in place while it fades in.
+    const box = await page.getByTestId('chat-panel').boundingBox();
+    expect(box && Math.round(box.x + box.width)).toBe(viewports[0].size.width - 16);
+    expect(errors).toEqual([]);
+  });
 });

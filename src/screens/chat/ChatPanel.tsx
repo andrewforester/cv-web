@@ -1,5 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { ChatCard } from '../../shared/chat/ChatCard';
+// Before the panel's own CSS: the frame's placement (`ChatColumn`), which the phone sheet overrides.
+import { frameClasses, type FrameMotion } from './useFrameMotion';
 import { ChatComposer } from './ChatComposer';
 import { ChatHeader } from './ChatHeader';
 import styles from './ChatPanel.module.css';
@@ -9,7 +11,6 @@ import { MessageList } from './MessageList';
 import { OfflineNotice } from './OfflineNotice';
 import { CHAT_PANEL_ID, chatTestIds } from './testIds';
 import { useDialogBehavior } from './useDialogBehavior';
-import { frameClasses, type FrameMotion } from './useFrameMotion';
 import { useVisualViewportFit } from './useVisualViewportFit';
 import { VoiceCallButton } from './voice/VoiceCallButton';
 import { VoiceCallComposer } from './voice/VoiceCallComposer';

@@ -1,14 +1,16 @@
 # chat
 
-Why it exists: lets a visitor talk to Andrew's CV instead of reading it. The "Ask my AI" pill in
-the corner (with a first-visit hint) opens a chat where the visitor asks about Andrew's experience
-and gets answers streamed from the page's content. Suggested questions help start; the chat can
-also act on the page: "show his selected impact" scrolls there, "highlight his work at Transcenda" marks
-the job, and opening a contact asks for confirmation first. A link to `#ask` anywhere on the site
-opens it too. With the voice flag on, a mic beside the pill (and in the composer) starts a voice
-call (`voice/`, its own `AGENTS.md`) whose transcript lands in the same conversation; during the
-call the composer stays and writes to the call (the agent answers by voice), and after it the
-same field asks the text model again (docs/voice/SYSTEM_DESIGN.md §4.4). Behaviour:
+Why it exists: lets a visitor talk to Andrew's CV instead of reading it. The one launcher, the
+"Talk to my AI" pill in the corner (with a first-visit hint), opens a chat where the visitor asks
+about Andrew's experience and gets answers streamed from the page's content. Suggested questions
+help start; the chat can also act on the page: "show his selected impact" scrolls there,
+"highlight his work at Transcenda" marks the job, and opening a contact asks for confirmation
+first. A link to `#ask` anywhere on the site opens it too. With the voice flag on, the composer
+starts with a Call button ("Call … or type instead"): it turns the chat into a voice call
+(`voice/`, its own `AGENTS.md`) whose transcript lands in the same conversation; during the call
+the composer stays and writes to the call (the agent answers by voice), and after it the same
+field asks the text model again (docs/voice/SYSTEM_DESIGN.md §4.4). Call waits while a text
+answer streams: one channel speaks at a time. Behaviour:
 `docs/design/chat/SPEC.md` (with "Orchestrator decisions"); look:
 `docs/design/v3/SPEC.md` → Decision 6 (the pill; the panel in the loop panel's dark colours); API:
 `docs/chat/API.md` → v4; page agent: `docs/chat/AGENT.md`; copy and labels: ADR-0006 → Decision 3.
@@ -37,9 +39,12 @@ language. Each question carries a snapshot of the page (section in view, highlig
 mounted tools) from the agent registry. Chips and confirmation cards name the page's items from
 `CvPage` (impact figure, company, project, skill group, book, contact).
 
-Dock: the chat tells the app shell how much room to keep free for it (`chatDock.ts`: `none`,
-`side` column, `bottom` call sheet; derived from the surface and the layout, §4.3) through
-`ChatRoute`'s `onDockChange`; the shell reserves it.
+Dock and motion: the chat tells the app shell how much room to keep free for it (`chatDock.ts`:
+`none`, `side` column, `bottom` call sheet; derived from the surface and the layout, §4.3)
+through `ChatRoute`'s `onDockChange`, before paint, so the shell's page transition starts on the
+frame the column enters. The column slides in from the right edge with the page's timing (the
+dock motion tokens) and slides out the same way; swapping views inside it crossfades, minimize
+folds it toward the pill (`useFrameMotion`, `ChatColumn.module.css`); reduced motion fades only.
 
 Place in the architecture: the screen pattern (state holder → UI state → stateless components)
 over `src/data/chat/` (the conversation stream), `CvPageRepository` (labels) and `src/agent/`
@@ -51,6 +56,8 @@ agent chat; here thin wrappers bind them to this screen's strings. Strings in `s
 
 Stubs and limits: the sheet and column media queries are repeated in the CSS modules; the
 launcher's visible label is its accessible name (WCAG 2.5.3); its test id is still `chat-fab`.
+The toggle swaps the views by a crossfade: the orb's flight into the header (SPEC → Motion) is
+not built.
 
 Content consistency: `suggestionPrerequisites.ts` gives each starter question (`suggestionN` in
 `strings.ts`) the CV data it needs; its test runs them on the real data and fails for a question

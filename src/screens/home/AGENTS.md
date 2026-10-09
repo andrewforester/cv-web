@@ -33,4 +33,4 @@ Stubs and limits:
   `docs/design/v3/design.dc.html` and its 2026-10-05 handoff). Jobs and Transcenda's projects share
   one layout: head, then the tag line and the dot points from the logo's left edge.
 - The print / PDF layout (`docs/design/v3/design-print.dc.html`) is not built.
-- The "Ask my AI" launcher belongs to the chat screen, not this page.
+- The "Talk to my AI" launcher belongs to the chat screen, not this page.

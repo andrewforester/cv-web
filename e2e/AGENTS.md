@@ -24,9 +24,11 @@ What it guarantees today:
 - Every selector of every damage layer (`src/screens/retro/layers/*.css`, read from disk) matches an
   element on the show's first frame (`retroLayers.spec.ts`), so editing the CV can't leave a layer
   styling nothing.
-- The voice mode (`voice.spec.ts`): the scripted `FakeVoiceClient` (`?voice=fake`) with a mocked
-  `/api/voice-session`; the mic button opens the full-screen voice mode and its states are
-  screenshotted against `docs/design/voice/`; no test talks to ElevenLabs.
+- The voice call (`voice.spec.ts`): the scripted `FakeVoiceClient` (`?voice=fake`) with a mocked
+  `/api/voice-session`; the "Talk to my AI" pill opens the chat, its Call button starts the call
+  in the chat's column (a bottom sheet on a phone), and its states (typing, the chat toggle, the
+  pill, the transcript, reduced motion) are screenshotted against `docs/design/voice/`; no test
+  talks to ElevenLabs.
 
 Production smoke: tests titled `@prod` (the home page and `/new`; `/new` must end on `/`) also run
 against the live site right after CI deploys production (`.github/workflows/prod-smoke.yml`, called

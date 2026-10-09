@@ -1,7 +1,7 @@
 import { VOICE_MAX_CALL_SECONDS, type VoiceCall } from '../../../data/voice';
 
 /**
- * One attempt at a call, from the mic tap to its end: what the async steps and the SDK's
+ * One attempt at a call, from the Call tap to its end: what the async steps and the SDK's
  * callbacks share. A finished session ignores everything that arrives late.
  */
 export interface CallSession {
