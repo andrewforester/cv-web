@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { ChatDock } from '../screens/chat/chatDock';
 import { HomeRoute } from '../screens/home/HomeRoute';
 import { ShowCaseButton } from '../shared/ShowCaseButton';
@@ -7,6 +7,7 @@ import styles from './App.module.css';
 import { AppSpeedInsights } from './AppSpeedInsights';
 import { SHOW_SCENARIO } from './showScenarios';
 import { useLazyChat } from './useLazyChat';
+import { usePageAnchor } from './usePageAnchor';
 import { useRetroMode } from './useRetroMode';
 import { useShowCase } from './useShowCase';
 import { useShowCaseAvailable } from './useShowCaseAvailable';
@@ -35,13 +36,20 @@ export function App() {
   // while the chat is off the page, whatever it reported last.
   const [reportedDock, setDock] = useState<ChatDock>('none');
   const dock = Chat ? reportedDock : 'none';
-  useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.chatDock = dock;
-    return () => {
-      delete root.dataset.chatDock;
-    };
+  const mainRef = useRef<HTMLElement>(null);
+  // Before the attribute: the anchor is noted at the old layout. Both run before paint, so the
+  // page's width transition starts on the frame the column enters.
+  usePageAnchor(mainRef, dock);
+  useLayoutEffect(() => {
+    document.documentElement.dataset.chatDock = dock;
   }, [dock]);
+  // Removed only on unmount: a dock change never passes through "no attribute" (padding 0).
+  useLayoutEffect(
+    () => () => {
+      delete document.documentElement.dataset.chatDock;
+    },
+    [],
+  );
 
   return (
     <>
@@ -49,7 +57,7 @@ export function App() {
         className={pending ? styles.pending : undefined}
         data-retro-stage={showing ? '' : undefined}
       >
-        <main className={styles.main}>
+        <main ref={mainRef} className={styles.main}>
           <HomeRoute
             metaBarEnd={canShow && <ShowCaseButton onClick={start} />}
             copyrightEnd={showAvailable && <ShowCaseLink onClick={start} />}

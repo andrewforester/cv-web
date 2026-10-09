@@ -3,7 +3,8 @@
   visibility: hidden;
 }
 
-/* The chat's space (docs/voice/SYSTEM_DESIGN.md §4.3): the page reflows at once, no animated width. */
+/* The chat's space (docs/voice/SYSTEM_DESIGN.md §4.3): the side column's width animates (ADR-0010
+ * → Decision 2), the bottom sheet's space appears at once. */
 :global(:root[data-chat-dock='side']) .main {
   padding-inline-end: var(--chat-dock-width);
 }
@@ -14,4 +15,17 @@
 
 :global(:root[data-chat-dock='bottom']) .main {
   padding-block-end: var(--voice-sheet-height);
+}
+
+/* Closing on the base rule, opening on the side rule; reduced motion keeps the instant reflow.
+ * TODO(theme): drop the fallbacks once CV-192 adds the dock motion tokens. */
+@media (prefers-reduced-motion: no-preference) {
+  .main {
+    transition: padding-inline-end var(--chat-dock-exit-duration, 250ms)
+      var(--chat-motion-exit-easing, cubic-bezier(0.4, 0, 1, 1));
+  }
+
+  :global(:root[data-chat-dock='side']) .main {
+    transition: padding-inline-end var(--chat-dock-duration, 300ms) var(--chat-motion-easing);
+  }
 }

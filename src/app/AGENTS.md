@@ -41,8 +41,13 @@ shell stays on today's site.
 
 - **Dock** (docs/voice/SYSTEM_DESIGN.md §4.3): the space the chat asks the shell to keep free
   (`none`, `side` column, `bottom` sheet), reported through `onDockChange`. The shell mirrors it
-  as `data-chat-dock` on `<html>` (`none` while the chat is off the page); `App.module.css` turns
-  it into padding on `main` (`--chat-dock-width`, `--voice-sheet-height`). The page itself reflows.
+  as `data-chat-dock` on `<html>` before paint (`none` while the chat is off the page);
+  `App.module.css` turns it into padding on `main` (`--chat-dock-width`, `--voice-sheet-height`).
+  The side column's width animates with the column (ADR-0010 → Decision 2; reduced motion: at
+  once), the bottom sheet's space appears at once. The page itself reflows into the box.
+- **Page anchor** (`usePageAnchor`): the padding change switches off the browser's own scroll
+  anchoring (Chromium included), so the shell keeps the element at the top of the page in place
+  while the width moves; the visitor's wheel, touch or key ends it.
 
 Rules and limits:
 - Owner: Scaffold. Screens may only register their own route in `App.tsx`.
@@ -53,7 +58,7 @@ Rules and limits:
   a scenario and ≥ 1024 px) and with `?retro=1`.
 - The Show case button is hidden (`SHOW_CASE_BUTTON_ENABLED = false` in `App.tsx`, CV-144); the footer link
   is not gated by it. Set the constant to `true` to bring the button back.
-- Reduced motion is read by the show itself. The Show case button shows only with a scenario, on
+- Reduced motion is read by the show itself and, for the dock, by `App.module.css`. The Show case button shows only with a scenario, on
   ≥ 1024 px (`useShowCaseAvailable`); the start seam itself checks only the scenario.
 - Real-user speed: `AppSpeedInsights` sends Core Web Vitals to Vercel Speed Insights (dashboard:
   project `cv-web` → Speed Insights). Every view counts as route `/` (no `?retro=1` noise); it runs
