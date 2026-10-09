@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { chatDock } from './chatDock';
 import {
   historyDepth,
   initialSurface,
@@ -34,7 +33,7 @@ describe('surfaceReducer', () => {
     expect(surfaceReducer(at('text'), { type: 'callStart' }).surface).toBe('call');
   });
 
-  it('the one toggle swaps the column’s view both ways, and nothing else', () => {
+  it('the one toggle swaps the panel’s view both ways, and nothing else', () => {
     const chat = surfaceReducer(at('call'), { type: 'toggleChat' });
     expect(chat.surface).toBe('callChat');
     expect(surfaceReducer(chat, { type: 'toggleChat' }).surface).toBe('call');
@@ -141,20 +140,6 @@ describe('surfaceReducer', () => {
     expect(surfaceReducer(at('callPill'), { type: 'openChat', call: 'live' }).surface).toBe(
       'callChat',
     );
-  });
-});
-
-describe('chatDock', () => {
-  it('follows §4.3', () => {
-    expect(chatDock('text', 'column')).toBe('side');
-    expect(chatDock('call', 'column')).toBe('side');
-    expect(chatDock('callChat', 'column')).toBe('side');
-    expect(chatDock('callPill', 'column')).toBe('none');
-    expect(chatDock('closed', 'column')).toBe('none');
-    expect(chatDock('call', 'card')).toBe('none');
-    expect(chatDock('call', 'sheet')).toBe('bottom');
-    expect(chatDock('callChat', 'sheet')).toBe('none');
-    expect(chatDock('text', 'sheet')).toBe('none');
   });
 });
 

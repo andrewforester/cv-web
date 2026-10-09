@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { ChatCard } from '../../shared/chat/ChatCard';
-// Before the panel's own CSS: the frame's placement (`ChatColumn`), which the phone sheet overrides.
+// Before the panel's own CSS: the frame's placement (`ChatFrame`), which the phone sheet overrides.
 import { frameClasses, type FrameMotion } from './useFrameMotion';
 import { ChatComposer } from './ChatComposer';
 import { ChatHeader } from './ChatHeader';
@@ -32,9 +32,10 @@ interface ChatPanelProps {
 const noop = () => undefined;
 
 /**
- * The open chat: the docked column (wide, a region beside the page), a modal card (medium) or a
- * full-screen sheet (phones). During a call (`callChat`) the call's header and composer take the
- * chat's place: typed lines go to the call; suggestions and Try again wait for its end.
+ * The open chat: the floating panel, a region beside the slid page (wide) or a modal card over it
+ * (medium), or a full-screen sheet (phones). During a call (`callChat`) the call's header and
+ * composer take the chat's place: typed lines go to the call; suggestions and Try again wait for
+ * its end.
  */
 export function ChatPanel({
   className,
@@ -52,7 +53,7 @@ export function ChatPanel({
   const toggleRef = useRef<HTMLButtonElement>(null);
   const callButtonRef = useRef<HTMLButtonElement>(null);
   const sheet = state.layout === 'sheet';
-  const modal = state.layout !== 'column';
+  const modal = state.layout !== 'slide';
   // The view (chat or chat during a call) freezes while the panel plays its exit.
   const callView = state.surface === 'callChat';
   const [shownCallView, setShownCallView] = useState(callView);

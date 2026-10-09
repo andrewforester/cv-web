@@ -88,14 +88,16 @@ test('shows the rate-limit notice for a platform 429', async ({ page }) => {
 });
 
 // The chat look on the v3 palette (docs/design/v3): opened by the `#ask` link, empty and answered,
-// in the desktop column (docked: the page gives it room, docs/design/voice/SPEC.md → Layout zones)
-// and the phone sheet. Compare the screenshots with the package's PNGs.
+// in the floating panel on a wide screen (≥ 1584 px: the page slides left beside it) and on a
+// laptop (over the unmoved page; docs/design/voice/SPEC.md → Layout zones), and in the phone
+// sheet. Compare the screenshots with the package's PNGs.
 const viewports = [
-  { name: 'desktop', size: { width: 1280, height: 800 } },
-  { name: 'phone', size: { width: 390, height: 844 } },
+  { name: 'wide', size: { width: 1600, height: 900 }, dock: 'side' },
+  { name: 'desktop', size: { width: 1280, height: 800 }, dock: 'none' },
+  { name: 'phone', size: { width: 390, height: 844 }, dock: 'none' },
 ] as const;
 
-for (const { name, size } of viewports) {
+for (const { name, size, dock } of viewports) {
   test.describe(`chat look (${name})`, () => {
     test.use({ viewport: size });
 
@@ -116,10 +118,7 @@ for (const { name, size } of viewports) {
       const chat = page.getByTestId('chat-panel');
       await expect(chat).toBeVisible();
       await expect(page).toHaveURL(/\/(#chat)?$/);
-      await expect(page.locator('html')).toHaveAttribute(
-        'data-chat-dock',
-        name === 'desktop' ? 'side' : 'none',
-      );
+      await expect(page.locator('html')).toHaveAttribute('data-chat-dock', dock);
       // Let the open animation finish so the screenshot shows the final look.
       await chat.evaluate((panel) =>
         Promise.all(panel.getAnimations().map((animation) => animation.finished)),

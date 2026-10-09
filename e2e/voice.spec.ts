@@ -50,17 +50,67 @@ async function steps(page: Page, count: number) {
   for (let i = 0; i < count; i += 1) await page.clock.runFor(STEP_MS);
 }
 
+// `wide` gets the slide (≥ 1584 px: the page moves left beside the floating panel), `desktop` a
+// 1280 px laptop the overlay (the same panel over the unmoved page), `mobile` the sheets (§4.3).
 const viewports = [
+  { name: 'wide', size: { width: 1600, height: 900 } },
   { name: 'desktop', size: { width: 1280, height: 800 } },
   { name: 'mobile', size: { width: 390, height: 844 } },
 ] as const;
 
-/** The CV page's content width: the shell pads the chat's column away while it shows (`side`). */
-const mainWidth = (page: Page) =>
-  page.locator('main').evaluate((main) => {
-    const style = getComputedStyle(main);
-    return main.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+/** Half the dock (`--chat-dock-width` 416): how far the slide moves the CV card left. */
+const SLIDE_PX = 208;
+
+/** The white CV card's box (`HomePage`), transforms included. */
+async function cardBox(page: Page) {
+  const box = await page.locator('[data-testid="home"] > div').boundingBox();
+  if (!box) throw new Error('no CV card');
+  return { x: Math.round(box.x), width: Math.round(box.width) };
+}
+
+type CardBox = Awaited<ReturnType<typeof cardBox>>;
+
+/**
+ * The floating panel above the phone (ADR-0012), on both sides of 1584 px: 400 × 600 at
+ * right/bottom 16, never full height.
+ */
+async function expectPanel(page: Page, frame: Locator) {
+  await settle(frame);
+  const viewport = page.viewportSize();
+  const box = await frame.boundingBox();
+  if (!viewport || !box) throw new Error('no panel');
+  const height = Math.min(600, viewport.height - 32);
+  expect({
+    x: Math.round(box.x),
+    y: Math.round(box.y),
+    width: Math.round(box.width),
+    height: Math.round(box.height),
+  }).toEqual({
+    x: viewport.width - 16 - 400,
+    y: viewport.height - 16 - height,
+    width: 400,
+    height,
   });
+  return box;
+}
+
+/**
+ * The slide, once settled: dock `side`, the card at its own width with its left edge half the
+ * dock further left, the panel at least 24 px right of the card.
+ */
+async function expectSlide(page: Page, card: CardBox, frame: Locator) {
+  await expect(page.locator('html')).toHaveAttribute('data-chat-dock', 'side');
+  await expect.poll(() => cardBox(page)).toEqual({ x: card.x - SLIDE_PX, width: card.width });
+  const box = await expectPanel(page, frame);
+  expect(box.x).toBeGreaterThanOrEqual(card.x - SLIDE_PX + card.width + 24);
+}
+
+/** The overlay: dock `none`, the same panel over the unmoved page. */
+async function expectOverlay(page: Page, card: CardBox, frame: Locator) {
+  await expect(page.locator('html')).toHaveAttribute('data-chat-dock', 'none');
+  await expectPanel(page, frame);
+  expect(await cardBox(page)).toEqual(card);
+}
 
 /** A `/api/chat` mock that answers once and keeps the requests. */
 async function mockChat(page: Page): Promise<unknown[]> {
@@ -100,7 +150,7 @@ for (const { name, size } of viewports) {
       const chatRequests = await mockChat(page);
       await page.goto(VOICE_SITE);
       const html = page.locator('html');
-      const fullWidth = await mainWidth(page);
+      const card = await cardBox(page);
 
       // One launcher: the pill opens the chat; a call starts from its composer.
       const fab = page.getByTestId('chat-fab');
@@ -115,12 +165,8 @@ for (const { name, size } of viewports) {
         'placeholder',
         '…or type instead',
       );
-      if (name === 'desktop') {
-        // The page shifts left: the column (400 + its 16 px gutter) is reserved beside it.
-        await expect(html).toHaveAttribute('data-chat-dock', 'side');
-        // The width animates with the column (ADR-0010 → Decision 2): wait for it to settle.
-        await expect.poll(() => mainWidth(page)).toBeLessThanOrEqual(fullWidth - 400);
-      }
+      if (name === 'wide') await expectSlide(page, card, chat);
+      if (name === 'desktop') await expectOverlay(page, card, chat);
       await settle(chat);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-text-${name}.png` });
 
@@ -129,10 +175,9 @@ for (const { name, size } of viewports) {
       await expect(voice).toBeVisible();
       await expect(voice).toHaveAttribute('data-phase', 'connecting');
       await settle(voice);
-      if (name === 'desktop') {
-        await expect(html).toHaveAttribute('data-chat-dock', 'side');
-        expect(await mainWidth(page)).toBeLessThanOrEqual(fullWidth - 400);
-      } else {
+      if (name === 'wide') await expectSlide(page, card, voice);
+      else if (name === 'desktop') await expectOverlay(page, card, voice);
+      else {
         // A bottom sheet over the live page; the page pads its end by the sheet's height.
         await expect(html).toHaveAttribute('data-chat-dock', 'bottom');
         const box = await voice.boundingBox();
@@ -155,7 +200,7 @@ for (const { name, size } of viewports) {
       );
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-listening-${name}.png` });
 
-      if (name === 'desktop') {
+      if (name !== 'mobile') {
         await voice.getByTestId('chat-voice-mute').click();
         await expect(voice).toHaveAttribute('data-muted', 'true');
         await expect(voice.getByTestId('chat-voice-status')).toHaveText('Mic off');
@@ -178,7 +223,7 @@ for (const { name, size } of viewports) {
       // the answer; then a line typed mid-call goes to the agent, never to /api/chat
       await steps(page, 1);
       const typed = 'Does he know Kotlin?';
-      if (name === 'desktop') {
+      if (name !== 'mobile') {
         // In the call view: the sent line is the caption, the next one a draft in the field.
         const field = voice.getByTestId('chat-input');
         await field.fill(typed);
@@ -224,21 +269,21 @@ for (const { name, size } of viewports) {
         await chat.getByTestId('chat-voice-minimize').click();
       }
 
-      // minimized: the pill in the launcher's place, the page back to full width
+      // minimized: the pill in the launcher's place, the page back in the centre
       const pill = page.getByTestId('chat-voice-pill');
       await expect(pill).toBeVisible();
       await expect(html).toHaveAttribute('data-chat-dock', 'none');
-      await expect.poll(() => mainWidth(page)).toBe(fullWidth);
+      await expect.poll(() => cardBox(page)).toEqual(card);
       await settle(pill);
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-minimized-${name}.png` });
 
       // unfold and end: the chat shows the transcript between the call dividers
       await pill.getByTestId('chat-voice-pill-expand').click();
-      // Desktop folded the chat view (it unfolds to it), the phone the call sheet.
+      // Wider screens folded the chat view (it unfolds to it), the phone the call sheet.
       const end =
-        name === 'desktop'
-          ? chat.getByTestId('chat-voice-end')
-          : voice.getByTestId('chat-voice-end');
+        name === 'mobile'
+          ? voice.getByTestId('chat-voice-end')
+          : chat.getByTestId('chat-voice-end');
       await end.click();
       await expect(chat).toBeVisible();
       const dividers = list.getByTestId('chat-voice-divider');
@@ -315,22 +360,26 @@ test('without the flag there is no Call, and the launcher still says Talk to my 
 test.describe('reduced motion', () => {
   test.use({ viewport: viewports[0].size });
 
-  test('the page makes room for the column at once, with no width transition', async ({ page }) => {
+  test('the page makes room for the panel at once, with no transition', async ({ page }) => {
     const errors = collectErrors(page);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(VOICE_SITE);
-    const fullWidth = await mainWidth(page);
+    const card = await cardBox(page);
     const main = page.locator('main');
     expect(await main.evaluate((element) => getComputedStyle(element).transitionDuration)).toBe(
       '0s',
     );
     await page.getByTestId('chat-fab').click();
     await expect(page.locator('html')).toHaveAttribute('data-chat-dock', 'side');
-    // No transition: the reserved width is there on the first read, not after an animation.
-    expect(await mainWidth(page)).toBeLessThanOrEqual(fullWidth - 400);
-    // The column only fades (no slide): its box is in place while it fades in.
+    // No transition: the card is in its place on the first read, not after an animation.
+    expect(await cardBox(page)).toEqual({ x: card.x - SLIDE_PX, width: card.width });
+    // The panel only fades (no scale, no slide): its box is in place while it fades in.
+    const { width, height } = viewports[0].size;
     const box = await page.getByTestId('chat-panel').boundingBox();
-    expect(box && Math.round(box.x + box.width)).toBe(viewports[0].size.width - 16);
+    expect(box && [Math.round(box.x + box.width), Math.round(box.y + box.height)]).toEqual([
+      width - 16,
+      height - 16,
+    ]);
     expect(errors).toEqual([]);
   });
 });
