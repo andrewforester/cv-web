@@ -10,7 +10,9 @@ const VOICE_SITE = `${NORMAL_SITE}&voice=fake`;
 const STEP_MS = 1500;
 const CLOCK_START = new Date('2026-10-07T10:00:00Z');
 
-test.use({ locale: 'en-US' });
+// Motion on (the config turns it off for the page's screenshots): the panel's morph out of the pill
+// is part of what these tests check; the reduced-motion case emulates it below.
+test.use({ locale: 'en-US', contextOptions: { reducedMotion: 'no-preference' } });
 
 function mockSession(page: Page, status = 200, body: unknown = sessionBody) {
   return page.route('**/api/voice-session', (route) =>
