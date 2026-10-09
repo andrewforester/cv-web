@@ -3,10 +3,11 @@
   visibility: hidden;
 }
 
-/* The chat's space (docs/voice/SYSTEM_DESIGN.md §4.3): the side column's width animates (ADR-0010
- * → Decision 2), the bottom sheet's space appears at once. */
+/* The chat's space (docs/voice/SYSTEM_DESIGN.md §4.3): while the panel is open at `side` the whole
+ * page slides left by half the dock (ADR-0011 → Decision 1), a compositor-only move that changes no
+ * box; the bottom sheet's space appears at once. */
 :global(:root[data-chat-dock='side']) .main {
-  padding-inline-end: var(--chat-dock-width);
+  transform: translateX(calc(var(--chat-dock-width) / -2));
 }
 
 :global(:root[data-chat-dock='bottom']) {
@@ -17,13 +18,14 @@
   padding-block-end: var(--voice-sheet-height);
 }
 
-/* Closing on the base rule, opening on the side rule; reduced motion keeps the instant reflow. */
+/* Closing on the base rule, opening on the side rule, timed with the panel's morph
+ * (ChatFrame.module.css); reduced motion moves the page at once. */
 @media (prefers-reduced-motion: no-preference) {
   .main {
-    transition: padding-inline-end var(--chat-dock-exit-duration) var(--chat-motion-exit-easing);
+    transition: transform var(--chat-slide-exit-duration) var(--chat-slide-easing);
   }
 
   :global(:root[data-chat-dock='side']) .main {
-    transition: padding-inline-end var(--chat-dock-duration) var(--chat-motion-easing);
+    transition: transform var(--chat-slide-duration) var(--chat-slide-easing);
   }
 }
