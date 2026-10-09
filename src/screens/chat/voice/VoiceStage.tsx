@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useStrings } from '../../../i18n';
 import { chatStrings, type ChatStrings } from '../strings';
 import { chatTestIds } from '../testIds';
@@ -7,6 +8,7 @@ import { VoiceErrorCard } from './VoiceErrorCard';
 import type { VoiceErrorButton } from './voiceErrorCards';
 import { VoiceOrb } from './VoiceOrb';
 import styles from './VoiceStage.module.css';
+import { useVoiceLevel } from './useVoiceLevel';
 import { voiceStatusText } from './voiceStatusText';
 import type { VoiceActions, VoiceUiState } from './VoiceUiState';
 
@@ -14,7 +16,6 @@ interface VoiceStageProps {
   className?: string;
   state: VoiceUiState;
   actions: VoiceActions;
-  onErrorButton: (button: VoiceErrorButton) => void;
 }
 
 function captionText(state: VoiceUiState, strings: ChatStrings): string {
@@ -23,12 +24,22 @@ function captionText(state: VoiceUiState, strings: ChatStrings): string {
   return state.caption?.text ?? '';
 }
 
-/** The middle of the call panel: the action chip, the orb, then the status and caption, or a card. */
-export function VoiceStage({ className, state, actions, onErrorButton }: VoiceStageProps) {
+/**
+ * The panel's middle in the orb view (docs/design/voice/SPEC.md → Layouts 2, 6, 8): the action
+ * chip, the orb, then the status and caption, or a card. The orb follows the voices' level.
+ */
+export function VoiceStage({ className, state, actions }: VoiceStageProps) {
   const strings = useStrings(chatStrings);
+  const ref = useRef<HTMLDivElement>(null);
+  useVoiceLevel(ref, actions.level);
   const visitorCaption = state.caption?.role === 'visitor' && !state.muted;
+  const onErrorButton = (button: VoiceErrorButton) => {
+    if (button === 'retry') actions.start();
+    else if (button === 'reload') actions.reload();
+    else actions.leaveCard(button === 'chat' ? 'chat' : 'back');
+  };
   return (
-    <div className={className ? `${styles.stage} ${className}` : styles.stage}>
+    <div ref={ref} className={className ? `${styles.stage} ${className}` : styles.stage}>
       {state.action && <VoiceActionChip action={state.action} />}
       <VoiceOrb className={styles.orb} />
       {state.error ? (

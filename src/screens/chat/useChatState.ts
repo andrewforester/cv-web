@@ -38,8 +38,9 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
   const { markSeen } = hint;
   const layout = useChatLayout();
   const sheet = layout === 'sheet';
-  const close = useCallback(() => dispatchSurface({ type: 'close' }), []);
-  const conversation = useChatConversation({ announce, sheet, closeSheet: close });
+  // A visual page action on the phone's text sheet folds it (no call there).
+  const closeSheet = useCallback(() => dispatchSurface({ type: 'collapse', call: 'idle' }), []);
+  const conversation = useChatConversation({ announce, sheet, closeSheet });
   const { entries, busy } = conversation;
   const voice = useVoiceCall({
     record: conversation.record,
@@ -73,7 +74,6 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
       voice.actions.start();
     },
     toggleChat: () => dispatchSurface({ type: 'toggleChat' }),
-    minimize: () => dispatchSurface({ type: 'minimize', call }),
     expand: () => dispatchSurface({ type: 'expand' }),
     leaveCard: (to) => {
       dismiss();
@@ -94,7 +94,7 @@ export function useChatState(): { state: ChatUiState; actions: ChatActions } {
 
   const actions: ChatActions = {
     open,
-    close,
+    collapse: () => dispatchSurface({ type: 'collapse', call }),
     dismissHint: markSeen,
     changeInput: (value) => {
       if (tooLong(value) && !tooLong(input)) announce({ kind: 'tooLong' });

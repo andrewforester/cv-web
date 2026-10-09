@@ -1,9 +1,7 @@
 import { useStrings } from '../../i18n';
-import chat from '../../shared/chat/chat.module.css';
 import { ChatCardHeader } from '../../shared/chat/ChatCardHeader';
-import { ChatIcon } from '../../shared/chat/ChatIcon';
+import { ChatCollapseButton } from './ChatCollapseButton';
 import { chatStrings } from './strings';
-import { chatTestIds } from './testIds';
 
 interface ChatHeaderProps {
   className?: string;
@@ -11,11 +9,12 @@ interface ChatHeaderProps {
   subtitleId: string;
   /** What the assistant answers from on this page. */
   subtitle: string;
-  onClose: () => void;
+  onCollapse: () => void;
 }
 
-/** Panel header: the shared card header with the site's texts and a close button. */
-export function ChatHeader({ className, titleId, subtitleId, subtitle, onClose }: ChatHeaderProps) {
+/** The text chat's header: the shared card header with the site's texts and collapse. */
+export function ChatHeader(props: ChatHeaderProps) {
+  const { className, titleId, subtitleId, subtitle, onCollapse } = props;
   const strings = useStrings(chatStrings);
 
   return (
@@ -25,17 +24,7 @@ export function ChatHeader({ className, titleId, subtitleId, subtitle, onClose }
       subtitleId={subtitleId}
       title={strings.title}
       subtitle={subtitle}
-      action={
-        <button
-          type="button"
-          className={chat.iconButton}
-          aria-label={strings.close}
-          data-testid={chatTestIds.close}
-          onClick={onClose}
-        >
-          <ChatIcon name="close" />
-        </button>
-      }
+      action={<ChatCollapseButton callOn={false} onCollapse={onCollapse} />}
     />
   );
 }

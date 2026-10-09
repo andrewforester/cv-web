@@ -24,9 +24,10 @@ const ended = (hadLines: boolean, card = false, wasLive = true): SurfaceAction =
 });
 
 describe('surfaceReducer', () => {
-  it('opens and closes the text chat', () => {
+  it('opens the text chat, and collapse folds it into the launcher', () => {
     expect(run({ type: 'openChat', call: 'idle' }).surface).toBe('text');
-    expect(run({ type: 'openChat', call: 'idle' }, { type: 'close' }).surface).toBe('closed');
+    const collapse = { type: 'collapse', call: 'idle' } as const;
+    expect(run({ type: 'openChat', call: 'idle' }, collapse).surface).toBe('closed');
   });
 
   it('Call starts a call from the chat in the call panel', () => {
@@ -42,13 +43,24 @@ describe('surfaceReducer', () => {
     }
   });
 
-  it('minimizes only a live call and unfolds to the view it had', () => {
-    expect(surfaceReducer(at('call'), { type: 'minimize', call: 'connecting' }).surface).toBe(
-      'call',
-    );
-    const pill = surfaceReducer(at('callChat'), { type: 'minimize', call: 'live' });
-    expect(pill.surface).toBe('callPill');
-    expect(surfaceReducer(pill, { type: 'expand' }).surface).toBe('callChat');
+  it('collapse folds a call, also one still connecting, into the pill that unfolds to its view', () => {
+    for (const call of ['connecting', 'live'] as const) {
+      for (const view of ['call', 'callChat'] as const) {
+        const pill = surfaceReducer(at(view), { type: 'collapse', call });
+        expect(pill).toMatchObject({ surface: 'callPill', expandTo: view });
+        expect(surfaceReducer(pill, { type: 'expand' }).surface).toBe(view);
+      }
+    }
+  });
+
+  it('collapse on a card folds the panel into the launcher: there is no call to keep', () => {
+    for (const wasLive of [false, true]) {
+      const card = at('call', { wasLive });
+      expect(surfaceReducer(card, { type: 'collapse', call: 'card' }).surface).toBe('closed');
+    }
+    for (const surface of ['closed', 'callPill'] as const) {
+      expect(surfaceReducer(at(surface), { type: 'collapse', call: 'live' }).surface).toBe(surface);
+    }
   });
 
   it('after the call: the chat, where it started; with nothing said the focus goes to Call', () => {
@@ -67,10 +79,29 @@ describe('surfaceReducer', () => {
       { type: 'openChat', call: 'idle' },
       { type: 'callStart' },
       ended(false),
-      { type: 'close' },
+      { type: 'collapse', call: 'idle' },
       { type: 'openChat', call: 'idle' },
     );
     expect(reopened).toMatchObject({ surface: 'text', focusCall: false });
+  });
+
+  it('a start that fails while folded unfolds the panel with its card', () => {
+    const folded = run({ type: 'callStart' }, { type: 'collapse', call: 'connecting' });
+    expect(folded.surface).toBe('callPill');
+    expect(surfaceReducer(folded, ended(false, true, false))).toMatchObject({
+      surface: 'call',
+      endedPill: false,
+    });
+    // Cancelled from the connecting pill (End): no card, nothing to tell.
+    expect(surfaceReducer(folded, ended(false, false, false))).toMatchObject({
+      surface: 'closed',
+      endedPill: false,
+    });
+    // A call that went live and then dropped while folded: the pill says how.
+    expect(surfaceReducer(folded, ended(true, true, true))).toMatchObject({
+      surface: 'closed',
+      endedPill: true,
+    });
   });
 
   it('a folded call ends closed, with the ended pill', () => {

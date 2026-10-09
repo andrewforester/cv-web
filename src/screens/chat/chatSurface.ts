@@ -33,16 +33,18 @@ export interface SurfaceModel {
 export type SurfaceAction =
   /** The "Talk to my AI" pill, `#ask`, a tap on the ended pill. */
   | { type: 'openChat'; call: CallStatus }
-  /** The text chat's ×, or a visual page action on the phone's text sheet. */
-  | { type: 'close' }
+  /**
+   * The one collapse control in every header, Esc, a pointer-down outside the text chat, a visual
+   * page action on the phone's text sheet: folds the whole panel into the pill that takes its place.
+   */
+  | { type: 'collapse'; call: CallStatus }
   /** Call (in the chat's composer), Try again, Call again. */
   | { type: 'callStart' }
   /** The one chat toggle: Show chat in the call panel, Hide chat in the chat during the call. */
   | { type: 'toggleChat' }
-  | { type: 'minimize'; call: CallStatus }
   | { type: 'expand' }
   | ({ type: 'callEnded' } & CallOutcome)
-  /** A card's way out: `chat` (Type instead, Open chat) or `back` (×, Close, Esc). */
+  /** A card's way out: `chat` (Type instead, Open chat) or `back` (Close, the phone's Back). */
   | { type: 'leaveCard'; to: 'chat' | 'back' }
   /** The call needs its panel: a contact card, or a visual tool while the phone's chat sheet covers the page. */
   | { type: 'needsPanel'; reason: 'contact' | 'visual'; sheet: boolean }
@@ -75,6 +77,16 @@ function afterCall(model: SurfaceModel, leftSomething: boolean): SurfaceModel {
   return { ...model, surface: 'text', focusCall: !leftSomething };
 }
 
+/**
+ * A call that ends while folded: a start that failed unfolds the panel with its card (the card
+ * needs the visitor); one cancelled before it went live just goes; one that went live leaves the
+ * pill saying how it ended for a moment.
+ */
+function endedFolded(model: SurfaceModel, outcome: CallOutcome): SurfaceModel {
+  if (outcome.wasLive) return { ...model, surface: 'closed', endedPill: true };
+  return outcome.card ? { ...model, surface: 'call' } : { ...model, surface: 'closed' };
+}
+
 export function surfaceReducer(model: SurfaceModel, action: SurfaceAction): SurfaceModel {
   const { surface } = model;
   switch (action.type) {
@@ -83,21 +95,24 @@ export function surfaceReducer(model: SurfaceModel, action: SurfaceAction): Surf
         return inCall(surface) ? { ...model, surface: 'callChat' } : model;
       }
       return { ...model, surface: 'text', endedPill: false, focusCall: false };
-    case 'close':
-      return surface === 'text' ? { ...model, surface: 'closed', focusCall: false } : model;
+    case 'collapse':
+      if (surface === 'text') return { ...model, surface: 'closed', focusCall: false };
+      if (surface !== 'call' && surface !== 'callChat') return model;
+      // A call (also one still connecting) goes on in the pill; a card has no call to keep.
+      if (action.call === 'connecting' || action.call === 'live') {
+        return { ...model, surface: 'callPill', expandTo: surface };
+      }
+      return { ...model, surface: 'closed', focusCall: false };
     case 'callStart':
       return { ...model, surface: 'call', expandTo: 'call', endedPill: false, focusCall: false };
     case 'toggleChat':
       if (surface === 'call') return { ...model, surface: 'callChat' };
       return surface === 'callChat' ? { ...model, surface: 'call' } : model;
-    case 'minimize':
-      if (action.call !== 'live' || (surface !== 'call' && surface !== 'callChat')) return model;
-      return { ...model, surface: 'callPill', expandTo: surface };
     case 'expand':
       return surface === 'callPill' ? { ...model, surface: model.expandTo } : model;
     case 'callEnded': {
       const ended = { ...model, wasLive: action.wasLive };
-      if (surface === 'callPill') return { ...ended, surface: 'closed', endedPill: true };
+      if (surface === 'callPill') return endedFolded(ended, action);
       if (!inCall(surface)) return ended;
       if (action.card && cardStays(model, action)) return { ...ended, surface: 'call' };
       return afterCall(ended, action.hadLines || action.card);

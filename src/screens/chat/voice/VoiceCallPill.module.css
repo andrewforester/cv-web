@@ -18,7 +18,7 @@
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-launcher);
   /*
-   * docs/design/voice/SPEC.md → Motion (Minimize / expand): it fades in over the last moments of
+   * docs/design/voice/SPEC.md → Motion (collapse / expand during a call): it fades in over the last moments of
    * the panel shrinking into it and fades out as the panel grows out of it. Opacity only.
    */
   animation: fade-in var(--chat-motion-duration) var(--chat-motion-easing) both;

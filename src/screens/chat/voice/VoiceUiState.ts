@@ -86,10 +86,8 @@ export interface VoiceCallActions {
 export interface VoiceActions extends VoiceCallActions {
   /** The one chat toggle: the call panel ⇄ the chat during the call. */
   toggleChat(): void;
-  /** Folds the panel into the pill (only while live). */
-  minimize(): void;
   /** The pill's main button: the panel opens again in the view it had. */
   expand(): void;
-  /** A card's way out: `chat` (Type instead, Open chat) or `back` (×, Close, Esc). */
+  /** A card's way out: `chat` (Type instead, Open chat) or `back` (Close, the phone's Back). */
   leaveCard(to: 'chat' | 'back'): void;
 }

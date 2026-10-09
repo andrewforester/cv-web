@@ -1,70 +1,83 @@
 import { useRef, type Ref } from 'react';
 import { useStrings } from '../../../i18n';
 import chat from '../../../shared/chat/chat.module.css';
+import { ChatBadge } from '../../../shared/chat/ChatBadge';
 import header from '../../../shared/chat/ChatCardHeader.module.css';
+import { ChatCollapseButton } from '../ChatCollapseButton';
 import { chatStrings } from '../strings';
-import { CHAT_PANEL_ID } from '../testIds';
 import { callClock } from './callClock';
 import styles from './VoiceCallHeader.module.css';
 import { useVoiceLevel } from './useVoiceLevel';
 import { VoiceChatToggle } from './VoiceChatToggle';
-import { VoiceMinimizeButton } from './VoiceMinimizeButton';
 import { VoiceOrb } from './VoiceOrb';
 import { voiceStatusText } from './voiceStatusText';
+import { VoiceTimer } from './VoiceTimer';
 import type { VoiceActions, VoiceUiState } from './VoiceUiState';
 
 interface VoiceCallHeaderProps {
   className?: string;
   titleId: string;
+  /** `call`: the badge over the timer; `callChat`: the mini orb over status · time. */
+  view: 'call' | 'callChat';
   state: VoiceUiState;
   actions: VoiceActions;
   /** The chat toggle, for the focus hand-off when the view swaps. */
   toggleRef?: Ref<HTMLButtonElement>;
+  onCollapse: () => void;
+}
+
+/** "Speaking · 1:12" under the title while the chat shows during the call (SPEC → Layout 3). */
+function CallStatusLine({ state }: { state: VoiceUiState }) {
+  const strings = useStrings(chatStrings);
+  const clock = callClock(state.elapsedSec, state.maxCallSeconds, strings);
+  return (
+    <p className={`${chat.caption} ${styles.status}`}>
+      <span className={styles.live}>{voiceStatusText(state, strings)}</span>
+      {state.status === 'live' && (
+        <>
+          {' · '}
+          <b className={clock.warning ? `${styles.time} ${styles.warning}` : styles.time}>
+            {clock.text}
+          </b>
+        </>
+      )}
+    </p>
+  );
 }
 
 /**
- * The chat's header while a call is live (docs/design/voice/SPEC.md → Layout 3): the mini orb,
- * "Voice call" over "Speaking · 1:12", the chat toggle (Hide chat) and minimize, in the same
- * places as in the call panel's header.
+ * The panel's header during a call, in both views (docs/design/voice/SPEC.md → Layouts 2, 3): the
+ * left slot (the badge over the timer, or the mini orb over status · time) changes; the chat
+ * toggle (hidden on a card) and collapse stay in the same places.
  */
 export function VoiceCallHeader(props: VoiceCallHeaderProps) {
-  const { className, titleId, state, actions, toggleRef } = props;
+  const { className, titleId, view, state, actions, toggleRef, onCollapse } = props;
   const strings = useStrings(chatStrings);
   const ref = useRef<HTMLElement>(null);
   useVoiceLevel(ref, actions.level);
-  const clock = callClock(state.elapsedSec, state.maxCallSeconds, strings);
   const live = state.status === 'live';
+  const chatShown = view === 'callChat';
   return (
     <header
       ref={ref}
       className={[header.header, styles.header, className].filter(Boolean).join(' ')}
-      data-phase={state.phase}
-      data-muted={state.muted}
     >
-      <VoiceOrb size="mini" />
+      {!chatShown && <ChatBadge className={styles.badge} />}
+      <VoiceOrb className={chatShown ? undefined : styles.mini} size="mini" />
       <div className={header.titles}>
         <h2 id={titleId} className={header.title}>
           {strings.voiceTitle}
         </h2>
-        <p className={`${chat.caption} ${styles.status}`}>
-          <span className={styles.live}>{voiceStatusText(state, strings)}</span>
-          {live && (
-            <>
-              {' · '}
-              <b className={clock.warning ? `${styles.time} ${styles.warning}` : styles.time}>
-                {clock.text}
-              </b>
-            </>
-          )}
-        </p>
+        {chatShown ? (
+          <CallStatusLine state={state} />
+        ) : (
+          live && <VoiceTimer elapsedSec={state.elapsedSec} maxCallSeconds={state.maxCallSeconds} />
+        )}
       </div>
-      <VoiceChatToggle
-        buttonRef={toggleRef}
-        view="callChat"
-        controls={CHAT_PANEL_ID}
-        onToggle={actions.toggleChat}
-      />
-      <VoiceMinimizeButton disabled={!live} onMinimize={actions.minimize} />
+      {state.status !== 'error' && (
+        <VoiceChatToggle buttonRef={toggleRef} view={view} onToggle={actions.toggleChat} />
+      )}
+      <ChatCollapseButton callOn={live || state.status === 'connecting'} onCollapse={onCollapse} />
     </header>
   );
 }

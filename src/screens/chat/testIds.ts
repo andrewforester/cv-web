@@ -7,7 +7,7 @@ export const chatTestIds = {
   hint: 'chat-hint',
   hintDismiss: 'chat-hint-dismiss',
   panel: 'chat-panel',
-  close: 'chat-close',
+  collapse: 'chat-collapse',
   list: 'chat-list',
   suggestion: 'chat-suggestion',
   visitorMessage: 'chat-visitor-message',
@@ -32,7 +32,6 @@ export const chatTestIds = {
   voiceMute: 'chat-voice-mute',
   voiceEnd: 'chat-voice-end',
   voiceChatToggle: 'chat-voice-chat-toggle',
-  voiceMinimize: 'chat-voice-minimize',
   voicePill: 'chat-voice-pill',
   voicePillExpand: 'chat-voice-pill-expand',
   voicePillEnd: 'chat-voice-pill-end',
@@ -43,13 +42,9 @@ export const chatTestIds = {
   voiceError: 'chat-voice-error',
   voiceErrorPrimary: 'chat-voice-error-primary',
   voiceErrorSecondary: 'chat-voice-error-secondary',
-  voiceClose: 'chat-voice-close',
   voiceDivider: 'chat-voice-divider',
   voiceAnnouncer: 'chat-voice-announcer',
 } as const;
 
-/** The chat panel's DOM id (the FAB's `aria-controls`). */
+/** The one panel's DOM id (`aria-controls` of the launcher, collapse, the toggle, the call pill). */
 export const CHAT_PANEL_ID = 'chat-panel';
-
-/** The call panel's DOM id (minimize's and the pill's `aria-controls`). */
-export const VOICE_PANEL_ID = 'chat-voice-panel';

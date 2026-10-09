@@ -107,7 +107,11 @@ export interface ChatUiState {
 
 export interface ChatActions {
   open(): void;
-  close(): void;
+  /**
+   * The one collapse control (also Esc): folds the panel into the launcher, or into the call pill
+   * while a call connects or is live (docs/voice/SYSTEM_DESIGN.md §4.2).
+   */
+  collapse(): void;
   dismissHint(): void;
   changeInput(value: string): void;
   /** Sends the composer text (no-op unless `canSend`). */

@@ -1,5 +1,7 @@
 /* docs/design/voice/SPEC.md → Layout 2 (stage), 5 (phone, short). */
 .stage {
+  --voice-level: 0;
+
   position: relative;
   flex: 1;
   min-height: 0;
