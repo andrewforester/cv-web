@@ -123,6 +123,18 @@ for (const { name, size, dock } of viewports) {
       await chat.evaluate((panel) =>
         Promise.all(panel.getAnimations().map((animation) => animation.finished)),
       );
+      if (name !== 'phone') {
+        // The morph has landed: no clip left, the panel 400 × 600 at right/bottom 16.
+        await expect(chat).toHaveCSS('clip-path', 'none');
+        const box = await chat.boundingBox();
+        if (!box) throw new Error('no panel');
+        expect({
+          width: box.width,
+          height: box.height,
+          right: size.width - box.x - box.width,
+          bottom: size.height - box.y - box.height,
+        }).toEqual({ width: 400, height: 600, right: 16, bottom: 16 });
+      }
       await page.screenshot({ path: `${SCREENSHOT_DIR}/chat-empty-${name}.png` });
 
       await chat.getByRole('button', { name: question }).click();
