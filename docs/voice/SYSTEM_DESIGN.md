@@ -75,7 +75,7 @@ stores nothing.
 | App | `src/app/voiceMode.ts`, `src/app/AppProviders.tsx` | Reads the flag (§9) and binds `ElevenLabsVoiceClient`, `FakeVoiceClient` or none (no call button). |
 | Screen | `src/screens/chat/voice/` | `useVoiceCall` (state holder), the call button, the call panel (orb, timer, controls, confirmation card, the chat toggle, minimize), the pill, typing into the call (§4.4), the earlier-conversation builder (§8), strings in the chat's `strings.ts`, test ids, tests. Lives in the chat screen because the transcript is the chat's conversation and screens may not import each other. |
 | Screen | `src/screens/chat/` (surface) | The launcher pill, the chat's surface (`closed`, `text`, `call`, `callChat`, `callPill`), where Send goes (§4.4), and the dock it reports to the shell (§4.3). |
-| App | `src/app/App.tsx`, `App.module.css` | Keeps the reported dock, sets `data-chat-dock` on `<html>`, reserves the column or the sheet's height and animates the column's width; anchors the scroll where the browser can't (§4.3). |
+| App | `src/app/App.tsx`, `App.module.css` | Keeps the reported dock, sets `data-chat-dock` on `<html>`, reserves the column or the sheet's height and animates the page's width beside the column; anchors the scroll where the browser can't (§4.3). |
 | Agent | `src/agent/` (unchanged) | Executes the agent's tool calls through the chat's executor. |
 | Entry | `api/voice-session.ts` | ~10 lines: build deps once per instance, call `handleVoiceSession`. |
 | Server | `server/voice/handler.ts`, `config.ts`, `log.ts` | The pipeline of §2; env read once; one log line per request. |
