@@ -844,7 +844,7 @@
           <button type="button" class="round" aria-label="${muted ? 'Unmute microphone' : 'Mute microphone'}" aria-pressed="${muted}" ${connecting ? 'disabled' : ''}>${icon(muted ? 'mic-off' : 'mic')}</button>
           ${field({ off: connecting, ...f })}
         </div></div>`;
-      const textComposer = `<div class="composer"><div class="composer-row"><button type="button" class="ctl call" aria-label="Call my AI">${icon('call')}Call</button>${field({ text: '…or type a question' })}</div><p class="caption">Answers are AI-generated and may contain mistakes.</p></div>`;
+      const textComposer = `<div class="composer"><div class="composer-row"><button type="button" class="ctl call" aria-label="Call my AI">${icon('call')}Call</button>${field({ text: '…or type instead' })}</div><p class="caption">Answers are AI-generated and may contain mistakes.</p></div>`;
 
       const panel = (cls, header, stage, bottom = callBar()) =>
         `<aside class="column ${cls}" aria-label="Voice call with Andrew’s AI">${header}<div class="stage">${stage}</div>${bottom}</aside>`;
