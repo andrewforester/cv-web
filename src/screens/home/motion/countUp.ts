@@ -2,10 +2,6 @@ import type { Motion } from './motionKit';
 
 /** A number with an optional suffix: `12+`, `1M+`, `2`. */
 const NUMBER = /^(\d+(?:\.\d+)?)(.*)$/s;
-/** Longest non-numeric value that scrambles (`AI`); longer text stays still. */
-const SCRAMBLE_MAX_LENGTH = 4;
-/** Glyphs a scrambling value flickers through (SPEC → Number count). */
-const SCRAMBLE_GLYPHS = '01<>/{}#AI';
 
 /** Ease-out-expo: fast start, long soft landing; exactly 1 at the end. */
 export function easeOutExpo(p: number): number {
@@ -27,14 +23,6 @@ export function countText(text: string, p: number): string | null {
   return `${Math.round(target * p)}${millions ? `K${rest.slice(1)}` : rest}`;
 }
 
-/** Random glyphs, as many as `text` has characters. */
-export function scrambleText(text: string, random: () => number = Math.random): string {
-  return Array.from(
-    text,
-    () => SCRAMBLE_GLYPHS[Math.floor(random() * SCRAMBLE_GLYPHS.length)],
-  ).join('');
-}
-
 /** Redraws for `duration` ms from now, every frame, with linear progress 0…1; the last call gets 1. */
 function tween(motion: Motion, duration: number, draw: (p: number) => void): void {
   const start = performance.now();
@@ -47,10 +35,9 @@ function tween(motion: Motion, duration: number, draw: (p: number) => void): voi
 }
 
 /**
- * Readies the value in `el` (its first text node) to count up from 0, or to scramble when it is a
- * short non-numeric one. `play` shows a number's start text at once and counts after `delay` ms;
- * `show` puts the original back. `null` when it doesn't move. The text is the original again at
- * the end and when the motion stops.
+ * Readies the value in `el` (its first text node) to count up from 0. `play` shows the start text
+ * at once and counts after `delay` ms; `show` puts the original back. `null` when the value isn't a
+ * number (`AI` stays as it is). The text is the original again at the end and when the motion stops.
  */
 function prepareCount(
   motion: Motion,
@@ -60,22 +47,19 @@ function prepareCount(
   if (!(node instanceof Text)) return null;
   const text = node.data;
   const start = countText(text, 0);
-  if (start === null && text.length > SCRAMBLE_MAX_LENGTH) return null;
+  if (start === null) return null;
   const show = () => {
     node.data = text;
   };
   motion.onStop(show);
   const { tokens } = motion;
-  const scramble = start === null;
-  const draw = (p: number) =>
-    scramble ? (p < 1 ? scrambleText(text) : text) : (countText(text, easeOutExpo(p)) ?? text);
   return {
     show,
     play: (delay) => {
-      if (!scramble) node.data = start;
+      node.data = start;
       motion.later(() => {
-        tween(motion, scramble ? tokens.scrambleDuration : tokens.countDuration, (p) => {
-          node.data = draw(p);
+        tween(motion, tokens.countDuration, (p) => {
+          node.data = countText(text, easeOutExpo(p)) ?? text;
         });
       }, delay);
     },

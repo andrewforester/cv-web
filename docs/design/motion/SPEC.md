@@ -11,7 +11,7 @@ High-fidelity: durations, delays, easings and offsets below are final.
 
 ## Global settings
 - **Motion levels** (prop `motion`): `Full` (default) | `Subtle` | `Off`.
-  - `Subtle`: every offset, scale and rotation is multiplied by **k = 0.35**. No infinite loops, 3D tilt, cursor spotlight, parallax, highlight run on the loop cards, glyph scramble, or arrow wobble.
+  - `Subtle`: every offset, scale and rotation is multiplied by **k = 0.35**. No infinite loops, 3D tilt, cursor spotlight, parallax, highlight run on the loop cards, or arrow wobble.
   - `Off` and `prefers-reduced-motion: reduce`: no animation at all, content shows immediately.
 - **Easings**
   - `EASE` = `cubic-bezier(.16,1,.3,1)` (default, 900ms unless noted).
@@ -47,7 +47,7 @@ High-fidelity: durations, delays, easings and offsets below are final.
 - Ease-out-expo `1 − 2^(−10p)`, 1400ms. Text is restored exactly at the end.
 - `12+` → 0…12+.
 - `1M+` → counts 0…1000 shown as `NK+`, then shows `1M+`.
-- Non-numeric values up to 4 characters (`AI`), Full only: 900ms scramble of random characters from `01<>/{}#AI`, then the original text.
+- Non-numeric values (`AI`) don't move: no scramble (Orchestrator decisions 8).
 
 ## 2. Sections (on scroll, once)
 Every section heading (h2 block): `up(30)`.
@@ -122,4 +122,4 @@ These override anything above that conflicts with them.
 5. **No new dependencies:** CSS, IntersectionObserver and the Web Animations API (no Framer Motion / GSAP).
 6. **Never hidden content:** without JS, with reduced motion, in print, in the Show case (`src/screens/retro`, which renders the page itself) and when the page agent scrolls to or highlights an item, all content is visible. Hidden start states are applied by JS just before the animation, never in static CSS.
 7. **Tests and screenshots:** the e2e and web check run with reduced motion, so full-page screenshots show every section; the motion itself is covered by unit tests.
-
+8. **No scramble on non-numeric stat values** (`AI`); they appear with their card.

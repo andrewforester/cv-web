@@ -10,7 +10,6 @@ export interface MotionTokens {
   durationLong: number;
   durationHeadline: number;
   countDuration: number;
-  scrambleDuration: number;
   driftDuration: number;
   /** Sections (SPEC §2): the loop panel, the CTA and the loop cards' highlight run. */
   durationBlock: number;
@@ -54,7 +53,6 @@ export function readMotionTokens(root: Element = document.documentElement): Moti
     durationLong: parseDuration(read('--motion-duration-long')),
     durationHeadline: parseDuration(read('--motion-duration-headline')),
     countDuration: parseDuration(read('--motion-count-duration')),
-    scrambleDuration: parseDuration(read('--motion-scramble-duration')),
     driftDuration: parseDuration(read('--motion-drift-duration')),
     durationBlock: parseDuration(read('--motion-duration-block')),
     durationType: parseDuration(read('--motion-duration-type')),
