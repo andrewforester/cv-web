@@ -7,7 +7,7 @@ export const chatTestIds = {
   hint: 'chat-hint',
   hintDismiss: 'chat-hint-dismiss',
   panel: 'chat-panel',
-  close: 'chat-close',
+  collapse: 'chat-collapse',
   list: 'chat-list',
   suggestion: 'chat-suggestion',
   visitorMessage: 'chat-visitor-message',
@@ -23,15 +23,18 @@ export const chatTestIds = {
   confirmAction: 'chat-confirm',
   declineAction: 'chat-decline',
   command: 'chat-command',
-  voiceMic: 'chat-voice-mic',
-  voiceMode: 'chat-voice-mode',
+  voiceCall: 'chat-voice-call',
+  voicePanel: 'chat-voice-panel',
   voiceOrb: 'chat-voice-orb',
   voiceStatus: 'chat-voice-status',
   voiceCaption: 'chat-voice-caption',
   voiceTimer: 'chat-voice-timer',
   voiceMute: 'chat-voice-mute',
   voiceEnd: 'chat-voice-end',
-  voiceToChat: 'chat-voice-to-chat',
+  voiceChatToggle: 'chat-voice-chat-toggle',
+  voicePill: 'chat-voice-pill',
+  voicePillExpand: 'chat-voice-pill-expand',
+  voicePillEnd: 'chat-voice-pill-end',
   voiceAction: 'chat-voice-action',
   voiceContact: 'chat-voice-contact',
   voiceContactOpen: 'chat-voice-contact-open',
@@ -39,10 +42,9 @@ export const chatTestIds = {
   voiceError: 'chat-voice-error',
   voiceErrorPrimary: 'chat-voice-error-primary',
   voiceErrorSecondary: 'chat-voice-error-secondary',
-  voiceClose: 'chat-voice-close',
   voiceDivider: 'chat-voice-divider',
   voiceAnnouncer: 'chat-voice-announcer',
 } as const;
 
-/** The dialog's DOM id (the FAB's `aria-controls`). */
+/** The one panel's DOM id (`aria-controls` of the launcher, collapse, the toggle, the call pill). */
 export const CHAT_PANEL_ID = 'chat-panel';

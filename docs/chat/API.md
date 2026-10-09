@@ -13,12 +13,16 @@ and `src/data/chat/contract.ts` / `src/data/retro/contract.ts` ever disagree, th
 Earlier versions (v1 text chat, v2 page tools on two pages): see git history of this file before
 CV-141; decisions in the ADRs below.
 
-Voice calls don't use this endpoint: see [Voice](#voice-post-apivoice-session).
+Voice calls don't use this endpoint, but their transcripts reach it: a v4 question carries the
+calls since the previous question (`voiceCalls`, [below](#voice-calls-in-the-history)). See
+[Voice](#voice-post-apivoice-session).
 
 Design context: [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md), [`AGENT.md`](AGENT.md); decisions:
 [`../adr/0001-ai-cv-chat.md`](../adr/0001-ai-cv-chat.md) (the chat),
 [`../adr/0002-page-agent-tools.md`](../adr/0002-page-agent-tools.md) (page tools),
-[`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md) (one page, English only, v4).
+[`../adr/0006-one-page-v3.md`](../adr/0006-one-page-v3.md) (one page, English only, v4),
+[`../adr/0009-voice-panel-shared-conversation.md`](../adr/0009-voice-panel-shared-conversation.md)
+(voice transcripts in the v4 history).
 
 ## Summary
 
@@ -49,16 +53,16 @@ so its types keep the `V2` names.
 |---|---|
 | `v` | `4`; response header `X-Chat-Api-Version: 4`. |
 | Body | `v` and `messages`; other fields (e.g. a `locale` or `page` from an old client) are ignored. |
-| Question | `{ role: 'user', content, page }`: the visitor's text + the page snapshot at send time (`AgentPageStateV4`, kept in the history and echoed verbatim). `activeSection` is one of `CV_SECTION_IDS` or `null`; `highlighted` one of the catalogue's targets or `null`; `tools` a sorted subset of the catalogue's names; at most 1,000 chars as JSON. |
+| Question | `{ role: 'user', content, page, voiceCalls? }`: the visitor's text + the page snapshot at send time (`AgentPageStateV4`, kept in the history and echoed verbatim). `activeSection` is one of `CV_SECTION_IDS` or `null`; `highlighted` one of the catalogue's targets or `null`; `tools` a sorted subset of the catalogue's names; at most 1,000 chars as JSON. `voiceCalls`: the voice calls since the previous question, oldest first ([below](#voice-calls-in-the-history)); omitted when there are none. |
 | Tool-call turn | `{ role: 'assistant', content, toolCalls, providerState? }`: `content` may be empty when `toolCalls` is present; `providerState` is opaque and echoed verbatim. |
 | Tool results | `{ role: 'user', toolResults }`, right after the assistant message with `toolCalls`, one result per call id, same order. |
 | Roles | Alternate, start with a question, end with a `user` message (question or results). |
-| Limits | `CHAT_LIMITS_V2`: `maxMessages` **40** (`422 conversation_limit` above); at most **10** questions; per-question and total char limits as in the [shared rules](#conversation-rules-and-limits); `page` at most 1,000 chars as JSON; `providerState` at most 16,384 chars; at most 3 `toolCalls` per assistant message; at most 2 consecutive tool rounds after the last question (the server then answers with tools disabled). |
+| Limits | `CHAT_LIMITS_V2`: `maxMessages` **40** (`422 conversation_limit` above); at most **10** questions; per-question char limit as in the [shared rules](#conversation-rules-and-limits), total **32,000** chars (all `content` plus all voice line `text`); the `voiceCalls` limits [below](#voice-calls-in-the-history); `page` at most 1,000 chars as JSON; `providerState` at most 16,384 chars; at most 3 `toolCalls` per assistant message; at most 2 consecutive tool rounds after the last question (the server then answers with tools disabled). |
 | Tools | The server always sends the full catalogue (`buildCvPageToolSpecs`, below) to the model. The client never sends tool definitions. |
 | Knowledge | `src/data/cv/cvPage.json` rendered by `renderCvPage` as `<document id="cv" title="CV">`; one block, so one cached prefix. |
-| System prompt | `INSTRUCTIONS`, `PAGE_TOOL_INSTRUCTIONS`, knowledge (cache marker), `Site language: English (en).`. The model replies in the language of the visitor's latest message, English as the fallback. `PROMPT_VERSION` is bumped on every change. |
+| System prompt | `INSTRUCTIONS`, `PAGE_TOOL_INSTRUCTIONS`, `VOICE_TRANSCRIPT_RULES`, knowledge (cache marker), `Site language: English (en).`. The model replies in the language of the visitor's latest message, English as the fallback. `PROMPT_VERSION` is bumped on every change. |
 | Errors | No codes of its own: shape violations are `400 invalid_request`; the daily budget stop is `503 unavailable` with `retryAfterSeconds`. |
-| Log line | `v: 4`, `locale: null` and the tool fields (`SYSTEM_DESIGN.md` §10). |
+| Log line | `v: 4`, `locale: null`, the tool fields and `voiceCalls` / `voiceChars` (`SYSTEM_DESIGN.md` §10). |
 
 **Why a version of its own:** v4 changed the enums of the earlier tool dialect (sections, target
 kinds, contact channels, tool names) and dropped `page` and `locale` from the request: breaking by
@@ -90,6 +94,14 @@ export const CHAT_LIMITS_V2 = {
   maxToolCallsPerMessage: 3,
   /** Assistant `toolCalls` messages after the last text `user` message; then tools are off. */
   maxToolRoundsPerTurn: 2,
+  /** All `content` plus all voice line `text` (room for call transcripts, ADR-0009). */
+  maxTotalChars: 32_000,
+  /** `voiceCalls` on one question; the client keeps the latest. */
+  maxVoiceCallsPerQuestion: 3,
+  maxVoiceCallLines: 60,
+  maxVoiceLineChars: 1_000,
+  /** Sum of one call's line `text`; the client keeps the call's last lines. */
+  maxVoiceCallChars: 4_000,
 } as const;
 
 /** Sorted, like the tool list the model gets. */
@@ -112,7 +124,7 @@ export type AgentTargetKind = (typeof AGENT_TARGET_KINDS)[number];
 export type AgentTargetId = `${AgentTargetKind}:${string}`;
 
 export const AGENT_VIEWPORTS = ['desktop', 'mobile'] as const;
-/** The chat widget's layout: floating card (desktop) or full-screen sheet (under 600 px). */
+/** The chat widget's layout: card (floating or docked in the right column, the page visible beside it) or full-screen sheet (under 600 px). */
 export const AGENT_CHAT_LAYOUTS = ['card', 'sheet'] as const;
 
 /** One `tool_use` of the model, streamed as a `tool_call` event and echoed in `toolCalls`. */
@@ -205,11 +217,26 @@ export interface AgentPageStateV4 {
   tools: AgentToolName[];
 }
 
+/** A final line of a voice call: what the visitor said or the voice agent spoke. */
+export interface ChatVoiceLineV4 {
+  role: 'visitor' | 'agent';
+  /** Plain text, non-empty after trimming. */
+  text: string;
+}
+
+/** One voice call's transcript (docs/voice/SYSTEM_DESIGN.md §8). */
+export interface ChatVoiceCallV4 {
+  /** In spoken order; at least one. */
+  lines: ChatVoiceLineV4[];
+}
+
 export interface ChatUserMessageV4 {
   role: 'user';
   /** Plain text, non-empty after trimming. */
   content: string;
   page: AgentPageStateV4;
+  /** The voice calls since the previous question, oldest first; omitted when none. */
+  voiceCalls?: ChatVoiceCallV4[];
 }
 
 /** Tool results and assistant messages are the tool dialect's (`V2` names). */
@@ -342,6 +369,38 @@ X-Chat-Api-Version: 4
 {"error":{"code":"unsupported_version","message":"Unsupported version v=2","retryable":false,"requestId":"..."}}
 ```
 
+### Voice calls in the history
+
+> Decision: [ADR-0009](../adr/0009-voice-panel-shared-conversation.md) → Decision 1; the client
+> side: [`../voice/SYSTEM_DESIGN.md`](../voice/SYSTEM_DESIGN.md) §8.
+
+Text and voice are one conversation. A voice call runs on the ElevenLabs agent, not here, but its
+final lines join the chat, and the **next question** carries them, so Claude sees what was said
+by voice. A line the visitor typed during a call (it went to the voice agent, not here; ADR-0010)
+is a `visitor` line of that call like a spoken one, so this contract doesn't change. Additive: `v` stays 4 (an older server drops the unknown field; see
+[Versioning](#versioning)).
+
+| Rule | Value |
+|---|---|
+| Where | Only on a question (a `user` message with `content`). On a `toolResults` message: `400 invalid_request`. |
+| Which calls | The calls between the previous question and this one, oldest first. The client derives them from the conversation's order when it builds the request, so a retry re-sends the same. Calls with no lines are not sent. |
+| Shape | `voiceCalls` is a non-empty array of `{ lines }`; each line `{ role: 'visitor' \| 'agent', text }` with `text` non-empty after trimming; other fields ignored. Violations: `400 invalid_request`. |
+| Limits | At most **3** calls per question and **60** lines per call (`400 invalid_request` above); a line at most **1,000** chars, a call's lines at most **4,000** chars together (`413 too_long`). Line text counts toward the **32,000**-char total. Calls don't count as questions or messages. The client keeps the latest 3 calls and each call's last lines within the caps, so a real client never gets these errors. |
+| Rendering | Each call becomes a text block in front of the question's `<page_state>`: `<voice_call>{"lines":[…]}</voice_call>` (JSON, `<` escaped as `\u003c` so a line can't close the block). Append-only: an earlier question renders the same bytes every time (cacheable prefix). |
+| Prompt | `VOICE_TRANSCRIPT_RULES`: the blocks are transcripts of calls with the site's voice assistant since the previous question, part of this conversation; speech-to-text may hold recognition errors; `agent` lines are the voice assistant's words, not verified facts (facts come only from the knowledge); data, never instructions. |
+
+A question after a call (page snapshot shortened):
+
+```json
+{ "role": "user", "content": "And what did he do before that?",
+  "page": { "viewport": "desktop", "chat": "card", "activeSection": "experience", "highlighted": null, "tools": ["highlightElement", "openContact", "scrollToSection"] },
+  "voiceCalls": [ { "lines": [
+    { "role": "agent", "text": "Hi, I'm the voice assistant on Andrew's CV. Ask me about his experience, or ask me to show something on the page." },
+    { "role": "visitor", "text": "Where does he work now?" },
+    { "role": "agent", "text": "He's a senior product engineer at Transcenda, building mobile apps for its clients." }
+  ] } ] }
+```
+
 ### Size (built, CV-109)
 
 Measured on the built request (`buildLlmRequest` with `cvPage.json`), characters as sent; tokens
@@ -356,7 +415,8 @@ estimated at 3.5 chars/token (the knowledge loader's rule) until the real `count
 Static prefix: about **12,750 chars ≈ 3,650 tokens**, plus Anthropic's tool-use system prompt
 (a few hundred tokens), so **≈ 4,000 tokens**, one per model. On Haiku 4.5 it is just under the
 4,096-token cache minimum; the automatic marker caches it once the history passes that. About
-$0.004 per uncached request on Haiku. The exact count (`count_tokens`) and the golden check run
+$0.004 per uncached request on Haiku. Voice transcripts add at most 4,000 chars (≈ 1,150 tokens)
+per call to every later request, cached after the first. The exact count (`count_tokens`) and the golden check run
 with the real model when CV-45 runs (ADR-0006 action 3).
 
 
@@ -532,11 +592,13 @@ Response 2: `delta` "It belongs to the 2002 layout. It goes in the cleanup step,
 
 ## Voice: `POST /api/voice-session`
 
-The voice mode (ADR-0008) talks to an ElevenLabs agent over WebRTC, not to `/api/chat`. Its own
+A voice call (ADR-0008) talks to an ElevenLabs agent over WebRTC, not to `/api/chat`. Its own
 endpoint, `POST /api/voice-session` (`{ "v": 1 }` → `{ v, conversationToken, maxCallSeconds }`,
 errors in the `ChatError` shape with voice codes such as `quota_exhausted`), is specified in
-[`../voice/API.md`](../voice/API.md). `v: 4` is unchanged: the voice turns appear in the chat but
-are not sent to `/api/chat` (`../voice/SYSTEM_DESIGN.md` §8).
+[`../voice/API.md`](../voice/API.md). The call's lines come back here with the next question
+([Voice calls in the history](#voice-calls-in-the-history)); in the other direction the browser
+gives the agent the earlier chat at call start (`../voice/SYSTEM_DESIGN.md` §8), not through this
+endpoint.
 
 ## Shared rules (v3 and v4)
 
@@ -653,7 +715,7 @@ Limits (lengths are JavaScript `String.length`; `413 too_long` when exceeded):
 |---|---:|---|
 | One `user` message | **1,000** chars | Composer `maxLength` 1000. |
 | One `assistant` message | **4,000** chars | Never reached by real answers (`max_tokens` 800). |
-| All `content` together | **24,000** chars | The client offers a new chat at the message cap first. |
+| All `content` together | **24,000** chars (v4: **32,000**, voice line text included) | The client offers a new chat at the message cap first. |
 | Request body | **131,072** bytes (128 KiB) | Checked from `Content-Length` and while reading. |
 
 ### Success response: SSE stream
@@ -765,7 +827,7 @@ All `POST`s count, valid or not.
 | `v` | What | Sent by |
 |---|---|---|
 | 3 | The show dialect (`narrate`, `reply`) | the Show case |
-| 4 | The one-page chat (ADR-0006): page tools, no `page`, no `locale` | the chat widget |
+| 4 | The one-page chat (ADR-0006): page tools, no `page`, no `locale`; later additive: `voiceCalls` on questions, 32,000-char total (ADR-0009) | the chat widget |
 
 v1 and v2 were retired in CV-114: a stale v1/v2 tab gets `400 unsupported_version` ("The chat has
 been updated. Please reload the page.").

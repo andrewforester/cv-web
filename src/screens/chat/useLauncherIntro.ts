@@ -44,23 +44,20 @@ function allowed(el: Element): boolean {
 
 /**
  * The launcher's intro on page load (docs/design/motion/SPEC.md §1, Orchestrator decision 2): the
- * row rises in, then a violet ring pulses out of the pill twice, on top of its own shadow. Timed
+ * pill rises in, then a violet ring pulses out of it twice, on top of its own shadow. The pill, not
+ * the launcher: the launcher's own opacity fades (the panel morphing out of it and back) stay free. Timed
  * from page load, not from mount: a launcher that comes back after the chat closes picks up the
  * same timeline (nothing left to play after a few seconds) instead of replaying it.
  */
-export function useLauncherIntro(
-  rowRef: RefObject<HTMLElement | null>,
-  pillRef: RefObject<HTMLElement | null>,
-): void {
+export function useLauncherIntro(pillRef: RefObject<HTMLElement | null>): void {
   useLayoutEffect(() => {
-    const row = rowRef.current;
     const pill = pillRef.current;
-    if (!row || !pill || !allowed(row)) return;
+    if (!pill || !allowed(pill)) return;
     const tokens = readTokens();
     const since = performance.now();
     if (!tokens || since > PULSE_DELAY + PULSE_COUNT * tokens.pulseDuration) return;
 
-    const entry = row.animate(
+    const entry = pill.animate(
       [
         { opacity: 0, transform: 'translateY(40px) scale(0.8)' },
         { opacity: 1, transform: 'none' },
@@ -90,5 +87,5 @@ export function useLauncherIntro(
       entry.cancel();
       pulse.cancel();
     };
-  }, [rowRef, pillRef]);
+  }, [pillRef]);
 }

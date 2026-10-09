@@ -20,7 +20,8 @@ export type ChatVoiceItem = ChatVoiceLine | ChatVoiceAction;
 /**
  * A voice call in the chat's conversation (docs/voice/SYSTEM_DESIGN.md §8): its final lines and
  * tool chips in the order they happened. Created when the call goes live; `ended` keeps how it
- * ended and how long it ran. The text model never sees it (`buildHistory` sends turns only).
+ * ended and how long it ran. Its lines go to the text model with the next question
+ * (`voiceHistory.ts`) and to the next call as the earlier conversation.
  */
 export interface ChatVoiceCall {
   readonly kind: 'call';

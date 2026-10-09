@@ -24,7 +24,7 @@ describe('chat opened by the #ask link', () => {
     expect(window.location.pathname + window.location.search).toBe('/new?ref=cv');
   });
 
-  it('opens when the hash changes to #ask, and again after the chat was closed', async () => {
+  it('opens when the hash changes to #ask, and again after the chat was collapsed', async () => {
     const user = userEvent.setup();
     const followAskLink = () =>
       act(async () => {
@@ -38,7 +38,7 @@ describe('chat opened by the #ask link', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(window.location.hash).toBe('');
 
-    await user.click(screen.getByRole('button', { name: 'Close chat' }));
+    await user.click(screen.getByRole('button', { name: 'Collapse chat' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     await followAskLink();
     expect(screen.getByRole('dialog')).toBeInTheDocument();

@@ -15,9 +15,10 @@ Domain terms:
   today's site stays until the show's chunk has loaded, then the page scrolls to the top and turns
   broken in one commit. The AI chat is off the page while the show runs (its open conversation is
   lost) until the show's last step loads it.
-- **Voice mode** (`voiceMode.ts`, docs/voice/SYSTEM_DESIGN.md §9): `off`, `real` or `fake` at page
-  load. `?voice=1` turns the mic button on and remembers it in `localStorage` (`cv.voice`),
-  `?voice=0` forgets it, `?voice=fake` uses the scripted client for that load only. Off by default;
+- **Voice mode** (`voiceMode.ts`, docs/voice/SYSTEM_DESIGN.md §9): `off`, `real`, `fake` or `demo`
+  at page load. `?voice=1` turns the mic button on and remembers it in `localStorage` (`cv.voice`),
+  `?voice=0` forgets it, `?voice=fake` uses the scripted client for that load only (dev server and `npm run build:e2e`;
+  `off` in a production build), `?voice=demo` the endless demo call of `npm run demo` (dev server only). Off by default;
   not a security layer (the server's `VOICE_ENABLED` is).
 - **Stage:** the shell's wrapper (page + chat) carrying `data-retro-stage` while the show runs;
   the show's damage layers select only under it.
@@ -38,16 +39,27 @@ lazy chunk too, requested only when asked for; at a `?retro=1` load the shell is
 has loaded, so the first visible frame is already the broken page. If a chunk fails to load the
 shell stays on today's site.
 
+- **Dock** (docs/voice/SYSTEM_DESIGN.md §4.3): the space the chat asks the shell to keep free
+  (`none`, `side` beside the floating panel, `bottom` sheet), reported through `onDockChange`. The
+  shell mirrors it as `data-chat-dock` on `<html>` before paint (`none` while the chat is off the
+  page); `App.module.css` turns it into room: at `side` the whole page slides left by half the dock
+  (`transform` on `main`, ADR-0011 → Decision 1), so the CV card keeps its width and nothing
+  reflows; the slide is timed with the panel's morph (`--chat-slide-*`; reduced motion: at once).
+  The `bottom` sheet's space is padding on `main` (`--voice-sheet-height`) and appears at once. The
+  slide changes no box, so the scroll position never drifts (no anchor hook).
+
 Rules and limits:
 - Owner: Scaffold. Screens may only register their own route in `App.tsx`.
 - One page, no router: every path renders `HomeRoute`; production redirects `/new` to `/`
   (`vercel.json`), Vite dev/preview fall back to `index.html` by themselves.
 - Entry point is `src/main.tsx` (global styles, providers, `App`).
+- Nothing inside `main` is `position: fixed` or `sticky`: the slid `main` is their containing
+  block. Overlays (the chat, its launcher and call pill, the show) are siblings of `main`.
 - The show starts from the footer Show case link (`ShowCaseLink`, CV-148; `useShowCaseAvailable`:
   a scenario and ≥ 1024 px) and with `?retro=1`.
 - The Show case button is hidden (`SHOW_CASE_BUTTON_ENABLED = false` in `App.tsx`, CV-144); the footer link
   is not gated by it. Set the constant to `true` to bring the button back.
-- Reduced motion is read by the show itself. The Show case button shows only with a scenario, on
+- Reduced motion is read by the show itself and, for the dock, by `App.module.css`. The Show case button shows only with a scenario, on
   ≥ 1024 px (`useShowCaseAvailable`); the start seam itself checks only the scenario.
 - Real-user speed: `AppSpeedInsights` sends Core Web Vitals to Vercel Speed Insights (dashboard:
   project `cv-web` → Speed Insights). Every view counts as route `/` (no `?retro=1` noise); it runs

@@ -19,6 +19,8 @@ interface MessageListProps {
   greeting: string;
   /** Text turns and voice calls, in order. */
   entries: readonly ChatEntry[];
+  /** During a call: no suggestions, Try again or New chat (docs/voice/SYSTEM_DESIGN.md §4.2). */
+  readOnly?: boolean;
   conversationFull: boolean;
   suggestions: readonly string[];
   commands: readonly string[];
@@ -35,6 +37,7 @@ export function MessageList({
   className,
   greeting,
   entries,
+  readOnly = false,
   conversationFull,
   suggestions,
   commands,
@@ -84,7 +87,7 @@ export function MessageList({
       <MessageRow author="assistant">
         <p>{greeting}</p>
       </MessageRow>
-      {entries.length === 0 && (
+      {entries.length === 0 && !readOnly && (
         <li>
           <SuggestedQuestions suggestions={suggestions} commands={commands} onAsk={onAsk} />
         </li>
@@ -97,6 +100,7 @@ export function MessageList({
             key={entry.id}
             turn={entry}
             isLast={index === entries.length - 1}
+            readOnly={readOnly}
             maxInputLength={maxInputLength}
             onRetry={onRetry}
             onNewChat={onNewChat}
@@ -105,7 +109,7 @@ export function MessageList({
           />
         ),
       )}
-      {conversationFull && entries.length > 0 && (
+      {conversationFull && entries.length > 0 && !readOnly && (
         <NoticeRow
           text={strings.conversationLimit}
           tone="neutral"

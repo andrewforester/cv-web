@@ -6,6 +6,7 @@ import audioConcatProcessorUrl from '@elevenlabs/client/worklets/audioConcatProc
 import rawAudioProcessorUrl from '@elevenlabs/client/worklets/rawAudioProcessor.js?url&no-inline';
 import { AGENT_TOOL_NAMES, type AgentToolName } from '../chat/contract';
 import type { VoiceSessionResponse } from './contract';
+import { TypedEcho } from './typedEcho';
 import type {
   VoiceCall,
   VoiceCallEvent,
@@ -22,7 +23,8 @@ const loadElevenLabsSdk = (): Promise<ElevenLabsSdk> => import('@elevenlabs/clie
 /**
  * `VoiceClient` over ElevenLabs Agents (docs/voice/SYSTEM_DESIGN.md §3–§4, §7): a WebRTC session
  * started with our endpoint's token. SDK callbacks become `VoiceCallEvent`s; each catalogue tool
- * is registered as a client tool whose result the agent reads as JSON (`{"ok":true}`).
+ * is registered as a client tool whose result the agent reads as JSON (`{"ok":true}`); typed lines
+ * go as the visitor's turn (`sendUserMessage`), typing as `sendUserActivity`.
  */
 export class ElevenLabsVoiceClient implements VoiceClient {
   private readonly loadSdk: () => Promise<ElevenLabsSdk>;
@@ -64,15 +66,7 @@ export class ElevenLabsVoiceClient implements VoiceClient {
         clientTools: this.clientTools(handlers),
         onConnect: () => call.emit({ type: 'status', status: 'live' }),
         onModeChange: ({ mode }) => call.emit({ type: 'mode', mode }),
-        onMessage: ({ role, message, event_id }) =>
-          call.emit({
-            type: 'line',
-            line: {
-              id: lineId(role, event_id),
-              role: role === 'user' ? 'visitor' : 'agent',
-              text: message,
-            },
-          }),
+        onMessage: ({ role, message, event_id }) => call.heard(role, message, event_id),
         onAgentResponseCorrection: ({ event_id, corrected_agent_response }) =>
           call.emit({
             type: 'correction',
@@ -118,6 +112,7 @@ export class ElevenLabsVoiceClient implements VoiceClient {
 class ElevenLabsCall implements VoiceCall {
   private readonly handlers: VoiceCallHandlers;
   private conversation: VoiceConversation | null = null;
+  private readonly typedEcho = new TypedEcho();
   private endReason: 'visitor' | 'time_limit' | null = null;
   private done = false;
 
@@ -129,6 +124,15 @@ class ElevenLabsCall implements VoiceCall {
     if (this.done) return;
     if (event.type === 'ended') this.done = true;
     this.handlers.onEvent(event);
+  }
+
+  /** A final transcript line; a visitor line that echoes a typed one is dropped (§4.4). */
+  heard(role: 'user' | 'agent', text: string, eventId: number): void {
+    if (role === 'user' && this.typedEcho.isEcho(text, Date.now())) return;
+    this.emit({
+      type: 'line',
+      line: { id: lineId(role, eventId), role: role === 'user' ? 'visitor' : 'agent', text },
+    });
   }
 
   attach(conversation: VoiceConversation): void {
@@ -175,6 +179,16 @@ class ElevenLabsCall implements VoiceCall {
 
   sendContextualUpdate(text: string): void {
     if (!this.done) this.conversation?.sendContextualUpdate(text);
+  }
+
+  sendText(text: string): void {
+    if (this.done || !this.conversation) return;
+    this.typedEcho.sent(text, Date.now());
+    this.conversation.sendUserMessage(text);
+  }
+
+  typing(): void {
+    if (!this.done) this.conversation?.sendUserActivity();
   }
 }
 

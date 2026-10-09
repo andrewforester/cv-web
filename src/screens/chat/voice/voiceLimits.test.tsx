@@ -5,18 +5,19 @@ import {
   ManualVoiceClient,
   renderVoiceChat,
   sessionError,
+  startCall,
   StubSessionRepository,
 } from './voiceTestHarness';
 
 const errorCard = () => screen.getByTestId(chatTestIds.voiceError);
 
-async function startCall(client = new ManualVoiceClient(), sessions = new StubSessionRepository()) {
+async function callWith(client = new ManualVoiceClient(), sessions = new StubSessionRepository()) {
   const rendered = await renderVoiceChat({ client, sessions });
-  await rendered.user.click(screen.getByTestId(chatTestIds.voiceMic));
+  await startCall(rendered.user);
   return { ...rendered, client };
 }
 
-describe('voice mode errors and limits', () => {
+describe('call errors and limits', () => {
   it.each([
     ['rate_limited', 'rateLimited', 'Too many calls'],
     ['quota_exhausted', 'quotaExhausted', 'Voice is resting this month'],
@@ -25,13 +26,14 @@ describe('voice mode errors and limits', () => {
     ['unsupported_version', 'unsupportedVersion', 'Voice was updated'],
   ] as const)('a %s session shows the %s card', async (code, kind, title) => {
     const sessions = new StubSessionRepository(sessionError(code));
-    const { client } = await startCall(new ManualVoiceClient(), sessions);
+    const { client } = await callWith(new ManualVoiceClient(), sessions);
     expect(await screen.findByRole('alert')).toHaveAttribute('data-error', kind);
     expect(errorCard()).toHaveTextContent(title);
-    expect(screen.getByTestId(chatTestIds.voiceMode)).toHaveAttribute('data-phase', 'error');
+    expect(screen.getByTestId(chatTestIds.voicePanel)).toHaveAttribute('data-phase', 'error');
     expect(client.call).toBeNull();
-    // Errors replace the timer with close and drop the controls.
-    expect(screen.getByRole('button', { name: 'Close voice chat' })).toBeInTheDocument();
+    // Errors drop the timer, the toggle and the controls; collapse is the header's one action.
+    expect(screen.getByRole('button', { name: 'Collapse chat' })).toBeInTheDocument();
+    expect(screen.queryByTestId(chatTestIds.voiceChatToggle)).not.toBeInTheDocument();
     expect(screen.queryByTestId(chatTestIds.voiceEnd)).not.toBeInTheDocument();
   });
 
@@ -39,7 +41,7 @@ describe('voice mode errors and limits', () => {
     const client = new ManualVoiceClient();
     client.microphone = 'denied';
     const sessions = new StubSessionRepository();
-    const { user } = await startCall(client, sessions);
+    const { user } = await callWith(client, sessions);
     expect(await screen.findByRole('alert')).toHaveAttribute('data-error', 'micDenied');
     expect(sessions.requests).toBe(0);
 
@@ -47,10 +49,23 @@ describe('voice mode errors and limits', () => {
     expect(await screen.findByTestId(chatTestIds.panel)).toBeInTheDocument();
   });
 
+  it('Esc on a card folds the panel into the launcher (no call to keep) and drops the card', async () => {
+    const client = new ManualVoiceClient();
+    client.microphone = 'denied';
+    const { user } = await callWith(client);
+    expect(await screen.findByRole('alert')).toHaveAttribute('data-error', 'micDenied');
+    await user.keyboard('{Escape}');
+
+    expect(screen.getByTestId(chatTestIds.root)).toHaveAttribute('data-surface', 'closed');
+    await waitFor(() => expect(screen.getByTestId(chatTestIds.fab)).toHaveFocus());
+    await user.click(screen.getByTestId(chatTestIds.fab));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('offline at the tap shows the offline card; Try again calls again', async () => {
     const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
     const sessions = new StubSessionRepository();
-    const { user } = await startCall(new ManualVoiceClient(), sessions);
+    const { user } = await callWith(new ManualVoiceClient(), sessions);
     expect(await screen.findByRole('alert')).toHaveAttribute('data-error', 'offline');
     expect(sessions.requests).toBe(0);
 
@@ -63,13 +78,13 @@ describe('voice mode errors and limits', () => {
   it('a start that fails after the token reads as "busy"', async () => {
     const client = new ManualVoiceClient();
     client.failStart = true;
-    await startCall(client);
+    await callWith(client);
     expect(await screen.findByRole('alert')).toHaveAttribute('data-error', 'busy');
     expect(errorCard()).toHaveTextContent('The line is busy');
   });
 
   it('a call that fails mid-way shows "dropped" and keeps what was said', async () => {
-    const { client, user } = await startCall();
+    const { client, user } = await callWith();
     await waitFor(() => expect(client.call).not.toBeNull());
     client.emit(
       { type: 'status', status: 'live' },
@@ -87,7 +102,7 @@ describe('voice mode errors and limits', () => {
   });
 
   it('going offline mid-call ends it as dropped', async () => {
-    const { client } = await startCall();
+    const { client } = await callWith();
     await waitFor(() => expect(client.call).not.toBeNull());
     client.emit({ type: 'status', status: 'live' });
     const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
@@ -102,7 +117,7 @@ describe('voice mode errors and limits', () => {
   it('going offline while connecting shows the offline card', async () => {
     const sessions = new StubSessionRepository();
     sessions.create = () => new Promise(() => undefined);
-    await startCall(new ManualVoiceClient(), sessions);
+    await callWith(new ManualVoiceClient(), sessions);
     const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
     act(() => {
       window.dispatchEvent(new Event('offline'));
@@ -115,13 +130,13 @@ describe('voice mode errors and limits', () => {
     const sessions = new StubSessionRepository(sessionError('unsupported_version'));
     const reload = vi.fn();
     vi.spyOn(window, 'location', 'get').mockReturnValue({ ...window.location, reload });
-    const { user } = await startCall(new ManualVoiceClient(), sessions);
+    const { user } = await callWith(new ManualVoiceClient(), sessions);
     await user.click(await screen.findByRole('button', { name: 'Reload page' }));
     expect(reload).toHaveBeenCalled();
     vi.restoreAllMocks();
 
     await user.click(screen.getByRole('button', { name: 'Close' }));
-    await waitFor(() => expect(screen.getByTestId(chatTestIds.voiceMic)).toHaveFocus());
+    await waitFor(() => expect(screen.getByTestId(chatTestIds.voiceCall)).toHaveFocus());
   });
 });
 
@@ -137,7 +152,7 @@ describe('voice call timer', () => {
       sessions,
       advanceTimers: (ms) => vi.advanceTimersByTime(ms),
     });
-    await user.click(screen.getByTestId(chatTestIds.voiceMic));
+    await startCall(user);
     await waitFor(() => expect(client.call).not.toBeNull());
     client.emit({ type: 'status', status: 'live' }, { type: 'mode', mode: 'listening' });
 

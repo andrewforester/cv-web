@@ -42,7 +42,14 @@ function setUp({ reduced = false, now = 300 } = {}) {
   const fabRef = createRef<HTMLButtonElement>();
   render(
     <AppProviders>
-      <ChatLauncher fabRef={fabRef} hintVisible={false} onOpen={vi.fn()} onDismissHint={vi.fn()} />
+      <ChatLauncher
+        fabRef={fabRef}
+        hintVisible={false}
+        closing={false}
+        returning={false}
+        onOpen={vi.fn()}
+        onDismissHint={vi.fn()}
+      />
     </AppProviders>,
   );
   return { calls, fab: fabRef.current };
@@ -59,6 +66,7 @@ describe('the launcher intro', () => {
   it('rises in at 1.5 s and pulses exactly twice from 2.6 s after load', () => {
     const { calls, fab } = setUp({ now: 300 });
     const [entry, pulse] = calls;
+    expect(entry?.el).toBe(fab);
     expect(entry?.options).toMatchObject({ delay: 1200, duration: 900, fill: 'both' });
     expect(pulse?.el).toBe(fab);
     expect(PULSE_COUNT).toBe(2);

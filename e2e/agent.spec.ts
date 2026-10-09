@@ -49,6 +49,8 @@ async function scriptToolRound(page: Page, round: ScriptedRound): Promise<unknow
 
 async function ask(page: Page, text: string) {
   await page.getByTestId('chat-fab').click();
+  // The page narrows beside the column (ADR-0010 → Decision 2); a real answer comes long after.
+  await expect.poll(() => page.locator('main').evaluate((m) => m.getAnimations().length)).toBe(0);
   await page.getByTestId('chat-input').fill(text);
   await page.getByTestId('chat-input').press('Enter');
 }

@@ -1,13 +1,14 @@
-import type { AgentPageStateV4 } from '../../data/chat';
+import { CHAT_LIMITS_V2, type AgentPageStateV4 } from '../../data/chat';
 import type { ChatActionCall, ChatToolRound, ChatTurn } from './ChatUiState';
+import { conversationReducer, textTurns } from './conversation';
 import {
   buildHistory,
   buildMessages,
-  conversationReducer,
   exceedsConversationLimits,
-  textTurns,
+  retryMessages,
   turnMessages,
-} from './conversation';
+} from './conversationRequests';
+import type { ChatVoiceCall } from './voice/callReducer';
 
 const page: AgentPageStateV4 = {
   viewport: 'desktop',
@@ -78,7 +79,7 @@ describe('conversation', () => {
     });
   });
 
-  it('is full at 10 questions, 40 messages or 24,000 characters', () => {
+  it('is full at 10 questions, 40 messages or 32,000 characters', () => {
     const nine = Array.from({ length: 9 }, (_, i) => turn(String(i), 'q', 'a'));
     expect(exceedsConversationLimits(nine, 'q')).toBe(false);
     expect(exceedsConversationLimits([...nine, turn('10', 'q', 'a')], 'q')).toBe(true);
@@ -90,7 +91,7 @@ describe('conversation', () => {
     expect(
       exceedsConversationLimits([...busy, turn('7', 'q', 'a', 'done', [round, round])], 'q'),
     ).toBe(true);
-    expect(exceedsConversationLimits([turn('1', 'q', 'a'.repeat(23_995))], 'question')).toBe(true);
+    expect(exceedsConversationLimits([turn('1', 'q', 'a'.repeat(31_995))], 'question')).toBe(true);
   });
 
   it('streams, finishes, fails, retries and ignores events of finished turns', () => {
@@ -142,7 +143,7 @@ describe('conversation', () => {
     expect(textTurns(turns)[0]?.rounds).toHaveLength(1);
   });
 
-  it('records a voice call in order and never sends it to the text model', () => {
+  it('records a voice call in order and sends its lines with the next question', () => {
     let entries = conversationReducer([turn('1', 'Q1', 'A1')], { type: 'callStart', id: 'c' });
     const line = (id: string, role: 'visitor' | 'agent', text: string) =>
       ({ type: 'callLine', id: 'c', line: { id, role, text } }) as const;
@@ -200,11 +201,137 @@ describe('conversation', () => {
         },
       ],
     });
+    // Lines only, as corrected; the tool chips stay in the chat.
     expect(buildMessages(entries, 'Q2', page)).toEqual([
       { role: 'user', content: 'Q1', page },
       { role: 'assistant', content: 'A1' },
-      { role: 'user', content: 'Q2', page },
+      {
+        role: 'user',
+        content: 'Q2',
+        page,
+        voiceCalls: [
+          {
+            lines: [
+              { role: 'visitor', text: 'Show his impact' },
+              { role: 'agent', text: 'Here is his impact' },
+            ],
+          },
+        ],
+      },
     ]);
     expect(conversationReducer(entries, { type: 'reset' })).toEqual([]);
+  });
+});
+
+/** An ended call with these lines (`v…` the visitor's, the rest the agent's). */
+const voiceCall = (id: string, ...texts: string[]): ChatVoiceCall => ({
+  kind: 'call',
+  id,
+  status: 'ended',
+  endReason: 'visitor',
+  durationSec: 30,
+  items: texts.map((text, index) => ({
+    kind: 'line',
+    id: `${id}-${index}`,
+    role: text.trim().startsWith('v') ? 'visitor' : 'agent',
+    text,
+  })),
+});
+
+const sent = (...texts: string[]) => ({
+  lines: texts.map((text) => ({ role: text.startsWith('v') ? 'visitor' : 'agent', text })),
+});
+
+describe('voice calls in the history', () => {
+  it('each question carries the calls since the previous one; the new one the trailing calls', () => {
+    const history = [
+      voiceCall('c1', 'v1', 'a1'),
+      turn('1', 'Q1', 'A1'),
+      voiceCall('c2', 'v2'),
+      voiceCall('c3', 'a3'),
+      turn('2', 'Q2', 'A2'),
+      voiceCall('c4', 'v4', 'a4'),
+    ];
+    expect(buildMessages(history, 'Q3', page)).toEqual([
+      { role: 'user', content: 'Q1', page, voiceCalls: [sent('v1', 'a1')] },
+      { role: 'assistant', content: 'A1' },
+      { role: 'user', content: 'Q2', page, voiceCalls: [sent('v2'), sent('a3')] },
+      { role: 'assistant', content: 'A2' },
+      { role: 'user', content: 'Q3', page, voiceCalls: [sent('v4', 'a4')] },
+    ]);
+  });
+
+  it('skips calls without lines and blank lines; no field when nothing is left', () => {
+    const toolOnly: ChatVoiceCall = {
+      ...voiceCall('c2'),
+      items: [{ kind: 'action', action }],
+    };
+    const history = [voiceCall('c1', '  '), toolOnly, voiceCall('c3', 'v3', ' ')];
+    expect(buildMessages(history, 'Q', page)).toEqual([
+      { role: 'user', content: 'Q', page, voiceCalls: [sent('v3')] },
+    ]);
+    expect(buildMessages([voiceCall('c1', ' '), toolOnly], 'Q', page)).toEqual([
+      { role: 'user', content: 'Q', page },
+    ]);
+  });
+
+  it('calls before a stopped or failed turn move on to the next question sent', () => {
+    const history = [
+      voiceCall('c1', 'v1'),
+      turn('1', 'Q1', 'partial', 'stopped'),
+      voiceCall('c2', 'v2'),
+      turn('2', 'Q2', 'oops', 'error'),
+    ];
+    expect(buildMessages(history, 'Q3', page)).toEqual([
+      { role: 'user', content: 'Q3', page, voiceCalls: [sent('v1'), sent('v2')] },
+    ]);
+  });
+
+  it('a retry re-sends the failed question with the same calls and its finished rounds', () => {
+    const before = [turn('1', 'Q1', 'A1'), voiceCall('c1', 'v1')];
+    const failed = turn('2', 'Show apps', '', 'error', [round]);
+    const first = buildMessages(before, 'Show apps', page);
+    const retry = retryMessages(before, failed);
+    expect(retry.slice(0, first.length)).toEqual(first);
+    expect(retry.slice(first.length)).toEqual([
+      { role: 'assistant', content: 'Scrolling.', toolCalls: [call], providerState: 'opaque' },
+      { role: 'user', toolResults: [{ callId: 'toolu_1', result: { ok: true } }] },
+    ]);
+  });
+
+  it('keeps the latest calls and each call’s last lines within the API caps', () => {
+    const { maxVoiceCallsPerQuestion, maxVoiceCallLines, maxVoiceLineChars, maxVoiceCallChars } =
+      CHAT_LIMITS_V2;
+    const calls = Array.from({ length: maxVoiceCallsPerQuestion + 1 }, (_, i) =>
+      voiceCall(`c${i}`, `v${i}`),
+    );
+    const [question] = buildMessages(calls, 'Q', page);
+    expect(question).toMatchObject({ voiceCalls: calls.slice(1).map((_, i) => sent(`v${i + 1}`)) });
+
+    const many = Array.from({ length: maxVoiceCallLines + 5 }, (_, i) => `v${i}`);
+    const [longCall] = buildMessages([voiceCall('c', ...many)], 'Q', page);
+    expect(longCall).toMatchObject({ voiceCalls: [sent(...many.slice(5))] });
+
+    const long = 'v'.repeat(maxVoiceLineChars + 200);
+    const [cutLine] = buildMessages([voiceCall('c', ` ${long} `)], 'Q', page);
+    expect(cutLine).toMatchObject({ voiceCalls: [sent(long.slice(0, maxVoiceLineChars))] });
+
+    // 5 lines of 1,000 chars: only the last 4 fit 4,000.
+    const full = Array.from({ length: 5 }, (_, i) => `v${i}`.padEnd(maxVoiceLineChars, '.'));
+    const [fullCall] = buildMessages([voiceCall('c', ...full)], 'Q', page);
+    expect(fullCall).toMatchObject({ voiceCalls: [sent(...full.slice(1))] });
+    expect(maxVoiceCallChars).toBe(4 * maxVoiceLineChars);
+  });
+
+  it('counts the voice text sent toward the 32,000 characters', () => {
+    const line = 'v'.padEnd(1_000, '.');
+    // Three calls of 4,000 chars before each of two questions (24,000) and 7,001 of text.
+    const calls = (n: number) =>
+      Array.from({ length: 3 }, (_, i) => voiceCall(`c${n}-${i}`, line, line, line, line));
+    const history = [...calls(1), turn('1', 'q', 'a'.repeat(7_000)), ...calls(2)];
+    expect(exceedsConversationLimits(history, 'q'.repeat(999))).toBe(false);
+    expect(exceedsConversationLimits(history, 'q'.repeat(1_000))).toBe(true);
+    // Calls never count as questions.
+    expect(exceedsConversationLimits([...calls(1), ...calls(2)], 'q')).toBe(false);
   });
 });

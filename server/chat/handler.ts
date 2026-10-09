@@ -12,7 +12,7 @@ import { chatError, errorResponse, HTTP_STATUS_BY_CODE } from './errors.js';
 import { checkContentType, checkMethod, checkOrigin, readBody } from '../http/guards.js';
 import type { CvPageKnowledgeLoader } from './knowledge/assembleKnowledge.js';
 import type { LlmClient, LlmRequest } from './llm/LlmClient.js';
-import type { ChatLogEntry, ChatLogger } from './log.js';
+import { voiceLogFields, type ChatLogEntry, type ChatLogger } from './log.js';
 import { buildLlmRequest } from './prompt/buildLlmRequest.js';
 import { PROMPT_VERSION } from './prompt/systemPrompt.js';
 import type { RateLimiter, RateLimits } from '../http/rateLimiter.js';
@@ -84,6 +84,8 @@ function newEntry(requestId: string, deps: ChatDeps, request: Request): ChatLogE
     toolRound: null,
     toolChoice: null,
     providerStateBytes: null,
+    voiceCalls: null,
+    voiceChars: null,
     showKind: null,
     showScenario: null,
     stepId: null,
@@ -214,6 +216,7 @@ export async function handleChat(request: Request, deps: ChatDeps): Promise<Resp
   entry.messages = chat.messages.length;
   entry.inputChars = inputChars(chat.messages);
   entry.toolRound = chat.toolRound;
+  Object.assign(entry, voiceLogFields(chat.messages));
 
   try {
     const llmRequest = buildLlmRequest(chat, await deps.cvPageKnowledge(), deps.config.model);

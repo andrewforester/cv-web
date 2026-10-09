@@ -1,6 +1,6 @@
 # Voice session: API contract (`POST /api/voice-session`, v1)
 
-The contract between the voice mode in the browser (`src/data/voice/`, `src/screens/chat/`) and
+The contract between the call panel in the browser (`src/data/voice/`, `src/screens/chat/`) and
 the session endpoint (`api/voice-session.ts` + `server/voice/`). The endpoint does one thing: it
 hands the browser a short-lived ElevenLabs conversation token when voice is on and the month's
 minutes allow one more call. The call itself then runs between the browser and ElevenLabs
@@ -115,7 +115,7 @@ costs nothing against the month (SYSTEM_DESIGN §5).
 
 ## Errors
 
-| Status | `code` | `retryable` | Cause | What the voice mode says |
+| Status | `code` | `retryable` | Cause | What the call panel says |
 |---:|---|---|---|---|
 | 400 | `invalid_request` / `unsupported_version` | false | Bad body; a tab from before a breaking change | Generic failure / "reload the page" |
 | 403 | `forbidden_origin` | false | Another site, or `curl` without `Origin` | Generic failure |

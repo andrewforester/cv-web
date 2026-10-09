@@ -1,0 +1,6 @@
+/* docs/design/voice/SPEC.md → Layout 3a: one width for "Show chat" and "Hide chat". */
+.toggle {
+  flex: none;
+  min-width: var(--voice-chat-toggle-width);
+  text-align: center;
+}
