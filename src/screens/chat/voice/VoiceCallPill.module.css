@@ -7,7 +7,8 @@
   position: fixed;
   right: var(--space-4);
   bottom: var(--space-4);
-  z-index: var(--chat-z-index);
+  /* One layer above the panel (Decision 32): it fades on top of the morph. */
+  z-index: calc(var(--chat-z-index) + 1);
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -16,15 +17,17 @@
   background: var(--color-card);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-launcher);
-  transform-origin: bottom right;
-  /* After the panel has folded away (docs/design/voice/SPEC.md → Motion: Minimize). */
-  animation: pill-in var(--chat-motion-duration) var(--chat-motion-easing) both;
-  animation-delay: var(--chat-motion-exit-duration);
+  /*
+   * docs/design/voice/SPEC.md → Motion (Minimize / expand): it fades in over the last moments of
+   * the panel shrinking into it and fades out as the panel grows out of it. Opacity only.
+   */
+  animation: fade-in var(--chat-motion-duration) var(--chat-motion-easing) both;
+  animation-delay: calc(var(--chat-slide-exit-duration) - var(--chat-motion-duration));
 }
 
 .closing {
   pointer-events: none;
-  animation: pill-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
+  animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
 }
 
 .expand {
@@ -86,30 +89,6 @@
 @media (max-width: 599px), (max-height: 499px) {
   .pill {
     bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
-  }
-}
-
-@keyframes pill-in {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-}
-
-@keyframes pill-out {
-  to {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pill {
-    animation-name: fade-in;
-  }
-
-  .closing {
-    animation-name: fade-out;
   }
 }
 

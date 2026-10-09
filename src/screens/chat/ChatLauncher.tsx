@@ -10,9 +10,9 @@ interface ChatLauncherProps {
   className?: string;
   fabRef: Ref<HTMLButtonElement>;
   hintVisible: boolean;
-  /** The column (or the call pill) is taking its place: the pill fades out, no input. */
+  /** The panel is growing out of it: the pill fades out, no input. */
   closing: boolean;
-  /** Coming back after the chat closed: it waits for the column to leave, then grows in. */
+  /** Coming back after the chat closed: it fades in as the panel shrinks into it. */
   returning: boolean;
   onOpen: () => void;
   onDismissHint: () => void;

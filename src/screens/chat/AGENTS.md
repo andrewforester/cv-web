@@ -48,8 +48,13 @@ page slide starts on the frame the panel enters. The slide's breakpoint, 1584 px
 (`CHAT_SLIDE_QUERY`), is the full CV card + the panel with its gutter + a 24 px margin on each
 side of the card; media queries can't read tokens, so `chatDock.test.ts` recomputes it from
 `tokens.css`. The frame's CSS (`ChatFrame.module.css`) has one placement for every non-phone
-width; swapping views inside it crossfades, minimize folds it toward the pill (`useFrameMotion`);
-reduced motion fades only. The morph out of the pill (ADR-0012 → Decision 2) is not built yet.
+width, and there the panel **morphs** (ADR-0012 → Decision 2): it opens by growing out of the
+launcher pill (a `clip-path` reveal of the final-size panel from the pill's box, bottom-right, the
+content and then the shadow fading in) and closes back into it; minimize and expand do the same
+with the call pill. The pills sit one layer above the panel and only fade. `useMorphOrigin`
+measures the mounted pill on each surface change (`--chat-morph-w` / `-h`; none: a 48 px circle).
+Swapping views inside the panel crossfades (`useFrameMotion`); phones keep their sheets; reduced
+motion fades only.
 
 Place in the architecture: the screen pattern (state holder → UI state → stateless components)
 over `src/data/chat/` (the conversation stream), `CvPageRepository` (labels) and `src/agent/`

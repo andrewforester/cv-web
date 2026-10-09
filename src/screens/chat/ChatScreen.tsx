@@ -8,6 +8,7 @@ import type { ChatActions, ChatUiState } from './ChatUiState';
 import { chatStrings } from './strings';
 import { chatTestIds } from './testIds';
 import { useFrameMotion } from './useFrameMotion';
+import { useMorphOrigin } from './useMorphOrigin';
 import { usePresence } from './usePresence';
 import { callEndText } from './voice/callEndText';
 import { VoiceCallComposer } from './voice/VoiceCallComposer';
@@ -15,7 +16,7 @@ import { VoiceCallPill } from './voice/VoiceCallPill';
 import { VoicePanel } from './voice/VoicePanel';
 import type { FocusRequest } from './voice/VoiceUiState';
 
-/** Matches `--chat-motion-exit-duration` (the launcher's and the pill's close animation). */
+/** Matches `--chat-motion-exit-duration`: the launcher and the call pill fade out (the morph). */
 const EXIT_MS = 150;
 /** Matches `--chat-slide-exit-duration`: a frame's longest exit (it closes with the slide). */
 const FRAME_EXIT_MS = 400;
@@ -33,7 +34,9 @@ interface ChatScreenProps {
  */
 export function ChatScreen({ className, state, actions }: ChatScreenProps) {
   const strings = useStrings(chatStrings);
+  const rootRef = useRef<HTMLDivElement>(null);
   const fabRef = useRef<HTMLButtonElement>(null);
+  const callPillRef = useRef<HTMLDivElement>(null);
   const focusFabOnClose = useRef(false);
   const callInputRef = useRef<HTMLTextAreaElement>(null);
   const { surface, voice } = state;
@@ -64,6 +67,7 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
   };
 
   const motion = useFrameMotion(surface);
+  useMorphOrigin(rootRef, surface, fabRef, callPillRef);
   const panel = usePresence(surface === 'text' || surface === 'callChat', FRAME_EXIT_MS);
   const callPanel = usePresence(surface === 'call', FRAME_EXIT_MS);
   const pill = usePresence(surface === 'callPill' || state.endedPill, EXIT_MS);
@@ -94,6 +98,7 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
 
   return (
     <div
+      ref={rootRef}
       className={className ? `${styles.root} ${className}` : styles.root}
       data-testid={chatTestIds.root}
       data-surface={surface}
@@ -141,6 +146,7 @@ export function ChatScreen({ className, state, actions }: ChatScreenProps) {
       )}
       {voice && pill.mounted && (
         <VoiceCallPill
+          rootRef={callPillRef}
           state={voice}
           actions={actions.voice}
           endedText={state.endedPill && lastCall ? callEndText(lastCall, strings) : null}

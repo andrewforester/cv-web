@@ -72,10 +72,11 @@ type CardBox = Awaited<ReturnType<typeof cardBox>>;
 
 /**
  * The floating panel above the phone (ADR-0012), on both sides of 1584 px: 400 × 600 at
- * right/bottom 16, never full height.
+ * right/bottom 16, never full height; once the morph has landed no clip is left on it.
  */
 async function expectPanel(page: Page, frame: Locator) {
   await settle(frame);
+  await expect(frame).toHaveCSS('clip-path', 'none');
   const viewport = page.viewportSize();
   const box = await frame.boundingBox();
   if (!viewport || !box) throw new Error('no panel');
@@ -110,6 +111,26 @@ async function expectOverlay(page: Page, card: CardBox, frame: Locator) {
   await expect(page.locator('html')).toHaveAttribute('data-chat-dock', 'none');
   await expectPanel(page, frame);
   expect(await cardBox(page)).toEqual(card);
+}
+
+/** A fixed layer's stacking order. */
+async function zIndex(target: Locator) {
+  return Number(await target.evaluate((element) => getComputedStyle(element).zIndex));
+}
+
+/** The morph's origin (`useMorphOrigin`): the pill's box written on the chat root. */
+async function morphOrigin(page: Page) {
+  return page.getByTestId('chat').evaluate((root) => {
+    const style = getComputedStyle(root);
+    return [style.getPropertyValue('--chat-morph-w'), style.getPropertyValue('--chat-morph-h')];
+  });
+}
+
+/** A box's size as the `px` values `useMorphOrigin` writes. */
+async function pxSize(target: Locator) {
+  const box = await target.boundingBox();
+  if (!box) throw new Error('no box');
+  return [`${box.width}px`, `${box.height}px`];
 }
 
 /** A `/api/chat` mock that answers once and keeps the requests. */
@@ -157,10 +178,19 @@ for (const { name, size } of viewports) {
       await expect(fab).toHaveText('Talk to my AI');
       await page.screenshot({ path: `${SCREENSHOT_DIR}/voice-launcher-${name}.png` });
 
+      // The launcher sits one layer above the panel and fades while the panel grows out of it.
+      const launcher = fab.locator('..');
+      const launcherZ = await zIndex(launcher);
+      const launcherSize = await pxSize(fab);
       await fab.click();
       const chat = page.getByTestId('chat-panel');
       const list = chat.getByTestId('chat-list');
       await expect(chat).toBeVisible();
+      if (name !== 'mobile') {
+        await expect(chat).toHaveCSS('animation-name', /morph-in/);
+        expect(await morphOrigin(page)).toEqual(launcherSize);
+        expect(launcherZ).toBeGreaterThan(await zIndex(chat));
+      }
       await expect(chat.getByTestId('chat-input')).toHaveAttribute(
         'placeholder',
         '…or type instead',
@@ -272,6 +302,13 @@ for (const { name, size } of viewports) {
       // minimized: the pill in the launcher's place, the page back in the centre
       const pill = page.getByTestId('chat-voice-pill');
       await expect(pill).toBeVisible();
+      if (name !== 'mobile') {
+        // The panel shrinks into the call pill (kept mounted: the paused clock holds its exit),
+        // which fades in one layer above it.
+        await expect(chat).toHaveCSS('animation-name', /morph-out/);
+        expect(await morphOrigin(page)).toEqual(await pxSize(pill));
+        expect(await zIndex(pill)).toBeGreaterThan(await zIndex(chat));
+      }
       await expect(html).toHaveAttribute('data-chat-dock', 'none');
       await expect.poll(() => cardBox(page)).toEqual(card);
       await settle(pill);
@@ -360,7 +397,7 @@ test('without the flag there is no Call, and the launcher still says Talk to my 
 test.describe('reduced motion', () => {
   test.use({ viewport: viewports[0].size });
 
-  test('the page makes room for the panel at once, with no transition', async ({ page }) => {
+  test('the page makes room at once and the panel only fades in', async ({ page }) => {
     const errors = collectErrors(page);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto(VOICE_SITE);
@@ -373,9 +410,20 @@ test.describe('reduced motion', () => {
     await expect(page.locator('html')).toHaveAttribute('data-chat-dock', 'side');
     // No transition: the card is in its place on the first read, not after an animation.
     expect(await cardBox(page)).toEqual({ x: card.x - SLIDE_PX, width: card.width });
-    // The panel only fades (no scale, no slide): its box is in place while it fades in.
+    // The panel only fades (no morph, no scale, no slide): its box is in place while it fades in.
     const { width, height } = viewports[0].size;
-    const box = await page.getByTestId('chat-panel').boundingBox();
+    const panel = page.getByTestId('chat-panel');
+    await expect(panel).toHaveCSS('animation-name', /fade-in/);
+    const animated = await panel.evaluate((element) =>
+      element
+        .getAnimations({ subtree: true })
+        .filter((animation) => animation instanceof CSSAnimation)
+        .flatMap((animation) => (animation.effect as KeyframeEffect).getKeyframes())
+        .flatMap((keyframe) => Object.keys(keyframe))
+        .filter((key) => !['offset', 'computedOffset', 'easing', 'composite'].includes(key)),
+    );
+    expect(animated.filter((key) => key !== 'opacity')).toEqual([]);
+    const box = await panel.boundingBox();
     expect(box && [Math.round(box.x + box.width), Math.round(box.y + box.height)]).toEqual([
       width - 16,
       height - 16,
