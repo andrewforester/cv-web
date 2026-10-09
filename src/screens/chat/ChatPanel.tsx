@@ -68,16 +68,17 @@ export function ChatPanel({
     onOutsidePointerDown: call ? noop : actions.close,
   });
   useVisualViewportFit(dialogRef, sheet);
-  // After the dialog's own initial focus, on every (re)opening: a view swap hands the focus over
-  // (the toggle stays the toggle; typing begun in the phone's call sheet goes on here), and a call
-  // that left nothing gives it back to Call.
+  // On every (re)opening, also when reopened mid-exit: a view swap hands the focus over (the
+  // toggle stays the toggle; typing begun in the phone's call sheet goes on here), a call that left
+  // nothing gives it back to Call; otherwise the dialog's rule (the field, the sheet itself).
   const { focusCall } = state;
   useEffect(() => {
     if (closing) return;
     const request = takeFocusRequest?.();
-    if (request) (request === 'toggle' ? toggleRef : inputRef).current?.focus();
-    else if (focusCall) callButtonRef.current?.focus();
-  }, [closing, takeFocusRequest, focusCall]);
+    const fallback = focusCall ? callButtonRef : sheet ? dialogRef : inputRef;
+    const target = request === 'toggle' ? toggleRef : request === 'field' ? inputRef : fallback;
+    target.current?.focus();
+  }, [closing, takeFocusRequest, focusCall, sheet]);
 
   // The call ended here: the composer is back, and the focus goes to it.
   const wasCall = useRef(call !== null);

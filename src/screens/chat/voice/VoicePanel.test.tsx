@@ -4,46 +4,66 @@ import { FakeChatRepository } from '../../../data/chat';
 import { FakeVoiceClient } from '../../../data/voice';
 import { answer } from '../chatTestHarness';
 import { chatTestIds } from '../testIds';
-import { ManualVoiceClient, renderVoiceChat } from './voiceTestHarness';
+import { ManualVoiceClient, renderVoiceChat, startCall } from './voiceTestHarness';
 
 const voicePanel = () => screen.getByTestId(chatTestIds.voicePanel);
 
 async function startLiveCall(user: UserEvent, client: ManualVoiceClient) {
-  await user.click(screen.getByTestId(chatTestIds.voiceMic));
+  await startCall(user);
   await waitFor(() => expect(client.call).not.toBeNull());
   client.emit({ type: 'status', status: 'live' });
 }
 
 describe('call panel', () => {
-  it('shows no mic without a voice client (the flag is off)', async () => {
-    await renderVoiceChat({ client: null });
-    expect(screen.getByTestId(chatTestIds.fab)).toBeInTheDocument();
-    expect(screen.queryByTestId(chatTestIds.voiceMic)).not.toBeInTheDocument();
+  it('without a voice client (the flag off): no Call, and the launcher still says Talk to my AI', async () => {
+    const { user } = await renderVoiceChat({ client: null });
+    await user.click(screen.getByRole('button', { name: 'Talk to my AI' }));
+    expect(screen.queryByTestId(chatTestIds.voiceCall)).not.toBeInTheDocument();
+    expect(screen.getByTestId(chatTestIds.input)).toHaveAttribute('placeholder', 'Ask a question…');
   });
 
-  it('puts the mic left of the pill and opens the panel (not modal) in "connecting"', async () => {
+  it('one launcher; Call left of the field opens the panel (not modal) in "connecting"', async () => {
     const { user } = await renderVoiceChat();
-    const mic = screen.getByRole('button', { name: 'Talk to my AI by voice' });
-    expect(mic.compareDocumentPosition(screen.getByTestId(chatTestIds.fab))).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
-    await user.click(mic);
+    const launcher = screen.getByRole('button', { name: 'Talk to my AI' });
+    // The pill is the launcher's only button: a call starts from the chat.
+    expect(screen.getAllByRole('button')).toEqual([launcher]);
+    await user.click(launcher);
+
+    const call = screen.getByRole('button', { name: 'Call my AI' });
+    expect(call).toHaveTextContent('Call');
+    const input = screen.getByTestId(chatTestIds.input);
+    expect(input).toHaveAttribute('placeholder', '…or type instead');
+    expect(call.compareDocumentPosition(input)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    await user.click(call);
+
     const panel = screen.getByRole('complementary', { name: 'Voice call with Andrew’s AI' });
     expect(panel).toHaveAttribute('data-phase', 'connecting');
     expect(panel).toHaveFocus();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(within(panel).getByText(/Calls run on ElevenLabs/)).toBeInTheDocument();
     expect(screen.getByTestId(chatTestIds.voiceMute)).toBeDisabled();
     expect(screen.getByTestId(chatTestIds.voiceMinimize)).toBeDisabled();
     expect(screen.getByTestId(chatTestIds.root)).toHaveAttribute('data-surface', 'call');
-    // The launcher row hides while the panel is open.
+    // The chat and the launcher leave once their exits have played.
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(screen.queryByTestId(chatTestIds.fab)).not.toBeInTheDocument();
+  });
+
+  it('Call is disabled while a text answer streams', async () => {
+    const chat = new FakeChatRepository();
+    const { user } = await renderVoiceChat({ chat });
+    await user.click(screen.getByTestId(chatTestIds.fab));
+    await user.type(screen.getByTestId(chatTestIds.input), 'What did he lead?{Enter}');
+    await waitFor(() => expect(chat.isStreaming).toBe(true));
+    expect(screen.getByTestId(chatTestIds.voiceCall)).toBeDisabled();
+
+    chat.emit(...answer('He led mobile.'));
+    await waitFor(() => expect(screen.getByTestId(chatTestIds.voiceCall)).toBeEnabled());
   });
 
   it('plays a scripted call into the chat: lines, a scroll, then the chat opens', async () => {
     const client = new FakeVoiceClient({ stepMs: 0 });
     const { user, executor } = await renderVoiceChat({ client });
-    await user.click(screen.getByTestId(chatTestIds.voiceMic));
+    await startCall(user);
 
     const panel = await screen.findByTestId(chatTestIds.panel, {}, { timeout: 3000 });
     // The call panel plays its close animation, then leaves.
@@ -101,21 +121,21 @@ describe('call panel', () => {
     expect(client.call?.muted).toBe(false);
   });
 
-  it('End with no lines closes the panel and gives the focus back to the mic', async () => {
+  it('End with no lines goes back to the chat and gives the focus back to Call', async () => {
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client });
     await startLiveCall(user, client);
     await user.click(screen.getByRole('button', { name: 'End call' }));
 
     expect(client.call?.ended).toBe('visitor');
-    await waitFor(() => expect(screen.getByTestId(chatTestIds.voiceMic)).toHaveFocus());
-    expect(screen.queryByTestId(chatTestIds.panel)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId(chatTestIds.voiceCall)).toHaveFocus());
+    expect(screen.getByTestId(chatTestIds.root)).toHaveAttribute('data-surface', 'text');
   });
 
   it('Esc minimizes a live call (never ends it); while connecting it does nothing', async () => {
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client });
-    await user.click(screen.getByTestId(chatTestIds.voiceMic));
+    await startCall(user);
     await waitFor(() => expect(client.call).not.toBeNull());
     await user.keyboard('{Escape}');
     expect(voicePanel()).toBeInTheDocument();
@@ -126,7 +146,7 @@ describe('call panel', () => {
     expect(await screen.findByTestId(chatTestIds.voicePillExpand)).toHaveFocus();
   });
 
-  it('starts a call from the open chat (the composer mic); the earlier chat goes to the agent', async () => {
+  it('a call started after a text exchange gives the agent the earlier chat', async () => {
     const chat = new FakeChatRepository().reply(...answer('He led mobile.'));
     const client = new ManualVoiceClient();
     const { user } = await renderVoiceChat({ client, chat });
@@ -134,7 +154,7 @@ describe('call panel', () => {
     await user.type(screen.getByTestId(chatTestIds.input), 'What did he lead?{Enter}');
     expect(await screen.findAllByText('He led mobile.')).not.toHaveLength(0);
 
-    await user.click(screen.getByTestId(chatTestIds.voiceComposerMic));
+    await user.click(screen.getByTestId(chatTestIds.voiceCall));
     expect(voicePanel()).toBeInTheDocument();
     await waitFor(() => expect(client.call).not.toBeNull());
     client.emit({ type: 'status', status: 'live' });

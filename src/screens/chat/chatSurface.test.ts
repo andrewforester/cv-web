@@ -30,18 +30,17 @@ describe('surfaceReducer', () => {
     expect(run({ type: 'openChat', call: 'idle' }, { type: 'close' }).surface).toBe('closed');
   });
 
-  it('starts a call from the launcher or the chat and remembers where', () => {
-    expect(run({ type: 'callStart' })).toMatchObject({ surface: 'call', origin: 'closed' });
-    expect(surfaceReducer(at('text'), { type: 'callStart' })).toMatchObject({
-      surface: 'call',
-      origin: 'text',
-    });
+  it('Call starts a call from the chat in the call panel', () => {
+    expect(surfaceReducer(at('text'), { type: 'callStart' }).surface).toBe('call');
   });
 
-  it('Show chat and Hide chat swap the column’s view', () => {
-    const chat = surfaceReducer(at('call'), { type: 'showChat' });
+  it('the one toggle swaps the column’s view both ways, and nothing else', () => {
+    const chat = surfaceReducer(at('call'), { type: 'toggleChat' });
     expect(chat.surface).toBe('callChat');
-    expect(surfaceReducer(chat, { type: 'hideChat' }).surface).toBe('call');
+    expect(surfaceReducer(chat, { type: 'toggleChat' }).surface).toBe('call');
+    for (const surface of ['closed', 'text', 'callPill'] as const) {
+      expect(surfaceReducer(at(surface), { type: 'toggleChat' }).surface).toBe(surface);
+    }
   });
 
   it('minimizes only a live call and unfolds to the view it had', () => {
@@ -53,11 +52,26 @@ describe('surfaceReducer', () => {
     expect(surfaceReducer(pill, { type: 'expand' }).surface).toBe('callChat');
   });
 
-  it('after the call: the chat when it had lines, else where it started', () => {
-    expect(surfaceReducer(at('call'), ended(true)).surface).toBe('text');
+  it('after the call: the chat, where it started; with nothing said the focus goes to Call', () => {
+    expect(surfaceReducer(at('call'), ended(true))).toMatchObject({
+      surface: 'text',
+      focusCall: false,
+    });
     expect(surfaceReducer(at('callChat'), ended(true)).surface).toBe('text');
-    expect(surfaceReducer(at('call', { origin: 'closed' }), ended(false)).surface).toBe('closed');
-    expect(surfaceReducer(at('call', { origin: 'text' }), ended(false)).surface).toBe('text');
+    expect(surfaceReducer(at('call'), ended(false))).toMatchObject({
+      surface: 'text',
+      focusCall: true,
+    });
+    expect(surfaceReducer(at('callChat'), ended(false)).focusCall).toBe(true);
+    // Closing and reopening the chat puts the focus back in the field.
+    const reopened = run(
+      { type: 'openChat', call: 'idle' },
+      { type: 'callStart' },
+      ended(false),
+      { type: 'close' },
+      { type: 'openChat', call: 'idle' },
+    );
+    expect(reopened).toMatchObject({ surface: 'text', focusCall: false });
   });
 
   it('a folded call ends closed, with the ended pill', () => {
@@ -82,11 +96,20 @@ describe('surfaceReducer', () => {
     // A mid-call drop in the chat: the closing divider says it.
     expect(surfaceReducer(at('callChat'), ended(false, true, true)).surface).toBe('text');
 
-    const preLive = at('call', { origin: 'closed', wasLive: false });
-    expect(surfaceReducer(preLive, { type: 'leaveCard', to: 'back' }).surface).toBe('closed');
-    expect(surfaceReducer(preLive, { type: 'leaveCard', to: 'chat' }).surface).toBe('text');
-    const dropped = at('call', { origin: 'closed', wasLive: true });
-    expect(surfaceReducer(dropped, { type: 'leaveCard', to: 'back' }).surface).toBe('text');
+    const preLive = at('call', { wasLive: false });
+    expect(surfaceReducer(preLive, { type: 'leaveCard', to: 'back' })).toMatchObject({
+      surface: 'text',
+      focusCall: true,
+    });
+    expect(surfaceReducer(preLive, { type: 'leaveCard', to: 'chat' })).toMatchObject({
+      surface: 'text',
+      focusCall: false,
+    });
+    const dropped = at('call', { wasLive: true });
+    expect(surfaceReducer(dropped, { type: 'leaveCard', to: 'back' })).toMatchObject({
+      surface: 'text',
+      focusCall: false,
+    });
   });
 
   it('a contact card or a visual tool on a phone brings the panel back', () => {
@@ -103,7 +126,7 @@ describe('surfaceReducer', () => {
     expect(surfaceReducer(at('text'), back('idle')).surface).toBe('closed');
     expect(surfaceReducer(at('callChat'), back('live')).surface).toBe('call');
     expect(surfaceReducer(at('call'), back('live')).surface).toBe('callPill');
-    expect(surfaceReducer(at('call', { origin: 'text' }), back('card')).surface).toBe('text');
+    expect(surfaceReducer(at('call'), back('card')).surface).toBe('text');
   });
 
   it('`#ask` during a call opens the chat over it', () => {

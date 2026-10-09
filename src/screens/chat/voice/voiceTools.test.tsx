@@ -1,7 +1,7 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import { chatTestIds } from '../testIds';
 import { CONTACT_TAP_MS, CHIP_HOLD_MS } from './useVoiceTools';
-import { ManualVoiceClient, renderVoiceChat } from './voiceTestHarness';
+import { ManualVoiceClient, renderVoiceChat, startCall } from './voiceTestHarness';
 
 const voicePanel = () => screen.getByTestId(chatTestIds.voicePanel);
 const linkedin = { name: 'openContact', input: { channel: 'linkedin' } } as const;
@@ -9,7 +9,7 @@ const linkedin = { name: 'openContact', input: { channel: 'linkedin' } } as cons
 async function liveCall(options: { advanceTimers?: (ms: number) => void } = {}) {
   const client = new ManualVoiceClient();
   const rendered = await renderVoiceChat({ client, ...options });
-  await rendered.user.click(screen.getByTestId(chatTestIds.voiceMic));
+  await startCall(rendered.user);
   await waitFor(() => expect(client.call).not.toBeNull());
   client.emit({ type: 'status', status: 'live' }, { type: 'mode', mode: 'speaking' });
   return { ...rendered, client };

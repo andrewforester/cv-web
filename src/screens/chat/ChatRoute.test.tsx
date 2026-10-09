@@ -7,7 +7,7 @@ import { ChatRoute } from './ChatRoute';
 import { chatTestIds } from './testIds';
 
 describe('chat widget', () => {
-  it('opens from the Ask my AI pill (its label is its name), shows the empty state, closes with × and returns focus', async () => {
+  it('opens from the Talk to my AI pill (its label is its name), shows the empty state, closes with × and returns focus', async () => {
     const user = userEvent.setup();
     render(
       <AppProviders chatRepository={new FakeChatRepository()}>
@@ -16,7 +16,7 @@ describe('chat widget', () => {
     );
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Ask my AI' }));
+    await user.click(screen.getByRole('button', { name: 'Talk to my AI' }));
 
     const dialog = screen.getByRole('dialog', { name: 'Ask about Andrew' });
     expect(dialog).toHaveAccessibleDescription('AI assistant · answers from this page');
