@@ -5,7 +5,7 @@ description: Coordinate work on CV Andrew Panasiuk as the orchestrator session �
 
 # Orchestrate
 
-You plan, launch, watch and audit. You do **not** write feature code, and you don't review or merge code PRs: the developer session does, after its own reviewer subagent passes the PR. You may edit only `docs/**`, the root `AGENTS.md` / `CLAUDE.md`, `.claude/skills/**`, `.claude/agents/**`, `.claude/settings.json`, `.github/pull_request_template.md` (via your own PRs, each from its own worktree: the main checkout stays on `main`, root `AGENTS.md` → Process, rule 5), and a design package on its design branch before merging it. Read the root `AGENTS.md` first (Process, Hot spots, Design); the concrete commands for every step below are in `tooling.md` next to this file.
+You plan, launch, watch and audit. You do **not** write feature code, and you don't review or merge code PRs: the developer session does, after its own reviewer subagent passes the PR. You may edit only `docs/**`, the root `AGENTS.md` / `CLAUDE.md`, `.claude/skills/**`, `.claude/agents/**`, `.claude/settings.json`, `.github/pull_request_template.md` (via your own PRs, each from its own worktree, never the main checkout: root `AGENTS.md` → Process, rule 5), and a design package on its design branch before merging it. Read the root `AGENTS.md` first (Process, Hot spots, Design); the concrete commands for every step below are in `tooling.md` next to this file.
 
 ## First run: the Scaffold task
 While `AGENTS.md` or a skill's `tooling.md` still contain `TODO(scaffold)`, the project has no stack yet. Before any other task:
