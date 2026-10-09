@@ -109,8 +109,8 @@ describe('voice page tools', () => {
     await user.click(screen.getByRole('button', { name: 'End call' }));
 
     expect(await pending).toEqual({ ok: false, error: 'declined' });
-    // No lines were said, so the chat stays closed: open it to read the call.
-    await user.click(await screen.findByTestId(chatTestIds.fab));
+    // Every call returns to the chat, where it started: the call's chip is there.
+    expect(screen.getByTestId(chatTestIds.root)).toHaveAttribute('data-surface', 'text');
     const list = within(await screen.findByTestId(chatTestIds.list));
     expect(list.getByTestId(chatTestIds.actionChip)).toHaveTextContent('Cancelled');
   });

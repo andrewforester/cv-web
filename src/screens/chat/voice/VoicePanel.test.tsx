@@ -65,12 +65,13 @@ describe('call panel', () => {
     const { user, executor } = await renderVoiceChat({ client });
     await startCall(user);
 
-    const panel = await screen.findByTestId(chatTestIds.panel, {}, { timeout: 3000 });
-    // The call panel plays its close animation, then leaves.
+    // The call ends back in the chat; the call panel plays its close animation, then leaves.
+    const root = screen.getByTestId(chatTestIds.root);
+    await waitFor(() => expect(root).toHaveAttribute('data-surface', 'text'), { timeout: 3000 });
     await waitFor(() =>
       expect(screen.queryByTestId(chatTestIds.voicePanel)).not.toBeInTheDocument(),
     );
-    expect(screen.getByTestId(chatTestIds.root)).toHaveAttribute('data-surface', 'text');
+    const panel = screen.getByTestId(chatTestIds.panel);
     expect(executor.executed).toEqual([
       { id: 'voice-1', name: 'scrollToSection', input: { section: 'impact' } },
     ]);
