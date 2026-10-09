@@ -272,7 +272,11 @@
         overflow: hidden;
         border-radius: 50%;
         box-shadow: var(--voice-orb-shadow);
-        background: radial-gradient(circle at 50% 60%, var(--color-brand-violet), var(--color-accent));
+        background: radial-gradient(
+          circle at 50% 60%,
+          var(--color-brand-violet),
+          var(--color-accent)
+        );
       }
       .orb .swirl {
         position: absolute;
@@ -620,7 +624,8 @@
         today: {
           disclaimer: FULL_DISCLAIMER,
           tooLong: 'Shorten your question to 1000 characters or fewer.',
-          privacy: 'Calls run on ElevenLabs. Voice and text share one history. AI can make mistakes.',
+          privacy:
+            'Calls run on ElevenLabs. Voice and text share one history. AI can make mistakes.',
         },
         a: {
           disclaimer: 'AI can make mistakes.',
@@ -632,7 +637,8 @@
         b: {
           disclaimer: FULL_DISCLAIMER,
           tooLong: 'Shorten your question to 1000 characters or fewer.',
-          privacy: 'Calls run on ElevenLabs. Voice and text share one history. AI can make mistakes.',
+          privacy:
+            'Calls run on ElevenLabs. Voice and text share one history. AI can make mistakes.',
         },
       }[variant];
 
@@ -659,7 +665,14 @@
       // ---- The composer ----
       const LONG_DRAFT =
         'I’m hiring for a senior Android lead on a fintech app with offline-first payments, a Kotlin Multiplatform core shared with iOS, and a design system in Compose. The team is six engineers across Warsaw and Lisbon. Could you tell me how Andrew has handled a migration like this, which metrics he tracked, how he worked with product and design, and whether he has led code reviews and hiring loops at this scale before?';
-      const field = ({ text, draft = false, focus = false, off = false, long = false, invalid = false }) =>
+      const field = ({
+        text,
+        draft = false,
+        focus = false,
+        off = false,
+        long = false,
+        invalid = false,
+      }) =>
         `<div class="field${focus ? ' focus' : ''}${off ? ' off' : ''}${invalid ? ' invalid' : ''}"><span class="${[draft && 'draft', long && 'long'].filter(Boolean).join(' ')}">${text}</span><button type="button" class="send${draft && !invalid ? ' on' : ''}" aria-label="Send" ${draft && !invalid ? '' : 'disabled'}>${icon('send')}</button></div>`;
       const callButton = `<button type="button" class="ctl call" aria-label="Call my AI">${icon('call')}Call</button>`;
       const callControls = (connecting) =>
@@ -684,12 +697,14 @@
        */
       const composer = ({ mode, count = null, tooLong = false, connecting = false, ...f }) => {
         const call = mode === 'call';
-        const row = `<div class="composer-row">${call ? callControls(connecting) : callButton}${field({
-          text: call ? 'Type a message…' : '…or type instead',
-          off: connecting,
-          invalid: tooLong,
-          ...f,
-        })}</div>`;
+        const row = `<div class="composer-row">${call ? callControls(connecting) : callButton}${field(
+          {
+            text: call ? 'Type a message…' : '…or type instead',
+            off: connecting,
+            invalid: tooLong,
+            ...f,
+          },
+        )}</div>`;
         let above = '';
         let below = '';
         if (variant === 'a') {
@@ -728,7 +743,9 @@
       const textLines =
         greeting +
         visitor('Is he open to new roles?') +
-        assistant('Yes. He’s open to senior product and Android roles, remote or B2B across the EU.');
+        assistant(
+          'Yes. He’s open to senior product and Android roles, remote or B2B across the EU.',
+        );
       const callLines =
         textLines +
         divider('Voice call', true) +
@@ -744,19 +761,32 @@
         `<aside class="frame ${cls}" aria-label="Voice call with Andrew’s AI">${header}<div class="stage">${stage}</div>${comp}</aside>`;
 
       const states = {
-        empty: () =>
-          textPanel({ rows: greeting + suggestions }, composer({ mode: 'text' })),
+        empty: () => textPanel({ rows: greeting + suggestions }, composer({ mode: 'text' })),
         text: () =>
           textPanel({ rows: textLines, end: true }, composer({ mode: 'text', focus: true })),
         counter: () =>
           textPanel(
             { rows: textLines, end: true },
-            composer({ mode: 'text', count: 812, text: LONG_DRAFT, draft: true, long: true, focus: true }),
+            composer({
+              mode: 'text',
+              count: 812,
+              text: LONG_DRAFT,
+              draft: true,
+              long: true,
+              focus: true,
+            }),
           ),
         toolong: () =>
           textPanel(
             { rows: textLines, end: true },
-            composer({ mode: 'text', count: 1043, tooLong: true, text: LONG_DRAFT, draft: true, long: true }),
+            composer({
+              mode: 'text',
+              count: 1043,
+              tooLong: true,
+              text: LONG_DRAFT,
+              draft: true,
+              long: true,
+            }),
           ),
         connecting: () =>
           callPanel(
@@ -811,7 +841,9 @@
             ? Math.round(
                 [...stage.children].reduce((sum, el) => {
                   const cs = getComputedStyle(el);
-                  return sum + el.offsetHeight + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom);
+                  return (
+                    sum + el.offsetHeight + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom)
+                  );
                 }, 0),
               )
             : null,
