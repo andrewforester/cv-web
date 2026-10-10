@@ -11,9 +11,10 @@ on:
     # base runs, so task PRs into an epic get checked whatever the epic branch is called.
     branches-ignore: [ci-watch]
 
-# A new push cancels the PR's older run.
+# A new push cancels the PR's older run. Draft runs (which skip everything) have a group of their
+# own: a push right before Ready used to cancel the Ready run with its skipped draft run.
 concurrency:
-  group: dev-${{ github.ref }}
+  group: dev-${{ github.ref }}-${{ github.event.pull_request.draft && 'draft' || 'ready' }}
   cancel-in-progress: true
 
 permissions:
