@@ -41,7 +41,7 @@
   color: var(--chat-ink-2);
 }
 
-@media (max-width: 599px), (max-height: 499px) {
+@media (width <= 599px), (height <= 499px) {
   .stage {
     --voice-caption-lines: 2;
 
@@ -50,7 +50,7 @@
 }
 
 /* Short (landscape phones, 200 % zoom): the big orb drops; the header shows the mini one. */
-@media (max-height: 499px) {
+@media (height <= 499px) {
   .orb {
     display: none;
   }

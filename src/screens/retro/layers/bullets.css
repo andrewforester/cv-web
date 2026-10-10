@@ -1,11 +1,13 @@
 [data-retro-stage] :is(ol:has(> [data-testid='home-loop-step']), [data-testid='home-loop-step']) {
   display: block;
 }
+
 [data-retro-stage] [data-testid='home-job'] li {
   display: list-item;
   margin-left: 28px;
   list-style: square outside;
 }
+
 [data-retro-stage]
   :is([data-testid='home-job'] li, [data-testid='home-project'])
   > [aria-hidden='true'] {

@@ -94,7 +94,7 @@
   color: var(--chat-error);
 }
 
-@media (max-width: 599px), (max-height: 499px) {
+@media (width <= 599px), (height <= 499px) {
   .composer {
     padding-inline: var(--space-4);
     padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
@@ -102,7 +102,7 @@
 }
 
 /* The short (landscape) sheet is 298 px: the field stops at 3 lines (4 × 22 with padding). */
-@media (max-height: 499px) {
+@media (height <= 499px) {
   .input {
     max-height: calc(4 * var(--chat-text-line-height));
   }

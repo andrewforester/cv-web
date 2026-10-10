@@ -42,6 +42,7 @@
 .padding {
   border-color: var(--retro-highlight-padding);
   background-color: var(--retro-highlight-content);
+
   /* The content fill stops inside the padding ring: the regions never overlap. */
   background-clip: padding-box;
   transition: background-color var(--retro-highlight-flash) linear;

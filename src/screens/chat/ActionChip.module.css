@@ -36,7 +36,7 @@
 }
 
 .failed .icon {
-  color: currentColor;
+  color: currentcolor;
 }
 
 @keyframes pulse {

@@ -14,6 +14,7 @@
   --space-7: 30px;
   --space-8: 36px;
   --space-9: 48px;
+
   /* Half steps the design uses between the 4 px grid points */
   --space-0-75: 3px;
   --space-1-5: 6px;
@@ -43,12 +44,13 @@
   --chat-hint-icon-size: 16px;
   --chat-action-icon-size: 14px;
   --chat-focus-ring-width: 2px;
+
   /* `**bold**` in answers: Figtree 600 (the theme loads Figtree 400–700). */
   --chat-bold-weight: 600;
 
   /* v3 (docs/design/v3/SPEC.md, ADR-0006 Decision 5): look-neutral role names */
   --color-page: #f2eef8;
-  --color-card: #ffffff;
+  --color-card: #fff;
   --color-ink: #16131c;
   --color-ink-2: #2a2433;
   --color-ink-3: #5e5770;
@@ -56,7 +58,7 @@
   --color-accent: #8a3fe0;
   --color-accent-hover: #d9328f;
   --color-accent-pink: #c0267c;
-  --color-on-accent: #ffffff;
+  --color-on-accent: #fff;
   --color-surface: #f7f4fb;
   --color-surface-pink: #fde6f3;
   --color-surface-lilac: #f4eafe;
@@ -68,22 +70,19 @@
   --color-dark-ink: #f4f2f7;
   --color-dark-line: #3a3248;
   --color-dark-number: #ff7acb;
-  --color-dark-note: rgba(255, 255, 255, 0.85);
-
+  --color-dark-note: rgb(255 255 255 / 85%);
   --color-brand-pink: #ff4fb8;
   --color-brand-violet: #8b5cf6;
   --gradient-brand: linear-gradient(90deg, #ff4fb8, #8b5cf6);
   --gradient-brand-tile: linear-gradient(135deg, #ff4fb8, #8b5cf6);
   --gradient-dark: linear-gradient(150deg, #2a1f3d 0%, #16131c 45%, #0e0c12 100%);
   --gradient-footer: linear-gradient(135deg, #fbe3f2, #ece3fd);
-
-  --shadow-card: 0 30px 80px -40px rgba(139, 92, 246, 0.18);
-  --shadow-dark: 0 30px 80px -40px rgba(139, 92, 246, 0.5);
-  --shadow-cta: 0 10px 24px -10px rgba(255, 79, 184, 0.5);
-  --shadow-launcher: 0 16px 40px -12px rgba(139, 92, 246, 0.45);
-
-  --font-sans: 'Figtree', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --shadow-card: 0 30px 80px -40px rgb(139 92 246 / 18%);
+  --shadow-dark: 0 30px 80px -40px rgb(139 92 246 / 50%);
+  --shadow-cta: 0 10px 24px -10px rgb(255 79 184 / 50%);
+  --shadow-launcher: 0 16px 40px -12px rgb(139 92 246 / 45%);
+  --font-sans: 'Figtree', system-ui, -apple-system, 'Segoe UI', roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, sfmono-regular, menlo, monospace;
 
   /* v3 type: --type-<role>-{size,weight,line-height,letter-spacing} (families: --font-*) */
   --type-h1-size: clamp(40px, 7vw, 84px);
@@ -191,6 +190,7 @@
   --cta-gap-x: clamp(24px, 4vw, 56px);
   --cta-links-max-width: 460px;
   --cta-arrow-shift: 2px;
+
   /* The © sits closer to the footer CTA than the section gap. */
   --copyright-pull-up: clamp(24px, 4vw, 56px);
   --impact-min-height: 190px;
@@ -224,13 +224,13 @@
      (--gradient-dark, --color-dark-*; accent on dark --color-dark-number). Only the values v3 has
      no token for are here. */
   --chat-ink-2: #b3aabf;
-  --chat-fill: rgba(244, 242, 247, 0.06);
-  --chat-fill-hover: rgba(244, 242, 247, 0.12);
+  --chat-fill: rgb(244 242 247 / 6%);
+  --chat-fill-hover: rgb(244 242 247 / 12%);
   --chat-error: #ff8f8f;
-  --chat-error-bg: rgba(255, 143, 143, 0.12);
-  --chat-notice-bg: rgba(255, 122, 203, 0.12);
+  --chat-error-bg: rgb(255 143 143 / 12%);
+  --chat-notice-bg: rgb(255 122 203 / 12%);
   --chat-shadow-panel:
-    0 30px 80px -40px rgba(139, 92, 246, 0.5), 0 16px 40px -12px rgba(14, 12, 18, 0.35);
+    0 30px 80px -40px rgb(139 92 246 / 50%), 0 16px 40px -12px rgb(14 12 18 / 35%);
   --chat-text-size: 17px;
   --chat-text-line-height: 24px;
   --chat-ui-size: 16px;
@@ -268,18 +268,18 @@
   --retro-close-stagger: 150ms;
   --retro-close-easing: cubic-bezier(0.4, 0, 1, 1);
   --retro-reserve-duration: 400ms;
-  --retro-highlight-content: rgba(111, 168, 220, 0.35);
-  --retro-highlight-content-flash: rgba(111, 168, 220, 0.6);
-  --retro-highlight-padding: rgba(147, 196, 125, 0.3);
-  --retro-highlight-border: rgba(255, 229, 153, 0.4);
-  --retro-highlight-margin: rgba(246, 178, 107, 0.3);
-  --retro-highlight-page: rgba(111, 168, 220, 0.2);
+  --retro-highlight-content: rgb(111 168 220 / 35%);
+  --retro-highlight-content-flash: rgb(111 168 220 / 60%);
+  --retro-highlight-padding: rgb(147 196 125 / 30%);
+  --retro-highlight-border: rgb(255 229 153 / 40%);
+  --retro-highlight-margin: rgb(246 178 107 / 30%);
+  --retro-highlight-page: rgb(111 168 220 / 20%);
   --retro-highlight-flash: 100ms;
   --retro-close-slide: 300ms;
   --retro-close-shrink: 500ms;
 
   /* DevTools panel of the Retro Rebuild show (Chrome light theme; docs/design/retro/SPEC.md, Tokens) */
-  --devtools-bg: #ffffff;
+  --devtools-bg: #fff;
   --devtools-toolbar-bg: #f3f6fc;
   --devtools-input-bg: #e9eef6;
   --devtools-divider: #dadce0;
@@ -299,12 +299,12 @@
   --devtools-code-comment: #236e25;
   --devtools-node-tag: #881280;
   --devtools-node-class: #1a1aa6;
-  --devtools-ui-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --devtools-ui-font: system-ui, -apple-system, 'Segoe UI', roboto, sans-serif;
   --devtools-ui-font-size: 12px;
-  --devtools-code-font: Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+  --devtools-code-font: menlo, consolas, 'DejaVu Sans Mono', monospace;
   --devtools-code-font-size: 11px;
   --devtools-code-line-height: 16px;
-  --devtools-plate-shadow: 0 1px 4px rgba(0, 0, 0, 0.24);
+  --devtools-plate-shadow: 0 1px 4px rgb(0 0 0 / 24%);
 
   /* Voice call (docs/design/voice/SPEC.md) */
   --voice-control-size: 56px;
@@ -318,15 +318,15 @@
     var(--color-dark-number),
     var(--color-brand-pink)
   );
-  --voice-orb-shadow: 0 30px 80px -20px rgba(139, 92, 246, 0.55);
+  --voice-orb-shadow: 0 30px 80px -20px rgb(139 92 246 / 55%);
   --voice-level-smoothing: 100ms;
   --voice-spin-listening: 12s;
   --voice-spin-speaking: 6s;
   --voice-breathe: 3.2s;
   --voice-orb-size-small: 120px;
   --voice-orb-size-mini: var(--chat-badge-size);
-  --voice-glow-pink: rgba(255, 79, 184, 0.7);
-  --voice-glow-violet: rgba(139, 92, 246, 0.7);
+  --voice-glow-pink: rgb(255 79 184 / 70%);
+  --voice-glow-violet: rgb(139 92 246 / 70%);
   --voice-caption-lines: 3;
   --voice-pill-end-size: var(--chat-badge-size);
   --voice-ended-pill-duration: 4s;
@@ -337,6 +337,7 @@
   --chat-dock-exit-duration: 250ms;
   --chat-motion-exit-easing: var(--retro-close-easing);
   --voice-orb-travel-duration: var(--chat-dock-duration);
+
   /* Voice panel v3: the panel's morph and the CV card's slide (docs/design/voice/SPEC.md → Motion) */
   --chat-slide-duration: 500ms;
   --chat-slide-exit-duration: 400ms;

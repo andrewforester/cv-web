@@ -63,7 +63,7 @@
   display: block;
   width: var(--chat-icon-size);
   height: var(--chat-icon-size);
-  background: currentColor;
+  background: currentcolor;
   mask: url('./assets/retro_icon_chevron.svg') center / contain no-repeat;
   transition: transform var(--chat-motion-duration) var(--chat-motion-easing);
 }

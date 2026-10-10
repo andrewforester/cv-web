@@ -53,7 +53,7 @@
 }
 
 /* Not enough room beside the pill on a phone: the hint goes above it. */
-@media (max-width: 599px) {
+@media (width <= 599px) {
   .launcher {
     flex-direction: column;
     align-items: flex-end;

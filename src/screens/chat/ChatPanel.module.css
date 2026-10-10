@@ -1,6 +1,6 @@
 /* The frame is the shared `ChatCard`, placed by `ChatFrame`; this adds the phone's sheet (SPEC →
    Layout 5). Imported after both so these overrides win. */
-@media (max-width: 599px), (max-height: 499px) {
+@media (width <= 599px), (height <= 499px) {
   /*
    * Every view (the text chat, the call, the chat during the call) is one bottom sheet of a fixed
    * height over the live page (the shell pads it), so a view change swaps only its middle. It ends
@@ -26,7 +26,7 @@
   }
 }
 
-@media (max-height: 499px) {
+@media (height <= 499px) {
   .panel {
     --chat-sheet-height: min(var(--voice-sheet-height-short), var(--chat-vv-height, 100dvh));
   }

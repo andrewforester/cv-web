@@ -27,7 +27,7 @@
   color: var(--color-dark-number);
 }
 
-@media (max-width: 599px), (max-height: 499px) {
+@media (width <= 599px), (height <= 499px) {
   .chip {
     top: var(--space-2);
   }

@@ -19,7 +19,7 @@
   padding-block-end: var(--voice-sheet-height);
 }
 
-@media (max-height: 499px) {
+@media (height <= 499px) {
   :global(:root[data-chat-dock='bottom']) {
     scroll-padding-bottom: var(--voice-sheet-height-short);
   }

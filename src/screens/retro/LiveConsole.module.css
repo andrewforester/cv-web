@@ -48,6 +48,7 @@
   min-height: 0;
   overflow-y: auto;
   scrollbar-width: none;
+
   /* Keeps the rows above the agent chat card floating over the panel (set by the dock). */
   padding-bottom: var(--retro-console-reserve, 0);
   font-family: var(--devtools-code-font);

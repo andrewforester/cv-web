@@ -7,6 +7,7 @@
   flex: none;
   width: var(--orb);
   height: var(--orb);
+
   /* Room for the largest level scale, so the label under it never moves. */
   margin-block: calc(var(--orb) * 0.1);
   transform: scale(calc(1 + var(--voice-level) * var(--orb-gain)));
@@ -170,7 +171,7 @@
 }
 
 /* The phone's call sheet: the small orb (SPEC → Layout 5). */
-@media (max-width: 599px), (max-height: 499px) {
+@media (width <= 599px), (height <= 499px) {
   .orb:not(.mini) {
     --orb: var(--voice-orb-size-small);
   }
