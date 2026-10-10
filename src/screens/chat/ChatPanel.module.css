@@ -3,18 +3,17 @@
 @media (max-width: 599px), (max-height: 499px) {
   /*
    * Every view (the text chat, the call, the chat during the call) is one bottom sheet of a fixed
-   * height over the live page (the shell pads it), so a view change swaps only its middle. It is
-   * anchored by `bottom` at the visual viewport's bottom (`useVisualViewportFit`: above the
-   * on-screen keyboard, and steady while the browser's URL bar slides) and capped to its height
-   * there; it slides up from below the screen, no fade (SPEC → Motion).
+   * height over the live page (the shell pads it), so a view change swaps only its middle. It ends
+   * at the visual viewport's bottom (`useVisualViewportFit`: above the on-screen keyboard) and is
+   * capped to its height there; it slides up from below the screen, no fade (SPEC → Motion).
    */
   .panel {
     --chat-sheet-height: min(var(--voice-sheet-height), var(--chat-vv-height, 100dvh));
 
-    top: auto;
+    top: calc(var(--chat-vv-top, 0px) + var(--chat-vv-height, 100dvh) - var(--chat-sheet-height));
     left: 0;
     right: 0;
-    bottom: var(--chat-vv-bottom, 0px);
+    bottom: auto;
     width: auto;
     height: var(--chat-sheet-height);
     border-bottom: 0;
