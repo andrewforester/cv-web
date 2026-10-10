@@ -1,0 +1,5 @@
+[data-retro-stage] div:has(> [data-testid='home-contact'])::before {
+  content: 'Contact me:';
+  display: block;
+  font-weight: 700;
+}

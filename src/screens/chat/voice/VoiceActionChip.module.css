@@ -1,0 +1,40 @@
+/* docs/design/voice/SPEC.md → Layout 2 (action chip): the chat's chip, over the stage's top. */
+.chip {
+  position: absolute;
+  top: var(--space-4);
+  left: 50%;
+  z-index: var(--voice-chip-z-index);
+  max-width: calc(100% - 2 * var(--space-4));
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--chat-caption-size);
+  line-height: var(--chat-caption-line-height);
+  white-space: nowrap;
+  color: var(--color-dark-ink);
+  border: var(--border-card) solid var(--color-dark-line);
+  border-radius: var(--radius-pill);
+  transform: translateX(-50%);
+  animation: chip-in var(--chat-motion-duration) var(--chat-motion-easing) both;
+}
+
+.icon {
+  width: var(--chat-action-icon-size);
+  height: var(--chat-action-icon-size);
+  color: var(--color-dark-number);
+}
+
+@media (width <= 599px), (height <= 499px) {
+  .chip {
+    top: var(--space-2);
+  }
+}
+
+@keyframes chip-in {
+  from {
+    opacity: 0;
+  }
+}

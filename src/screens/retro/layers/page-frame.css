@@ -1,0 +1,19 @@
+[data-retro-stage] {
+  padding: 8px;
+}
+
+[data-retro-stage] main {
+  width: 640px;
+  padding: 6px;
+  border: 3px outset #c0c0c0;
+}
+
+[data-retro-stage] [data-testid='home'] {
+  padding-inline: 0;
+}
+
+[data-retro-stage] [data-testid='home'] > div {
+  padding-inline: 0;
+  border-radius: 0;
+  box-shadow: none;
+}

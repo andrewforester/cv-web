@@ -1,0 +1,12 @@
+# Prettier formats code and config; docs and process files are written by hand.
+*.md
+.claude/
+.github/ISSUE_TEMPLATE/
+dist/
+package-lock.json
+test-results/
+playwright-report/
+web-check/
+# Design-tool exports kept verbatim (docs/design/<name>/).
+docs/design/**/*.dc.html
+docs/design/**/support.js

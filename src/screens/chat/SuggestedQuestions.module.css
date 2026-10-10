@@ -1,0 +1,43 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+/* The page's section-label style: Mono 500, the loop panel's pink on dark. */
+.label {
+  margin-top: var(--space-1);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-letter-spacing);
+  color: var(--color-dark-number);
+}
+
+/* A pill on one line, a rounded card when a long question wraps. */
+.chip {
+  max-width: 100%;
+  min-height: var(--chat-secondary-button-height);
+  padding: var(--space-2) var(--space-4);
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  color: var(--color-dark-ink);
+  background: var(--chat-fill);
+  border: var(--border-card) solid var(--color-dark-line);
+  border-radius: var(--radius-tile);
+  cursor: pointer;
+  transition:
+    background-color var(--chat-transition),
+    border-color var(--chat-transition);
+}
+
+.chip:hover {
+  background: var(--chat-fill-hover);
+  border-color: var(--color-dark-number);
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}

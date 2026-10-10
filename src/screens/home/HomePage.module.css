@@ -1,0 +1,17 @@
+/* The page card (docs/design/v3/design.dc.html). */
+.root {
+  min-height: 100vh;
+  padding: var(--page-margin);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--page-section-gap);
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: 0 var(--page-padding-x) var(--page-padding-bottom);
+  background: var(--color-card);
+  border-radius: var(--radius-page);
+  box-shadow: var(--shadow-card);
+}

@@ -1,0 +1,83 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tree-gap-y);
+
+  /* With the job's 12 px gap: the tree sits 28 px under the job's head, as in the design. */
+  margin-top: var(--space-4);
+  padding-left: var(--tree-indent);
+}
+
+.project {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  padding-left: var(--tree-branch-indent);
+}
+
+/* The vertical dotted line: from the item above (or the logo) down to this item's branch. */
+.stem {
+  position: absolute;
+  top: calc(-1 * var(--tree-gap-y));
+  left: 0;
+  height: calc(100% + var(--tree-gap-y));
+  border-left: var(--tree-line);
+}
+
+.project:last-child .stem {
+  height: var(--tree-last-stem);
+}
+
+.branch {
+  position: absolute;
+  top: var(--tree-branch-top);
+  left: 0;
+  width: var(--tree-branch-width);
+  border-top: var(--tree-line);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.icon {
+  flex: none;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  object-fit: cover;
+  border-radius: var(--radius-logo);
+}
+
+.initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--type-initials-size);
+  font-weight: var(--type-name-weight);
+  color: var(--color-on-accent);
+  background: var(--gradient-brand-tile);
+}
+
+.names {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1-5);
+  min-width: 0;
+}
+
+.name {
+  font-size: var(--type-body-size);
+  font-weight: var(--type-company-weight);
+  line-height: var(--type-company-line-height);
+}

@@ -1,0 +1,16 @@
+/* Zero specificity: a screen positions the card itself (the site's panel is `fixed`). */
+:where(.card) {
+  position: relative;
+}
+
+/* The v3 dark panel: the loop panel's colours (docs/design/v3/SPEC.md, Decision 6). */
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--color-dark-ink);
+  background: var(--gradient-dark);
+  border: var(--border-card) solid var(--color-dark-line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--chat-shadow-panel);
+}

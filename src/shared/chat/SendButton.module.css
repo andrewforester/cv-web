@@ -1,0 +1,25 @@
+.button {
+  flex: none;
+  width: var(--chat-control-size);
+  height: var(--chat-control-size);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--color-on-accent);
+  background: var(--gradient-brand-tile);
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: box-shadow var(--chat-transition);
+}
+
+.button:disabled {
+  color: var(--color-ink-4);
+  background: var(--chat-fill-hover);
+  cursor: default;
+}
+
+/* The page's primary CTA: the gradient, glowing on hover. */
+.button:hover:enabled {
+  box-shadow: var(--shadow-cta);
+}

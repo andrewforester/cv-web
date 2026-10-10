@@ -1,0 +1,29 @@
+/* docs/design/voice/SPEC.md → Layout 1: the field's height and Send's glow; never disabled. */
+.call {
+  flex: none;
+  height: var(--voice-control-size);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-5) 0 var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--type-button-size);
+  font-weight: var(--type-button-weight);
+  line-height: var(--chat-ui-line-height);
+  white-space: nowrap;
+  color: var(--color-on-accent);
+  background: var(--gradient-brand);
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: box-shadow var(--chat-transition);
+}
+
+.call:hover {
+  box-shadow: var(--shadow-cta);
+}
+
+.icon {
+  width: var(--voice-control-icon-size);
+  height: var(--voice-control-icon-size);
+}

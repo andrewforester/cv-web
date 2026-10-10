@@ -1,0 +1,9 @@
+/* A single-colour SVG tinted with the text colour: the file is a mask over `currentColor`. */
+.icon {
+  display: block;
+  flex: none;
+  width: var(--console-icon-size);
+  height: var(--console-icon-size);
+  background: currentcolor;
+  mask: var(--devtools-icon-src) center / contain no-repeat;
+}

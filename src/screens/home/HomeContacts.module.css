@@ -1,0 +1,41 @@
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.button {
+  display: flex;
+  flex: 1 1 140px;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--button-height);
+  font-size: var(--type-button-size);
+  font-weight: var(--type-button-weight);
+  line-height: var(--type-button-line-height);
+  color: var(--color-ink);
+  text-decoration: none;
+  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+}
+
+.button:hover {
+  color: var(--color-accent-hover);
+}
+
+.button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.primary {
+  flex-basis: 200px;
+  color: var(--color-on-accent);
+  background: var(--gradient-brand);
+  box-shadow: var(--shadow-cta);
+}
+
+.primary:hover {
+  color: var(--color-on-accent);
+}

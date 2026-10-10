@@ -1,0 +1,57 @@
+/* docs/design/voice/SPEC.md → Layout 2 (stage), 5 (phone, short). */
+.stage {
+  --voice-level: 0;
+
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4) var(--space-6);
+  text-align: center;
+}
+
+.status {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-mono);
+  font-size: var(--type-label-size);
+  line-height: var(--chat-caption-line-height);
+  letter-spacing: var(--type-label-letter-spacing);
+  color: var(--color-dark-number);
+}
+
+/* The lines are reserved, so the orb never moves when the caption wraps. */
+.caption {
+  width: 100%;
+  min-height: calc(var(--voice-caption-lines) * 1em * var(--type-loop-lead-line-height));
+  margin: var(--space-3) 0 0;
+  font-size: var(--type-loop-lead-size);
+  line-height: var(--type-loop-lead-line-height);
+  letter-spacing: var(--type-loop-lead-letter-spacing);
+  color: var(--color-dark-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: var(--voice-caption-lines);
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.visitor {
+  color: var(--chat-ink-2);
+}
+
+@media (width <= 599px), (height <= 499px) {
+  .stage {
+    --voice-caption-lines: 2;
+
+    padding-inline: var(--space-4);
+  }
+}
+
+/* Short (landscape phones, 200 % zoom): the big orb drops; the header shows the mini one. */
+@media (height <= 499px) {
+  .orb {
+    display: none;
+  }
+}

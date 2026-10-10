@@ -1,0 +1,6 @@
+/* The header sits closer to the meta bar than sections sit to each other. */
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--page-section-gap) - var(--page-header-pull-up));
+}

@@ -1,0 +1,155 @@
+name: Dev
+
+# A task's Ready PR (docs/adr/0014-branches-and-ci-levels.md): the checks, and a CLI preview build
+# when the PR changes the deploy path. Draft PRs run nothing: the orchestrator opens the PR as a
+# draft before work starts, and Dev runs once the developer marks it Ready for review (and on every
+# push after that). Session branches (claude/**) get no Vercel deployment of their own.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    # The CI-watch PR (main -> ci-watch) only relays Production's runs to the QA session. Any other
+    # base runs, so task PRs into an epic get checked whatever the epic branch is called.
+    branches-ignore: [ci-watch]
+
+# A new push cancels the PR's older run. Draft runs (which skip everything) have a group of their
+# own: a push right before Ready used to cancel the Ready run with its skipped draft run.
+concurrency:
+  group: dev-${{ github.ref }}-${{ github.event.pull_request.draft && 'draft' || 'ready' }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Checks
+    if: ${{ !github.event.pull_request.draft }}
+    uses: ./.github/workflows/checks.yml
+    with:
+      docs_only_base: ${{ github.event.pull_request.base.sha }}
+
+  # Vercel deploys (preview here, production in production.yml) run in three jobs, so no job holds
+  # both the secrets and the project's code (CV-166): `vercel build` runs `npm ci` (every package's
+  # install scripts) and the build, which could read the token and send it out.
+  # 1. plan (token, no project code: git and the Vercel API only): `vercel pull`; only
+  #    `.vercel/project.json` (the project settings, no env) goes on, as an artifact.
+  # 2. build (no secrets): `vercel build`; `.vercel/output` goes on as an artifact. The build reads
+  #    no env (runtime env comes from Vercel), so it doesn't need the pulled `.env` file.
+  # 3. deploy (token, no project code): `vercel deploy --prebuilt` of that output.
+  # `include-hidden-files`: the output's functions carry `.vc-config.json`. The CLI comes from
+  # .github/workflows/vercel-cli (lockfile-pinned, no install scripts).
+  #
+  # Proves the Vercel token and the CLI build on a PR that changes the deploy path, without touching
+  # production. Only those PRs, so ordinary ones don't spend the Hobby limit (100 deployments a
+  # day; each push to such a Ready PR spends one). Only when the secrets are there: forks and
+  # Dependabot PRs get none, and they skip instead of going red.
+  preview-plan:
+    name: Vercel preview (plan)
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    outputs:
+      run: ${{ steps.paths.outputs.run }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Does the PR change the deploy path?
+        id: paths
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "No Vercel secrets in this run (fork or Dependabot PR): no preview."
+          elif git diff --name-only "$BASE_SHA" HEAD | grep -qE '^(\.github/workflows/|vercel\.json$|package(-lock)?\.json$)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No change to workflows, vercel.json or package*.json: no preview."
+          fi
+      - uses: actions/setup-node@v4
+        if: ${{ steps.paths.outputs.run == 'true' }}
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: .github/workflows/vercel-cli/package-lock.json
+      - uses: ./.github/workflows/vercel-cli
+        if: ${{ steps.paths.outputs.run == 'true' }}
+      - name: Project settings (preview)
+        if: ${{ steps.paths.outputs.run == 'true' }}
+        run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
+      - uses: actions/upload-artifact@v4
+        if: ${{ steps.paths.outputs.run == 'true' }}
+        with:
+          name: vercel-project-preview
+          path: .vercel/project.json
+          include-hidden-files: true
+          retention-days: 1
+
+  preview-build:
+    name: Vercel preview (build)
+    needs: preview-plan
+    if: ${{ needs.preview-plan.outputs.run == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # No git credentials on disk for the build's code.
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-project-preview
+          path: .vercel
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/workflows/vercel-cli/package-lock.json
+      - uses: ./.github/workflows/vercel-cli
+      - name: Build (preview, no secrets)
+        run: vercel build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vercel-output-preview
+          path: .vercel/output
+          include-hidden-files: true
+          retention-days: 1
+
+  preview:
+    name: Vercel preview (CLI)
+    needs: preview-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      # Only for the deployment's git metadata and the CLI's lockfile; nothing of the project runs
+      # here.
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-project-preview
+          path: .vercel
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-output-preview
+          path: .vercel/output
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: .github/workflows/vercel-cli/package-lock.json
+      - uses: ./.github/workflows/vercel-cli
+      - name: Deploy (preview, never --prod)
+        run: |
+          url=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")
+          echo "Preview: $url"
+          echo "Preview deployment (CLI): $url" >> "$GITHUB_STEP_SUMMARY"

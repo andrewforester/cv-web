@@ -1,0 +1,128 @@
+/*
+ * The show's highlight (docs/design/retro/SPEC.md → Show what changed → Highlight): DevTools'
+ * Elements-tab selection, lighter than Chrome's, over the page and the decorations, under the
+ * dock; the plate sits on the target's bottom-left corner (the page area's for a page-wide chunk).
+ */
+.highlight {
+  --retro-plate-line-height: 16px;
+}
+
+.box,
+.page,
+.plate {
+  z-index: calc(var(--retro-z-index) - 1);
+  pointer-events: none;
+  animation: retro-highlight-in var(--retro-highlight-fade-in) linear;
+  transition: opacity var(--retro-highlight-fade-out) linear;
+}
+
+/* Margin box: the margin is its border; the border and padding rings nest inside. */
+.box,
+.border,
+.padding {
+  box-sizing: border-box;
+  border-style: solid;
+}
+
+.box {
+  position: absolute;
+  border-color: var(--retro-highlight-margin);
+}
+
+.border,
+.padding {
+  position: absolute;
+  inset: 0;
+}
+
+.border {
+  border-color: var(--retro-highlight-border);
+}
+
+.padding {
+  border-color: var(--retro-highlight-padding);
+  background-color: var(--retro-highlight-content);
+
+  /* The content fill stops inside the padding ring: the regions never overlap. */
+  background-clip: padding-box;
+  transition: background-color var(--retro-highlight-flash) linear;
+}
+
+/* Page-wide chunks: the whole page area left of the dock is tinted. */
+.page {
+  position: fixed;
+  inset: 0 var(--retro-dock-width) 0 0;
+  background-color: var(--retro-highlight-page);
+  transition:
+    background-color var(--retro-highlight-flash) linear,
+    opacity var(--retro-highlight-fade-out) linear;
+}
+
+/* At the apply the content (or the page tint) flashes, and holds until it has faded. */
+.applied .padding,
+.fading .padding {
+  background-color: var(--retro-highlight-content-flash);
+}
+
+.applied .page,
+.fading .page {
+  background-color: var(--retro-highlight-content);
+}
+
+.plate {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  background: var(--devtools-bg);
+  box-shadow: var(--devtools-plate-shadow);
+  color: var(--devtools-text);
+  font-family: var(--devtools-ui-font);
+  font-size: var(--devtools-ui-font-size);
+  line-height: var(--retro-plate-line-height);
+  letter-spacing: normal;
+  white-space: nowrap;
+}
+
+.fading .box,
+.fading .page,
+.fading .plate {
+  opacity: 0;
+}
+
+/* Bottom-left corner on the point `left`/`top` (the block's corner), overlapping the block. */
+.anchored {
+  bottom: auto;
+  transform: translateY(-100%);
+}
+
+.tag {
+  color: var(--devtools-node-tag);
+}
+
+.selector {
+  color: var(--devtools-node-class);
+}
+
+.size {
+  color: var(--devtools-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes retro-highlight-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .box,
+  .page,
+  .plate,
+  .padding {
+    animation: none;
+    transition: none;
+  }
+}

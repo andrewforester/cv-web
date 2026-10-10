@@ -1,0 +1,361 @@
+{
+  "meta": {
+    "location": "Wrocław area, Poland",
+    "workMode": "Remote / B2B across EU",
+    "status": "Open to roles"
+  },
+  "name": "Andrew Panasiuk",
+  "tagline": "Android since 2012 · Agentic engineering",
+  "photo": "photo",
+  "headline": [
+    {
+      "text": "Senior Software "
+    },
+    {
+      "text": "Product",
+      "accent": true
+    },
+    {
+      "text": " Engineer"
+    }
+  ],
+  "summary": [
+    "Software Product engineer who takes features and epics from idea to production – working alongside product, not just picking up tickets.",
+    "12+ years building native Android and iOS apps in code, used by 1M+ people.",
+    "Today I build with AI coding agents by default (Claude Code, Codex): I own the problem and its solution, design the process, agents run it, and quality gates keep it stable.",
+    "M.Sc. in Applied Mathematics trained me to reason about complex systems.",
+    "Comfortable across the stack: mobile, backend, web.",
+    "Ready to build new products or bring an AI-native approach into an existing codebase."
+  ],
+  "stats": [
+    {
+      "id": "years",
+      "value": "12+",
+      "label": "years shipping apps in code"
+    },
+    {
+      "id": "users",
+      "value": "1M+",
+      "label": "users per app"
+    },
+    {
+      "id": "platforms",
+      "value": "2",
+      "label": "platforms: Android + iOS"
+    },
+    {
+      "id": "ai",
+      "value": "AI",
+      "label": "agentic process owner",
+      "accent": true
+    }
+  ],
+  "phone": "+48 519 457 129",
+  "contacts": [
+    {
+      "id": "email",
+      "label": "andriipanasiuk@gmail.com",
+      "href": "mailto:andriipanasiuk@gmail.com"
+    },
+    {
+      "id": "whatsapp",
+      "label": "WhatsApp",
+      "href": "https://wa.me/48519457129"
+    },
+    {
+      "id": "linkedin",
+      "label": "LinkedIn",
+      "href": "https://www.linkedin.com/in/andriipanasiuk/"
+    }
+  ],
+  "craft": [
+    {
+      "id": "before-ai",
+      "label": "2012 → before AI",
+      "title": "12 years of native apps, written by hand",
+      "text": "Kotlin and Java on Android, Swift and UIKit on iOS. BLE device sync, offline-first architecture, custom graphics, SDKs, MVVM/MVI, CI from scratch. I know what good code looks like – that's why I can judge what agents produce."
+    },
+    {
+      "id": "with-agents",
+      "label": "now → with agents",
+      "title": "The process is the product I engineer",
+      "text": "Spec → prototype → ship → iterate. I frame the problem, decompose the work, set contracts and guardrails, and parallel agent sessions deliver. Agent-first features with LLMs – grounded, tested with evals, cost-controlled."
+    }
+  ],
+  "loop": {
+    "lead": "The development process is a system with feedback. I design the loop; autonomous coding agents run it.",
+    "steps": [
+      {
+        "id": "frame",
+        "text": "I frame the epic and decide open questions"
+      },
+      {
+        "id": "tickets",
+        "text": "Orchestrator breaks it into Linear tickets"
+      },
+      {
+        "id": "sessions",
+        "text": "Up to 3 parallel agent sessions"
+      },
+      {
+        "id": "pr",
+        "text": "1 ticket = 1 branch = 1 PR, contract-first"
+      },
+      {
+        "id": "ci",
+        "text": "CI, e2e and post-deploy checks as arbiter"
+      },
+      {
+        "id": "retro",
+        "text": "Retro → rule changes"
+      }
+    ],
+    "footnote": "every retro lands as a PR to the rules – the process improves itself"
+  },
+  "impact": [
+    {
+      "id": "users",
+      "value": "1M+",
+      "text": "users on each of Cync and August Home – smart-home apps where I shipped key features."
+    },
+    {
+      "id": "design-system",
+      "value": "3 days",
+      "text": "vs. ~2-week estimate: 200+ colors unified into a design system across 8 projects, AI-assisted."
+    },
+    {
+      "id": "ai-features",
+      "value": "1 day",
+      "text": "Two AI features – grounded chat and page agent – from architecture to delivery in 14 agent sessions."
+    }
+  ],
+  "jobs": [
+    {
+      "id": "ai-cv",
+      "company": "AI-powered CV",
+      "role": "Personal product · process architect",
+      "period": "Sep 2026",
+      "logo": "photo",
+      "tag": "product",
+      "about": "Interactive CV with an AI chat and page agent.",
+      "points": [
+        "Shipped an LLM chat that answers strictly from CV data: streaming, prompt caching, grounding and prompt-injection guardrails.",
+        "Architected a page agent on the same chat: the model controls the site through typed tools, WebMCP-ready.",
+        "Designed a multi-agent workflow – orchestrator, up to 3 parallel sessions, strict file ownership, CI as arbiter – packaged as a reusable template. ~263 tests, zero real LLM calls in CI."
+      ]
+    },
+    {
+      "id": "transcenda",
+      "company": "Transcenda",
+      "role": "Senior Android Engineer",
+      "period": "2021 – 2026",
+      "logo": "logo_transcenda",
+      "points": [],
+      "projects": [
+        {
+          "id": "spoton",
+          "name": "SpotOn",
+          "icon": "app_spoton",
+          "domain": "POS / Kiosk",
+          "meta": "Restaurants & cafes",
+          "about": "Point-of-sale and self-service kiosk app.",
+          "points": [
+            "Unified 200+ color resources into a design system across 8 projects with AI-assisted refactoring – 3 days vs. ~2 weeks; simplified dark mode."
+          ]
+        },
+        {
+          "id": "cync",
+          "name": "Cync",
+          "icon": "app_cync",
+          "domain": "Smart Home",
+          "meta": "1M+ · 5.0★ · 91.8K reviews",
+          "about": "App for smart lights, plugs, switches and cameras.",
+          "points": [
+            "Shipped key features end-to-end: device status sync, offline resilience and disconnected-state UI for flaky home networks.",
+            "Increased code coverage across the codebase: 0% → 30%.",
+            "Built complex custom graphics with Jetpack Compose Canvas to drive user engagement."
+          ]
+        },
+        {
+          "id": "august-home",
+          "name": "August Home",
+          "icon": "app_august",
+          "domain": "Smart Home",
+          "meta": "1M+ · 4.1★ · 18.7K reviews",
+          "about": "Smart locks and doorbells: keyless entry, remote access and guest keys.",
+          "points": [
+            "Delivered features on a security-critical product with 1M+ users.",
+            "BLE communication with locks and reliable state sync."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wisehouse",
+      "company": "WiseHouse",
+      "role": "Android Engineer",
+      "period": "2020 – 2021",
+      "logo": "logo_wisehouse",
+      "tag": "product",
+      "about": "App for apartment management, built from scratch.",
+      "points": [
+        "Took the app from zero to Google Play: offline-first MVI + Redux, 100% Kotlin, CI delivering builds to Telegram and Play."
+      ]
+    },
+    {
+      "id": "attendify",
+      "company": "Attendify",
+      "role": "Android → iOS Engineer",
+      "period": "2018 – 2020",
+      "logo": "logo_attendify",
+      "tag": "product",
+      "about": "SaaS for events – branded mobile apps.",
+      "points": [
+        "Switched from Android to iOS when the iOS app was falling behind – closed the feature gap and brought both platforms to feature parity (Swift, UIKit).",
+        "Shipped features in 2 key products in close loop with design; daily CI builds, led the Kotlin migration on Android.",
+        "No dedicated QA – owned release quality end-to-end: testing, regressions and stable production builds."
+      ]
+    },
+    {
+      "id": "rosfines",
+      "company": "RosFines",
+      "role": "Android Lead · remote",
+      "period": "2017",
+      "logo": "logo_rosfines",
+      "tag": "product",
+      "about": "App for checking and paying traffic fines.",
+      "points": [
+        "Set up the development process with the PM, ran hiring interviews, automated delivery to Fabric Beta."
+      ]
+    },
+    {
+      "id": "smartling",
+      "company": "Smartling",
+      "role": "Android SDK Developer · remote",
+      "period": "2016 – 2017",
+      "logo": "logo_smartling",
+      "tag": "product",
+      "about": "Mobile SDK for in-app localization.",
+      "points": [
+        "Localization SDK features; raised unit-test coverage to 60%+, published via Maven, wrote SDK docs."
+      ]
+    },
+    {
+      "id": "rokkit",
+      "company": "Rokkit",
+      "role": "Android Engineer",
+      "period": "2015 – 2016",
+      "logo": "logo_rokkit",
+      "tag": "product",
+      "about": "Travel search app for flights and hotels worldwide.",
+      "points": ["Built an unusual search UX for flights and hotels."]
+    },
+    {
+      "id": "ivi",
+      "company": "ivi",
+      "role": "Android Teamlead · remote",
+      "period": "2013 – 2014",
+      "logo": "logo_ivi",
+      "tag": "product",
+      "about": "Video streaming service.",
+      "meta": "1M+ · 4.5★",
+      "points": [
+        "Regular bug-free releases; mentored 2 developers, owned a shared codebase for 3 apps.",
+        "Introduced Agile for faster delivery and tighter feedback from the PO."
+      ]
+    },
+    {
+      "id": "samsung",
+      "company": "Samsung",
+      "role": "Android Engineer",
+      "period": "2012",
+      "logo": "logo_samsung",
+      "logoPlain": true,
+      "tag": "tool",
+      "about": "Internal tool that automated work 20 developers were repeating by hand.",
+      "points": [
+        "Early in my career got the green light to work independently on an internal library: an analogue of Android LayoutInflater for a custom UI framework."
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "id": "agentic-development",
+      "title": "Agentic development",
+      "items": "Claude Code, Cursor · spec-driven development, MCP, AGENTS.md, parallel sessions, git worktrees, orchestration"
+    },
+    {
+      "id": "android",
+      "title": "Android",
+      "items": "Kotlin, Coroutines/Flow, Jetpack Compose, Hilt, Room, KMP, RESTful, BLE, offline sync, custom UI & animations · fast ramp-up in unfamiliar codebases"
+    },
+    {
+      "id": "architecture",
+      "title": "Architecture & quality",
+      "items": "MVVM, MVI, Redux, Clean · JUnit, Mockk, Robolectric, Playwright, Vitest, E2E testing · GitHub Actions, CircleCI"
+    },
+    {
+      "id": "ios",
+      "title": "iOS",
+      "items": "Swift, UIKit, AutoLayout"
+    },
+    {
+      "id": "product",
+      "title": "Product ownership",
+      "items": "Owning problems and their solutions, spec-first delivery, fast prototyping & iteration, feature ownership end-to-end, close loop with design and PM, pixel-perfect UI"
+    },
+    {
+      "id": "ai-engineering",
+      "title": "AI engineering",
+      "items": "LLM APIs, streaming, tool use with strict schemas, prompt caching, grounding & guardrails, golden-set evals"
+    }
+  ],
+  "education": {
+    "title": "M.Sc. Applied Mathematics & Cybernetics",
+    "place": "Kyiv National University",
+    "period": "2007–2012",
+    "text": "Learned to model systems with feedback loops – the same lens I use for software engineering."
+  },
+  "about": {
+    "books": [
+      {
+        "id": "the-goal",
+        "title": "The Goal",
+        "author": "Eliyahu Goldratt",
+        "cover": "book_the_goal"
+      },
+      {
+        "id": "a-pattern-language",
+        "title": "A Pattern Language",
+        "author": "Christopher Alexander",
+        "cover": "book_pattern_language"
+      },
+      {
+        "id": "antifragile",
+        "title": "Antifragile",
+        "author": "Nassim Nicholas Taleb",
+        "cover": "book_antifragile"
+      },
+      {
+        "id": "siddhartha",
+        "title": "Siddhartha",
+        "author": "Hermann Hesse",
+        "cover": "book_siddhartha"
+      }
+    ],
+    "lines": [
+      {
+        "label": "Reading on systems:",
+        "text": "The Goal, A Pattern Language, Antifragile."
+      },
+      {
+        "label": "Off-screen:",
+        "text": "forest hiking, e-bike rides, guitar, volunteering – and AI experiments."
+      }
+    ]
+  },
+  "footer": {
+    "label": "Let's build something",
+    "href": "mailto:andriipanasiuk@gmail.com"
+  }
+}

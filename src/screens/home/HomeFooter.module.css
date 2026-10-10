@@ -1,0 +1,113 @@
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5) var(--cta-gap-x);
+  padding: var(--cta-padding);
+  background: var(--gradient-footer);
+  border-radius: var(--radius-cta);
+}
+
+.title {
+  flex: 1 1 300px;
+  min-width: 0;
+  font-size: var(--type-footer-title-size);
+  font-weight: var(--type-footer-title-weight);
+  line-height: var(--type-footer-title-line-height);
+  letter-spacing: var(--type-footer-title-letter-spacing);
+}
+
+.titleLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cta-title-gap);
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.titleLink:hover {
+  color: transparent;
+  background: var(--gradient-brand);
+  background-clip: text;
+}
+
+.arrow {
+  position: relative;
+  top: var(--cta-arrow-shift);
+  flex: none;
+  margin-left: calc(-1 * var(--cta-arrow-shift));
+  color: transparent;
+  letter-spacing: 0;
+  background: var(--gradient-brand-tile);
+  background-clip: text;
+}
+
+.links {
+  display: flex;
+  flex: 1 1 340px;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: var(--cta-links-max-width);
+  min-width: 0;
+}
+
+.email,
+.pill {
+  display: flex;
+  align-items: center;
+  font-size: var(--type-body-size);
+  font-weight: var(--type-medium-weight);
+  color: var(--color-ink);
+  text-decoration: none;
+  background: var(--color-card);
+  border-radius: var(--radius-pill);
+}
+
+.email {
+  justify-content: space-between;
+  gap: var(--space-2-5);
+  min-height: var(--button-height);
+  padding: var(--space-1-5) var(--space-1-5) var(--space-1-5) var(--space-5);
+}
+
+.pill {
+  justify-content: center;
+  min-height: var(--pill-height);
+}
+
+.email:hover,
+.pill:hover {
+  color: var(--color-accent-hover);
+}
+
+.titleLink:focus-visible,
+.email:focus-visible,
+.pill:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.address {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.circle {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--arrow-size);
+  height: var(--arrow-size);
+  color: var(--color-on-accent);
+  background: var(--gradient-brand-tile);
+  border-radius: 50%;
+}
+
+.pills {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}

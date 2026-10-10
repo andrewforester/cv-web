@@ -1,0 +1,79 @@
+/* One layer above the panel (Decision 32): the leaving pill fades on top of the morph. */
+.launcher {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: calc(var(--chat-z-index) + 1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/*
+ * docs/design/voice/SPEC.md → Motion: the pill fades out as the panel starts to grow out of it, and
+ * fades back in over the last moments of the panel shrinking into it. Opacity only, no scale: the
+ * white pill is seen turning into the dark panel.
+ */
+.closing {
+  pointer-events: none;
+  animation: fade-out var(--chat-motion-exit-duration) var(--chat-motion-exit-easing) both;
+}
+
+.returning:not(.closing) {
+  animation: fade-in var(--chat-motion-duration) var(--chat-motion-easing) both;
+  animation-delay: calc(var(--chat-slide-exit-duration) - var(--chat-motion-duration));
+}
+
+/* The "Talk to my AI" pill (docs/design/v3/SPEC.md, Structure 11): ✦ badge + label on white. */
+.pill {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--chat-launcher-padding);
+  font-family: var(--font-sans);
+  font-size: var(--type-body-size);
+  line-height: var(--chat-launcher-line-height);
+  font-weight: var(--type-button-weight);
+  white-space: nowrap;
+  color: var(--color-ink);
+  background: var(--color-card);
+  border: 0;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-launcher);
+  cursor: pointer;
+  transition: color var(--chat-transition);
+
+  /* Focus on the light page: the page's accent. */
+  --chat-focus-ring-color: var(--color-accent);
+}
+
+.pill:hover {
+  color: var(--color-accent);
+}
+
+/* Not enough room beside the pill on a phone: the hint goes above it. */
+@media (width <= 599px) {
+  .launcher {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .returning:not(.closing) {
+    animation-duration: var(--chat-motion-exit-duration);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}

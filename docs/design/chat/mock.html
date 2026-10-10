@@ -1,0 +1,811 @@
+<!doctype html>
+<!--
+  Static mock of the AI chat (docs/design/chat/SPEC.md). Not product code.
+  Open directly in a browser. Query params:
+    state = launcher | empty | typing | streaming (default) | errors | offline
+  Desktop layout at >= 600 px wide (and >= 500 px tall), bottom sheet below that.
+  Screenshots: render.sh next to this file.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chat mock</title>
+    <!-- Real tokens. fonts.css uses @fontsource bare imports that only resolve under Vite, so Inter
+         is also loaded from Google Fonts here for standalone viewing. -->
+    <link rel="stylesheet" href="../../../src/theme/tokens.css" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=block"
+    />
+    <style>
+      /* ---- New tokens proposed in SPEC → New tokens (Theme adds them to tokens.css) ---- */
+      :root {
+        --chat-fab-size: 56px;
+        --chat-fab-icon-size: 24px;
+        --chat-control-size: 44px;
+        --chat-icon-size: 20px;
+        --chat-panel-width: 400px;
+        --chat-panel-height: 600px;
+        --chat-hint-max-width: 240px;
+        --chat-bubble-max-width: 85%;
+        --chat-radius-tail: 4px;
+        --chat-color-divider: rgba(0, 22, 112, 0.12);
+        --chat-color-disabled-bg: rgba(0, 22, 112, 0.12);
+        --chat-color-error: #c0262d;
+        --chat-color-error-bg: #fdeeee;
+        --chat-color-notice-bg: rgba(239, 191, 4, 0.14);
+        --chat-shadow-fab: 0 4px 12px rgba(0, 22, 112, 0.3);
+        --chat-shadow-panel: 0 12px 32px rgba(0, 22, 112, 0.16), 0 2px 8px rgba(0, 22, 112, 0.08);
+        --font-chat-caption-size: 12px;
+        --font-chat-caption-line-height: 16px;
+        --font-chat-caption-weight: 400;
+        --chat-z-index: 1000;
+        --chat-motion-duration: 200ms;
+        --chat-motion-easing: cubic-bezier(0.2, 0, 0, 1);
+      }
+
+      /* ---- global.css equivalent ---- */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: var(--font-family);
+        font-size: var(--font-body-size);
+        line-height: var(--font-body-line-height);
+        font-weight: var(--font-body-weight);
+        letter-spacing: var(--letter-spacing);
+        color: var(--color-text);
+        background: var(--color-bg);
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      button,
+      textarea {
+        font: inherit;
+        letter-spacing: inherit;
+        color: inherit;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      svg {
+        display: block;
+      }
+
+      /* ---- Backdrop: a simplified CV page (the pre-v3 CV, a neutral backdrop only) ---- */
+      .shell {
+        max-width: calc(var(--content-max-width) + 2 * var(--page-gutter));
+        margin: 0 auto;
+        padding: var(--space-4) var(--page-gutter);
+      }
+      .cv-head {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        column-gap: var(--space-4);
+      }
+      .cv-name {
+        margin-top: var(--space-1);
+        font-size: var(--font-name-size);
+        line-height: var(--font-name-line-height);
+        font-weight: var(--font-name-weight);
+      }
+      .cv-tagline {
+        margin-top: var(--space-5);
+        font-style: italic;
+      }
+      .cv-photo {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        object-position: 50% 20%;
+      }
+      .cv-section {
+        margin: var(--space-8) 0 var(--space-3);
+        font-size: var(--font-section-size);
+        line-height: var(--font-section-line-height);
+        font-weight: var(--font-section-weight);
+      }
+      .cv-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px var(--space-7);
+        align-items: start;
+      }
+      .cv-card {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: var(--space-3) 15px;
+        border: var(--border-card) solid var(--color-card-border);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card);
+      }
+      .cv-card b {
+        font-size: var(--font-card-title-size);
+        line-height: var(--font-card-title-line-height);
+        font-weight: var(--font-card-title-weight);
+      }
+      .cv-card span {
+        font-size: var(--font-card-body-size);
+        line-height: var(--font-card-body-line-height);
+      }
+
+      /* ---- Shared focus ring for every chat control ---- */
+      .chat :focus-visible {
+        outline: 2px solid var(--color-text);
+        outline-offset: 2px;
+      }
+
+      /* ---- Launcher (FAB + first-visit hint) ---- */
+      .launcher {
+        position: fixed;
+        right: var(--space-6);
+        bottom: var(--space-6);
+        z-index: var(--chat-z-index);
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+      }
+      .fab {
+        position: relative;
+        width: var(--chat-fab-size);
+        height: var(--chat-fab-size);
+        flex: none;
+        display: grid;
+        place-items: center;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        color: var(--color-bg);
+        background: var(--color-text);
+        box-shadow: var(--chat-shadow-fab);
+        cursor: pointer;
+      }
+      .fab:hover {
+        background: var(--color-text-secondary);
+      }
+      .fab svg {
+        width: var(--chat-fab-icon-size);
+        height: var(--chat-fab-icon-size);
+      }
+      /* AI ring: the AI Tools card's gradient, 2 px, 2 px outside the button. */
+      .fab::before {
+        content: '';
+        position: absolute;
+        inset: calc(-1 * var(--space-1));
+        padding: 2px;
+        border-radius: 50%;
+        background: var(--gradient-ai);
+        pointer-events: none;
+        mask:
+          linear-gradient(#000 0 0) content-box exclude,
+          linear-gradient(#000 0 0);
+      }
+      .chat .fab:focus-visible {
+        outline-offset: 6px;
+      }
+      .hint {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-1);
+        max-width: var(--chat-hint-max-width);
+        padding: var(--space-3) var(--space-2) var(--space-3) var(--space-4);
+        font-size: var(--font-card-body-size);
+        line-height: var(--font-card-body-line-height);
+        background: var(--color-bg);
+        border: var(--border-card) solid var(--color-card-border);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card);
+      }
+      .hint-close {
+        flex: none;
+        width: 24px;
+        height: 24px;
+        margin: -2px 0 0;
+      }
+
+      /* ---- Panel ---- */
+      .panel {
+        position: fixed;
+        right: var(--space-6);
+        bottom: var(--space-6);
+        z-index: var(--chat-z-index);
+        width: var(--chat-panel-width);
+        height: min(var(--chat-panel-height), calc(100dvh - 2 * var(--space-6)));
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--color-bg);
+        border-radius: var(--radius-card);
+        box-shadow: var(--chat-shadow-panel);
+      }
+      /* 1.5 px gradient border, same technique as the AI Tools card. */
+      .panel::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        padding: calc(var(--border-card) * 1.5);
+        border-radius: inherit;
+        background: var(--gradient-ai);
+        pointer-events: none;
+        mask:
+          linear-gradient(#000 0 0) content-box exclude,
+          linear-gradient(#000 0 0);
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-2) var(--space-3) var(--space-4);
+        border-bottom: 1px solid var(--chat-color-divider);
+      }
+      .badge {
+        flex: none;
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--gradient-ai);
+        color: var(--color-text);
+      }
+      .badge svg {
+        width: var(--chat-icon-size);
+        height: var(--chat-icon-size);
+      }
+      .titles {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .title {
+        font-size: var(--font-subsection-size);
+        line-height: var(--font-section-line-height);
+        font-weight: var(--font-subsection-weight);
+      }
+      .subtitle {
+        font-size: var(--font-card-body-size);
+        line-height: var(--font-card-body-line-height);
+        color: var(--color-text-secondary);
+      }
+      .icon-btn {
+        flex: none;
+        width: var(--chat-control-size);
+        height: var(--chat-control-size);
+        display: grid;
+        place-items: center;
+        padding: 0;
+        border: 0;
+        border-radius: var(--radius-logo);
+        background: transparent;
+        color: var(--color-text);
+        cursor: pointer;
+      }
+      .icon-btn:hover {
+        background: var(--chat-color-divider);
+      }
+      .icon-btn svg {
+        width: var(--chat-icon-size);
+        height: var(--chat-icon-size);
+      }
+      .hint .icon-btn {
+        width: 24px;
+        height: 24px;
+      }
+      .hint .icon-btn svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .notice {
+        padding: var(--space-2) var(--space-4);
+        font-size: var(--font-card-body-size);
+        line-height: var(--font-card-body-line-height);
+        background: var(--chat-color-notice-bg);
+        border-bottom: 1px solid var(--color-highlight);
+      }
+
+      .list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        margin: 0;
+        padding: var(--space-4);
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-3);
+      }
+      .row {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-1);
+      }
+      .row.visitor {
+        align-items: flex-end;
+      }
+      .bubble {
+        max-width: 100%;
+        border-radius: var(--radius-card);
+        overflow-wrap: anywhere;
+      }
+      .visitor .bubble {
+        max-width: var(--chat-bubble-max-width);
+        padding: var(--space-3) var(--space-4);
+        white-space: pre-wrap;
+        color: var(--color-bg);
+        background: var(--color-text);
+        border-bottom-right-radius: var(--chat-radius-tail);
+      }
+      .assistant .bubble {
+        padding: var(--space-3) 15px;
+        background: var(--color-bg);
+        border: var(--border-card) solid var(--color-card-border);
+        border-bottom-left-radius: var(--chat-radius-tail);
+      }
+      .assistant .bubble.error {
+        background: var(--chat-color-error-bg);
+        border-color: var(--chat-color-error);
+      }
+      .bubble p + p,
+      .bubble p + ul,
+      .bubble ul + p {
+        margin-top: var(--space-2);
+      }
+      .bubble ul {
+        margin: 0;
+        padding-left: var(--space-5);
+        list-style: disc;
+      }
+      .bubble li + li {
+        margin-top: var(--space-1);
+      }
+      .bubble strong {
+        font-weight: var(--font-card-title-weight);
+      }
+      .bubble a {
+        color: inherit;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .caret {
+        display: inline-block;
+        width: 2px;
+        height: 18px;
+        margin-left: 2px;
+        vertical-align: -3px;
+        background: currentColor;
+        animation: blink 1s steps(1) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+      .typing {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1);
+        height: var(--font-body-line-height);
+      }
+      .typing i {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--color-text-secondary);
+        animation: dot 1.2s infinite both;
+      }
+      .typing i:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing i:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes dot {
+        0%,
+        80%,
+        100% {
+          opacity: 0.3;
+        }
+        40% {
+          opacity: 1;
+        }
+      }
+      .caption {
+        font-size: var(--font-chat-caption-size);
+        line-height: var(--font-chat-caption-line-height);
+        color: var(--color-text-secondary);
+      }
+      .btn-secondary {
+        margin-top: var(--space-2);
+        min-height: var(--space-8);
+        padding: 0 var(--space-3);
+        font-size: var(--font-card-body-size);
+        font-weight: var(--font-card-title-weight);
+        background: var(--color-bg);
+        border: var(--border-card) solid var(--color-text);
+        border-radius: var(--radius-logo);
+        cursor: pointer;
+      }
+      .suggest {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+      }
+      .suggest .caption {
+        margin-top: var(--space-1);
+      }
+      .chip {
+        max-width: 100%;
+        min-height: var(--space-8);
+        padding: var(--space-2) var(--space-3);
+        text-align: left;
+        font-size: var(--font-card-body-size);
+        line-height: var(--font-card-body-line-height);
+        background: var(--color-bg);
+        border: var(--border-card) solid var(--color-card-border);
+        border-radius: var(--radius-logo);
+        cursor: pointer;
+      }
+      .chip:hover {
+        border-color: var(--color-text);
+      }
+
+      .composer {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        padding: var(--space-3) var(--space-4);
+        border-top: 1px solid var(--chat-color-divider);
+      }
+      .field {
+        display: flex;
+        align-items: flex-end;
+        gap: var(--space-2);
+        padding: 5px 5px 5px 15px;
+        border: var(--border-card) solid var(--color-text-muted);
+        border-radius: var(--radius-card);
+        background: var(--color-bg);
+      }
+      .field:focus-within {
+        border-color: var(--color-text);
+        box-shadow: 0 0 0 1px var(--color-text);
+      }
+      .field.invalid {
+        border-color: var(--chat-color-error);
+        box-shadow: 0 0 0 1px var(--chat-color-error);
+      }
+      .field textarea {
+        flex: 1;
+        min-width: 0;
+        min-height: var(--chat-control-size);
+        max-height: calc(6 * var(--font-body-line-height));
+        padding: 11px 0;
+        border: 0;
+        outline: none;
+        resize: none;
+        background: transparent;
+        font-size: var(--font-body-size);
+        line-height: var(--font-body-line-height);
+      }
+      .field textarea::placeholder {
+        color: var(--color-text-muted);
+        opacity: 1;
+      }
+      .send {
+        flex: none;
+        width: var(--chat-control-size);
+        height: var(--chat-control-size);
+        display: grid;
+        place-items: center;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        color: var(--color-bg);
+        background: var(--color-text);
+        cursor: pointer;
+      }
+      .send:hover {
+        background: var(--color-text-secondary);
+      }
+      .send svg {
+        width: var(--chat-icon-size);
+        height: var(--chat-icon-size);
+      }
+      .send:disabled {
+        color: var(--color-text-muted);
+        background: var(--chat-color-disabled-bg);
+        cursor: default;
+      }
+      .meta {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--space-3);
+      }
+      .meta .error {
+        color: var(--chat-color-error);
+      }
+
+      /* ---- Mobile: bottom sheet ---- */
+      @media (max-width: 599px), (max-height: 499px) {
+        .launcher {
+          right: var(--space-4);
+          bottom: var(--space-4);
+        }
+        .panel {
+          inset: 0;
+          width: 100%;
+          height: 100dvh;
+          border-radius: 0;
+          box-shadow: none;
+        }
+        .panel::before {
+          display: none;
+        }
+        .header {
+          padding-top: calc(var(--space-3) + env(safe-area-inset-top));
+        }
+        .composer {
+          padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+        }
+        .cv-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .caret,
+        .typing i {
+          animation: none;
+        }
+        .typing i {
+          opacity: 0.6;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell" aria-hidden="true">
+      <div class="cv-head">
+        <div>
+          <h1 class="cv-name">Andrew Panasiuk</h1>
+          <p>Senior Android Engineer with iOS experience</p>
+          <p class="cv-tagline">Creating Android apps since 2012</p>
+        </div>
+        <img class="cv-photo" src="../cv/assets/photo.jpg" alt="" />
+      </div>
+      <h2 class="cv-section">Summary</h2>
+      <p>
+        Product-minded <b style="font-weight: 500">Senior Android Engineer</b> with 12+ years of
+        experience.
+      </p>
+      <p>Proficient in Kotlin, Coroutines, Jetpack, MVVM/MVI.</p>
+      <p>Integrating modern AI-driven tools and approaches into workflow.</p>
+      <p>
+        Autonomous end-to-end feature delivery combined with trust and respect for team leadership.
+      </p>
+      <p>Strong background in Applied Mathematics (M.Sc.).</p>
+      <h2 class="cv-section">Technologies</h2>
+      <div class="cv-grid">
+        <div class="cv-card">
+          <b>Android</b
+          ><span
+            >Jetpack Compose, Hilt, Room/SQLite, Picasso/Glide, Custom UI, Custom Animations</span
+          >
+        </div>
+        <div class="cv-card">
+          <b>Kotlin</b
+          ><span>Coroutines, Ktor, Flow, Kotlinx-serialization, Kotlin Multiplatform</span>
+        </div>
+        <div class="cv-card">
+          <b>AI Tools</b
+          ><span
+            >Copilot, agents.md, Cursor IDE, hallucination prevention, MCP, orchestration
+            approach</span
+          >
+        </div>
+        <div class="cv-card">
+          <b>Product mindset</b
+          ><span
+            >Feature ownership, Pixel-perfect UI, Human-centric UX, Product analytics basics</span
+          >
+        </div>
+        <div class="cv-card"><b>Architecture</b><span>MVVM, MVI, Redux, Clean, SOLID</span></div>
+        <div class="cv-card">
+          <b>Tools</b><span>Gradle, Git, Github Actions, CircleCI, CocoaPods</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat" id="chat"></div>
+
+    <script>
+      const params = new URLSearchParams(location.search);
+      const state = params.get('state') || 'streaming';
+
+      // Strings: identical to SPEC → Texts.
+      const S = {
+        fabLabel: 'Open chat with the AI assistant',
+        hint: 'Questions about Andrew’s experience? Ask the AI assistant.',
+        hintDismiss: 'Dismiss',
+        title: 'Ask about Andrew',
+        subtitle: 'AI assistant · answers from this CV',
+        close: 'Close chat',
+        listLabel: 'Conversation',
+        you: 'You:',
+        assistant: 'Assistant:',
+        greeting:
+          'Hi! I’m an AI assistant. Ask me about Andrew’s experience, skills and projects — I answer from his CV.',
+        tryAsking: 'Try asking',
+        chips: [
+          'What is his experience with Android?',
+          'Which AI tools does he use?',
+          'Which apps has he worked on?',
+          'Has he led a team?',
+        ],
+        inputLabel: 'Your question',
+        placeholder: 'Ask a question…',
+        send: 'Send',
+        stop: 'Stop answer',
+        disclaimer: 'Answers are AI-generated and may contain mistakes.',
+        typing: 'Assistant is typing…',
+        error: 'Sorry, I couldn’t answer. Please try again.',
+        retry: 'Try again',
+        rateLimited: 'I’m getting a lot of questions right now. Please try again in a minute.',
+        offline: 'You’re offline. Connect to the internet to ask a question.',
+        tooLong: 'Shorten your question to 500 characters or fewer.',
+      };
+
+      const icon = {
+        chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4h12a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3h-7l-4.5 3.5V17H6a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"/><path d="M12 7.25l.95 2.3 2.3.95-2.3.95-.95 2.3-.95-2.3-2.3-.95 2.3-.95z" fill="currentColor" stroke-width="1"/></svg>',
+        sparkle:
+          '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 3.5l1.9 4.6 4.6 1.9-4.6 1.9L10 16.5l-1.9-4.6L3.5 10l4.6-1.9z"/><path d="M17.5 13.5l.95 2.05 2.05.95-2.05.95-.95 2.05-.95-2.05-2.05-.95 2.05-.95z"/></svg>',
+        close:
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+        send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>',
+        stop: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>',
+      };
+
+      const Q1 = 'What is his experience with Android?';
+      const A1 = `<p>Andrew has built Android apps <strong>since 2012</strong> — 12+ years in total.</p>
+        <ul>
+          <li><strong>Transcenda</strong> (2021–2026): Senior Android Developer on the <em>Cync</em> and <em>August Home</em> smart home apps, both with 1M+ users.</li>
+          <li>Jetpack Compose with custom Canvas graphics, BLE device discovery and sync.</li>
+          <li>Earlier: WiseHouse, Attendify, Smartling (SDK), ivi (team lead), Samsung.</li>
+        </ul>
+        <p>For project details you can write to <a href="mailto:andriipanasiuk@gmail.com">andriipanasiuk@gmail.com</a>.</p>`;
+      const Q2 = 'Which AI tools does he use?';
+      const A2partial = `<p>He works with <strong>Copilot</strong>, <strong>Cursor IDE</strong> and LLM agents (agents.md, MCP) every day. At Transcenda he boosted engineering efficiency by integrating AI-driven work<span class="caret" aria-hidden="true"></span></p>`;
+
+      const visitor = (text) =>
+        `<li class="row visitor"><div class="bubble"><span class="sr-only">${S.you} </span>${text}</div></li>`;
+      const assistant = (html, cls = '', extra = '') =>
+        `<li class="row assistant"><div class="bubble ${cls}"><span class="sr-only">${S.assistant} </span>${html}${extra}</div></li>`;
+      const greeting = assistant(`<p>${S.greeting}</p>`);
+      const retryBtn = `<button type="button" class="btn-secondary">${S.retry}</button>`;
+
+      const launcher = (withHint) => `
+        <div class="launcher">
+          ${withHint ? `<div class="hint" role="note"><span>${S.hint}</span><button type="button" class="icon-btn hint-close" aria-label="${S.hintDismiss}">${icon.close}</button></div>` : ''}
+          <button type="button" class="fab" aria-label="${S.fabLabel}" aria-haspopup="dialog" aria-expanded="false" aria-controls="chat-panel">${icon.chat}</button>
+        </div>`;
+
+      function panel({
+        messages,
+        notice = '',
+        value = '',
+        streaming = false,
+        invalid = false,
+        count = '',
+      }) {
+        const canSend = value && !invalid && !notice;
+        return `
+        <section class="panel" id="chat-panel" role="dialog" aria-modal="true" aria-labelledby="chat-title" aria-describedby="chat-subtitle">
+          <header class="header">
+            <span class="badge" aria-hidden="true">${icon.sparkle}</span>
+            <div class="titles">
+              <h2 class="title" id="chat-title">${S.title}</h2>
+              <p class="subtitle" id="chat-subtitle">${S.subtitle}</p>
+            </div>
+            <button type="button" class="icon-btn" aria-label="${S.close}">${icon.close}</button>
+          </header>
+          ${notice ? `<p class="notice" role="status">${notice}</p>` : ''}
+          <ol class="list" tabindex="0" aria-label="${S.listLabel}">${messages}</ol>
+          <div class="sr-only" aria-live="polite"></div>
+          <form class="composer" onsubmit="return false">
+            <div class="field ${invalid ? 'invalid' : ''}">
+              <textarea rows="1" aria-label="${S.inputLabel}" placeholder="${S.placeholder}" enterkeyhint="send"
+                ${invalid ? 'aria-invalid="true" aria-describedby="chat-meta"' : ''}>${value}</textarea>
+              ${
+                streaming
+                  ? `<button type="button" class="send" aria-label="${S.stop}">${icon.stop}</button>`
+                  : `<button type="submit" class="send" aria-label="${S.send}" ${canSend ? '' : 'disabled'}>${icon.send}</button>`
+              }
+            </div>
+            <div class="meta caption" id="chat-meta">
+              ${invalid ? `<span class="error">${S.tooLong}</span><span class="error">${count}</span>` : `<span>${S.disclaimer}</span>${count ? `<span>${count}</span>` : ''}`}
+            </div>
+          </form>
+        </section>`;
+      }
+
+      const chips = `<li class="suggest" role="group" aria-labelledby="chat-try"><span class="caption" id="chat-try">${S.tryAsking}</span>${S.chips
+        .map((c) => `<button type="button" class="chip">${c}</button>`)
+        .join('')}</li>`;
+
+      const longText =
+        'Could you tell me in detail about every project he did with Bluetooth Low Energy, which devices were involved, how offline mode worked, what the sync protocol looked like, how he tested it, which libraries he chose and why, how the team was organised, what his exact responsibilities were compared to the other Android developers, and whether he would be open to a similar role in a hardware company that builds smart locks and cameras for the European market? Also, what was the hardest bug he fixed there?';
+
+      const views = {
+        launcher: () => launcher(true),
+        empty: () => panel({ messages: greeting + chips }),
+        typing: () =>
+          panel({
+            messages:
+              greeting +
+              visitor(Q1) +
+              assistant(`<span class="typing" aria-hidden="true"><i></i><i></i><i></i></span>`),
+            streaming: true,
+          }),
+        streaming: () =>
+          panel({
+            messages: greeting + visitor(Q1) + assistant(A1) + visitor(Q2) + assistant(A2partial),
+            streaming: true,
+          }),
+        errors: () =>
+          panel({
+            messages:
+              visitor(Q1) +
+              assistant(`<p>${S.error}</p>`, 'error', retryBtn) +
+              visitor(Q2) +
+              assistant(`<p>${S.rateLimited}</p>`, '', retryBtn),
+          }),
+        offline: () =>
+          panel({
+            messages: greeting + visitor(Q1) + assistant(A1),
+            notice: S.offline,
+            value: longText,
+            invalid: true,
+            count: `${longText.length} / 500`,
+          }),
+      };
+      document.getElementById('chat').innerHTML = (views[state] || views.streaming)();
+      // Auto-grow the input and keep the list pinned to the latest message (after fonts load).
+      function layout() {
+        const ta = document.querySelector('textarea');
+        if (ta) {
+          ta.style.height = 'auto';
+          ta.style.height = ta.scrollHeight + 'px';
+        }
+        const list = document.querySelector('.list');
+        if (list && state !== 'empty') list.scrollTop = list.scrollHeight;
+      }
+      layout();
+      document.fonts.ready.then(layout);
+      addEventListener('load', layout);
+    </script>
+  </body>
+</html>

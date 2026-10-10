@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F2EEF8;font-family:'Figtree',system-ui,sans-serif;color:#16131C;-webkit-font-smoothing:antialiased}
+a{color:#8A3FE0;text-decoration:none}a:hover{color:#D9328F}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<div style="padding:clamp(8px,2vw,24px);min-height:100vh">
+<div style="max-width:1120px;margin:0 auto;background:#FFFFFF;box-shadow:0 30px 80px -40px rgba(139,92,246,.18);border-radius:clamp(24px,3vw,36px);padding:0 clamp(14px,3vw,42px) clamp(24px,4vw,48px);display:flex;flex-direction:column;gap:clamp(48px,7vw,88px)">
+
+<nav style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;padding-top:clamp(18px,3vw,28px);font-family:'JetBrains Mono',monospace;font-size:14px;color:#5E5770">
+  <span style="white-space:nowrap">~/andrew.panasiuk/cv</span>
+  <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;text-align:right;gap:8px 16px">
+    <span style="white-space:nowrap">Wrocław area, Poland</span>
+    <span style="white-space:nowrap">Remote / B2B across EU</span>
+    <span style="white-space:nowrap;display:flex;align-items:center;gap:6px;color:#15803D;flex-basis:100%;justify-content:flex-end"><span style="width:7px;height:7px;border-radius:50%;background:#16A34A"></span>Open to roles</span>
+  </div>
+</nav>
+
+<header style="display:flex;flex-direction:column;gap:clamp(22px,3vw,32px);margin-top:calc(-1 * clamp(16px,3vw,40px))">
+  <div style="display:flex;gap:16px;align-items:center">
+    <img src="assets/cv_photo.jpg" alt="Andrew Panasiuk" style="width:clamp(72px,9vw,96px);aspect-ratio:1;border-radius:24px;object-fit:cover;flex:none"></img>
+    <div style="min-width:0;display:flex;flex-direction:column;gap:4px">
+      <div style="font-size:24px;font-weight:700;letter-spacing:-.02em">Andrew Panasiuk</div>
+      <div style="font-size:16px;color:#5E5770">Android since 2012 · Agentic engineering</div>
+    </div>
+  </div>
+  <sc-if value="{{ headlineA }}" hint-placeholder-val="{{ true }}">
+    <h1 style="margin:0;font-size:clamp(40px,7vw,84px);line-height:1;letter-spacing:-.045em;font-weight:600;text-wrap:balance;max-width:960px">Senior Software <span style="background:linear-gradient(90deg,#FF4FB8,#8B5CF6);-webkit-background-clip:text;background-clip:text;color:transparent">Product</span> Engineer</h1>
+  </sc-if>
+  <sc-if value="{{ headlineB }}" hint-placeholder-val="{{ false }}">
+    <h1 style="margin:0;font-size:clamp(40px,7vw,84px);line-height:1;letter-spacing:-.045em;font-weight:600;text-wrap:balance;max-width:960px">Senior <span style="background:linear-gradient(90deg,#FF4FB8,#8B5CF6);-webkit-background-clip:text;background-clip:text;color:transparent">Product</span> Engineer · Mobile &amp; AI</h1>
+  </sc-if>
+  <div style="display:flex;flex-wrap:wrap;gap:clamp(20px,4vw,48px);align-items:flex-start">
+    <p style="flex:1 1 520px;margin:0;font-family:'Figtree',system-ui,sans-serif;font-size:clamp(17px,1.7vw,20px);line-height:1.6;color:#2A2433;text-wrap:pretty">Product engineer and systems thinker who ships products end-to-end – as a peer to product, not a downstream implementer.<br>12+ years building native Android and iOS apps in code, used by 1M+ people.<br>Today agentic coding is my default mode. I own the problem and its solution – not tickets: I design the process, agents run it, quality gates keep it honest.<br>M.Sc. in Applied Mathematics trained me to reason about complex systems – in the AI era that makes me stack-agnostic.<br>Ready to build new products, bring an AI-native approach into an existing codebase or lead AI adoption in a team.</p>
+    <div style="flex:1 1 280px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+      <div style="background:#F7F4FB;border-radius:20px;padding:16px"><div style="font-size:clamp(26px,3vw,34px);font-weight:600;letter-spacing:-.03em">12+</div><div style="font-size:14px;color:#5E5770;margin-top:2px">years shipping apps in code</div></div>
+      <div style="background:#F7F4FB;border-radius:20px;padding:16px"><div style="font-size:clamp(26px,3vw,34px);font-weight:600;letter-spacing:-.03em">1M+</div><div style="font-size:14px;color:#5E5770;margin-top:2px">users per app</div></div>
+      <div style="background:#F7F4FB;border-radius:20px;padding:16px"><div style="font-size:clamp(26px,3vw,34px);font-weight:600;letter-spacing:-.03em">2</div><div style="font-size:14px;color:#5E5770;margin-top:2px">platforms: Android + iOS</div></div>
+      <div style="background:linear-gradient(135deg,#FF4FB8,#8B5CF6);color:#FFFFFF;border-radius:20px;padding:16px"><div style="font-size:clamp(26px,3vw,34px);font-weight:600;letter-spacing:-.03em">AI</div><div style="font-size:14px;margin-top:2px">agentic process owner</div></div>
+    </div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px">
+    <a href="mailto:andriipanasiuk@gmail.com" style="flex:1 1 200px;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(90deg,#FF4FB8,#8B5CF6);color:#FFFFFF;min-height:52px;border-radius:999px;font-weight:600;font-size:16px;box-shadow:0 10px 24px -10px rgba(255,79,184,.5)">Email me ↗</a>
+    <a href="https://wa.me/48519457129" style="flex:1 1 140px;display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:999px;font-weight:600;font-size:16px;color:#16131C;background:#F7F4FB">WhatsApp</a>
+    <a href="https://t.me/+380938977110" style="flex:1 1 140px;display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:999px;font-weight:600;font-size:16px;color:#16131C;background:#F7F4FB">Telegram</a>
+    <a href="https://www.linkedin.com/in/andriipanasiuk/" target="_blank" rel="noopener" style="flex:1 1 140px;display:flex;align-items:center;justify-content:center;min-height:52px;border-radius:999px;font-weight:600;font-size:16px;color:#16131C;background:#F7F4FB">LinkedIn</a>
+  </div>
+</header>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+  <h2 style="margin:0;font-size:clamp(26px,3vw,34px);letter-spacing:-.025em;font-weight:600">Code craft × agentic process</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:10px">
+    <div style="background:#F7F4FB;border-radius:24px;padding:clamp(20px,2.5vw,28px);display:flex;flex-direction:column;gap:12px">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#8A3FE0">2012 → before AI</span>
+      <div style="font-size:20px;font-weight:600;letter-spacing:-.015em">12 years of native apps, written by hand</div>
+      <p style="margin:0;font-family:'Figtree',system-ui,sans-serif;font-size:16px;line-height:1.6;color:#5E5770;text-wrap:pretty">Kotlin and Java on Android, Swift and UIKit on iOS. BLE device sync, offline-first architecture, custom graphics, SDKs, MVVM/MVI, CI from scratch. I know what good code looks like – that's why I can judge what agents produce.</p>
+    </div>
+    <div style="background:#FDE6F3;border-radius:24px;padding:clamp(20px,2.5vw,28px);display:flex;flex-direction:column;gap:12px">
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#C0267C">now → with agents</span>
+      <div style="font-size:20px;font-weight:600;letter-spacing:-.015em">The process is the product I engineer</div>
+      <p style="margin:0;font-family:'Figtree',system-ui,sans-serif;font-size:16px;line-height:1.6;color:#5E5770;text-wrap:pretty">Spec → prototype → ship → iterate. I frame the problem, decompose the work, set contracts and guardrails, and parallel agent sessions deliver. Agent-first features with LLMs – grounded, tested with evals, cost-controlled.</p>
+    </div>
+  </div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+  <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px">
+    <h2 style="margin:0;font-size:clamp(26px,3vw,34px);letter-spacing:-.025em;font-weight:600">How I build with agents</h2>
+    <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#8A3FE0">system with feedback</span>
+  </div>
+  <div style="background:linear-gradient(150deg,#2A1F3D 0%,#16131C 45%,#0E0C12 100%);color:#F4F2F7;border-radius:28px;padding:clamp(20px,3vw,36px);display:flex;flex-direction:column;gap:22px;box-shadow:0 30px 80px -40px rgba(139,92,246,.5);position:relative;overflow:hidden;isolation:isolate">
+    <div data-spot="" style="position:absolute;left:0;top:0;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(255,79,184,.26),rgba(139,92,246,.12) 40%,rgba(139,92,246,0) 70%);pointer-events:none;opacity:0;z-index:-1"></div>
+    <p style="margin:0;font-size:clamp(19px,2vw,23px);line-height:1.4;letter-spacing:-.01em;max-width:720px;text-wrap:pretty">The development process is a system with feedback. I design the loop; autonomous coding agents run it.</p>
+    <ol style="list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:8px">
+      <sc-for list="{{ loop }}" as="l" hint-placeholder-count="6">
+        <li style="border:1px solid #3A3248;border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:8px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#FF7ACB">{{ l.n }}</span>
+          <span style="font-size:16px;line-height:1.4">{{ l.text }}</span>
+        </li>
+      </sc-for>
+    </ol>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:500;color:rgba(255,255,255,.85)">↺ every retro lands as a PR to the rules – the process improves itself</div>
+  </div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+  <h2 style="margin:0;font-size:clamp(26px,3vw,34px);letter-spacing:-.025em;font-weight:600">Selected impact</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px">
+    <sc-for list="{{ impact }}" as="m" hint-placeholder-count="4">
+      <div style="background:{{ m.bg }};border-radius:22px;padding:22px;display:flex;flex-direction:column;gap:12px;min-height:190px">
+        <div style="font-size:clamp(30px,3.6vw,34px);font-weight:600;letter-spacing:-.04em;line-height:1">{{ m.value }}</div>
+        <div style="font-size:16px;line-height:1.5;color:#5E5770;text-wrap:pretty;margin-top:auto">{{ m.text }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+
+<section style="display:flex;flex-direction:column;gap:16px">
+  <h2 style="margin:0;font-size:clamp(26px,3vw,34px);letter-spacing:-.025em;font-weight:600">Skills</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:0 clamp(20px,4vw,48px)">
+    <sc-for list="{{ skills }}" as="s" hint-placeholder-count="6">
+      <div style="padding:14px 0;border-top:1px solid #ECE6F3;display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:16px;font-weight:600">{{ s.title }}</div>
+        <div style="font-family:'Figtree',system-ui,sans-serif;font-size:16px;line-height:1.55;color:#5E5770">{{ s.items }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:8px">
+  <h2 style="margin:0 0 8px;font-size:clamp(26px,3vw,34px);letter-spacing:-.025em;font-weight:600">Experience</h2>
+  <sc-for list="{{ jobs }}" as="j" hint-placeholder-count="9">
+    <article style="display:flex;flex-direction:column;gap:16px;padding:22px 0;border-top:1px solid #ECE6F3">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <sc-if value="{{ j.logoTile }}" hint-placeholder-val="{{ true }}"><img src="{{ j.logo }}" alt="" style="width:44px;height:44px;border-radius:12px;object-fit:contain;background:#F7F4FB;flex:none"></img></sc-if>
+          <sc-if value="{{ j.plainLogo }}" hint-placeholder-val="{{ false }}"><img src="{{ j.logo }}" alt="" style="width:44px;height:44px;object-fit:contain;flex:none"></img></sc-if>
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><div style="font-size:18px;font-weight:600;letter-spacing:-.01em">{{ j.company }}</div><div style="flex:none;font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#8C859A;white-space:nowrap">{{ j.period }}</div></div>
+            <div style="font-size:15px;color:#5E5770">{{ j.role }}</div>
+            <sc-if value="{{ j.hasMeta }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:3px;margin-top:3px;font-size:14px;font-weight:500;color:#5E5770"><span>{{ j.metaText }}</span><sc-if value="{{ j.hasStar }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;line-height:1">★</span></sc-if></div></sc-if>
+          </div>
+        </div>
+        <sc-if value="{{ j.hasAbout }}" hint-placeholder-val="{{ true }}"><div style="display:flex;gap:8px;align-items:center;font-size:15px;line-height:1.5;color:#5E5770;text-wrap:pretty"><span style="flex:none;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8A3FE0;background:#F4EAFE;border-radius:6px;padding:2px 7px">{{ j.tag }}</span><span>{{ j.about }}</span></div></sc-if>
+        <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+          <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ j.points }}" as="p" hint-placeholder-count="2">
+              <li style="display:flex;gap:10px;font-size:16px;line-height:1.55;color:#2A2433;text-wrap:pretty"><span style="flex:none;width:4.2px;height:4.2px;border-radius:50%;background:#D9328F;opacity:.6;margin-top:.68em"></span><span>{{ p }}</span></li>
+            </sc-for>
+          </ul>
+        </div>
+      </div>
+      <sc-if value="{{ j.hasProjects }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:22px;padding-left:21px">
+          <sc-for list="{{ j.projects }}" as="pr" hint-placeholder-count="3">
+            <div style="position:relative;display:flex;align-items:flex-start;padding-left:clamp(18px,3vw,30px)">
+              <span style="position:absolute;left:0;top:-22px;height:{{ pr.line }};border-left:2px dotted #C7B5EC"></span>
+              <span style="position:absolute;left:0;top:21px;width:clamp(12px,2.4vw,24px);border-top:2px dotted #C7B5EC"></span>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px">
+                <a href="{{ pr.url }}" target="_blank" rel="noopener" style="display:flex;align-items:flex-start;gap:12px;color:#16131C;pointer-events:{{ pr.pe }}" style-hover="color:#8A3FE0">
+                  <sc-if value="{{ pr.hasIcon }}" hint-placeholder-val="{{ true }}">
+                    <img src="{{ pr.icon }}" alt="" style="width:44px;height:44px;border-radius:12px;object-fit:cover;flex:none"></img>
+                  </sc-if>
+                  <sc-if value="{{ pr.noIcon }}" hint-placeholder-val="{{ false }}">
+                    <span style="width:44px;height:44px;border-radius:12px;flex:none;background:linear-gradient(135deg,#FF4FB8,#8B5CF6);color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px">{{ pr.initials }}</span>
+                  </sc-if>
+                  <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+                    <div style="display:flex;align-items:center;gap:6px;font-size:16px;font-weight:600"><span>{{ pr.name }}</span><sc-if value="{{ pr.hasUrl }}" hint-placeholder-val="{{ false }}"><span style="background:linear-gradient(135deg,#FF4FB8,#8B5CF6);-webkit-background-clip:text;background-clip:text;color:transparent">↗</span></sc-if></div>
+                    <div style="display:flex;align-items:center;gap:3px;margin-top:3px;font-size:14px;font-weight:500;color:#5E5770"><span>{{ pr.metaA }}</span><sc-if value="{{ pr.hasStar }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px;line-height:1">★</span></sc-if><span style="white-space:pre">{{ pr.metaB }}</span></div>
+                  </div>
+                </a>
+                <div style="display:flex;gap:8px;align-items:center;font-size:15px;line-height:1.5;color:#5E5770;text-wrap:pretty"><span style="flex:none;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#8A3FE0;background:#F4EAFE;border-radius:6px;padding:2px 7px">{{ pr.domain }}</span><span>{{ pr.about }}</span></div>
+                <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px">
+                  <sc-for list="{{ pr.points }}" as="pp" hint-placeholder-count="2">
+                    <li style="display:flex;gap:10px;font-size:16px;line-height:1.55;color:#2A2433;text-wrap:pretty"><span style="flex:none;width:4.2px;height:4.2px;border-radius:50%;background:#D9328F;opacity:.6;margin-top:.68em"></span><span>{{ pp }}</span></li>
+                  </sc-for>
+                </ul>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </article>
+  </sc-for>
+</section>
+
+<section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:10px">
+  <div style="background:#EFE5FC;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:8px">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#8A3FE0">education</span>
+    <div style="font-size:20px;font-weight:600;letter-spacing:-.015em">M.Sc. Applied Mathematics &amp; Cybernetics</div>
+    <div style="font-size:16px;color:#5E5770">Kyiv National University · 2007–2012</div>
+    <p style="margin:6px 0 0;font-family:'Figtree',system-ui,sans-serif;font-size:16px;line-height:1.55;text-wrap:pretty">Learned to model systems with feedback loops – the same lens I use for software engineering.</p>
+  </div>
+  <div style="background:#F7F4FB;border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:14px">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#8A3FE0">about me</span>
+    <sc-if value="{{ showBooks }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,64px));gap:8px">
+        <img src="assets/cv_book_the_goal.jpg" alt="The Goal" style="width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:6px"></img>
+        <img src="assets/cv_book_pattern_language.jpg" alt="A Pattern Language" style="width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:6px;background:#FFFFFF"></img>
+        <img src="assets/cv_book_antifragile.jpg" alt="Antifragile" style="width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:6px"></img>
+        <img src="assets/cv_book_siddhartha.jpg" alt="Siddhartha" style="width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:6px"></img>
+      </div>
+    </sc-if>
+    <div style="display:flex;flex-direction:column;gap:12px;font-family:'Figtree',system-ui,sans-serif;font-size:16px;line-height:1.55;text-wrap:pretty">
+      <p style="margin:0"><span style="font-weight:600;color:#16131C">Reading on systems:</span> <span style="color:#5E5770">The Goal, A Pattern Language, Antifragile.</span></p>
+      <p style="margin:0"><span style="font-weight:600;color:#16131C">Off-screen:</span> <span style="color:#5E5770">forest hiking, e-bike rides, guitar, volunteering – and AI experiments.</span></p>
+    </div>
+  </div>
+</section>
+
+<section style="background:linear-gradient(135deg,#FBE3F2,#ECE3FD);border-radius:28px;padding:clamp(22px,3vw,36px);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px clamp(24px,4vw,56px)">
+  <div style="flex:1 1 300px;display:flex;flex-direction:column;gap:10px;min-width:0">
+  <h2 style="margin:0;font-size:clamp(30px,3.6vw,34px);letter-spacing:-.035em;font-weight:600;line-height:1.05"><a href="mailto:andriipanasiuk@gmail.com" style="display:inline-flex;align-items:center;gap:clamp(10px,1.5vw,16px);color:#16131C;transition:color .2s" style-hover="background:linear-gradient(90deg,#FF4FB8,#8B5CF6);-webkit-background-clip:text;background-clip:text;color:transparent">Let's build something<span style="flex:none;position:relative;top:2px;margin-left:-2px;background:linear-gradient(135deg,#FF4FB8,#8B5CF6);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:0">↗</span></a></h2>
+  </div>
+  <div style="flex:1 1 340px;max-width:460px;display:flex;flex-direction:column;gap:8px;min-width:0">
+    <a href="mailto:andriipanasiuk@gmail.com" style="display:flex;justify-content:space-between;align-items:center;gap:10px;background:#FFFFFF;border-radius:999px;min-height:52px;padding:6px 6px 6px 20px;color:#16131C;font-weight:500;font-size:16px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">andriipanasiuk@gmail.com</span><span style="flex:none;width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#FF4FB8,#8B5CF6);color:#FFFFFF;display:flex;align-items:center;justify-content:center">↗</span></a>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+      <a href="https://wa.me/48519457129" style="display:flex;align-items:center;justify-content:center;background:#FFFFFF;border-radius:999px;min-height:48px;color:#16131C;font-weight:500;font-size:16px">WhatsApp</a>
+      <a href="https://www.linkedin.com/in/andriipanasiuk/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;background:#FFFFFF;border-radius:999px;min-height:48px;color:#16131C;font-weight:500;font-size:16px">LinkedIn</a>
+    </div>
+  </div>
+</section>
+
+<div style="text-align:center;font-size:12.5px;color:#8C859A;margin-top:calc(-1 * clamp(24px,4vw,56px))">© 2026 Andrew Panasiuk</div>
+</div>
+</div>
+
+<div data-progress="" style="position:fixed;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#FF4FB8,#8B5CF6);transform-origin:0 50%;transform:scaleX(0);z-index:20;pointer-events:none"></div>
+<sc-if value="{{ showAskAI }}" hint-placeholder-val="{{ true }}">
+  <a href="https://cv-web-inky-five.vercel.app/" style="position:fixed;right:16px;bottom:16px;display:flex;align-items:center;gap:8px;background:#FFFFFF;color:#16131C;border-radius:999px;padding:6px 18px 6px 6px;box-shadow:0 16px 40px -12px rgba(139,92,246,.45);font-size:16px;font-weight:600;z-index:10;white-space:nowrap">
+    <span style="flex:none;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#FF4FB8,#8B5CF6);color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1">✦</span>Ask my AI
+  </a>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Default&quot;,&quot;TnAir&quot;],&quot;default&quot;:&quot;Default&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;motion&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Full&quot;,&quot;Subtle&quot;,&quot;Off&quot;],&quot;default&quot;:&quot;Full&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showApps&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+function buildJobs() {
+    const P = (list) => list.map((p, i) => ({ ...p, metaA: (p.meta || '').split('★')[0], metaB: (p.meta || '').split('★').slice(1).join('★'), hasStar: (p.meta || '').includes('★'), hasIcon: !!p.icon, hasUrl: !!p.url, url: p.url || undefined, pe: p.url ? 'auto' : 'none', noIcon: !p.icon, line: i === list.length - 1 ? '45px' : 'calc(100% + 22px)' }));
+    const J = (j) => ({ points: [], tag: 'product', ...j, hasAbout: !!j.about, logoTile: !j.plainLogo, plainLogo: !!j.plainLogo, hasMeta: !!j.meta, metaText: (j.meta || '').replace('★', ''), hasStar: (j.meta || '').includes('★'), hasProjects: !!j.projects, projects: j.projects ? P(j.projects) : [] });
+    return [
+      J({ company: 'AI-powered CV', role: 'Personal product · process architect', period: 'Sep 2026', logo: 'assets/cv_photo.jpg', about: 'Interactive CV with an AI chat and page agent.', points: [
+        'Shipped an LLM chat that answers strictly from CV data: streaming, prompt caching, grounding and prompt-injection guardrails.',
+        'Architected a page agent on the same chat: the model controls the site through typed tools, WebMCP-ready.',
+        'Designed a multi-agent workflow – orchestrator, up to 3 parallel sessions, strict file ownership, CI as arbiter – packaged as a reusable template. ~263 tests, zero real LLM calls in CI.',
+      ]}),
+      J({ company: 'Transcenda', role: 'Senior Android Engineer', period: '2021 – 2026', logo: 'assets/cv_logo_transcenda.png', points: [], projects: [
+        { name: 'SpotOn', icon: 'assets/cv_app_spoton.png', domain: 'POS / Kiosk', meta: 'Restaurants & cafes', about: 'Point-of-sale and self-service kiosk app.', points: [
+          'Unified 200+ color resources into a design system across 8 projects with AI-assisted refactoring – 3 days vs. ~2 weeks; simplified dark mode.',
+        ]},
+        { name: 'Cync', icon: 'assets/cv_app_cync.png', url: 'https://play.google.com/store/apps/details?id=com.ge.cbyge', domain: 'Smart Home', meta: '1M+ · 5.0★ · 91.8K reviews', about: 'App for smart lights, plugs, switches and cameras.', points: [
+          'Shipped key features end-to-end: device status sync, offline resilience and disconnected-state UI for flaky home networks.',
+          'Increased code coverage across the codebase: 0% → 30%.',
+          'Built complex custom graphics with Jetpack Compose Canvas to drive user engagement.',
+        ]},
+        { name: 'August Home', icon: 'assets/cv_app_august.png', url: 'https://play.google.com/store/apps/details?id=com.august.luna&hl=en', domain: 'Smart Home', meta: '1M+ · 4.1★ · 18.7K reviews', about: 'Smart locks and doorbells: keyless entry, remote access and guest keys.', points: [
+          'Delivered features on a security-critical product with 1M+ users.',
+          'BLE communication with locks and reliable state sync.',
+        ]},
+      ]}),
+      J({ company: 'WiseHouse', role: 'Android Engineer', period: '2020 – 2021', logo: 'assets/cv_logo_wisehouse.png', about: 'App for apartment management, built from scratch.', points: [
+        'Took the app from zero to Google Play: offline-first MVI + Redux, 100% Kotlin, CI delivering builds to Telegram and Play.',
+      ]}),
+      J({ company: 'Attendify', role: 'Android → iOS Engineer', period: '2018 – 2020', logo: 'assets/cv_logo_attendify.png', about: 'SaaS for events – branded mobile apps.', points: [
+        'Switched from Android to iOS when the iOS app was falling behind – closed the feature gap and brought both platforms to feature parity (Swift, UIKit).',
+        'Shipped features in 2 key products in close loop with design; daily CI builds, led the Kotlin migration on Android.',
+        'No dedicated QA – owned release quality end-to-end: testing, regressions and stable production builds.',
+      ]}),
+      J({ company: 'RosFines', role: 'Android Lead · remote', period: '2017', logo: 'assets/cv_logo_rosfines.jpg', about: 'App for checking and paying traffic fines.', points: [
+        'Set up the development process with the PM, ran hiring interviews, automated delivery to Fabric Beta.',
+      ]}),
+      J({ company: 'Smartling', role: 'Android SDK Developer · remote', period: '2016 – 2017', logo: 'assets/cv_logo_smartling.png', about: 'Mobile SDK for in-app localization.', points: [
+        'Localization SDK features; raised unit-test coverage to 60%+, published via Maven, wrote SDK docs.',
+      ]}),
+      J({ company: 'Rokkit', role: 'Android Engineer', period: '2015 – 2016', logo: 'assets/cv_logo_rokkit.jpg', about: 'Travel search app for flights and hotels worldwide.', points: [
+        'Built an unusual search UX for flights and hotels.',
+      ]}),
+      J({ company: 'ivi', role: 'Android Teamlead · remote', period: '2013 – 2014', logo: 'assets/cv_logo_ivi.png', meta: '1M+ · 4.5★', about: 'Video streaming service.', points: [
+        'Regular bug-free releases; mentored 2 developers, owned a shared codebase for 3 apps.',
+        'Introduced Agile for faster delivery and tighter feedback from the PO.',
+      ]}),
+      J({ company: 'Samsung', role: 'Android Engineer', period: '2012', logo: 'assets/cv_logo_samsung_hq2.png', plainLogo: true, tag: 'tool', about: 'Internal tool that automated work 20 developers were repeating by hand.', points: [
+        'Early in my career got the green light to work independently on an internal library: an analogue of Android LayoutInflater for a custom UI framework.',
+      ]}),
+    ];
+}
+const TNAIR = {
+  '255,79,184': '224,20,90', '139,92,246': '59,91,219', '138,63,224': '74,63,208', '217,50,143': '200,16,79',
+  '244,234,254': '236,238,253', '253,230,243': '252,228,236', '239,229,252': '232,235,252', '199,181,236': '179,189,235',
+  '251,227,242': '252,225,234', '236,227,253': '227,232,253', '42,31,61': '31,34,64',
+};
+const _orig = new WeakMap();
+function applyTheme(on) {
+  const root = document.getElementById('dc-root'); if (!root) return;
+  root.querySelectorAll('[style]').forEach(el => {
+    if (!_orig.has(el)) _orig.set(el, el.style.cssText);
+    const base = _orig.get(el);
+    if (!on) { if (el.style.cssText !== base) el.style.cssText = base; return; }
+    let t = base.replace(/rgb\(255,\s*79,\s*184\),\s*rgb\(139,\s*92,\s*246\)/g, 'rgb(224, 20, 90), rgb(122, 59, 217), rgb(59, 91, 219)');
+    t = t.replace(/rgb(a?)\((\d+),\s*(\d+),\s*(\d+)/g, (m, a, r, g, b) => { const k = TNAIR[`${r},${g},${b}`]; return k ? `rgb${a}(${k.split(',').join(', ')}` : m; });
+    if (el.style.cssText !== t) el.style.cssText = t;
+  });
+}
+const EASE = 'cubic-bezier(.16,1,.3,1)', SPRING = 'cubic-bezier(.34,1.56,.64,1)';
+function initMotion(level, tn) {
+  const root = document.getElementById('dc-root');
+  const nav = root && root.querySelector('nav');
+  if (!nav || level === 'Off' || matchMedia('(prefers-reduced-motion: reduce)').matches) return () => {};
+  const full = level !== 'Subtle', k = full ? 1 : .35;
+  const pink = tn ? '#E0145A' : '#FF7ACB', pinkA = tn ? 'rgba(224,20,90,.55)' : 'rgba(255,79,184,.55)';
+  const grad = tn ? '#E0145A,#7A3BD9,#3B5BDB,#7A3BD9,#E0145A' : '#FF4FB8,#8B5CF6,#FF4FB8';
+  const A = [], cleanups = [], texts = [], timers = [], done = new WeakSet(), groups = new Map();
+  const card = nav.parentElement, header = card.querySelector('header');
+  const secs = [...card.children].filter(e => e.tagName === 'SECTION');
+  const anim = (el, kf, o) => { if (!el) return null; const a = el.animate(kf, { duration: 900, easing: EASE, fill: 'both', ...o }); A.push(a); return a; };
+  const settle = (el, a) => { if (a) a.onfinish = () => { done.add(el); a.cancel(); }; return a; };
+  const once = (el, kf, o) => settle(el, anim(el, kf, o));
+  const io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; (groups.get(e.target) || []).forEach(f => f()); groups.delete(e.target); io.unobserve(e.target); }), { threshold: 0, rootMargin: '0px 0px -10% 0px' });
+  const on = (t, f) => { if (!t) return; if (!groups.has(t)) { groups.set(t, []); io.observe(t); } groups.get(t).push(f); };
+  const reveal = (t, el, kf, o) => { const a = settle(el, anim(el, kf, o)); if (!a) return; a.pause(); a.currentTime = 0; on(t, () => a.play()); };
+  const up = (y = 40, s = 1) => [{ opacity: 0, transform: `translateY(${y * k}px) scale(${1 - (1 - s) * k})` }, { opacity: 1, transform: 'none' }];
+  const side = (x, r = 0) => [{ opacity: 0, transform: `translateX(${x * k}px) rotate(${r * k}deg)` }, { opacity: 1, transform: 'none' }];
+  const later = (f, ms) => timers.push(setTimeout(f, ms));
+  const count = (el) => {
+    const n = el && el.firstChild; if (!n || n.nodeType !== 3) return null;
+    const orig = n.nodeValue, m = orig.match(/^(\d+(?:\.\d+)?)(.*)$/s); texts.push({ n, orig });
+    if (!m) {
+      if (!full || orig.length > 4) return null;
+      return () => { const t0 = performance.now(), ch = '01<>/{}#AI'; const tick = t => { if (t - t0 > 900) { n.nodeValue = orig; return; } n.nodeValue = orig.split('').map(() => ch[Math.floor(Math.random() * ch.length)]).join(''); timers.push(requestAnimationFrame(tick)); }; requestAnimationFrame(tick); };
+    }
+    let to = +m[1], suf = m[2], fmt = v => Math.round(v) + suf;
+    if (suf.startsWith('M')) { to *= 1000; fmt = v => Math.round(v) + 'K' + suf.slice(1); }
+    n.nodeValue = fmt(0);
+    return () => { const t0 = performance.now(); const tick = t => { const p = Math.min(1, (t - t0) / 1400); n.nodeValue = p >= 1 ? orig : fmt(to * (1 - Math.pow(2, -10 * p))); if (p < 1) requestAnimationFrame(tick); }; requestAnimationFrame(tick); };
+  };
+  const tilt = (el) => {
+    if (!full || !el) return;
+    const mv = e => { if (!done.has(el)) return; const r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5; el.animate([{ transform: `perspective(800px) rotateX(${(-y * 8).toFixed(2)}deg) rotateY(${(x * 10).toFixed(2)}deg) translateY(-4px)` }], { duration: 250, fill: 'forwards', easing: 'ease-out' }); };
+    const lv = () => el.animate([{ transform: 'perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0px)' }], { duration: 600, fill: 'forwards', easing: EASE });
+    el.addEventListener('mousemove', mv); el.addEventListener('mouseleave', lv);
+    cleanups.push(() => { el.removeEventListener('mousemove', mv); el.removeEventListener('mouseleave', lv); el.getAnimations().forEach(a => a.cancel()); });
+  };
+
+  // Intro
+  once(nav, [{ opacity: 0, transform: 'translateY(-12px)' }, { opacity: 1, transform: 'none' }], { duration: 700 });
+  const idRow = header.firstElementChild;
+  once(idRow.querySelector('img'), [{ opacity: 0, transform: `scale(${1 - .5 * k}) rotate(${-12 * k}deg)`, filter: `blur(${8 * k}px)` }, { opacity: 1, transform: 'none', filter: 'blur(0px)' }], { duration: 1100, delay: 100, easing: SPRING });
+  once(idRow.lastElementChild, side(-24), { delay: 250 });
+  const h1 = header.querySelector('h1');
+  once(h1, [{ opacity: 0, transform: `translateY(${.45 * k}em) skewY(${4 * k}deg)`, clipPath: 'inset(0 0 100% 0)' }, { opacity: 1, transform: 'none', clipPath: 'inset(-20% -5% -20% -5%)' }], { duration: 1300, delay: 300 });
+  if (full && h1) { const gs = h1.querySelector('span'); anim(gs, [{ backgroundImage: `linear-gradient(90deg,${grad})`, backgroundSize: '200% 100%', backgroundPosition: '0% 50%' }, { backgroundImage: `linear-gradient(90deg,${grad})`, backgroundSize: '200% 100%', backgroundPosition: '100% 50%' }], { duration: 3500, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out', fill: 'none' }); }
+  const p = header.querySelector('p');
+  once(p, up(24), { delay: 550 });
+  const stats = p ? [...p.nextElementSibling.children] : [];
+  stats.forEach((s, i) => { once(s, up(30, .92), { delay: 650 + i * 90 }); const c = count(s.firstElementChild); if (c) later(c, 750 + i * 90); });
+  [...header.lastElementChild.children].forEach((b, i) => once(b, up(16, .96), { delay: 900 + i * 70 }));
+  const fab = [...root.querySelectorAll('a')].find(a => a.style.position === 'fixed');
+  if (fab) { once(fab, [{ opacity: 0, transform: `translateY(${40 * k}px) scale(${1 - .2 * k})` }, { opacity: 1, transform: 'none' }], { delay: 1500, duration: 900, easing: SPRING }); if (full) anim(fab.firstElementChild, [{ boxShadow: '0 0 0 0 rgba(139,92,246,.55)' }, { boxShadow: '0 0 0 14px rgba(139,92,246,0)' }], { duration: 2000, iterations: Infinity, delay: 2600, easing: 'ease-out', fill: 'none' }); }
+
+  // Sections
+  const [s0, s1, s2, s3, s4, s5, s6] = secs;
+  if (s0) { reveal(s0, s0.firstElementChild, up(30)); const g = s0.children[1]; [...g.children].forEach((c, i) => { reveal(g, c, side(i ? 80 : -80, i ? 2 : -2), { duration: 1100, delay: 100 + i * 120 }); tilt(c); }); }
+  if (s1) {
+    reveal(s1, s1.firstElementChild, up(30));
+    const panel = s1.children[1];
+    reveal(panel, panel, [{ opacity: 0, transform: `translateY(${60 * k}px) scale(${1 - .06 * k})`, clipPath: 'inset(6% 3% 6% 3% round 28px)' }, { opacity: 1, transform: 'none', clipPath: 'inset(0% 0% 0% 0% round 28px)' }], { duration: 1200 });
+    reveal(panel, panel.querySelector('p'), up(24), { delay: 200 });
+    const lis = [...panel.querySelectorAll('li')];
+    lis.forEach((li, i) => {
+      reveal(panel, li, up(28, .94), { delay: 350 + i * 110 });
+      if (full) { const a = anim(li, [{ offset: 0, borderColor: '#3A3248', boxShadow: '0 0 0 0 rgba(0,0,0,0)', backgroundColor: 'rgba(255,255,255,0)' }, { offset: .3, borderColor: pink, boxShadow: `0 0 0 1px ${pink}, 0 14px 36px -12px ${pinkA}`, backgroundColor: 'rgba(255,255,255,.04)' }, { offset: 1, borderColor: '#3A3248', boxShadow: '0 0 0 0 rgba(0,0,0,0)', backgroundColor: 'rgba(255,255,255,0)' }], { duration: 1200, iterations: 1, delay: 1100 + i * 220, easing: 'ease-out', fill: 'none' }); a.pause(); a.currentTime = 0; on(panel, () => a.play()); }
+    });
+    reveal(panel, panel.lastElementChild, [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)' }], { duration: 1800, delay: 400 + lis.length * 110, easing: 'steps(56,end)' });
+    const spot = panel.querySelector('[data-spot]');
+    if (full && spot) {
+      const mv = e => { const r = panel.getBoundingClientRect(); spot.animate([{ opacity: 1, transform: `translate(${e.clientX - r.left - 210}px,${e.clientY - r.top - 210}px)` }], { duration: 500, fill: 'forwards', easing: 'ease-out' }); };
+      const lv = () => spot.animate([{ opacity: 0 }], { duration: 600, fill: 'forwards', composite: 'add' });
+      panel.addEventListener('mousemove', mv); panel.addEventListener('mouseleave', lv);
+      cleanups.push(() => { panel.removeEventListener('mousemove', mv); panel.removeEventListener('mouseleave', lv); spot.getAnimations().forEach(a => a.cancel()); });
+    }
+  }
+  if (s2) { reveal(s2, s2.firstElementChild, up(30)); const g = s2.children[1]; [...g.children].forEach((c, i) => { reveal(g, c, [{ opacity: 0, transform: `translateY(${70 * k}px) rotate(${3 * k}deg) scale(${1 - .1 * k})` }, { opacity: 1, transform: 'none' }], { duration: 1100, delay: i * 130, easing: SPRING }); const f = count(c.firstElementChild); if (f) on(g, () => later(f, 200 + i * 130)); tilt(c); }); }
+  if (s3) { reveal(s3, s3.firstElementChild, up(30)); const g = s3.children[1]; [...g.children].forEach((c, i) => reveal(g, c, side(-30), { delay: (i % 2) * 90 + Math.floor(i / 2) * 110 })); }
+  if (s4) {
+    reveal(s4, s4.firstElementChild, up(30));
+    s4.querySelectorAll('article').forEach(art => {
+      reveal(art, art, up(40));
+      reveal(art, art.querySelector('img'), [{ opacity: 0, transform: `scale(${1 - .6 * k}) rotate(${-20 * k}deg)` }, { opacity: 1, transform: 'none' }], { delay: 120, duration: 900, easing: SPRING });
+      const ul = art.querySelector('ul'); if (ul) [...ul.children].forEach((li, i) => reveal(art, li, side(-18), { delay: 220 + i * 80 }));
+      [...art.querySelectorAll('div')].filter(d => d.style.position === 'relative').forEach(pr => {
+        const [v, h, body] = pr.children;
+        reveal(pr, v, [{ transformOrigin: 'top', transform: 'scaleY(0)' }, { transformOrigin: 'top', transform: 'scaleY(1)' }], { duration: 700, easing: 'ease-out' });
+        reveal(pr, h, [{ transformOrigin: 'left', transform: 'scaleX(0)' }, { transformOrigin: 'left', transform: 'scaleX(1)' }], { duration: 400, delay: 400, easing: 'ease-out' });
+        reveal(pr, body, side(30), { delay: 500 });
+      });
+    });
+  }
+  if (s5) { [...s5.children].forEach((c, i) => { reveal(s5, c, side(i ? 60 : -60), { duration: 1100, delay: i * 120 }); tilt(c); }); s5.querySelectorAll('img').forEach((b, i) => reveal(s5, b, [{ opacity: 0, transform: `translateY(${40 * k}px) rotate(${-14 * k}deg)` }, { opacity: 1, transform: 'none' }], { delay: 350 + i * 110, easing: SPRING })); }
+  if (s6) {
+    reveal(s6, s6, [{ opacity: 0, transform: `scale(${1 - .08 * k})`, clipPath: 'inset(10% 6% 10% 6% round 28px)' }, { opacity: 1, transform: 'none', clipPath: 'inset(0% 0% 0% 0% round 28px)' }], { duration: 1200 });
+    if (full) {
+      const arrow = s6.querySelector('h2 a > span'); const aa = anim(arrow, [{ transform: 'translate(0,0)' }, { transform: 'translate(6px,-6px)' }, { transform: 'translate(0,0)' }], { duration: 900, delay: 900, iterations: 2, easing: 'ease-in-out', fill: 'none' }); if (aa) { aa.pause(); aa.currentTime = 0; on(s6, () => aa.play()); }
+      anim(s6, [{ backgroundSize: '220% 220%', backgroundPosition: '0% 0%' }, { backgroundSize: '220% 220%', backgroundPosition: '100% 100%' }], { duration: 7000, iterations: Infinity, direction: 'alternate', easing: 'ease-in-out', fill: 'none' });
+    }
+  }
+
+  // Scroll-linked: progress bar + hero parallax
+  const par = [];
+  const scrub = (el, kf, s, e) => { if (!el) return; const a = el.animate(kf, { duration: 1000, fill: 'both', easing: 'linear', composite: 'add' }); a.pause(); A.push(a); par.push({ a, s, e }); };
+  const bar = root.querySelector('[data-progress]');
+  const barA = bar && bar.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: 1000, fill: 'both', easing: 'linear' }); if (barA) { barA.pause(); A.push(barA); }
+  if (full) {
+    stats.forEach((s, i) => scrub(s, [{ transform: 'translateY(0px)' }, { transform: `translateY(${i % 2 ? -70 : -30}px)` }], 0, 900));
+  }
+  let raf = 0;
+  const upd = () => { raf = 0; const y = scrollY, max = Math.max(1, document.documentElement.scrollHeight - innerHeight); if (barA) barA.currentTime = Math.min(1, y / max) * 1000; par.forEach(({ a, s, e }) => { a.currentTime = Math.max(0, Math.min(1, (y - s) / (e - s))) * 1000; }); };
+  const onScroll = () => { if (!raf) raf = requestAnimationFrame(upd); };
+  addEventListener('scroll', onScroll, { passive: true }); addEventListener('resize', onScroll); upd();
+
+  return () => {
+    io.disconnect(); removeEventListener('scroll', onScroll); removeEventListener('resize', onScroll); cancelAnimationFrame(raf);
+    timers.forEach(t => { clearTimeout(t); cancelAnimationFrame(t); }); cleanups.forEach(f => f()); A.forEach(a => a.cancel()); texts.forEach(({ n, orig }) => { n.nodeValue = orig; });
+  };
+}
+class Component extends DCLogic {
+  componentDidMount() {
+    this._motionKey = `${this.props.motion ?? 'Full'}|${this.props.theme ?? 'Default'}`;
+    this._stopMotion = initMotion(this.props.motion ?? 'Full', (this.props.theme ?? 'Default') === 'TnAir');
+    this._run = () => applyTheme((this.props.theme ?? 'Default') === 'TnAir');
+    this._run();
+    this._mo = new MutationObserver(() => { cancelAnimationFrame(this._raf); this._raf = requestAnimationFrame(this._run); });
+    const root = document.getElementById('dc-root'); if (root) this._mo.observe(root, { childList: true, subtree: true });
+  }
+  componentDidUpdate() {
+    this._run && this._run();
+    const key = `${this.props.motion ?? 'Full'}|${this.props.theme ?? 'Default'}`;
+    if (key !== this._motionKey) { this._motionKey = key; this._stopMotion && this._stopMotion(); this._stopMotion = initMotion(this.props.motion ?? 'Full', (this.props.theme ?? 'Default') === 'TnAir'); }
+  }
+  componentWillUnmount() { this._mo && this._mo.disconnect(); this._stopMotion && this._stopMotion(); }
+  renderVals() {
+    const h = this.props.headline ?? 'Senior Software Product Engineer';
+    return {
+      headlineA: h === 'Senior Software Product Engineer',
+      headlineB: h !== 'Senior Software Product Engineer',
+      showBooks: this.props.showBooks ?? true,
+      showAskAI: this.props.showAskAI ?? true,
+      loop: [
+        { n: '01', text: 'I frame the epic and decide open questions' },
+        { n: '02', text: 'Orchestrator breaks it into Linear tickets' },
+        { n: '03', text: 'Up to 3 parallel agent sessions' },
+        { n: '04', text: '1 ticket = 1 branch = 1 PR, contract-first' },
+        { n: '05', text: 'CI, e2e and post-deploy checks as arbiter' },
+        { n: '06', text: 'Retro → rule changes' },
+      ],
+      impact: [
+        { bg: '#F4EAFE', value: '1M+', text: 'users on each of Cync and August Home – smart-home apps where I shipped key features.' },
+        { bg: '#FDE6F3', value: '3 days', text: 'vs. ~2-week estimate: 200+ colors unified into a design system across 8 projects, AI-assisted.' },
+        { bg: '#F7F4FB', value: '1 day', text: 'Two AI features – grounded chat and page agent – from architecture to delivery in 14 agent sessions.' },
+      ],
+      apps: [
+        { name: 'Cync', publisher: 'Savant Systems', icon: 'assets/cv_app_cync.png', downloads: '1M+', meta: '5.0 ★ · 91.8K' },
+        { name: 'August Home', publisher: 'August Home', icon: 'assets/cv_app_august.png', downloads: '1M+', meta: '4.1 ★ · 18.7K' },
+        { name: 'Savant', publisher: 'Savant Systems', icon: 'assets/cv_app_savant.png', downloads: '100K+', meta: 'downloads' },
+      ],
+      jobs: this._jobs || (this._jobs = buildJobs()),
+      skills: [
+        { title: 'Agentic development', items: 'Claude Code, Cursor · spec-driven development, MCP, AGENTS.md, parallel sessions, git worktrees, orchestration' },
+        { title: 'Android', items: 'Kotlin, Coroutines/Flow, Jetpack Compose, Hilt, Room, KMP, BLE, offline sync, custom UI & animations · fast ramp-up in unfamiliar codebases' },
+        { title: 'Architecture & quality', items: 'MVVM, MVI, Redux, Clean · JUnit, Mockk, Robolectric, Playwright, Vitest · GitHub Actions, CircleCI' },
+        { title: 'iOS', items: 'Swift, UIKit, AutoLayout' },
+        { title: 'Product ownership', items: 'Owning problems and their solutions, spec-first delivery, fast prototyping & iteration, feature ownership end-to-end, close loop with design and PM, pixel-perfect UI' },
+        { title: 'AI engineering', items: 'LLM APIs, streaming, tool use with strict schemas, prompt caching, grounding & guardrails, golden-set evals' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

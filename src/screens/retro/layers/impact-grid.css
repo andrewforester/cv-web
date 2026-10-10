@@ -1,0 +1,12 @@
+[data-retro-stage] div:has(> [data-testid='home-impact-card']) {
+  grid-template-columns: 1fr;
+  gap: 2px;
+}
+
+[data-retro-stage] div:has(> [data-testid='home-craft-card']) {
+  gap: 2px;
+}
+
+[data-retro-stage] [data-testid='home-impact-card'] {
+  min-height: 0;
+}

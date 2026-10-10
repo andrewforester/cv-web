@@ -1,0 +1,11 @@
+.notice {
+  padding: var(--space-2) var(--space-5);
+  background: var(--chat-notice-bg);
+  border-bottom: var(--border-card) solid var(--color-dark-number);
+}
+
+@media (width <= 599px), (height <= 499px) {
+  .notice {
+    padding-inline: var(--space-4);
+  }
+}
