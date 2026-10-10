@@ -76,14 +76,14 @@
   font-weight: 700;
 }
 
-.collapsed .triangle {
-  transform: rotate(-90deg);
-}
-
 .triangle,
 .result,
 .result .gutter {
   color: var(--devtools-text-dim);
+}
+
+.collapsed .triangle {
+  transform: rotate(-90deg);
 }
 
 .prompt {

@@ -69,12 +69,6 @@
   background-color: var(--retro-highlight-content);
 }
 
-.fading .box,
-.fading .page,
-.fading .plate {
-  opacity: 0;
-}
-
 .plate {
   position: fixed;
   bottom: 0;
@@ -90,6 +84,12 @@
   line-height: var(--retro-plate-line-height);
   letter-spacing: normal;
   white-space: nowrap;
+}
+
+.fading .box,
+.fading .page,
+.fading .plate {
+  opacity: 0;
 }
 
 /* Bottom-left corner on the point `left`/`top` (the block's corner), overlapping the block. */

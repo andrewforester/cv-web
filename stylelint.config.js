@@ -9,12 +9,25 @@ const runtimeProperties = {
   '--retro-badge-new': 'none',
 };
 
+/** Keywords every tokens-only property accepts. */
+const keywords = [
+  'inherit',
+  'initial',
+  'unset',
+  'transparent',
+  'currentcolor',
+  'currentColor',
+  'none',
+  '0',
+];
+
 /** Tokens-only CSS for the site (root AGENTS.md → Conventions), relaxed for the retro show's deliberate 2002 look. */
 export default {
   extends: ['stylelint-config-standard', 'stylelint-config-css-modules'],
   plugins: ['stylelint-declaration-strict-value', 'stylelint-value-no-unknown-custom-properties'],
   rules: {
-    'selector-class-pattern': '^[a-z][a-zA-Z0-9]*$',
+    // `retro-live` is a global view-transition-class shared by RetroMotion.module.css and the TSX that sets it.
+    'selector-class-pattern': '^([a-z][a-zA-Z0-9]*|retro-live)$',
     'import-notation': 'string',
     // Its autofix folds readable longhands (top/left/right, transition-*) into one long shorthand.
     'declaration-block-no-redundant-longhand-properties': null,
@@ -30,9 +43,11 @@ export default {
       {
         // A key per property replaces the '' defaults, so each list repeats them.
         ignoreValues: {
-          '': ['inherit', 'transparent', 'currentcolor', 'none', '0', 'initial', 'unset'],
-          '/color$/': ['inherit', 'transparent', 'currentcolor', 'none', 'initial', 'unset'],
-          'border-radius': ['inherit', '0', '50%', 'initial', 'unset'],
+          '': keywords,
+          '/color$/': keywords,
+          'border-radius': [...keywords, '50%'], // a circle is not a token
+          'box-shadow': [...keywords, 'inset'], // a keyword: lengths and colours are still checked
+          'font-size': [...keywords, '100%'], // the root reset to the browser's size
         },
       },
     ],

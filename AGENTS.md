@@ -33,14 +33,14 @@ Skills refer to these slots by name (*lint*, *format*, *test*, *build*, *run*, *
 
 | Slot | Command | Notes |
 |---|---|---|
-| lint | `npm run lint` | ESLint (zero warnings) + `prettier --check` + `tsc -b` |
-| format | `npm run format` | auto-fix for *lint* (Prettier + `eslint --fix`) |
+| lint | `npm run lint` | ESLint (zero warnings) + Stylelint on `src/**/*.css` + `prettier --check` + `tsc -b` |
+| format | `npm run format` | auto-fix for *lint* (`stylelint --fix` + Prettier + `eslint --fix`) |
 | test | `npm test` | fast tests, no device/emulator: Vitest projects `web` (Testing Library, jsdom, `src/**/*.test.ts(x)`) and `server` (node, `server/**/*.test.ts`, fake LLM only; the setup deletes `ANTHROPIC_API_KEY`) |
 | build | `npm run build` | production build; output dir: `dist/` (base path `/`). `npm run build:e2e` is the same build with `VITE_VOICE_FAKE=1` (keeps `?voice=fake` for the e2e; production never sets it) |
 | run | `npm run dev` | local dev server, http://localhost:5173/; also serves `POST /api/chat` (env from `.env.local`, see `.env.example`; `CHAT_FAKE_LLM=1` answers without a key) |
 | web check | `npm run build:e2e && npm run web-check` | Playwright serves `dist/` with `vite preview` (CI: http://localhost:4173/; locally a port derived from the worktree path, or `PW_PORT`, so parallel sessions never share a server), browser locale `en-US`, two projects: `desktop` (Chromium 1280×800, every test) and `mobile` (the same Chromium as a 390×844 touch phone, only tests titled `@mobile`: the page, the page agent, the Show case's first frame); fails on `pageerror`/console errors; screenshots in `web-check/` (`home.png`, `chat*.png`, `agent.png`, `retro-*.png`, and the phone's `home-mobile.png`, `agent-mobile.png`, `retro-start-mobile.png`). In the cloud container the preinstalled Chromium is used (no `playwright install`). `npm run web-check:prod` runs only the `@prod` tests against production (`PW_BASE_URL`, no local server). |
 
-Before every push: *lint* and *test* must pass. In Claude Code sessions (local and cloud) a `PostToolUse` hook (`.claude/hooks/lint-edited-file.sh`) runs ESLint on every `.ts`/`.tsx` file right after it is edited and feeds errors back; fix them on the spot. It skips silently when `node_modules` is missing. `tsc`, Prettier and the tests still run only in *lint* and *test*.
+Before every push: *lint* and *test* must pass. In Claude Code sessions (local and cloud) a `PostToolUse` hook (`.claude/hooks/lint-edited-file.sh`) runs ESLint on every `.ts`/`.tsx` file and Stylelint on every `.css` file right after it is edited and feeds errors back; fix them on the spot. It skips silently when `node_modules` is missing. `tsc`, Prettier and the tests still run only in *lint* and *test*.
 
 Chat env (server-side only; Vercel Project Settings for Production + Preview, `.env.local` for dev): `ANTHROPIC_API_KEY` (missing: `/api/chat` answers `503`), `CHAT_MODEL` (`claude-haiku-4-5` default, or `claude-sonnet-5-5`), `CHAT_ENABLED` (`false` = kill switch), `CHAT_FAKE_LLM` (`1` = scripted answers; dev/tests only, ignored on Vercel). No test or CI job calls a real model. Try the endpoint with `curl -N -X POST http://localhost:5173/api/chat -H 'Content-Type: application/json' -H 'Origin: http://localhost:5173' -d '{"v":4,"messages":[{"role":"user","content":"Hi","page":{"viewport":"desktop","chat":"card","activeSection":null,"highlighted":null,"tools":[]}}]}'`.
 
@@ -50,7 +50,7 @@ Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `n
 
 ## Conventions
 
-- TypeScript strict (`noUncheckedIndexedAccess` on), React function components, CSS Modules (`<Component>.module.css`) using only `var(--token)` values. ESLint flat config (`eslint.config.js`: typescript-eslint strict, react-hooks, react-refresh) + Prettier (`.prettierrc.json`: single quotes, width 100) enforce it via *lint*. Markdown is not auto-formatted.
+- TypeScript strict (`noUncheckedIndexedAccess` on), React function components, CSS Modules (`<Component>.module.css`) using only `var(--token)` values. ESLint flat config (`eslint.config.js`: typescript-eslint strict, react-hooks, react-refresh) + Stylelint (`stylelint.config.js`: tokens only, no `!important`, camelCase classes) + Prettier (`.prettierrc.json`: single quotes, width 100) enforce it via *lint*. Markdown is not auto-formatted.
 - Strings (English only): `defineStrings({ en })` per namespace, read with `useStrings(ns)`; screen namespace in `src/screens/<screen>/strings.ts`, shared one in `src/i18n/common.ts`. CV content is data (`src/data`), not strings.
 - Components: one per file, props/state in, callbacks out, first optional param is the styling hook (e.g. `className`/`modifier`) when the stack has one.
 - Never hardcode colours, text sizes or user-visible strings in screens: use design tokens and the strings/i18n mechanism.
@@ -59,7 +59,7 @@ Cloud sessions: `.claude/hooks/session-start.sh` prepares the container: runs `n
 - **Building a screen or UI component:** work only from its design package `docs/design/<screen>/` (`SPEC.md`, `screenshot.png`, `assets/`) and never call design-tool MCPs; with only an image, take the style from the reference (**Design** below). Write down the component tree before coding. Tokens first: a new colour, text style, radius or spacing goes into `src/theme/tokens.css`; reuse an existing token when the value matches within ≈2 px or the colour is near-identical. Icons are single-colour vectors tinted in code; screen images and strings live in the screen folder under the `<screen>` prefix/namespace. Key elements get stable test ids. Finish with the *web check*: compare its screenshot side by side with the design and fix visible differences.
 - Mock data lives behind a small interface in the data layer, so a real backend can replace it later.
 - Public files are referenced as `/favicon.svg` in `index.html` and through `import.meta.env.BASE_URL` in code, never a bare `/`, so the base path can change.
-- No stylelint yet: "tokens only in CSS" is checked by review (the `#000` in `mask` gradients is the only allowed literal).
+- "Tokens only in CSS" is checked by Stylelint in *lint* (colours, `font-size`, `font-family`, `border-radius`, `z-index`, `box-shadow`). Allowed literals: `0`/keywords, `border-radius: 50%`, `inset` in `box-shadow`, `font-size: 100%` in `global.css`, and everything in `tokens.css` and the retro show's 2002 layers. Never use `stylelint-disable`: add a token, or a reasoned exception in `stylelint.config.js`.
 
 ## Architecture & code quality
 
@@ -96,7 +96,7 @@ Each has one owner: a role, not a particular session. Two tasks touching the sam
 
 | What | Owner | Others |
 |---|---|---|
-| `package.json`, `package-lock.json`, `.nvmrc`, `vite.config.ts`, `tsconfig*.json`, `eslint.config.js`, `.prettierrc.json`, `.prettierignore`, `playwright.config.ts`, `e2e/**`, `.github/workflows/**`, `.github/dependabot.yml`, `.claude/hooks/**` | Scaffold (DevOps) | ask in a comment |
+| `package.json`, `package-lock.json`, `.nvmrc`, `vite.config.ts`, `tsconfig*.json`, `eslint.config.js`, `stylelint.config.js`, `.prettierrc.json`, `.prettierignore`, `playwright.config.ts`, `e2e/**`, `.github/workflows/**`, `.github/dependabot.yml`, `.claude/hooks/**` | Scaffold (DevOps) | ask in a comment |
 | `index.html`, `src/main.tsx`, `src/app/**` (app shell, `AppProviders`) | Scaffold | a screen may only register its own route in `src/app/App.tsx` |
 | `src/theme/**` (`tokens.css`, `global.css`), fonts | Theme (Development) | the theme merges **before** screens that depend on it |
 | `src/shared/**` | Theme | a component lives in its screen folder first; when a second screen needs it, a separate PR moves it |

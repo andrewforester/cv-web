@@ -319,6 +319,7 @@
     var(--color-brand-pink)
   );
   --voice-orb-shadow: 0 30px 80px -20px rgb(139 92 246 / 55%);
+  --voice-chip-z-index: 1;
   --voice-level-smoothing: 100ms;
   --voice-spin-listening: 12s;
   --voice-spin-speaking: 6s;
