@@ -81,7 +81,7 @@ jobs:
       - name: Project settings (preview)
         if: ${{ steps.paths.outputs.run == 'true' }}
         run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ steps.paths.outputs.run == 'true' }}
         with:
           name: vercel-project-preview
@@ -114,7 +114,7 @@ jobs:
       - uses: ./.github/workflows/vercel-cli
       - name: Build (preview, no secrets)
         run: vercel build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: vercel-output-preview
           path: .vercel/output
