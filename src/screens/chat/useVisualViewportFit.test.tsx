@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { useRef } from 'react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { useVisualViewportFit } from './useVisualViewportFit';
 
 function Probe({ sheet }: { sheet: boolean }) {
@@ -18,6 +18,9 @@ function mockViewport(height: number, offsetTop: number) {
 }
 
 describe('useVisualViewportFit', () => {
+  beforeEach(() => {
+    window.innerHeight = 844;
+  });
   afterEach(() => Reflect.deleteProperty(window, 'visualViewport'));
 
   it('follows the visual viewport while the sheet is open', () => {
@@ -26,11 +29,14 @@ describe('useVisualViewportFit', () => {
     const dialog = getByTestId('dialog');
     expect(dialog.style.getPropertyValue('--chat-vv-height')).toBe('844px');
 
+    expect(dialog.style.getPropertyValue('--chat-vv-bottom')).toBe('0px');
+
+    // The keyboard opens over a 844 px layout viewport and the visual viewport scrolls by 30 px.
     viewport.height = 450;
     viewport.offsetTop = 30;
     viewport.dispatchEvent(new Event('resize'));
     expect(dialog.style.getPropertyValue('--chat-vv-height')).toBe('450px');
-    expect(dialog.style.getPropertyValue('--chat-vv-top')).toBe('30px');
+    expect(dialog.style.getPropertyValue('--chat-vv-bottom')).toBe('364px');
   });
 
   it('does nothing outside the sheet layout', () => {
