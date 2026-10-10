@@ -16,7 +16,7 @@ scripts/bootstrap.sh --name "Product Name" --dry-run   # see what it will do
 scripts/bootstrap.sh --name "Product Name"
 ```
 
-It fills the project name and repo into the docs and skills, then creates the branch `ci-watch` and the draft PR "CI watch: main (never merge)" for the `qa-release` role. This repo's copy of the script is the old one and also created GitHub labels and the orphan `screens` branch: neither is used any more (labels live in Linear, screenshots are uploaded to tickets, see the `linear-screenshot` skill). The current script is in the template (`andrewforester/ai-dev-kit`).
+It fills the project name and repo into the docs and skills, then creates the branch `ci-watch` and the draft PR "CI watch: main (never merge)" for the `qa-release` role. Labels live in Linear (`.claude/skills/orchestrate/tooling.md` → Tracker); screenshots go to tickets (skill `linear-screenshot`). The maintained script is in the template (`andrewforester/ai-dev-kit`).
 
 Re-running it is safe.
 
