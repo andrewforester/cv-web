@@ -14,7 +14,7 @@
     top: auto;
     left: 0;
     right: 0;
-    bottom: var(--chat-vv-bottom, 0px);
+    bottom: var(--chat-vv-bottom, 0);
     width: auto;
     height: var(--chat-sheet-height);
     border-bottom: 0;
