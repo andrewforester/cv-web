@@ -1,8 +1,16 @@
-# .github/actions
+# .github/workflows
 
-Local composite actions the workflows share (`.github/workflows/`, see
-`docs/adr/0014-branches-and-ci-levels.md`). They exist to make CI faster without weakening the
-deploy's secrets split (CV-166).
+The project's CI: one workflow per branch level (`docs/adr/0014-branches-and-ci-levels.md`), the
+checks they share, and the production deploy. What runs when, and the names to read, are in the
+root `AGENTS.md` → Git & CI.
+
+- `checks.yml`: the reusable checks (`Lint & tests`, `e2e`) every level calls.
+- `dev.yml` (Dev, Ready PRs), `staging.yml` (Staging, `feature/**` pushes), `production.yml`
+  (Production, `main`: checks, build once, deploy, smoke, rollback), `prod-smoke.yml` (Production
+  smoke: after each deploy and daily).
+
+Subfolders hold local composite actions (GitHub reads workflows only from this folder's top level),
+there to make CI faster without weakening the deploy's secrets split (CV-166):
 
 - `playwright-chromium/`: Playwright's Chromium for the e2e and the production smoke. The browser
   download is cached by the Playwright version in `package-lock.json`; the system packages
@@ -17,5 +25,5 @@ deploy's secrets split (CV-166).
   tampered cache can't change the CLI; `--ignore-scripts` keeps package code from running at
   install. A cached `node_modules` or global install would have no such check.
 
-Limits: composite steps can't set `timeout-minutes`; the job's timeout covers them. The jobs
-that use them must check out the repo first (a local action is read from the checkout).
+Limits: composite steps can't set `timeout-minutes`; the job's timeout covers them. A job that uses
+a local action must check out the repo first (the action is read from the checkout).

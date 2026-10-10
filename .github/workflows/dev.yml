@@ -37,7 +37,7 @@ jobs:
   #    no env (runtime env comes from Vercel), so it doesn't need the pulled `.env` file.
   # 3. deploy (token, no project code): `vercel deploy --prebuilt` of that output.
   # `include-hidden-files`: the output's functions carry `.vc-config.json`. The CLI comes from
-  # .github/actions/vercel-cli (lockfile-pinned, no install scripts).
+  # .github/workflows/vercel-cli (lockfile-pinned, no install scripts).
   #
   # Proves the Vercel token and the CLI build on a PR that changes the deploy path, without touching
   # production. Only those PRs, so ordinary ones don't spend the Hobby limit (100 deployments a
@@ -65,18 +65,18 @@ jobs:
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "No Vercel secrets in this run (fork or Dependabot PR): no preview."
-          elif git diff --name-only "$BASE_SHA" HEAD | grep -qE '^(\.github/(workflows|actions)/|vercel\.json$|package(-lock)?\.json$)'; then
+          elif git diff --name-only "$BASE_SHA" HEAD | grep -qE '^(\.github/workflows/|vercel\.json$|package(-lock)?\.json$)'; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
-            echo "No change to workflows, actions, vercel.json or package*.json: no preview."
+            echo "No change to workflows, vercel.json or package*.json: no preview."
           fi
       - uses: actions/setup-node@v4
         if: ${{ steps.paths.outputs.run == 'true' }}
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: .github/actions/vercel-cli/package-lock.json
-      - uses: ./.github/actions/vercel-cli
+          cache-dependency-path: .github/workflows/vercel-cli/package-lock.json
+      - uses: ./.github/workflows/vercel-cli
         if: ${{ steps.paths.outputs.run == 'true' }}
       - name: Project settings (preview)
         if: ${{ steps.paths.outputs.run == 'true' }}
@@ -110,8 +110,8 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            .github/actions/vercel-cli/package-lock.json
-      - uses: ./.github/actions/vercel-cli
+            .github/workflows/vercel-cli/package-lock.json
+      - uses: ./.github/workflows/vercel-cli
       - name: Build (preview, no secrets)
         run: vercel build
       - uses: actions/upload-artifact@v4
@@ -146,8 +146,8 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: .github/actions/vercel-cli/package-lock.json
-      - uses: ./.github/actions/vercel-cli
+          cache-dependency-path: .github/workflows/vercel-cli/package-lock.json
+      - uses: ./.github/workflows/vercel-cli
       - name: Deploy (preview, never --prod)
         run: |
           url=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")

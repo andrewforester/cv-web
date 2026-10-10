@@ -36,7 +36,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - uses: ./.github/actions/playwright-chromium
+      - uses: ./.github/workflows/playwright-chromium
       - name: Playwright @prod subset
         run: npm run web-check:prod
       - name: /api/chat rejects GET with 405 JSON

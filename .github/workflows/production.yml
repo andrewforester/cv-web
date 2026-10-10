@@ -134,8 +134,8 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: .github/actions/vercel-cli/package-lock.json
-      - uses: ./.github/actions/vercel-cli
+          cache-dependency-path: .github/workflows/vercel-cli/package-lock.json
+      - uses: ./.github/workflows/vercel-cli
         if: ${{ steps.live.outputs.deploy == 'true' }}
       - name: Project settings (production)
         if: ${{ steps.live.outputs.deploy == 'true' }}
@@ -169,8 +169,8 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            .github/actions/vercel-cli/package-lock.json
-      - uses: ./.github/actions/vercel-cli
+            .github/workflows/vercel-cli/package-lock.json
+      - uses: ./.github/workflows/vercel-cli
       - name: Build (production, no secrets)
         run: vercel build --prod
       - uses: actions/upload-artifact@v4
@@ -215,8 +215,8 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-          cache-dependency-path: .github/actions/vercel-cli/package-lock.json
-      - uses: ./.github/actions/vercel-cli
+          cache-dependency-path: .github/workflows/vercel-cli/package-lock.json
+      - uses: ./.github/workflows/vercel-cli
       # The GitHub Deployment for this commit (environment Production), only when CI really
       # deploys; its status follows the deploy below and the rollback job.
       - name: GitHub deployment
