@@ -1,0 +1,8 @@
+{
+  "name": "cv-web-vercel-cli",
+  "private": true,
+  "description": "The Vercel CLI for CI's deploy jobs, pinned with a lockfile (see AGENTS.md)",
+  "dependencies": {
+    "vercel": "62.4.0"
+  }
+}

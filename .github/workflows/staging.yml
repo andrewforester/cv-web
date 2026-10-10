@@ -1,0 +1,22 @@
+name: Staging
+
+# An epic branch feature/<epic> (docs/adr/0014-branches-and-ci-levels.md): every push, usually a
+# task PR's merge, runs the checks on the combined state before the epic's PR to main. The
+# staging deployment the human looks at is Vercel's own Git deployment of the branch, not this
+# workflow (vercel.json -> git.deploymentEnabled).
+on:
+  push:
+    branches: ['feature/**']
+
+# A new push cancels the branch's older run.
+concurrency:
+  group: staging-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Checks
+    uses: ./.github/workflows/checks.yml
