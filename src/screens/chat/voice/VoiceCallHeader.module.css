@@ -10,7 +10,7 @@
   display: none;
 }
 
-@media (max-height: 499px) {
+@media (height <= 499px) {
   .badge {
     display: none;
   }

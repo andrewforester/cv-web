@@ -13,13 +13,13 @@
   transition: box-shadow var(--chat-transition);
 }
 
-/* The page's primary CTA: the gradient, glowing on hover. */
-.button:hover:enabled {
-  box-shadow: var(--shadow-cta);
-}
-
 .button:disabled {
   color: var(--color-ink-4);
   background: var(--chat-fill-hover);
   cursor: default;
+}
+
+/* The page's primary CTA: the gradient, glowing on hover. */
+.button:hover:enabled {
+  box-shadow: var(--shadow-cta);
 }

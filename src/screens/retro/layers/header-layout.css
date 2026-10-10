@@ -2,9 +2,11 @@
   align-items: center;
   gap: 8px;
 }
+
 [data-retro-stage] div:has(> [data-testid='home-contact']) {
   display: block;
 }
+
 [data-retro-stage] [data-testid='home-contact'] {
   display: inline;
   margin: 0 8px;

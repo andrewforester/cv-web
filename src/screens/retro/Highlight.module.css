@@ -42,6 +42,7 @@
 .padding {
   border-color: var(--retro-highlight-padding);
   background-color: var(--retro-highlight-content);
+
   /* The content fill stops inside the padding ring: the regions never overlap. */
   background-clip: padding-box;
   transition: background-color var(--retro-highlight-flash) linear;
@@ -68,12 +69,6 @@
   background-color: var(--retro-highlight-content);
 }
 
-.fading .box,
-.fading .page,
-.fading .plate {
-  opacity: 0;
-}
-
 .plate {
   position: fixed;
   bottom: 0;
@@ -89,6 +84,12 @@
   line-height: var(--retro-plate-line-height);
   letter-spacing: normal;
   white-space: nowrap;
+}
+
+.fading .box,
+.fading .page,
+.fading .plate {
+  opacity: 0;
 }
 
 /* Bottom-left corner on the point `left`/`top` (the block's corner), overlapping the block. */

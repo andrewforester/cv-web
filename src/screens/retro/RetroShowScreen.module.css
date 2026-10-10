@@ -84,7 +84,7 @@
     opacity: 1;
   }
 
-  to {
+  100% {
     right: var(--space-6);
     bottom: var(--space-6);
     width: var(--chat-control-size);

@@ -4,7 +4,7 @@
   border-bottom: var(--border-card) solid var(--color-dark-number);
 }
 
-@media (max-width: 599px), (max-height: 499px) {
+@media (width <= 599px), (height <= 499px) {
   .notice {
     padding-inline: var(--space-4);
   }

@@ -3,7 +3,7 @@
   position: absolute;
   top: var(--space-4);
   left: 50%;
-  z-index: 1;
+  z-index: var(--voice-chip-z-index);
   max-width: calc(100% - 2 * var(--space-4));
   margin: 0;
   display: inline-flex;
@@ -27,7 +27,7 @@
   color: var(--color-dark-number);
 }
 
-@media (max-width: 599px), (max-height: 499px) {
+@media (width <= 599px), (height <= 499px) {
   .chip {
     top: var(--space-2);
   }

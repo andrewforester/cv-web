@@ -4,6 +4,7 @@
   border: 3px ridge #808080;
   border-radius: 0;
 }
+
 [data-retro-stage] [data-testid='home-loop-step'] {
   padding: 1px 0;
   border: none;

@@ -13,7 +13,7 @@
   list-style: none;
 }
 
-@media (max-width: 599px), (max-height: 499px) {
+@media (width <= 599px), (height <= 499px) {
   .list {
     padding-inline: var(--space-4);
   }

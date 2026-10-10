@@ -11,6 +11,7 @@
   z-index: var(--chat-z-index);
   width: var(--chat-panel-width);
   height: min(var(--chat-panel-height), calc(100dvh - 2 * var(--space-4)));
+
   /* The phone sheets' timing: the panel's phone CSS names its own keyframes. */
   animation: fade-in var(--chat-motion-duration) var(--chat-motion-easing) both;
 }
@@ -36,7 +37,7 @@
  * way. Open and collapse into the launcher here; collapse during a call and expand are the same
  * morph with the call pill.
  */
-@media (min-width: 600px) and (min-height: 500px) and (prefers-reduced-motion: no-preference) {
+@media (width >= 600px) and (height >= 500px) and (prefers-reduced-motion: no-preference) {
   .frame {
     animation:
       morph-in var(--chat-slide-duration) var(--chat-slide-easing) backwards,

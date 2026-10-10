@@ -23,7 +23,7 @@
 }
 
 /* The phone chat is a bottom sheet: no frame touches the top of the screen, so no top inset. */
-@media (max-width: 599px), (max-height: 499px) {
+@media (width <= 599px), (height <= 499px) {
   .header {
     padding-left: var(--space-4);
   }

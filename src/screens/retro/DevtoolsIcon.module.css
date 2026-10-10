@@ -4,6 +4,6 @@
   flex: none;
   width: var(--console-icon-size);
   height: var(--console-icon-size);
-  background: currentColor;
+  background: currentcolor;
   mask: var(--devtools-icon-src) center / contain no-repeat;
 }

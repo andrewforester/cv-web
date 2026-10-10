@@ -4,6 +4,6 @@
   flex: none;
   width: var(--chat-icon-size);
   height: var(--chat-icon-size);
-  background: currentColor;
+  background: currentcolor;
   mask: var(--chat-icon-src) center / contain no-repeat;
 }

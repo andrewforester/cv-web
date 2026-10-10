@@ -12,6 +12,12 @@
   background: var(--color-surface-violet);
 }
 
+.text {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+  text-wrap: pretty;
+}
+
 .violet .text {
   margin-top: var(--space-1-5);
 }
@@ -37,12 +43,6 @@
 
 .secondary {
   color: var(--color-ink-3);
-}
-
-.text {
-  font-size: var(--type-body-size);
-  line-height: var(--type-body-line-height);
-  text-wrap: pretty;
 }
 
 .books {
