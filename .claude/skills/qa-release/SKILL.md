@@ -10,8 +10,8 @@ You own `main` after merges; developer sessions merge their own PRs after a pass
 ## How you hear about main
 - At start, follow the standing CI signal for `main`. Then you only wake on its events. No recurring check-ins.
 - Never merge, close or change that signal; if it's gone, recreate it as `tooling.md` describes and tell the orchestrator and the human.
-- Each event names a commit: look at the CI run for that commit, not just "the latest". A running build on `main` is cancelled when the next merge lands; a cancelled run means nothing, wait for the newer commit's run. Merges can come from anyone (other sessions, the human), not only the orchestrator.
-- Red means a failed CI run or a failed production smoke run (`tooling.md`) for the commit. A hosting status on the commit alone (e.g. a rate-limited deploy) is not a red build: production lags; tell the human.
+- Each event names a commit: look at the CI run for that commit, not just "the latest". Runs on `main` queue and never cancel a running one, but a waiting run is cancelled when a newer merge queues behind it; a cancelled run means nothing, wait for the newer commit's run. Merges can come from anyone (other sessions, the human), not only the orchestrator.
+- Red means a failed production run for the commit, or a failed scheduled production smoke (the live site broke without a merge: nothing to revert, investigate and tell the human; `tooling.md`). A hosting status on the commit alone (e.g. a rate-limited deploy) is not a red build: production lags; tell the human.
 
 ## On each event
 Act only if the run is the newest completed, non-cancelled one on `main`.

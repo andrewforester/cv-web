@@ -22,12 +22,12 @@ Re-running it is safe.
 
 ## 3. Outside the repository (by hand)
 
-- **Vercel** (vercel.com, Hobby): import the repo (Add New → Project), allow the Vercel GitHub App on it. Production branch = `main`; every PR gets a preview deployment. Build settings come from `vercel.json`, no token in CI. Previews may be behind Vercel Authentication (Deployment Protection) by default: open them logged in to Vercel, or turn it off in the project's settings.
+- **Vercel** (vercel.com, Hobby): import the repo (Add New → Project), allow the Vercel GitHub App on it. Production branch = `main`, deployed by the Production workflow (secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`), not by the Git integration; other branches get a preview deployment except `claude/**` (`vercel.json` → `git.deploymentEnabled`). Build settings come from `vercel.json`. Previews may be behind Vercel Authentication (Deployment Protection) by default: open them logged in to Vercel, or turn it off in the project's settings.
 
 - **Cloud environment** (claude.ai/code → environments): create one for the repo. Allowed domains: `registry.npmjs.org` (npm packages; Playwright uses the container's preinstalled Chromium). The session-start hook warns when one is missing.
 - **Connectors** on claude.ai: GitHub is required (sessions update PRs through it) and Linear (the tracker: team, project per epic, the Role/Type label groups from `.claude/skills/orchestrate/tooling.md` → Tracker; install Linear's GitHub integration so `Closes CV-N` in a PR body links and closes the ticket); a design tool (Figma) only if the project has a design file.
 - **Settings → Actions → General:** allow GitHub Actions to create and approve pull requests only if a workflow needs it; otherwise leave the defaults.
-- **Branch protection on `main`** (optional): require the `Lint & tests` check once Scaffold has made it real.
+- **Branch protection on `main`**: none, by the human's decision (2026-10-10, `docs/adr/0014-branches-and-ci-levels.md`); the merge rules live in the develop/orchestrate skills and `scripts/audit-pr.sh` checks them. Should that change, the check to require is `Checks / Lint & tests` (workflow Dev).
 
 ## 4. After bootstrap
 

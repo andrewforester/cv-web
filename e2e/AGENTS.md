@@ -3,7 +3,8 @@
 Why it exists: the last gate before a change reaches visitors. It proves that the production
 build actually starts and works in a real browser, which unit tests in jsdom
 can't: a green build can still crash at startup. It is the *web check* in the root `AGENTS.md`
-and the `e2e` job in CI (non-draft PRs and pushes to `main`).
+and the `e2e` job of `.github/workflows/checks.yml`, run by Dev (Ready PRs; skipped when a PR
+changes only docs), Staging (`feature/**` pushes) and Production (`main`).
 
 Two Playwright projects, both inside `npm run web-check`: `desktop` (Chromium 1280 × 800) runs
 every test; `mobile` (the same Chromium as a phone: 390 × 844, `isMobile`, `hasTouch`) runs only
@@ -47,9 +48,9 @@ What it guarantees today:
 
 Production smoke: tests titled `@prod` (the home page on both projects, `/new` on desktop; `/new`
 must end on `/`) also run against the live site right after CI deploys production
-(`.github/workflows/prod-smoke.yml`, called by the `deploy` → `smoke` jobs in `ci.yml`, plus a manual `workflow_dispatch`), with `curl`s that
+(`.github/workflows/prod-smoke.yml`, called by the `deploy` → `smoke` jobs in `production.yml`, plus a daily `schedule` and a manual `workflow_dispatch`, neither of which rolls back), with `curl`s that
 `GET /api/chat` and `GET /api/voice-session` answer `405` JSON. A failed smoke rolls production back to the previous
-deployment and leaves the CI run red. Locally: `npm run web-check:prod` (`PW_BASE_URL` overrides
+deployment and leaves the Production run red. Locally: `npm run web-check:prod` (`PW_BASE_URL` overrides
 the production domain; any `PW_BASE_URL` makes Playwright start no server). Never tag a test
 `@prod` unless it makes no `/api/chat` call or mocks it.
 
