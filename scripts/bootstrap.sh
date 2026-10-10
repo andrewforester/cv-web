@@ -110,14 +110,14 @@ else
   run git push origin "$SCREENS_COMMIT:refs/heads/screens"
 fi
 
-# 5. CI-watch PR: relays main's push CI to the qa-release session.
+# 5. CI-watch PR: relays main's Production runs to the qa-release session.
 CI_WATCH_TITLE="CI watch: main (never merge)"
 EXISTING=$(gh pr list --state open --head "$DEFAULT_BRANCH" --base ci-watch --json number -q '.[0].number' 2>/dev/null || true)
 if [ -n "$EXISTING" ]; then
   echo "CI-watch PR: #$EXISTING"
 else
   run gh pr create --draft --head "$DEFAULT_BRANCH" --base ci-watch --title "$CI_WATCH_TITLE" \
-    --body "Permanent draft PR: main's push CI reports on its head commit, so the qa-release session hears about every merge. Never merge, close or mark ready. See .claude/skills/qa-release."
+    --body "Permanent draft PR: main's Production runs report on its head commit, so the qa-release session hears about every merge. Never merge, close or mark ready. See .claude/skills/qa-release."
 fi
 
 # 6. GitHub Pages from Actions (private repos need a paid plan).

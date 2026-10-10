@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # The orchestrator's audit of a merged task PR (.claude/skills/orchestrate → Audit and close).
 # Checks the process, not the code: merged with "Closes CV-N", the last reviewer verdict is
-# "Review passed" on the merged head, and CI (Lint & tests, e2e) was green on that head.
+# "Review passed" on the merged head, and the Dev checks (Lint & tests, e2e) were green on that
+# head; a skipped e2e passes only on a docs-only PR (Dev skips it there).
 # Usage: scripts/audit-pr.sh <PR number>. Exit 0 = all OK; otherwise the FAIL lines say what.
 set -euo pipefail
 
 pr="${1:?usage: scripts/audit-pr.sh <PR number>}"
-json="$(gh pr view "$pr" --json state,headRefOid,body,comments,reviews,statusCheckRollup)"
+json="$(gh pr view "$pr" --json state,headRefOid,body,comments,reviews,statusCheckRollup,files)"
 fail=0
 check() { if [ "$1" = ok ]; then echo "OK    $2"; else echo "FAIL  $2"; fail=1; fi; }
 
@@ -32,9 +33,15 @@ case "$verdict" in
   *) check no "last verdict: $verdict" ;;
 esac
 
+# Dev's checks come from the reusable checks.yml, so GitHub names them "Checks / Lint & tests";
+# PRs from before the split (CV-227) carry the bare names.
+# Docs-only: nothing outside docs/, .claude/ and *.md (the rule in checks.yml).
+docs_only="$(jq -r '[.files[].path] | (length > 0 and all(test("^(docs/|\\.claude/)|\\.md$")))' <<<"$json")"
 for name in "Lint & tests" "e2e"; do
-  c="$(jq -r --arg n "$name" '[.statusCheckRollup[] | select(.name == $n)] | sort_by(.completedAt // "") | last | .conclusion // "missing"' <<<"$json")"
-  [ "$c" = SUCCESS ] && s=ok || s=no
+  c="$(jq -r --arg n "$name" '[.statusCheckRollup[] | select(.name == $n or (.name // "" | endswith(" / " + $n)))] | sort_by(.completedAt // "") | last | .conclusion // "missing"' <<<"$json")"
+  if [ "$c" = SUCCESS ]; then s=ok
+  elif [ "$name" = e2e ] && [ "$c" = SKIPPED ] && [ "$docs_only" = true ]; then s=ok; c="SKIPPED (docs-only PR)"
+  else s=no; fi
   check "$s" "CI $name: $c"
 done
 

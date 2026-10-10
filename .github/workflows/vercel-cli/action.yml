@@ -1,0 +1,18 @@
+name: Vercel CLI
+description: >-
+  Installs the Vercel CLI pinned by this folder's package-lock.json and puts it on PATH. Run
+  actions/setup-node with `cache: npm` and this lockfile in `cache-dependency-path` first.
+runs:
+  using: composite
+  steps:
+    # npm checks every tarball against the lockfile's sha512 (from git), so a tampered npm cache
+    # can't change the CLI; --ignore-scripts: no package code runs at install, also in token jobs.
+    - name: Install Vercel CLI
+      shell: bash
+      run: |
+        dir="$RUNNER_TEMP/vercel-cli"
+        mkdir -p "$dir"
+        cp "$GITHUB_ACTION_PATH/package.json" "$GITHUB_ACTION_PATH/package-lock.json" "$dir/"
+        npm ci --prefix "$dir" --ignore-scripts --no-audit --no-fund --prefer-offline
+        echo "$dir/node_modules/.bin" >> "$GITHUB_PATH"
+        "$dir/node_modules/.bin/vercel" --version

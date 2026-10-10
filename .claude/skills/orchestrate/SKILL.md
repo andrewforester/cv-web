@@ -108,7 +108,7 @@ After the audit:
 - **Follow-ups never pile up silently.** Every follow-up, "not done", "out of zone" or "should later" item in a session's report or a reviewer's non-blocking notes becomes either a ticket (Backlog, with the report linked) or a line under **Open gaps** in the report to the human, with your judgement: product gap (what the user gets is wrong or missing) or tech debt. A product gap goes to the top of the report. Don't file them only as "debt" in a closing comment.
 - **Usage tables** (`tooling.md` → Usage): put the ticket's table (a row per session: ≈ $, then in / cache / out / total tokens) at the top of the ticket description, and add the ticket's row to the table at the top of the project description, with the total updated. Tokens are the measure; dollars only by the rough formula there.
 - Then run **Dispatch**.
-- Don't watch CI on `main`: the `qa-release` session does and reverts or files a fix when it goes red. Before each merge, check that the latest CI run on `main` isn't red (the workflow run, not the commit's status icon: a hosting status like a rate-limited deploy can be red while CI is green); if it is, merge only the fix or revert.
+- Don't watch CI on `main`: the `qa-release` session does and reverts or files a fix when it goes red. Before each merge, check that the latest Production run on `main` isn't red (the workflow run, not the commit's status icon: a hosting status like a rate-limited deploy can be red while CI is green); if it is, merge only the fix or revert.
 - Report to the human with links (`tooling.md` → Notifications):
   - the deliverables from `AGENTS.md` → Git & CI;
   - **Excluded by me**: the scope decisions you took yourself (see Before filing);

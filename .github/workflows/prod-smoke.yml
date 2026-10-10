@@ -1,18 +1,21 @@
 name: Production smoke
 
-# Checks the live production site. CI calls it right after its deploy job promotes a deployment
-# (ci.yml -> smoke); a failure there rolls production back and leaves the CI run red. It no
-# longer listens to deployment_status: production is deployed by CI, not by Vercel's Git
-# integration, so the smoke runs exactly once per deploy. workflow_dispatch smokes production
-# by hand (no rollback).
+# Checks the live production site. Production (production.yml -> smoke) calls it right after its
+# deploy job promotes a deployment; a failure there rolls production back and leaves the
+# Production run red. A daily scheduled run catches a site that broke without a merge (an expired
+# key, a Vercel change): it only goes red, nothing is rolled back. workflow_dispatch smokes
+# production by hand (no rollback either).
 on:
   workflow_call:
     inputs:
       simulate_failure:
-        description: Fail on purpose after the real checks (exercises the rollback in ci.yml)
+        description: Fail on purpose after the real checks (exercises the rollback in production.yml)
         type: boolean
         default: false
   workflow_dispatch:
+  schedule:
+    # 04:17 UTC: night in Europe, off the hour (scheduled runs queue up at :00).
+    - cron: '17 4 * * *'
 
 permissions:
   contents: read
@@ -33,9 +36,7 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      - name: Install Chromium
-        timeout-minutes: 5
-        run: npx playwright install --with-deps chromium
+      - uses: ./.github/workflows/playwright-chromium
       - name: Playwright @prod subset
         run: npm run web-check:prod
       - name: /api/chat rejects GET with 405 JSON

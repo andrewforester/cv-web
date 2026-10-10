@@ -11,8 +11,8 @@ The concrete tools behind `SKILL.md` (also used by `quick-fix` and `design` sess
 Cloud sessions use the GitHub MCP tools; local sessions use the `gh` CLI. The draft PR already exists (the orchestrator opened it): never open another.
 - **Mark ready:** `update_pull_request` with `draft: false` / `gh pr ready <P>`. It starts CI.
 - **CI didn't start** after Ready (the only run is the `skipped` draft run; `ready_for_review` events were lost at times): `gh pr close <P> && gh pr reopen <P>` (the `reopened` event runs CI).
-- **Follow your PR** (CI results, comments) by events, never `sleep`: cloud → `subscribe_pr_activity`; local → a `Monitor` until-loop over `gh pr view <P> --json statusCheckRollup,mergeable` that ends when `Lint & tests` and `e2e` have a result. The GitHub API limit (5,000/h) is shared with every session: poll no faster than every 60 s.
-- **CI on `main`:** `gh run list --branch main --limit 3` (workflow runs, not the commit's status icon).
+- **Follow your PR** (CI results, comments) by events, never `sleep`: cloud → `subscribe_pr_activity`; local → a `Monitor` until-loop over `gh pr view <P> --json statusCheckRollup,mergeable` that ends when `Checks / Lint & tests` and `Checks / e2e` (workflow Dev) have a result. The GitHub API limit (5,000/h) is shared with every session: poll no faster than every 60 s.
+- **CI on `main`:** `gh run list --workflow production.yml --branch main --limit 3` (the Production workflow's runs, not the commit's status icon).
 - **Merge** (after `PASSED` on the current head, `SKILL.md` → Passed → merge): `merge_pull_request` (`merge_method: squash`, `commit_message: "Closes CV-N"`) / `gh pr merge <P> --squash --body "Closes CV-N"`. If the auto-mode classifier denies it, don't retry: `SKILL.md` says what to post.
 
 ## Review subagent
