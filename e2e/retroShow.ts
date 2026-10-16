@@ -292,8 +292,8 @@ async function normalSiteSnapshot(
 /**
  * Guard 3: runs the page's show and checks that it left nothing (styles, stage, decorations,
  * windows, motion styles and classes) and that every computed style equals the page with
- * `?retro=0`. View transitions and CSS transitions run in real time, so the comparison retries
- * until they have settled. Returns the show time in ms.
+ * `?retro=0`, both at the top of the page. View transitions and CSS transitions run in real time,
+ * so the comparison retries until they have settled. Returns the show time in ms.
  */
 export async function expectEndsAsNormalSite(
   page: Page,
@@ -306,6 +306,9 @@ export async function expectEndsAsNormalSite(
 
   await expect.poll(() => leftovers(page)).toEqual([]);
   await expect(page.getByTestId('chat-fab')).toBeVisible();
+  // The show scrolls to what it fixes; the reference is at the top, and scroll-driven state (the
+  // toolbar's current section) must be compared at the same place.
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
   await expect.poll(async () => differences(await snapshotPage(page), normal)).toEqual([]);
   if (screenshot) await page.screenshot({ path: `${SCREENSHOT_DIR}/${screenshot}` });
 
