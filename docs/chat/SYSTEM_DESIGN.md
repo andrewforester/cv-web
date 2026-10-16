@@ -69,7 +69,7 @@ Backend (the layout as designed; the folders have grown since, see `server/chat/
 
 | Path | Responsibility |
 |---|---|
-| `api/chat.ts` | Vercel entry, ~15 lines: `export default { fetch(request) }` building production deps (`AnthropicLlmClient`, sources, limiter, config from env) and calling `handleChat`. Nothing else lives in `api/` (every file there becomes a function). |
+| `api/chat.ts` | Vercel entry, ~15 lines: `export default { fetch(request) }` building production deps (`AnthropicLlmClient`, sources, limiter, config from env) and calling `handleChat`. The only other file in `api/` is `voice-session.ts` (`POST /api/voice-session`, `../voice/`); every file there becomes a function. |
 | `server/chat/handler.ts` | `handleChat(request, deps): Promise<Response>`: the pipeline of section 2, returns JSON errors or the SSE `Response`. |
 | `server/chat/validate.ts`, `validateV4.ts` | Hand-written validation (no schema library) against `CHAT_LIMITS` / `CHAT_LIMITS_V2`; `validateV4.ts` holds the v4 tool dialect rules. Returns the request or a `ChatError`. |
 | `server/http/guards.ts` | Shared with `/api/voice-session`. Method, `Origin` vs host, `Content-Type`, body size read with a byte cap. |
@@ -124,9 +124,10 @@ Frontend (frontend ticket):
 
 Frontend state rules that follow from the contract: history sent = completed turns only; while a
 stream runs the composer is disabled and "Stop" aborts the `fetch` (the server sees the abort);
-after 20 messages the composer is replaced by "Start a new chat"; answers render as **plain text**
-(line breaks and `- ` bullets only, no Markdown/HTML, no auto-linking) so model output can never
-inject markup or phishing links. The conversation lives in memory only (lost on reload), which is
+after 20 messages the composer is replaced by "Start a new chat"; answers render a small **Markdown
+subset** (`src/screens/chat/answerMarkdown.ts`: paragraphs, `- ` bullet lists and `**bold**`;
+everything else, HTML and links included, stays plain text, rendered as React text nodes, no
+auto-linking) so model output can never inject markup or phishing links. The conversation lives in memory only (lost on reload), which is
 also the privacy promise: nothing is stored anywhere.
 
 ## 4. Request lifecycle
@@ -222,7 +223,7 @@ Guardrail layers, from cheapest to last resort:
 | Threat | Mitigation |
 |---|---|
 | Hallucinated facts | Grounding rules above; knowledge in one tagged block; small, focused knowledge; golden-question check before model switches (section 14). |
-| Prompt injection in the visitor message (typed or spoken) | Visitor text, including call transcripts (`<voice_call>` blocks, `<` escaped), only ever goes in `user` messages, never into `system`; the rules above; no web and no server-side tools (page tools are typed enums run in the browser, `AGENT.md` §5), so an injection cannot fetch or exfiltrate; output rendered as plain text. |
+| Prompt injection in the visitor message (typed or spoken) | Visitor text, including call transcripts (`<voice_call>` blocks, `<` escaped), only ever goes in `user` messages, never into `system`; the rules above; no web and no server-side tools (page tools are typed enums run in the browser, `AGENT.md` §5), so an injection cannot fetch or exfiltrate; output rendered as React text (a paragraphs/bullets/bold subset, no HTML, no links). |
 | Forged history (client sends fake `assistant` turns to steer the model, or to use the endpoint as a free general LLM) | Length and turn limits; the system prompt still governs every turn; the damage is confined to the attacker's own session and budgeted by rate and spend limits. HMAC-signed assistant turns were considered and deferred (ADR). |
 | Off-topic / private questions | Scope rules; a polite refusal is a normal `end_turn` answer. |
 | Model safety refusal | `stop_reason: refusal` maps to `done.stopReason: 'refusal'`; the widget shows a notice. |
@@ -359,8 +360,8 @@ Voice runs on an ElevenLabs agent, not on this endpoint (ADR-0008); its design i
 Voice calls in the history), rendered as `<voice_call>` blocks under `VOICE_TRANSCRIPT_RULES`;
 the earlier text chat reaches the agent from the browser at call start. While a call is live,
 the composer sends to the voice agent instead of this endpoint, and those typed lines join the
-call's transcript (ADR-0010, `../voice/SYSTEM_DESIGN.md` §4.4). The chat's surface (launcher,
-text card, docked column, call panel, pill) is the chat screen's (`../voice/SYSTEM_DESIGN.md`
+call's transcript (ADR-0010, `../voice/SYSTEM_DESIGN.md` §4.4). The chat's surface (`closed`
+launcher, `text`, `call`, `callChat`, `callPill`; `src/screens/chat/AGENTS.md`) is the chat screen's (`../voice/SYSTEM_DESIGN.md`
 §4).
 
 ## 14. Testing strategy
@@ -381,7 +382,7 @@ No real LLM call runs in tests or CI: CI has no `ANTHROPIC_API_KEY`, tests injec
 
 | Risk | Mitigation |
 |---|---|
-| Vercel's TypeScript build of `api/` with `"type": "module"` may not resolve extensionless relative imports or JSON imports from `server/` and `src/` | Backend ticket starts with a spike: a hello `api/chat.ts` importing `server/` and `src/data/chat/contract.ts` + `cv.en.json`, deployed to a preview. Fallbacks: explicit `.js` extensions, `with { type: 'json' }`, or bundling. |
+| Vercel's TypeScript build of `api/` with `"type": "module"` may not resolve extensionless relative imports or JSON imports from `server/` and `src/` | Resolved: `api/chat.ts` imports `server/` and `src/data/chat/contract.ts`, and `server/chat/cvPageData.ts` reads `src/data/cv/cvPage.json`, in production. Should a change break it, the fallbacks are explicit `.js` extensions, `with { type: 'json' }`, or bundling. |
 | Haiku 4.5 grounding or language-following quality | Golden check; switch `CHAT_MODEL`. |
 | Abuse burns the budget | Layers of section 8; spend limit caps the loss at $10/month. |
 | Old tabs after a breaking change | `v` + `unsupported_version` + "reload" message. |

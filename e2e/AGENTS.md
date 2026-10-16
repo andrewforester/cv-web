@@ -16,7 +16,7 @@ A phone failure caused by a product bug gets `test.fail(isMobile, '<bug ticket>'
 
 What it guarantees today:
 - The one CV page (`/`, docs/design/v3) loads directly with no page or console errors and shows
-  all nine jobs (the Show case button stays hidden, CV-144), on desktop and on the phone, where it
+  all ten job rows (eight jobs and two personal projects; the Show case button stays hidden, CV-144), on desktop and on the phone, where it
   also fits without horizontal scrolling (`home.png`, `home-mobile.png`); `/new` shows the same
   page (locally the same app; production redirects it).
 - The page's top toolbar (`toolbar.spec.ts`, `toolbar.png`, `toolbar-mobile.png`): sticky at the

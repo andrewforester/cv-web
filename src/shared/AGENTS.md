@@ -2,7 +2,7 @@
 
 Why it exists: UI pieces used by more than one screen or by the app shell, so they exist once and
 look the same everywhere. Today: `ShowCaseButton/` (the meta bar pill that starts the show, rendered
-by the app shell), `agentTarget/` (the page agent's target marking and page actions) and `chat/`,
+by the app shell but hidden, CV-144), `ShowCaseLink/` (the footer link that starts the show), `agentTarget/` (the page agent's target marking and page actions) and `chat/`,
 the stateless pieces of the AI chat shared by the site's chat and the show's agent chat.
 `useMediaQuery` is a viewport-query hook.
 

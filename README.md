@@ -16,8 +16,8 @@ site is his CV, and it can talk back.
 - **Let the chat drive the page.** Ask it to show a section, highlight a job, an app or a skill
   group, or open a contact channel. It scrolls and highlights for you; opening a contact asks you
   to confirm first.
-- **Watch the Show case.** The **Show case** button in the top bar turns the CV into a broken
-  2000s web page, then an AI agent fixes it live, step by step, in a DevTools panel, until it is
+- **Watch the Show case.** The **Show old version with some fun** link at the end of the page's
+  footer turns the CV into a broken 2000s web page, then an AI agent fixes it live, step by step, in a DevTools panel, until it is
   today's CV. You can chat with the agent while it works.
 
 ![The AI chat answering a question about the CV](docs/readme/chat.png)

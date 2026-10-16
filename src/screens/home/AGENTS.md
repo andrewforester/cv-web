@@ -8,14 +8,15 @@ products), experience (Transcenda's client projects on a tree), code craft × ag
 app shell shows it on every path, and `/new` redirects here on Vercel.
 
 Place in the architecture: the screen pattern of the root `AGENTS.md` over `CvPageRepository`
-(`src/data`, mocked by `src/data/cv/cvPage.json`, English only). The state holder loads the page
+(`src/data`, backed by the canonical CV data `src/data/cv/cvPage.json`, ADR-0007, English only). The state holder loads the page
 and owns the page agent's highlight and the toolbar's active section; the stateless screen renders the page's blocks with
 components that live in this folder (one screen uses them). All content about Andrew is data;
 section headings, the toolbar's labels and fixed words (the handle, "Email me", ©) are this
 screen's strings. The look
 is not data: card tones follow the card's position. Data images are bundled in `assets/` under the
 `home_` prefix and resolved in `images.ts`. The shell fills the meta bar's end (the Show case
-button, shown only while the page has a show).
+button, hidden for now, CV-144) and the footer copyright's end (`copyrightEnd`: the Show case link,
+shown only while the page has a show).
 
 Domain terms:
 - **Hooks**: the `home-*` test ids (`testIds.ts`, ADR-0006 → Decision 2). The Show case's damage

@@ -28,8 +28,8 @@ Place in the architecture: the top of the tree. `AppProviders` wires the data bi
 `/api/chat` `v: 4`; the show repository, `/api/chat` `v: 3`; the voice session repository,
 `/api/voice-session`, and the voice client the flag picks, `null` = no mic button) and the
 page-agent tool registry
-(`src/agent/`, whose one catalogue comes from `CvPage`). Swapping the mock for a backend is one
-line there. Tests pass fakes, a fixed `retroMode` and a `voiceClient` through its props.
+(`src/agent/`, whose one catalogue comes from `CvPage`). Swapping the static CV repository (canonical
+data `src/data/cv/cvPage.json`, ADR-0007) for a backend is one line there. Tests pass fakes, a fixed `retroMode` and a `voiceClient` through its props.
 
 Both modes render one tree shape, so the page never remounts: the show (`RetroShowRoute`, from
 `src/screens/retro`) mounts next to the shell and portals its windows into `body`. The AI chat

@@ -1,13 +1,13 @@
 # AI chat (web) — design package
 
-> **Look is v3** (`docs/design/v3/SPEC.md` → Decision 6: the "Ask my AI" pill and the panel in the
+> **Look is v3** (`docs/design/v3/SPEC.md` → Decision 6: the "Talk to my AI" pill and the panel in the
 > loop panel's dark colours; tokens in `src/theme/tokens.css`). This package is the chat's
 > behaviour spec: states, texts, interactions, accessibility, sizes and motion; its colours and
 > renders are the first look.
 
 ## Source
 
-- Designed from the brief of Linear **GRA-6** (29 Sep 2026). **No screenshot or Figma frame exists**: every block was drawn in the reference language of the CV page of the time (`src/theme/tokens.css`, Inter).
+- Designed from the brief of Linear **GRA-6** (29 Sep 2026). **No screenshot or Figma frame exists**: every block was drawn in the reference language of the CV page of the time (`src/theme/tokens.css`, Inter at the time; the site's font is now Figtree, v3).
 - `mock.html`: static HTML/CSS mock over a simplified CV backdrop. It links the real `../../../src/theme/tokens.css`; the tokens proposed below are declared at the top of its `<style>` (block "New tokens"). Open it in a browser; `?state=launcher|empty|typing|streaming|errors|offline` switch states.
 - Renders (1× scale, CSS px = image px), made by `render.sh` (headless Chrome, reduced motion so the frame is stable):
 
@@ -72,9 +72,9 @@ Spacing is the CV's 4 px grid (`--space-*`). All sizes in CSS px.
 
 ### 1. Launcher (panel closed)
 
-- **FAB**: `<button>` 56 × 56 circle (`--chat-fab-size`), fixed at `right: var(--space-6)` / `bottom: var(--space-6)` (24 px; 16 px = `--space-4` in the mobile layout), above page content (`z-index: var(--chat-z-index)`). Fill `--color-text`, icon `assets/icon_chat.svg` 24 px (`--chat-fab-icon-size`) in `--color-bg`, shadow `--chat-shadow-fab`. **AI ring**: 2 px `--gradient-ai` ring 4 px outside the button (outer diameter 64), masked like the *AI Tools* card border. Hover: fill `--color-text-secondary`.
+- **Launcher** (called FAB below; test id `chat-fab`): the v3 **"Talk to my AI" pill** (`src/screens/chat/ChatLauncher.tsx`, `.module.css`; `docs/design/v3/SPEC.md` → Structure 11): ✦ badge + label on white, `--radius-pill`, `--shadow-launcher`, fixed at `right` / `bottom` `var(--space-4)`, one layer above the chat (`--chat-z-index` + 1). Hover: label in `--color-accent`. The 56 px circle with an AI ring this package first drew is gone.
 - **First-visit hint** (see Behaviour): a small card to the left of the FAB, vertically centred on it, 12 px gap (`--space-3`). Max width 240 px (`--chat-hint-max-width`), padding 12 8 12 16, white, 1 px `--color-card-border`, `--radius-card`, `--shadow-card`; text 14/20; dismiss button 24 × 24 with `icon_close.svg` at 16 px, top-right, 4 px gap from the text.
-- The page gets extra bottom space so the FAB never hides the last CV line: `.shell` `padding-bottom: calc(var(--chat-fab-size) + 2 * var(--space-6))` (app shell, done with the chat implementation; the CV design itself doesn't change).
+- The FAB must never hide the last CV line.
 
 ### 2. Panel — desktop (viewport ≥ 600 px wide and ≥ 500 px tall)
 
@@ -255,10 +255,11 @@ No mic icon yet. Inline the SVGs as components (or `mask-image` + `background: c
 
 ## New tokens (Theme adds these to `src/theme/tokens.css`)
 
+The first look's proposal; the real chat tokens are in `src/theme/tokens.css` (the v3 pill uses
+`--shadow-launcher`, `--radius-pill`, `--chat-launcher-*`).
+
 ```css
 /* Chat */
---chat-fab-size: 56px;
---chat-fab-icon-size: 24px;
 --chat-control-size: 44px;
 --chat-icon-size: 20px;
 --chat-panel-width: 400px;
@@ -271,7 +272,6 @@ No mic icon yet. Inline the SVGs as components (or `mask-image` + `background: c
 --chat-color-error: #c0262d;
 --chat-color-error-bg: #fdeeee;
 --chat-color-notice-bg: rgba(239, 191, 4, 0.14);
---chat-shadow-fab: 0 4px 12px rgba(0, 22, 112, 0.3);
 --chat-shadow-panel: 0 12px 32px rgba(0, 22, 112, 0.16), 0 2px 8px rgba(0, 22, 112, 0.08);
 --font-chat-caption-size: 12px;
 --font-chat-caption-line-height: 16px;

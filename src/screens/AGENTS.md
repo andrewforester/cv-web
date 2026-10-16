@@ -12,5 +12,5 @@ for the app shell. Each screen owns its strings namespace, test ids, assets and 
 Conventions.
 
 A piece needed by a second screen moves to `src/shared/`, it is not copied. *Lint* enforces this:
-a screen importing another screen, or a mock fixture outside tests, fails.
+a screen importing another screen, or a `src/data/mock` fixture (none exists now) outside tests, fails.
 `home/` is the reference screen to copy the shape from.
