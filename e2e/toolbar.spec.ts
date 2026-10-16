@@ -157,3 +157,13 @@ test('on a phone the meta bar stays above the header @mobile', async ({ page }, 
 
   expect(photo.y).toBeGreaterThan(meta.y + meta.height);
 });
+
+test('on a narrow desktop every section label fits without scrolling', async ({ page }) => {
+  for (const width of [980, 1100, 1280]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto(NORMAL_SITE);
+    const list = toolbar(page).getByTestId('home-toolbar-link').first().locator('..');
+    const clipped = await list.evaluate((element) => element.scrollWidth > element.clientWidth);
+    expect(clipped, `labels clipped at ${width}px`).toBe(false);
+  }
+});

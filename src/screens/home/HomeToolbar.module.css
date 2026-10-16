@@ -43,7 +43,7 @@
   padding: 0 var(--toolbar-item-padding-x);
   font: inherit;
   font-size: var(--toolbar-link-size);
-  color: var(--color-ink-2);
+  color: var(--color-toolbar-link);
   white-space: nowrap;
   background: none;
   border: 0;
@@ -72,6 +72,17 @@
   height: var(--toolbar-underline-width);
   border-radius: var(--radius-pill);
   background: var(--color-accent);
+}
+
+/* Narrower, the labels need the whole bar: the handle steps aside. */
+@media (width <= 1100px) {
+  .handle {
+    display: none;
+  }
+
+  .list {
+    margin-inline-start: 0;
+  }
 }
 
 /* The chat's side dock slides the page (and this bar) left by half its width: the background

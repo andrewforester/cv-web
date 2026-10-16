@@ -26,8 +26,9 @@ A visitor sees the CV's structure at a glance and jumps to any main block in one
   960 px the meta bar sits at the header's top right and the photo, name and everything under
   them rise to its level (the photo's top level with the location line). At 960 px and narrower
   the meta bar stays above the header, right-aligned.
-- **Right: the section list**, 9 items, lowercase, `--font-mono`, `--toolbar-link-size` (15 px),
-  `--color-ink-2` (a touch larger and brighter than the handle; the human, 2026-10-16):
+- **Right: the section list**, 9 items, lowercase, `--font-mono`, `--toolbar-link-size` (16 px),
+  `--color-toolbar-link` (a muted violet: coloured, not grey, quieter than the accent; the human,
+  2026-10-16):
 
 | Label | Section id |
 |---|---|
@@ -49,7 +50,7 @@ Labels are UI strings (home screen namespace), not CV data.
 |---|---|---|
 | Toolbar height | `--toolbar-height` 56 px | `--toolbar-height` 48 px (redefined under the phone query) |
 | Item padding | 0 10 px (full toolbar height, so the underline sits on the bottom edge) | same |
-| Handle ↔ list gap | 24 px | handle hidden |
+| Handle ↔ list gap | 24 px; the handle hides at ≤ 1100 px so the labels fit, the list then starts at the left | handle hidden |
 | List | right-aligned, one line | scrolls sideways, scrollbar hidden; side padding 8 px |
 
 ## States
@@ -58,7 +59,7 @@ Labels are UI strings (home screen namespace), not CV data.
   section when the page is scrolled to the bottom; none while the header is in view. Text
   `--color-accent` plus a 2 px `--color-accent` underline flush with the toolbar's bottom edge,
   rounded ends.
-- **Hover**: text `--color-ink`.
+- **Hover**: text `--color-ink` (the accent is the active item's alone).
 - **Focus-visible**: `--focus-ring` with `--focus-ring-offset`.
 - **Phone**: when the active item changes, it scrolls into view centred inside the list (the page
   itself does not move).
@@ -84,11 +85,12 @@ Labels are UI strings (home screen namespace), not CV data.
 | `--toolbar-height` | 56px; 48px at `width <= 700px` |
 | `--toolbar-gap` | `--space-6` (handle ↔ list) |
 | `--toolbar-item-padding-x` | `--space-2-5` |
-| `--toolbar-link-size` | 15px |
+| `--toolbar-link-size` | 16px |
 | `--toolbar-underline-width` | 2px |
 | `--toolbar-blur` | 14px |
 | `--toolbar-z-index` | 900 (below `--chat-z-index` 1000) |
 | `--color-toolbar` | `rgb(255 255 255 / 88%)` |
+| `--color-toolbar-link` | `#5f4b8b` |
 
 `--agent-scroll-margin-top` became `calc(var(--toolbar-height) + var(--space-6))`. Everything else
 reuses existing tokens: `--color-ink`, `--color-ink-3`, `--color-accent`, `--border-rule`,
