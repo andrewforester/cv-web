@@ -517,7 +517,7 @@ client tool:
 
 | Tool | Parameter (enum from the catalogue) | `expects_response` | `response_timeout_secs` | Note |
 |---|---|---|---|---|
-| `highlightElement` | `target`: the 37 `cvPageTargetIds` | `true` | 5 | |
+| `highlightElement` | `target`: the 41 `cvPageTargetIds` | `true` | 5 | |
 | `openContact` | `channel`: `email`, `whatsapp`, `linkedin` | `true` | 40 | Waits up to 30 s for the tap (below) |
 | `scrollToSection` | `section`: `CV_SECTION_IDS` | `true` | 5 | |
 

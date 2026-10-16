@@ -1,0 +1,22 @@
+.link {
+  display: inline-flex;
+  gap: var(--space-1);
+  align-items: baseline;
+  align-self: flex-start;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.link:hover {
+  color: transparent;
+  background: var(--gradient-brand);
+  background-clip: text;
+}
+
+.arrow {
+  flex: none;
+  color: transparent;
+  letter-spacing: 0;
+  background: var(--gradient-brand-tile);
+  background-clip: text;
+}

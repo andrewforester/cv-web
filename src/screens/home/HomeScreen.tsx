@@ -45,10 +45,23 @@ export function HomeScreen({ className, state, metaBarEnd, copyrightEnd }: HomeS
     <HomePage className={className}>
       <HomeTop page={page} metaBarEnd={metaBarEnd} highlightedId={highlightedId} />
       <HomeSkills skills={page.skills} highlightedId={highlightedId} />
+      <HomeImpact impact={page.impact} highlightedId={highlightedId} />
+      <HomeExperience
+        sectionId="projects"
+        title={strings.projectsTitle}
+        testId={homeTestIds.projects}
+        jobs={page.personal}
+        highlightedId={highlightedId}
+      />
+      <HomeExperience
+        sectionId="experience"
+        title={strings.experienceTitle}
+        testId={homeTestIds.experience}
+        jobs={page.jobs}
+        highlightedId={highlightedId}
+      />
       <HomeCraft craft={page.craft} highlightedId={highlightedId} />
       <HomeLoop loop={page.loop} highlightedId={highlightedId} />
-      <HomeImpact impact={page.impact} highlightedId={highlightedId} />
-      <HomeExperience jobs={page.jobs} highlightedId={highlightedId} />
       <div className={styles.cards}>
         <HomeEducation education={page.education} highlightedId={highlightedId} />
         <HomeAbout about={page.about} highlightedId={highlightedId} />

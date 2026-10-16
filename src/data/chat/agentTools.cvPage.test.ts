@@ -47,17 +47,17 @@ describe('buildCvPageToolSpecs', () => {
 });
 
 describe('cvPageTargetIds', () => {
-  it('lists 37 targets: sections, then the CvPage ids per kind in data order, then contacts', async () => {
+  it('lists 41 targets: sections, then the CvPage ids per kind in data order, then contacts', async () => {
     const page = await loadPage();
     const targets = cvPageTargetIds(page);
     expect(enumOf(page, 'highlightElement', 'target')).toEqual(targets);
-    expect(targets).toHaveLength(37);
+    expect(targets).toHaveLength(41);
     expect(new Set(targets).size).toBe(targets.length);
     const ofKind = (kind: string) =>
       targets.filter((t) => t.startsWith(`${kind}:`)).map((t) => t.slice(kind.length + 1));
     expect(ofKind('section')).toEqual([...CV_SECTION_IDS]);
-    expect(ofKind('impact')).toEqual(['users', 'design-system', 'ai-features']);
-    expect(ofKind('experience')).toEqual(page.jobs.map((job) => job.id));
+    expect(ofKind('impact')).toEqual(['users', 'platforms', 'ai-features']);
+    expect(ofKind('experience')).toEqual([...page.personal, ...page.jobs].map((job) => job.id));
     expect(ofKind('app')).toEqual(['spoton', 'cync', 'august-home']);
     expect(ofKind('skill')).toEqual(page.skills.map((group) => group.id));
     expect(ofKind('book')).toEqual(page.about.books.map((book) => book.id));

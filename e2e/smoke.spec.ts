@@ -10,7 +10,7 @@ test('loads directly and renders without errors @prod @mobile', async ({ page, i
   await page.goto('./');
 
   await expect(page.getByTestId('home-name')).toHaveText('Andrew Panasiuk');
-  await expect(page.getByTestId('home-job')).toHaveCount(9);
+  await expect(page.getByTestId('home-job')).toHaveCount(10);
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.getByTestId('show-case')).toHaveCount(0);
   if (isMobile) {

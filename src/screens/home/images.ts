@@ -7,6 +7,7 @@ import bookPatternLanguage from './assets/home_book_pattern_language.jpg';
 import bookSiddhartha from './assets/home_book_siddhartha.jpg';
 import bookTheGoal from './assets/home_book_the_goal.jpg';
 import logoAttendify from './assets/home_logo_attendify.png';
+import logoDolphin from './assets/home_logo_dolphin.png';
 import logoIvi from './assets/home_logo_ivi.png';
 import logoRokkit from './assets/home_logo_rokkit.jpg';
 import logoRosfines from './assets/home_logo_rosfines.jpg';
@@ -26,6 +27,7 @@ const DATA_IMAGES: Record<string, string> = {
   book_pattern_language: bookPatternLanguage,
   book_antifragile: bookAntifragile,
   book_siddhartha: bookSiddhartha,
+  logo_dolphin: logoDolphin,
   logo_transcenda: logoTranscenda,
   logo_wisehouse: logoWisehouse,
   logo_attendify: logoAttendify,

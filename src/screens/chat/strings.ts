@@ -69,6 +69,7 @@ export const chatStrings = defineStrings({
     sectionCraft: 'Code craft',
     sectionLoop: 'How I build with agents',
     sectionImpact: 'Selected impact',
+    sectionProjects: 'Projects',
     sectionExperience: 'Experience',
     sectionSkills: 'Skills',
     sectionEducation: 'Education',

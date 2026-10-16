@@ -65,21 +65,24 @@ Page: card max-width 1120, padding `0 clamp(14px,3vw,42px)`, section gap `clamp(
    h1 "Senior Software **Product** Engineer" (variant A; variant B is not used); summary (5
    lines, `<br>`-separated); 2×2 stat tiles (12+, 1M+, 2, AI — the last on the gradient); contact
    buttons: Email me ↗ (gradient), WhatsApp, LinkedIn (no Telegram, see Architecture notes).
-3. **Skills**: 6 groups, 3 columns on desktop, 1 px top rules.
-4. **Code craft × agentic process**: two cards (before AI / with agents).
-5. **How I build with agents** (+ mono "system with feedback"): dark panel, lead sentence, 6 loop
-   steps 01–06, footnote "↺ every retro lands as a PR to the rules…".
-6. **Selected impact**: 3 cards (1M+, 3 days, 1 day) on lilac / pink / neutral.
-7. **Experience**: 9 jobs, each: logo tile 44 px (Samsung: plain logo, no tile), company + period,
-   role, optional store meta (ivi); below, from the logo's left edge: tag (`product`, Samsung `tool`) +
-   one-line about, then dot bullets (handoff §2, §4).
+3. **Skills**: 8 groups, 3 columns on desktop, 1 px top rules.
+4. **Selected impact**: 3 cards (1M+, 2 platforms, 1 day) on lilac / pink / neutral.
+5. **Projects**: personal products (Dolphin Music, AI-powered CV) laid out like jobs; AI-powered CV
+   uses the photo as logo.
+6. **Experience**: 8 jobs, each: logo tile 44 px (Samsung: plain logo, no tile), company + period,
+   role, optional store meta (ivi); below, from the logo's left edge: tags (`product`, Samsung `tool`,
+   Smartling `SDK`) + one-line about, then dot bullets (handoff §2, §4). A name with a URL is a link
+   with the gradient ↗.
    Transcenda has **projects** (SpotOn, Cync, August Home) on a dotted tree: icon, name, domain
-   pill, meta (stars "★"), about, bullets. The first job "AI-powered CV" uses the photo as logo.
-8. **Education** (lilac card) + **About me** (neutral card: 4 book covers, "Reading on systems",
+   pill and extra pills (`BLE`), meta (stars "★"), about, bullets.
+7. **Code craft × agentic process**: two cards (before AI / with agents).
+8. **How I build with agents** (+ mono "system with feedback"): dark panel, lead sentence, 6 loop
+   steps 01–06, footnote "↺ every retro lands as a PR to the rules…".
+9. **Education** (lilac card) + **About me** (neutral card: 4 book covers, "Reading on systems",
    "Off-screen").
-9. **Footer CTA**: two columns (handoff §6b): left "Let's build something ↗" (hover: gradient
+10. **Footer CTA**: two columns (handoff §6b): left "Let's build something ↗" (hover: gradient
    text); right the email pill with ↗ circle, then WhatsApp / LinkedIn pills (no Telegram).
-10. © 2026 Andrew Panasiuk.
+11. © 2026 Andrew Panasiuk.
 11. **"Ask my AI"** launcher: fixed pill bottom-right (✦ circle on the gradient + label). It opens
     our chat (in the design it is a plain link).
 

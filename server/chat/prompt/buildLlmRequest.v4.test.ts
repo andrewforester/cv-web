@@ -41,7 +41,7 @@ const chat = (toolRound: number, ...messages: Parameters<typeof v4Body>): Valida
 });
 
 describe('buildLlmRequest: v4', () => {
-  it("sends the one page's catalogue as strict tools: 3 tools, 37 targets", () => {
+  it("sends the one page's catalogue as strict tools: 3 tools, 41 targets", () => {
     const request = buildLlmRequest(chat(0), 'K', HAIKU_4_5);
     expect(Object.keys(request).slice(0, 3)).toEqual(['model', 'max_tokens', 'tools']);
     expect(request.tools).toEqual(
@@ -61,7 +61,7 @@ describe('buildLlmRequest: v4', () => {
       buildCvPageToolSpecs(CV_PAGE).find((spec) => spec.name === name)?.inputSchema.properties[
         param
       ]?.enum;
-    expect(enumOf('highlightElement', 'target')).toHaveLength(37);
+    expect(enumOf('highlightElement', 'target')).toHaveLength(41);
     expect(enumOf('scrollToSection', 'section')).toEqual([...CV_SECTION_IDS]);
     expect(LLM_TOOLS_V4).toEqual(request.tools);
     expect(request.tool_choice).toEqual({ type: 'auto' });

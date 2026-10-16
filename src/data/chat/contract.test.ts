@@ -19,7 +19,7 @@ const page: AgentPageStateV4 = {
 
 describe('chat contract v4', () => {
   it('names the one page sections and contacts', () => {
-    expect(CV_SECTION_IDS).toHaveLength(9);
+    expect(CV_SECTION_IDS).toHaveLength(10);
     expect(CV_CONTACT_CHANNELS).toEqual(['email', 'whatsapp', 'linkedin']);
   });
 

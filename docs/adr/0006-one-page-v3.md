@@ -58,8 +58,9 @@ export interface CvPage {
   craft: CraftCard[];         // { id, label, title, text } ×2
   loop: AgentLoop;            // { lead, steps: LoopStep[], footnote }, as Profile
   impact: ImpactCard[];       // { id, value, text } ×3, as Profile
-  jobs: CvJob[];              // ×9, design order
-  skills: SkillGroup[];       // { id, title, items } ×6, as Profile
+  personal: CvJob[];          // ×2, the "Projects" section
+  jobs: CvJob[];              // ×8, design order
+  skills: SkillGroup[];       // { id, title, items } ×8, as Profile
   education: Education;       // { title, place, period, text }, as Profile
   about: CvAbout;             // { books: Book[]; lines: { label, text }[] }
   footer: FooterCta;          // { label: "Let's build something", href: mailto }
@@ -67,14 +68,17 @@ export interface CvPage {
 export interface CvJob {
   id: string; company: string; role: string; period: string;
   logo: ImageRef; logoPlain?: boolean;   // Samsung: the logo without a tile
-  tag?: string; about?: string;          // "product" / "tool" + the one-liner; Transcenda has none
+  tags?: string[]; about?: string;       // e.g. "product", "tool", "web" + the one-liner; Transcenda has none
   meta?: string;                         // store line as displayed, e.g. "1M+ · 4.5★" (ivi)
+  url?: string;                          // the company name links there (Dolphin Music's repo)
   points: string[];
   projects?: CvProject[];                // Transcenda only
 }
 export interface CvProject {
   id: string; name: string; icon?: ImageRef;   // no icon (SpotOn): the gradient initials tile
-  domain: string; meta: string; about: string; points: string[];
+  domain: string; tags?: string[];     // tags: more labels after the domain, e.g. "BLE"
+  meta: string; about: string; points: string[];
+  url?: string;                        // the store page; the name links there
 }
 ```
 
@@ -92,12 +96,13 @@ export interface CvProject {
   - stats: `years`, `users`, `platforms`, `ai`
   - craft: `before-ai`, `with-agents`
   - loop steps: `frame`, `tickets`, `sessions`, `pr`, `ci`, `retro`
-  - impact: `users`, `design-system`, `ai-features`
-  - jobs: `ai-cv`, `transcenda`, `wisehouse`, `attendify`, `rosfines`, `smartling`, `rokkit`,
-    `ivi`, `samsung`
+  - impact: `users`, `platforms`, `ai-features`
+  - personal: `dolphin-music`, `ai-cv`
+  - jobs: `transcenda`, `wisehouse`, `attendify`, `rosfines`, `smartling`, `rokkit`, `ivi`,
+    `samsung`
   - projects: `spoton`, `cync`, `august-home`
   - skills: `agentic-development`, `android`, `architecture`, `ios`, `product`,
-    `ai-engineering`
+    `ai-engineering`, `audio-voice`, `backend`
   - books: `the-goal`, `a-pattern-language`, `antifragile`, `siddhartha`
   - contacts: `email`, `whatsapp`, `linkedin` (`telegram` removed by CV-124, 2026-10-05)
 
@@ -141,7 +146,8 @@ no longer needs a page id.
   chat's launcher: a restyle of `ChatLauncher`, still owned by the chat. It is not a link.
 - **Agent targets** (`data-agent-id`, set with `agentTargetProps`):
   - Sections, in page order (`CV_SECTION_IDS`): `header` (meta bar, header, stats, contact
-    buttons), `skills`, `craft`, `loop`, `impact`, `experience`, `education`, `about`, `contacts`
+    buttons), `skills`, `impact`, `projects`, `experience`, `craft`, `loop`, `education`, `about`,
+    `contacts`
     (the footer call to action).
   - Items: `impact:<id>`, `experience:<id>` (the job's article; for Transcenda it includes the
     project tree), `app:<id>` (the three Transcenda projects), `skill:<id>`, `book:<id>`, and
