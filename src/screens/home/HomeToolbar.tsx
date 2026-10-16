@@ -1,9 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useId, useRef } from 'react';
 import { useStrings } from '../../i18n';
-import { HOME_NAV_LABELS, HOME_NAV_SECTIONS, type HomeNavSection } from './homeNav';
+import { HOME_NAV_LABELS, type HomeNavSection } from './homeNav';
 import styles from './HomeToolbar.module.css';
+import { HomeToolbarLinks } from './HomeToolbarLinks';
 import { homeStrings } from './strings';
 import { homeTestIds } from './testIds';
+import { useToolbarMenu } from './useToolbarMenu';
 
 interface HomeToolbarProps {
   className?: string;
@@ -12,43 +14,54 @@ interface HomeToolbarProps {
   onSelect?: (section: HomeNavSection) => void;
 }
 
-/** The sticky bar on top (docs/design/page-nav): the handle, then the page sections. */
-export function HomeToolbar({ className, activeSection, onSelect }: HomeToolbarProps) {
+/**
+ * The sticky bar on top (docs/design/page-nav): the handle and the page sections; on a narrow
+ * screen the section being read and a menu with the sections.
+ */
+export function HomeToolbar({ className, activeSection = null, onSelect }: HomeToolbarProps) {
   const strings = useStrings(homeStrings);
-  const list = useRef<HTMLDivElement>(null);
-
-  // On a phone the list scrolls sideways: keep the marked section in sight.
-  useEffect(() => {
-    const element = list.current;
-    const active = element?.querySelector<HTMLElement>('[aria-current="true"]');
-    if (!element || !active) return;
-    const left = active.offsetLeft - (element.clientWidth - active.offsetWidth) / 2;
-    element.scrollTo?.({ left, behavior: 'smooth' });
-  }, [activeSection]);
+  const bar = useRef<HTMLElement>(null);
+  const listId = useId();
+  const { open, toggle, close, toggleRef } = useToolbarMenu(bar);
+  const select = (section: HomeNavSection) => {
+    close();
+    onSelect?.(section);
+  };
 
   return (
     <nav
+      ref={bar}
       className={className ? `${styles.root} ${className}` : styles.root}
       aria-label={strings.toolbarLabel}
+      data-active={activeSection ? '' : undefined}
       data-testid={homeTestIds.toolbar}
     >
       <span className={styles.handle}>{strings.handle}</span>
+      {activeSection && (
+        <span className={styles.current} data-testid={homeTestIds.toolbarCurrent}>
+          {strings[HOME_NAV_LABELS[activeSection]]}
+        </span>
+      )}
       {onSelect && (
-        <div className={styles.list} ref={list}>
-          {HOME_NAV_SECTIONS.map((section) => (
-            <button
-              key={section}
-              type="button"
-              className={styles.link}
-              aria-current={section === activeSection ? 'true' : undefined}
-              data-section={section}
-              data-testid={homeTestIds.toolbarLink}
-              onClick={() => onSelect(section)}
-            >
-              {strings[HOME_NAV_LABELS[section]]}
-            </button>
-          ))}
-        </div>
+        <>
+          <button
+            ref={toggleRef}
+            type="button"
+            className={styles.toggle}
+            aria-expanded={open}
+            aria-controls={listId}
+            data-testid={homeTestIds.toolbarMenu}
+            onClick={toggle}
+          >
+            {strings.toolbarMenu}
+          </button>
+          <HomeToolbarLinks
+            id={listId}
+            open={open}
+            activeSection={activeSection}
+            onSelect={select}
+          />
+        </>
       )}
     </nav>
   );

@@ -71,35 +71,45 @@ test('the toolbar lists the sections and scrolls to one under itself', async ({ 
   expect(errors).toEqual([]);
 });
 
-test('on a phone the toolbar drops the handle and still reaches the last section @mobile', async ({
+test('on a phone the sections fold into a menu that reaches the last one @mobile', async ({
   page,
   isMobile,
 }) => {
   const errors = collectErrors(page);
   await page.goto(NORMAL_SITE);
-
   const bar = toolbar(page);
+  const menu = page.getByTestId('home-toolbar-menu');
   await expect(bar).toBeVisible();
-  await expect(bar.getByTestId('home-toolbar-link')).toHaveCount(LINKS.length);
-  if (isMobile) await expect(bar.getByText(HANDLE)).toBeHidden();
 
-  // The links may scroll sideways inside the toolbar on a narrow screen.
-  const contact = link(page, 'contact');
-  await contact.scrollIntoViewIfNeeded();
-  await contact.click();
-
-  await expect(section(page, 'contacts')).toBeInViewport();
-  await expect(contact).toHaveAttribute('aria-current', 'true');
-  expect(await top(bar)).toBe(0);
-  if (isMobile) {
-    // The toolbar never makes the phone scroll sideways.
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
-    );
-    expect(overflow).toBe(0);
+  if (!isMobile) {
+    // Desktop: the sections sit in the bar, no menu.
+    await expect(menu).toBeHidden();
+    await expect(link(page, 'contact')).toBeVisible();
+    expect(errors).toEqual([]);
+    return;
   }
 
-  await page.screenshot({ path: screenshotPath('toolbar', isMobile) });
+  // On the header the bar shows the handle and the menu button; the list is folded.
+  await expect(bar.getByText(HANDLE)).toBeVisible();
+  await expect(link(page, 'skills')).toBeHidden();
+  await menu.click();
+  await expect(menu).toHaveAttribute('aria-expanded', 'true');
+  await expect(bar.getByTestId('home-toolbar-link')).toHaveCount(LINKS.length);
+  for (const { text } of LINKS) await expect(link(page, text)).toBeVisible();
+  await page.screenshot({ path: screenshotPath('toolbar-menu', true) });
+
+  await link(page, 'contact').click();
+  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+  await expect(section(page, 'contacts')).toBeInViewport();
+  await expect(page.getByTestId('home-toolbar-current')).toHaveText('contact');
+  expect(await top(bar)).toBe(0);
+  // Nothing in the bar scrolls sideways, nor the page.
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBe(0);
+
+  await page.screenshot({ path: screenshotPath('toolbar', true) });
   expect(errors).toEqual([]);
 });
 

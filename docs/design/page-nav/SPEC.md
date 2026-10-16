@@ -5,7 +5,7 @@ toolbar with the name and an "Email me" button, was rejected; the earlier floati
 rejected too). The style reference stays `docs/design/v3/`; this package only adds the toolbar.
 
 Renders: `screenshot.png` (desktop 1280×800 at 2×, scrolled to Experience, `experience` active),
-`screenshot-mobile.png` (phone 390×844 at 2×), both of the built page.
+`screenshot-mobile.png` (phone 390×844 at 2×, the section menu open), both of the built page.
 
 ## Purpose
 
@@ -46,12 +46,12 @@ Labels are UI strings (home screen namespace), not CV data.
 
 ## Sizes
 
-| | Desktop | Phone (≤ 700 px) |
+| | Desktop | Narrow (≤ 960 px; the phone ≤ 700 px) |
 |---|---|---|
 | Toolbar height | `--toolbar-height` 56 px | `--toolbar-height` 48 px (redefined under the phone query) |
 | Item padding | 0 10 px (full toolbar height, so the underline sits on the bottom edge) | same |
-| Handle ↔ list gap | 24 px; the handle hides at ≤ 1100 px so the labels fit, the list then starts at the left | handle hidden |
-| List | right-aligned, one line | scrolls sideways, scrollbar hidden; side padding 8 px |
+| Handle ↔ list gap | 24 px; at 961–1100 px the handle hides so the labels fit, the list starts at the left | the handle on the header, else the current section |
+| List | right-aligned, one line | folded into the section menu (below); side padding 16 px on the phone |
 
 ## States
 
@@ -61,8 +61,16 @@ Labels are UI strings (home screen namespace), not CV data.
   rounded ends.
 - **Hover**: text `--color-ink` (the accent is the active item's alone).
 - **Focus-visible**: `--focus-ring` with `--focus-ring-offset`.
-- **Phone**: when the active item changes, it scrolls into view centred inside the list (the page
-  itself does not move).
+- **Narrow screens (≤ 960 px), the section menu** (variant M1, approved by the human on
+  2026-10-16 over a burger with a full-screen menu): the bar shows the section being read on the
+  left (accent, a 6 px accent dot before it; the handle while on the header) and a `sections`
+  pill on the right (`--color-surface-lilac`, `--color-toolbar-link`, a chevron that flips when
+  open; `aria-expanded`, `aria-controls`). It opens the list under the bar, full width: opaque
+  `--color-card`, hairline bottom border, `--shadow-toolbar-menu`; one row per section, 12 px
+  padding, `--radius-logo`, the number `01`–`09` at the end (`--type-label-size`, `--color-ink-4`);
+  the active row on `--color-surface-lilac` in `--color-accent`. Picking a row closes the menu and
+  scrolls; Escape (focus back on the pill) and a tap outside the bar close it. Nothing scrolls
+  sideways.
 
 ## Behaviour
 
@@ -91,6 +99,9 @@ Labels are UI strings (home screen namespace), not CV data.
 | `--toolbar-z-index` | 900 (below `--chat-z-index` 1000) |
 | `--color-toolbar` | `rgb(255 255 255 / 88%)` |
 | `--color-toolbar-link` | `#5f4b8b` |
+| `--shadow-toolbar-menu` | `0 16px 32px -12px rgb(139 92 246 / 30%)` |
+| `--toolbar-dot-size`, `--toolbar-chevron-size` | 6px |
+| `--toolbar-chevron-width` | 1.5px |
 
 `--agent-scroll-margin-top` became `calc(var(--toolbar-height) + var(--space-6))`. Everything else
 reuses existing tokens: `--color-ink`, `--color-ink-3`, `--color-accent`, `--border-rule`,

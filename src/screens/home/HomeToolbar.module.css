@@ -26,7 +26,6 @@
 .handle {
   font-weight: var(--type-meta-weight);
   color: var(--color-ink);
-  white-space: nowrap;
 }
 
 .list {
@@ -63,15 +62,28 @@
   color: var(--color-accent);
 }
 
-.link[aria-current='true']::after {
-  content: '';
-  position: absolute;
-  right: var(--toolbar-item-padding-x);
-  bottom: 0;
-  left: var(--toolbar-item-padding-x);
-  height: var(--toolbar-underline-width);
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
+.handle,
+.current {
+  white-space: nowrap;
+}
+
+.current,
+.toggle {
+  display: none;
+}
+
+/* Wide: the active item is underlined, flush with the bar's bottom edge. */
+@media (width > 960px) {
+  .link[aria-current='true']::after {
+    content: '';
+    position: absolute;
+    right: var(--toolbar-item-padding-x);
+    bottom: 0;
+    left: var(--toolbar-item-padding-x);
+    height: var(--toolbar-underline-width);
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+  }
 }
 
 /* Narrower, the labels need the whole bar: the handle steps aside. */
@@ -82,6 +94,111 @@
 
   .list {
     margin-inline-start: 0;
+  }
+}
+
+/* Narrow: the section being read (the handle on the header) and a menu with the sections. */
+@media (width <= 960px) {
+  .root:not([data-active]) .handle {
+    display: inline;
+  }
+
+  .current {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    font-size: var(--toolbar-link-size);
+    color: var(--color-accent);
+  }
+
+  .current::before {
+    content: '';
+    flex: none;
+    width: var(--toolbar-dot-size);
+    height: var(--toolbar-dot-size);
+    border-radius: 50%;
+    background: var(--color-accent);
+  }
+
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-inline-start: auto;
+    padding: var(--space-1-5) var(--space-3);
+    font: inherit;
+    color: var(--color-toolbar-link);
+    background: var(--color-surface-lilac);
+    border: 0;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+  }
+
+  .toggle::after {
+    content: '';
+    width: var(--toolbar-chevron-size);
+    height: var(--toolbar-chevron-size);
+    margin-block-start: calc(-1 * var(--space-1));
+    border-right: var(--toolbar-chevron-width) solid currentcolor;
+    border-bottom: var(--toolbar-chevron-width) solid currentcolor;
+    transform: rotate(45deg);
+  }
+
+  .toggle[aria-expanded='true']::after {
+    margin-block: var(--space-1) 0;
+    transform: rotate(-135deg);
+  }
+
+  .toggle:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .list {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    display: none;
+    flex-direction: column;
+    margin: 0;
+    padding: var(--space-1-5) var(--space-2) var(--space-3);
+    overflow: visible;
+
+    /* Opaque: a backdrop filter inside the bar's own one would not blur. */
+    background: var(--color-card);
+    border-bottom: var(--border-rule);
+    box-shadow: var(--shadow-toolbar-menu);
+    counter-reset: section;
+  }
+
+  .list[data-open] {
+    display: flex;
+  }
+
+  .link {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: var(--space-3);
+    text-align: start;
+    border-radius: var(--radius-logo);
+    counter-increment: section;
+  }
+
+  .link::after {
+    content: counter(section, decimal-leading-zero);
+    font-size: var(--type-label-size);
+    color: var(--color-ink-4);
+  }
+
+  .link[aria-current='true'] {
+    background: var(--color-surface-lilac);
+  }
+
+  .link[aria-current='true']::after {
+    color: var(--color-accent);
   }
 }
 
@@ -101,14 +218,6 @@
 
 @media (width <= 700px) {
   .root {
-    padding-inline: var(--space-2);
-  }
-
-  .handle {
-    display: none;
-  }
-
-  .list {
-    margin-inline: 0;
+    padding-inline: var(--space-4);
   }
 }

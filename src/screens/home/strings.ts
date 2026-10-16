@@ -5,6 +5,7 @@ export const homeStrings = defineStrings({
   en: {
     handle: '~/andrew.panasiuk/cv',
     toolbarLabel: 'Sections',
+    toolbarMenu: 'sections',
     navSkills: 'skills',
     navImpact: 'impact',
     navProjects: 'projects',

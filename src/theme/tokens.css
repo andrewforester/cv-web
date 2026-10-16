@@ -258,6 +258,10 @@
   --toolbar-z-index: 900;
   --color-toolbar: rgb(255 255 255 / 88%);
   --color-toolbar-link: #5f4b8b;
+  --shadow-toolbar-menu: 0 16px 32px -12px rgb(139 92 246 / 30%);
+  --toolbar-dot-size: 6px;
+  --toolbar-chevron-size: 6px;
+  --toolbar-chevron-width: 1.5px;
 
   /* Retro Rebuild show: dock, agent chat, highlight and motion (not the damage values) */
   --retro-dock-width: 400px;

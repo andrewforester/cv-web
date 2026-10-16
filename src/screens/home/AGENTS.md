@@ -24,7 +24,8 @@ Domain terms:
 - **Page top**: wider than 960 px the meta bar sits at the header's top right, level with the
   photo (`HomeTop`); narrower it is above the header.
 - **Toolbar**: the handle and the nav sections (`homeNav.ts`, the page's agent sections minus
-  the header, in page order). The active one is the section on the reading line shared with the
+  the header, in page order); at 960 px and narrower they fold into a menu opened from the bar,
+  which then names the section being read. The active one is the section on the reading line shared with the
   chat (`sectionInView`), the last one at the page end, none on the header; a click scrolls like
   the agent does, and `--agent-scroll-margin-top` keeps headings below the toolbar.
 - **Page agent** (ADR-0002): every section and item the chat can point at carries

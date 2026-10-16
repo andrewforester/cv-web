@@ -251,7 +251,8 @@ describe('Home screen', () => {
     await screen.findByTestId(homeTestIds.name);
 
     for (const [key, id] of Object.entries(homeTestIds)) {
-      if (key === 'status') continue;
+      // Only while loading, and only once a section is being read (the page opens on the header).
+      if (key === 'status' || key === 'toolbarCurrent') continue;
       expect(screen.queryAllByTestId(id).length, id).toBeGreaterThan(0);
     }
     expect(screen.getAllByTestId(homeTestIds.job)).toHaveLength(10);

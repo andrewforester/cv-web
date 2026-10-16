@@ -8,6 +8,9 @@ export const homeTestIds = {
   // Page parts
   toolbar: 'home-toolbar',
   toolbarLink: 'home-toolbar-link',
+  toolbarCurrent: 'home-toolbar-current',
+  toolbarMenu: 'home-toolbar-menu',
+  toolbarList: 'home-toolbar-list',
   metaBar: 'home-meta-bar',
   header: 'home-header',
   photo: 'home-photo',
