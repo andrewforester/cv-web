@@ -34,3 +34,22 @@ test('/new shows the same page @prod', async ({ page }) => {
   if (process.env.PW_BASE_URL) expect(new URL(page.url()).pathname).toBe('/');
   expect(errors).toEqual([]);
 });
+
+test('a tag line holds two badges a row, the third wraps under them @mobile', async ({ page }) => {
+  await page.goto('./');
+  const dolphin = page.getByTestId('home-job').filter({ hasText: 'Dolphin Music' });
+  const box = async (text: string) => {
+    const found = await dolphin.getByText(text, { exact: true }).boundingBox();
+    if (!found) throw new Error(`no ${text} badge`);
+    return found;
+  };
+  const [android, ios, voice] = [await box('Android'), await box('iOS'), await box('Voice AI')];
+  const about = await dolphin.getByText(/^Voice-first music producer/).boundingBox();
+  if (!about) throw new Error('no about text');
+
+  expect(Math.abs(ios.y - android.y)).toBeLessThan(2);
+  expect(voice.y).toBeGreaterThan(android.y + android.height);
+  expect(Math.abs(voice.x - android.x)).toBeLessThan(2);
+  // The text sits beside the badges, not under them.
+  expect(about.x).toBeGreaterThan(ios.x + ios.width);
+});

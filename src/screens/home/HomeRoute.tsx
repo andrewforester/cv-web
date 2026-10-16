@@ -12,7 +12,14 @@ interface HomeRouteProps {
 
 /** Connects the page's state holder to the stateless screen and offers the page tools to the chat. */
 export function HomeRoute({ metaBarEnd, copyrightEnd }: HomeRouteProps) {
-  const { state, highlight } = useHomeState();
+  const { state, highlight, goToSection } = useHomeState();
   useHomeAgentTools(state, highlight);
-  return <HomeScreen state={state} metaBarEnd={metaBarEnd} copyrightEnd={copyrightEnd} />;
+  return (
+    <HomeScreen
+      state={state}
+      onSelectSection={goToSection}
+      metaBarEnd={metaBarEnd}
+      copyrightEnd={copyrightEnd}
+    />
+  );
 }

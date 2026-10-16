@@ -4,6 +4,17 @@ import { defineStrings } from '../../i18n';
 export const homeStrings = defineStrings({
   en: {
     handle: '~/andrew.panasiuk/cv',
+    toolbarLabel: 'Sections',
+    toolbarMenu: 'sections',
+    navSkills: 'skills',
+    navImpact: 'impact',
+    navProjects: 'projects',
+    navExperience: 'experience',
+    navCraft: 'craft',
+    navLoop: 'process',
+    navEducation: 'education',
+    navAbout: 'about',
+    navContacts: 'contact',
     craftTitle: 'Code craft × agentic process',
     loopTitle: 'How I build with agents',
     loopNote: 'system with feedback',

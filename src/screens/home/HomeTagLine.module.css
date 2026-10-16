@@ -8,8 +8,16 @@
   text-wrap: pretty;
 }
 
-.tag {
+.tags {
+  display: grid;
   flex: none;
+  grid-template-columns: repeat(2, auto);
+  justify-content: start;
+  justify-items: start;
+  gap: var(--space-1-5);
+}
+
+.tag {
   padding: var(--tag-padding);
   font-family: var(--font-mono);
   font-size: var(--type-tag-size);

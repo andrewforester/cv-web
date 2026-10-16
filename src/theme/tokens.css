@@ -246,7 +246,22 @@
   --agent-highlight-width: 3px;
   --agent-highlight-offset: 4px;
   --agent-highlight-duration: 3s;
-  --agent-scroll-margin-top: var(--space-6);
+  --agent-scroll-margin-top: calc(var(--toolbar-height) + var(--space-6));
+
+  /* Page toolbar (docs/design/page-nav): sticky section navigation above the page card */
+  --toolbar-height: 56px;
+  --toolbar-blur: 14px;
+  --toolbar-gap: var(--space-6);
+  --toolbar-item-padding-x: var(--space-2-5);
+  --toolbar-link-size: 16px;
+  --toolbar-underline-width: 2px;
+  --toolbar-z-index: 900;
+  --color-toolbar: rgb(255 255 255 / 88%);
+  --color-toolbar-link: #5f4b8b;
+  --shadow-toolbar-menu: 0 16px 32px -12px rgb(139 92 246 / 30%);
+  --toolbar-dot-size: 6px;
+  --toolbar-chevron-size: 6px;
+  --toolbar-chevron-width: 1.5px;
 
   /* Retro Rebuild show: dock, agent chat, highlight and motion (not the damage values) */
   --retro-dock-width: 400px;
@@ -344,4 +359,11 @@
   --chat-slide-exit-duration: 400ms;
   --chat-slide-easing: cubic-bezier(0.4, 0, 0.2, 1);
   --voice-chat-toggle-width: 112px;
+}
+
+/* The phone's toolbar is shorter (docs/design/page-nav). */
+@media (width <= 700px) {
+  :root {
+    --toolbar-height: 48px;
+  }
 }

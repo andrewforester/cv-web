@@ -27,7 +27,7 @@ What to read for what:
 
 Rules for implementers: change the contract only through its own ticket and bump `v` for breaking
 changes; never call a real model in tests or CI; keep the code the server shares with `src/`
-framework-free. These files describe only what is on `main` (on `feature/voice-panel`: the
-agreed `voiceCalls` design until its build tickets merge): when a version or a design is
+framework-free. These files describe only what is on `main` (`voiceCalls` included: built in
+`server/chat/validateVoiceCalls.ts` and `src/screens/chat/voice/voiceHistory.ts`): when a version or a design is
 replaced, delete its text (git and the ADRs keep the history). Where docs and code disagree, the
 code and the package `AGENTS.md` files win.

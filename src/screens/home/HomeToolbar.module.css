@@ -1,0 +1,223 @@
+/* The page toolbar (docs/design/page-nav): full width, pinned to the top, over the page card. */
+.root {
+  position: sticky;
+  top: 0;
+  z-index: var(--toolbar-z-index);
+  display: flex;
+  align-items: center;
+  gap: var(--toolbar-gap);
+  height: var(--toolbar-height);
+  margin: calc(-1 * var(--page-margin)) calc(-1 * var(--page-margin)) var(--page-margin);
+
+  /* Content lines up with the card's inner edges; items keep their own padding inside. */
+  padding-inline: max(
+    var(--page-margin),
+    calc((100% - var(--page-max-width)) / 2 + var(--page-padding-x))
+  );
+  font-family: var(--font-mono);
+  font-size: var(--type-meta-size);
+  line-height: var(--type-meta-line-height);
+  color: var(--color-ink-3);
+  background: var(--color-toolbar);
+  backdrop-filter: blur(var(--toolbar-blur));
+  border-bottom: var(--border-rule);
+}
+
+.handle {
+  font-weight: var(--type-meta-weight);
+  color: var(--color-ink);
+}
+
+.list {
+  position: relative;
+  display: flex;
+  align-self: stretch;
+  margin-inline: auto calc(-1 * var(--toolbar-item-padding-x));
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.link {
+  position: relative;
+  padding: 0 var(--toolbar-item-padding-x);
+  font: inherit;
+  font-size: var(--toolbar-link-size);
+  color: var(--color-toolbar-link);
+  white-space: nowrap;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--color-ink);
+}
+
+.link:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: calc(-1 * var(--focus-ring-offset));
+}
+
+.link[aria-current='true'] {
+  color: var(--color-accent);
+}
+
+.handle,
+.current {
+  white-space: nowrap;
+}
+
+.current,
+.toggle {
+  display: none;
+}
+
+/* Wide: the active item is underlined, flush with the bar's bottom edge. */
+@media (width > 960px) {
+  .link[aria-current='true']::after {
+    content: '';
+    position: absolute;
+    right: var(--toolbar-item-padding-x);
+    bottom: 0;
+    left: var(--toolbar-item-padding-x);
+    height: var(--toolbar-underline-width);
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+  }
+}
+
+/* Narrower, the labels need the whole bar: the handle steps aside. */
+@media (width <= 1100px) {
+  .handle {
+    display: none;
+  }
+
+  .list {
+    margin-inline-start: 0;
+  }
+}
+
+/* Narrow: the section being read (the handle on the header) and a menu with the sections. */
+@media (width <= 960px) {
+  .root:not([data-active]) .handle {
+    display: inline;
+  }
+
+  .current {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    font-size: var(--toolbar-link-size);
+    color: var(--color-accent);
+  }
+
+  .current::before {
+    content: '';
+    flex: none;
+    width: var(--toolbar-dot-size);
+    height: var(--toolbar-dot-size);
+    border-radius: 50%;
+    background: var(--color-accent);
+  }
+
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-inline-start: auto;
+    padding: var(--space-1-5) var(--space-3);
+    font: inherit;
+    color: var(--color-toolbar-link);
+    background: var(--color-surface-lilac);
+    border: 0;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+  }
+
+  .toggle::after {
+    content: '';
+    width: var(--toolbar-chevron-size);
+    height: var(--toolbar-chevron-size);
+    margin-block-start: calc(-1 * var(--space-1));
+    border-right: var(--toolbar-chevron-width) solid currentcolor;
+    border-bottom: var(--toolbar-chevron-width) solid currentcolor;
+    transform: rotate(45deg);
+  }
+
+  .toggle[aria-expanded='true']::after {
+    margin-block: var(--space-1) 0;
+    transform: rotate(-135deg);
+  }
+
+  .toggle:focus-visible {
+    outline: var(--focus-ring);
+    outline-offset: var(--focus-ring-offset);
+  }
+
+  .list {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    display: none;
+    flex-direction: column;
+    margin: 0;
+    padding: var(--space-1-5) var(--space-2) var(--space-3);
+    overflow: visible;
+
+    /* Opaque: a backdrop filter inside the bar's own one would not blur. */
+    background: var(--color-card);
+    border-bottom: var(--border-rule);
+    box-shadow: var(--shadow-toolbar-menu);
+    counter-reset: section;
+  }
+
+  .list[data-open] {
+    display: flex;
+  }
+
+  .link {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: var(--space-3);
+    text-align: start;
+    border-radius: var(--radius-logo);
+    counter-increment: section;
+  }
+
+  .link::after {
+    content: counter(section, decimal-leading-zero);
+    font-size: var(--type-label-size);
+    color: var(--color-ink-4);
+  }
+
+  .link[aria-current='true'] {
+    background: var(--color-surface-lilac);
+  }
+
+  .link[aria-current='true']::after {
+    color: var(--color-accent);
+  }
+}
+
+/* The chat's side dock slides the page (and this bar) left by half its width: the background
+ * stretches back to the viewport's right edge, under the panel (src/app/App.module.css). */
+:global(:root[data-chat-dock='side']) .root::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: calc(-1 * var(--border-card));
+  left: 100%;
+  width: calc(var(--chat-dock-width) / 2);
+  background: var(--color-toolbar);
+  backdrop-filter: blur(var(--toolbar-blur));
+  border-bottom: var(--border-rule);
+}
+
+@media (width <= 700px) {
+  .root {
+    padding-inline: var(--space-4);
+  }
+}

@@ -13,8 +13,7 @@ What to read for what:
 - [`SYSTEM_DESIGN.md`](SYSTEM_DESIGN.md): the flow (browser → our session endpoint → ElevenLabs
   token → WebRTC call), pieces and layers, the panel's surfaces, slide vs overlay, the morph
   and typing during a call (§4), limits, flag, prompt and agent sync, client tools, one
-  conversation across text and voice (§8), testing, the ElevenLabs agent checklist and env, and
-  the build split.
+  conversation across text and voice (§8), testing, the ElevenLabs agent checklist and env.
 - [`API.md`](API.md): the wire contract of `POST /api/voice-session` (code mirror:
   `src/data/voice/contract.ts`).
 - [ADR-0008](../adr/0008-voice-agent-elevenlabs.md): why ElevenLabs Agents with our own UI, why
@@ -45,5 +44,4 @@ on Call cut off, sent to the agent as unfinished).
 
 Rules for implementers: the ElevenLabs key never reaches the browser; `@elevenlabs/client` is
 imported in one file; no test or CI job talks to ElevenLabs; the agent's prompt and tools come
-from the code, never from dashboard edits. These files describe what is on `main` (or, until the
-build tickets merge, the agreed design); where docs and code disagree, the code wins.
+from the code, never from dashboard edits. These files describe what is on `main`; where docs and code disagree, the code wins.

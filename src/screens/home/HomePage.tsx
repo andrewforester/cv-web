@@ -4,16 +4,19 @@ import { homeTestIds } from './testIds';
 
 interface HomePageProps {
   className?: string;
+  /** The sticky toolbar above the card. */
+  toolbar?: ReactNode;
   children: ReactNode;
 }
 
-/** The white page card on the lilac background; its children are the page's blocks, top to bottom. */
-export function HomePage({ className, children }: HomePageProps) {
+/** The toolbar, then the white page card on the lilac background with the page's blocks, top to bottom. */
+export function HomePage({ className, toolbar, children }: HomePageProps) {
   return (
     <div
       className={className ? `${styles.root} ${className}` : styles.root}
       data-testid={homeTestIds.root}
     >
+      {toolbar}
       <div className={styles.card}>{children}</div>
     </div>
   );

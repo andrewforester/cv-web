@@ -112,7 +112,7 @@ describe('Home screen', () => {
     expect(screen.getByTestId(homeTestIds.status)).toHaveTextContent('Loading…');
     expect(await screen.findByTestId(homeTestIds.name)).toHaveTextContent('Test Person');
     const metaBar = screen.getByTestId(homeTestIds.metaBar);
-    for (const text of ['~/andrew.panasiuk/cv', 'Lviv', 'Hybrid', 'Busy', 'end control']) {
+    for (const text of ['Lviv', 'Hybrid', 'Busy', 'end control']) {
       expect(within(metaBar).getByText(text)).toBeInTheDocument();
     }
     expect(screen.getByText('Fake tagline')).toBeInTheDocument();
@@ -251,7 +251,8 @@ describe('Home screen', () => {
     await screen.findByTestId(homeTestIds.name);
 
     for (const [key, id] of Object.entries(homeTestIds)) {
-      if (key === 'status') continue;
+      // Only while loading, and only once a section is being read (the page opens on the header).
+      if (key === 'status' || key === 'toolbarCurrent') continue;
       expect(screen.queryAllByTestId(id).length, id).toBeGreaterThan(0);
     }
     expect(screen.getAllByTestId(homeTestIds.job)).toHaveLength(10);

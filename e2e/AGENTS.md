@@ -16,9 +16,18 @@ A phone failure caused by a product bug gets `test.fail(isMobile, '<bug ticket>'
 
 What it guarantees today:
 - The one CV page (`/`, docs/design/v3) loads directly with no page or console errors and shows
-  all nine jobs (the Show case button stays hidden, CV-144), on desktop and on the phone, where it
+  all ten job rows (eight jobs and two personal projects; the Show case button stays hidden, CV-144), on desktop and on the phone, where it
   also fits without horizontal scrolling (`home.png`, `home-mobile.png`); `/new` shows the same
-  page (locally the same app; production redirects it).
+  page (locally the same app; production redirects it). A tag line holds two badges a row, the
+  third wraps under them, the text beside (Dolphin Music, desktop and phone).
+- The page's top toolbar (`toolbar.spec.ts`, `toolbar.png`, `toolbar-mobile.png`): sticky at the
+  top, the handle (moved out of the meta bar; hidden on the phone) and the nine section buttons in
+  order; none is current on the header, a click lands the section just under the toolbar and
+  marks its button `aria-current`; on the phone the sections fold into a menu (`toolbar-menu-mobile.png`)
+  that reaches the last one (contact) and names it in the bar, nothing scrolling sideways; with
+  the chat docked at the side the bar still spans the viewport; on desktop the photo is level with
+  the meta bar's location (wider than 1100 px), the meta bar never overlaps the name, on the phone the meta bar stays above the header; from 980 px up the
+  labels fit without scrolling.
 - The chat sends `v: 4` (no page id, no locale) and answers a question with a streamed reply;
   it offers the page's four first questions, and rate limiting shows its notice. A `#ask` link
   opens it; its look is screenshotted empty and answered at three viewports: `wide` 1600 × 900

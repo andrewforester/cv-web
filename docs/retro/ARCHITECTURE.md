@@ -1,8 +1,8 @@
 # Retro Rebuild: architecture of the live-fix show
 
 > The site is one page, `/` (the v3 CV; `/new` is a 307 redirect), English only (ADR-0006). The
-> show is one scenario, `retro-4`, started by the Show case button in the page's meta bar or by
-> `?retro=1`, over the v3 page (`src/screens/home/`); its code is `src/screens/retro/`, its data
+> show is one scenario, `retro-4`, started by the Show case link at the end of the page footer (the
+> Show case button is hidden, CV-144) or by `?retro=1`, over the v3 page (`src/screens/home/`); its code is `src/screens/retro/`, its data
 > `src/data/retro/`, its narration `/api/chat` **`v: 3`**. Decision record:
 > [`../adr/0003-retro-live-fix-show.md`](../adr/0003-retro-live-fix-show.md); the look (retro
 > values, copy, the fix list, `--retro-*` tokens) is the design package `docs/design/retro/`; this
@@ -57,7 +57,7 @@ EN only, desktop only; replay/skip later.
 ### The model
 
 - A **damage layer** is one small CSS file with a stable id (`tokens-colors`, `tokens-type`,
-  `layout-shift`, `broken-images`, `hide-header`, …). While active it is one
+  `layout-shift`, `broken-images`, `hide-meta-bar` (hides the toolbar and the meta bar), …). While active it is one
   `<style data-retro-layer="<id>">` at the end of `<head>`. Kinds:
   - **token layers**: `:root { --color-bg: #c0c0c0; --font-family: 'Comic Sans MS', cursive; … }`
     only redefine existing token names. Every CV element that reads the token turns retro; after
@@ -231,8 +231,8 @@ holds (orthogonal): hidden (tab not visible, freezes the clock anywhere) · comp
 | B. `/api/chat` v1/v2 plus a `mode` field | Unknown fields are ignored by design (API.md → Versioning), so a server without the mode would silently answer as a normal chat. |
 | C. New endpoint `api/retro.ts` | A second function: its own instance pool, so a separate in-memory limiter and budget; the single Hobby firewall rule wouldn't cover it; duplicated wiring. |
 
-`v: 3` is a sibling dialect, not a successor of v2: the widget keeps sending v2. The server keeps
-serving v1, v2 and v3. The backend task writes the `v3` section into `docs/chat/API.md` and the
+`v: 3` is a sibling dialect, not a successor of v2: the widget keeps sending v2. v1 and v2 are
+retired since (the server answers them `400 unsupported_version`); it serves v3 and v4. The backend task writes the `v3` section into `docs/chat/API.md` and the
 types into `src/data/retro/contract.ts` (the `/api/chat` contract rules apply to it).
 
 ### Contract sketch
@@ -342,7 +342,7 @@ round 1.
 ## 6. App integration
 
 - `src/app/` decides the mode once per page load (§9 → Round 5 → Trigger): **show** with
-  `?retro=1` or after the Show case button's `start()`, otherwise **normal** (today's site). The
+  `?retro=1` or after the Show case link's `start()`, otherwise **normal** (today's site). The
   page route is reused **unchanged** in both modes and never remounts; `RetroShowRoute` renders
   the agent chat, DevTools and the decorations through a portal into `document.body` (outside the
   stage, so rule layers never touch them) and owns the layer host.
@@ -403,7 +403,7 @@ Resolved: the defaults below stand; final answers are in section 9 → Decisions
 
 ## 9. As built and working rules
 
-Built on `claude/retro-rebuild` (now in `main`): the broken page refitted to Forest (CV-90, *Round 7* below); `main`'s Forest milestone 1 (GRA-89, see *Round 6* below); round 1 (POC) GRA-40 (tokens), GRA-41 (contract + manifest),
+Built on `claude/retro-rebuild` (now in `main`): round 1 (POC) GRA-40 (tokens), GRA-41 (contract + manifest),
 GRA-42 (server v3), GRA-43 (show screen), GRA-44 (shell + e2e); then GRA-46 (the 7-step show,
 `retro-2`, guard 4 for every step), GRA-47 (panel tokens), GRA-48 (the show as a lazy chunk). Round
 3, designed in GRA-49 and **built**: GRA-50 (R10: the 8-step, 36-chunk scenario and the per-chunk
@@ -441,7 +441,7 @@ is *Round 3* below. Everything in this section is built.
 - **Q1 analytics:** backlog. The show logs counts only, never message text. Only Vercel-native
   options (Hobby has no custom events); no new accounts or databases without the human.
 - **Q2 who / Q3 how often** (superseded in Round 5, GRA-87): the show starts only on request,
-  `?retro=1` or the shell's start function (the Show case button); no auto-start, no
+  `?retro=1` or the shell's start function (the footer's Show case link); no auto-start, no
   `sessionStorage['retro.done']`. Was: `?retro=1` forces, `?retro=0` skips, otherwise English
   desktop visitors once per session.
 - **Q4 reduced motion:** the show runs without typing and without motion: no motion classes, no
@@ -654,7 +654,8 @@ commentary moves into the code it types.
   effect, `behavior: 'instant'`). A page load with `?retro=1` hides the shell while the chunk loads
   (`pending`), as before, so no frame of today's design shows. `end()` (the show's `onDone`, or a
   failed chunk) returns to today's site; a later `start()` is the replay (the chunk is cached, so
-  it swaps at once). The Show case button (R24) only calls `start`.
+  it swaps at once). The footer's Show case link (CV-148) only calls `start`; the Show case button (R24) does too
+  but is hidden (CV-144).
 - The AI chat is hidden while the show runs (`useLazyChat(normal)`): started from today's site it
   unmounts (its open conversation is lost, Q7 already says nothing carries over), and the show's
   module chunk shows it again through the `ai-chat` loader.
@@ -702,78 +703,8 @@ instantly settling camera, ≈ 92 s when every targeted chunk waits the cap, ≈
 motion. The shorter intro and close pay for the narration comments, so the e2e timing smoke keeps
 its 60–110 s window.
 
-### Round 6: the show over the Forest `/` (GRA-89)
-
-`main`'s milestone 1 (Forest tokens and fonts, routes `/` and `/new`, `src/shared/forest`, `/`
-re-composed, the chat restyle) was merged into this branch. What changed for the show:
-
-- **Chat pieces:** one set, in `src/shared/chat` (R19's location) with the Forest look from `main`:
-  `ChatCard` is the dark Forest panel (the AI-gradient border is gone), `ChatCardHeader`'s subtitle
-  is the shared `caption`. `--chat-transition` and `--chat-secondary-button-height` moved to
-  `tokens.css` (shared pieces need them outside the site chat's root). The show's `AgentChat` and
-  `AgentComposer` take the Forest chat tokens (Onest UI text, Plex field, gold focus), mirroring
-  the site's `ChatComposer`; the close keyframe ends on the Forest launcher.
-- **Shell and routing:** no app header any more: both pages lay themselves out and the language
-  switcher sits in their meta bar. The stage is the shell's wrapper around `<main>` and the chat;
-  `App.module.css` keeps only `.pending`. The show runs only over `/`: `?retro=1` on `/new` is
-  today's profile with the chat.
-- **Hooks:** section ids and `data-agent-id` are unchanged; item test ids are Forest's
-  (`forest-name`, `forest-lead`, `forest-photo`, `forest-contact`, `forest-skill`, `forest-job`,
-  `forest-app`, `forest-book`, `forest-meta-bar`, `language-switcher`). Layers, chunk targets,
-  the stage harness and the tests point at them; no CV hook was added.
-- **Token layers** set Forest tokens with the old retro values: `base-colors` →
-  `--forest-{bg,ink,ink-2,ink-3}`, `card-colors` → `--forest-{line,gold,accent,surface}`,
-  `type-family` → `--forest-font-{display,text,mono}` + the h1 letter spacing, `type-scale-*` →
-  `--forest-type-<role>-size/line-height` (headings: name, h1, label; text: lead, body; cards:
-  skills, period; details: title, role, meta bar). Guard 1 treats `--forest-font-*` as structural
-  (morph). The design package's layer copies (since deleted) still showed the old CV's selectors until R23.
-
-**For R23** (done in CV-90, *Round 7*; mechanical refit only: these hit little or the wrong thing on Forest):
-- `experience-heads`: only `display: block` on the job head (Forest jobs have no logo to float);
-  `squashed-logos` now squashes the app icons, its job-head grid is a no-op.
-- `header-layout`: centred text and inline contacts only (the old photo/intro grid areas are gone).
-- `tech-cells` (its `::before`), `tech-grid` (one gap): little to break in the skills list.
-- `bullets`: Forest rows already have "—" markers, so they get a second one.
-- `link-style` hides the contact arrows (the old contact icons are gone); `contact-labels` sit in
-  the contact rows.
-- `hide-header` hides only the switcher (the meta bar's `andrew.panasiuk / cv` stays);
-  `new-bursts` sits on `02 — Experience` (the latest-experience group has no title);
-  `about-spacing` spaces the About card's `h2` (no sub-headings any more).
-- Not reached at all: the gradients (headline accent, hero, AI skill, footer CTA arrow) are
-  literals in Forest's tokens and modules, the Education/About card fills
-  (`--forest-card-sage/sand`), the app pills' stats, the footer CTA.
-- The token layers' mapping is by role, not by design; the type scale mixes clamp tokens with
-  fixed retro sizes.
-
-### Round 7: the broken page refitted to Forest (CV-90)
-
-The 2002 homepage is drawn over the Forest `/` again: every layer changes something visible on
-Forest and every chunk moves the page toward it. The Forest look was replaced by the v3
-refit (§11); its SPEC part is in git history before CV-141. The mechanism is unchanged.
-
-- **Same shape:** 8 steps (`retro-3`, ids unchanged), 36 chunks, 32 layers, 3 decorations, 1
-  module. Renamed for what they hold: `squashed-logos` → `squashed-icons` (Forest has no company
-  logos), `about-spacing` → `card-padding` (Education/About as plain table areas),
-  `hide-header` → `hide-meta-bar` (the whole meta bar: handle, Show case button, switcher).
-- **New damage on Forest's own features:** the 84 px headline shrinks to the 2002 line
-  (`type-scale-headings`), gradient text goes flat (`heading-colors`), the sage/sand cards lose
-  fill and padding (`card-colors`, `card-padding`), section gaps shrink (`heading-rules`), Forest's
-  "—" bullets become square list items (`bullets`), the footer CTA becomes a small blue link
-  (`type-scale-details`, `link-style`), skills sit in 3 bevelled columns (`tech-grid`,
-  `tech-cells`).
-- **Dropped no-ops:** the job-head grid, the skills `::before`, shadows Forest doesn't have,
-  `--forest-gold` (nothing on the page reads it; the chat send button does, so it also yellowed the agent chat), the title line height, the meta-bar size.
-  `broken-icon` and `broken-cover` no longer set a radius (`squashed-icons` and `book-frames` do):
-  no two layers set one property on one element.
-- **Decorations:** the note follows `[data-testid='forest-photo']` once the layout is fixed (the
-  old `section:header > img` matched nothing on Forest, so the note stayed in the margin).
-- **Manifest texts:** intents and fallbacks of `fonts`, `colours`, `layout`, `images`, `cards`,
-  `chrome` and `links` name what Forest shows (app icons, rows and pills, the meta bar, the footer
-  link); the server fake script's `chrome` line follows. No contract change.
-- **Guard 1:** `flex-direction`, `flex-wrap` and `width` count as structural (part of the
-  `isStructural` debt below).
-- Show time on the fake clock: ≈ 90.9 s (Round 5: ≈ 91 s); the browser adds ≈ 5 s for the token
-  chunks' live `setProperty` lines, inside the e2e 60–110 s window.
+Rounds 6 and 7 (the show over the Forest `/`, GRA-89, and its refit, CV-90) were replaced by the
+v3 refit (§11): see git history before CV-141.
 
 ### How to add or change a fix chunk
 
@@ -859,7 +790,7 @@ its values, decorations and copy).
     rows, the education and about cards.
   - `chrome`: the meta bar with location and availability, without a language switcher.
   - `links`: the contact buttons (Email me, WhatsApp, LinkedIn) and the footer's
-    "Let's build something", then the "Ask my AI" chat.
+    "Let's build something", then the "Talk to my AI" chat.
 
   Fallbacks stay ≤ 200 chars. `scenarioNew.ts` is deleted.
 - **Registry without pages.** `SHOW_SCENARIOS` keeps one entry, `retro-4`; the manifest loses
@@ -913,7 +844,7 @@ its values, decorations and copy).
 - **Decorations.** Anchors: `root: "[data-testid='home']"`, `header: "[data-testid='home-header']"`.
   The copy is `/new`'s (nav, marquee, webring).
 - **The chat at the end.** The `links` step still loads the AI chat through the `ai-chat` loader;
-  what appears is the v3 "Ask my AI" pill (T5). No layer targets the chat.
+  what appears is the v3 "Talk to my AI" pill (T5). No layer targets the chat.
 
 ### Guards
 
@@ -923,5 +854,6 @@ Same four, over the one source:
 - Guard 2 (`layers.test.tsx`): renders `RetroStageTestHarness` with the home route and checks
   every selector and token.
 - Guards 3, 4 and the timing smoke: one `e2e/retro.spec.ts` on `/` (`?retro=1` vs `?retro=0`).
-- The Show case click on `/` (`show-case` in the meta bar).
+- The Show case click on `/` (`show-case-link` in the footer; the hidden `show-case` button is
+  absent).
 - `retroLazy.spec.ts` stays (normal mode never loads the chunk); it moves to the new button test id.

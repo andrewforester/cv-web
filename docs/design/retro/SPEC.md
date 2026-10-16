@@ -62,7 +62,7 @@ x: 0                                              880                       1280
 - The page scrolls under the fixed dock. The show scrolls it to a chunk's target when the target is out of view (Show what changed → Scrolling).
 - **Highlight overlay**: show-owned, drawn in the portal over the page and under the dock; the **plate** sits on the first target's bottom-left corner (the page area's corner for a page-wide chunk).
 - **Shorter viewports** (desktop ≥ 1024 wide, any height): the chat card height is `min(var(--retro-chat-height), 100dvh - 280px)` so at least ≈ 200 px of console stays visible (e.g. 700 px tall → chat 392, console ≈ 220; 600 px tall → chat 320, console ≈ 192). Width is fixed; the show doesn't run below 1024 px (desktop only).
-- **During the show there's no AI chat button and no meta bar** (the page's meta bar with the Show case button is hidden by the `hide-meta-bar` layer). Both come back through fix chunks.
+- **During the show there's no AI chat button and no meta bar** (the page's toolbar and its meta bar are hidden by the `hide-meta-bar` layer). Both come back through fix chunks.
 
 ## Timeline
 
@@ -70,7 +70,7 @@ Round 5 (GRA-87) flow. Timings are the runner's (`timing.ts`); the design values
 
 | t | What happens |
 |---|---|
-| start | The show starts only when asked: `?retro=1` (dev, e2e) or the app shell's start function (the **Show case** button). From today's site the show's chunk loads first (today's site stays on screen meanwhile), then in one frame the page scrolls to the top and turns into the broken 2002 page. Nothing starts on its own; a replay is another start. |
+| start | The show starts only when asked: `?retro=1` (dev, e2e) or the app shell's start function (the footer's **Show case** link). From today's site the show's chunk loads first (today's site stays on screen meanwhile), then in one frame the page scrolls to the top and turns into the broken 2002 page. Nothing starts on its own; a replay is another start. |
 | 0 s | Page alone, fully broken. Marquee scrolls (18 s loop), "NEW!" bursts blink (1 s steps). |
 | 1 s | **Our chat opens**: the agent chat card appears with the site panel's open motion (fade + `translateY(8px) scale(.98)` → none, 200 ms `--chat-motion-duration`, `--chat-motion-easing`, origin bottom right) and streams **"That's how this CV would look like in 2001."** at 40 chars/s with the streaming caret. The composer works from now on; focus is **not** moved into it. |
 | + 1 s pause | The agent streams **"Now let's fix it."** |
@@ -489,9 +489,9 @@ The agent chat is the site's chat panel built from the pieces both screens use, 
 | Overlay alpha | Chrome's (`.55`–`.66`) | about half (`.3`–`.4`) | the human asked for a lighter blue |
 | Plate | `body 971×735`, no spaces | `body  880 × 800`, spaces around `×` | the brief's format; easier to read at 12 px |
 
-## Show case button (R24, CV-91)
+## Show case button (R24, CV-91) and link (CV-148)
 
-The visitor starts the show with the **Show case** button at the end of the page's meta bar (`src/shared/ShowCaseButton/`; look: `docs/design/v3/SPEC.md` → Orchestrator decisions 7). Shown only where the show can run (`min-width: 1024px`); otherwise absent (no disabled state). Click calls the shell's start seam (`useShowCase().start`); once the show has ended it can be clicked again (replay). While the show runs the `hide-meta-bar` layer hides it.
+The **Show case** button at the end of the page's meta bar (`src/shared/ShowCaseButton/`; look: `docs/design/v3/SPEC.md` → Orchestrator decisions 7) is hidden (`SHOW_CASE_BUTTON_ENABLED = false` in `src/app/App.tsx`, CV-144). The visitor starts the show with the footer link "Show old version with some fun" at the end of the copyright line (`src/shared/ShowCaseLink/`, test id `show-case-link`). Both are shown only where the show can run (`min-width: 1024px`); otherwise absent (no disabled state). A click calls the shell's start seam (`useShowCase().start`); once the show has ended it can be clicked again (replay).
 
 ## Decisions (defaults taken; the orchestrator may change them)
 
@@ -526,7 +526,7 @@ Numbers are stable (code and docs cite them); superseded decisions were removed 
 - **38.** **Where the site has no colour role, Chrome's default light theme** (blue accent), not the pink custom theme of the reference screenshot.
 - **39.** **Shared chat pieces move to `src/shared/chat/`** in a prep task (Shared components); the composer stays show-local.
 - **40.** **DevTools appears instantly** at the console hand-off (as when DevTools opens); the chat card enters with the site panel's open motion at 3 s. (Round 5: at 1 s, and DevTools after the two intro lines.)
-- **41.** **Round 5 (GRA-87), the human's flow:** the show starts only on request (`?retro=1` or the shell's start function for the Show case button); the auto-start and once-per-session rules go. From today's site the chunk loads first, then the page scrolls to the top and turns broken in one frame.
+- **41.** **Round 5 (GRA-87), the human's flow:** the show starts only on request (`?retro=1` or the shell's start function for the footer's Show case link); the auto-start and once-per-session rules go. From today's site the chunk loads first, then the page scrolls to the top and turns broken in one frame.
 - **42.** **Intro in the chat:** broken page alone 1 s → the chat opens and streams `That's how this CV would look like in 2001.` → 1 s → `Now let's fix it.` → 0.8 s → DevTools docks → 0.8 s → step 1. Texts verbatim from the human.
 - **43.** **Silent chat while fixing:** the step narration (LLM line or fallback, contract unchanged) is typed into DevTools as `// …` comments wrapped at 52 characters, at the code rate (100 chars/s, clamped 0.6–2 s), then 0.6 s to read; the first chunk continues in the same prompt, so the comment is part of its echo. Comments change nothing, so code shown = code applied holds. Visitor replies still appear in the chat.
 - **44.** **Close sequence:** `✓ All fixes applied.` → 1 s → DevTools collapses (300 ms slide, the page re-centres over 400 ms) → 1 s → `All good now.` → 2 s → the chat collapses into the launcher (500 ms; was 650 ms with DevTools). Reduced motion: same order and pauses, no motion. The finale line goes; the LLM's `finale` narration is still requested but not shown (dropping it is a contract change for a later task).
@@ -587,7 +587,7 @@ The broken page the show fixes: the CV as its author would have built it as a 20
 | `card-padding` | `profile-education` and `profile-about` without their 24 px card padding |
 | `new-bursts` | blinking "NEW!" after the *Selected impact* and *How I build with agents* titles |
 | `decor-room` | `[data-testid='profile']` 72 px top and 216 px bottom padding for the nav bar and footer |
-| `hide-meta-bar` | the meta bar hidden |
+| `hide-meta-bar` | the toolbar and the meta bar hidden |
 | `link-style` | contact rows and the footer CTA `#0000EE` underlined; the contact ↗ hidden |
 | `contact-labels` | a bold `Contact me:` line before the contact list |
 
@@ -673,7 +673,7 @@ The three decorations of The broken page → Decorations, with the anchors and c
 | 30 | `new-bursts` | 88 | blinking "NEW!" after two section titles → gone | NEW! badges: `[data-testid='profile-impact'] > h2`, `[data-testid='profile-loop'] > h2` | morph | 1.9 |
 | 31 | `page-footer` (decoration) | 59 | construction sign, counter, badges, webring → gone | footer: `#page-footer` | leave | 1.6 |
 | 32 | `decor-room` | 81 | 72 px top and 216 px bottom padding → Forest's | page | fade | 1.8 |
-| 33 | `hide-meta-bar` | 88 | meta bar (handle, location, work mode, status, Show case, switcher) hidden → back | meta bar: `[data-testid='forest-meta-bar']` | morph | 1.9 |
+| 33 | `hide-meta-bar` | 88 | the toolbar (handle, sections) and the meta bar (location, work mode, status) hidden → back | meta bar: `[data-testid='home-toolbar']`, `[data-testid='home-meta-bar']` | morph | 1.9 |
 
 **Step 8 · `links` · title `links & contacts`** · narration: *Finally, links: restoring the contact rows and the footer link, and loading the AI chat assistant.*
 
@@ -747,7 +747,7 @@ The show runs on the one v3 page (`docs/design/v3/`, ADR-0006) as **`retro-4`**:
 | `forest-app`, `forest-app img` | `home-project` (the Transcenda tree), `home-project img` |
 | `forest-skill`, `profile-skills h2`, `ul:has(> forest-skill)` | `home-skill`, `home-skills h2` (`align-self: center`: the title is a flex item), `div:has(> home-skill)` |
 | `profile-education`, `profile-about`, `forest-book img` | `home-education`, `home-about`, `home-book` (the cover is the `img`) |
-| `forest-meta-bar` | `home-meta-bar` |
+| `forest-meta-bar` | `home-toolbar` (the handle) and `home-meta-bar` |
 | `h2` margins and groove rule (`heading-rules`) | on the heading div `section > div:has(> h2)` (full width; the footer's title is an `h2` without one) |
 
 **Tokens** (value for value, ADR-0006 Decision 5): `type-family` `--font-sans` Verdana, `--font-mono` Courier New, `--type-h1-letter-spacing` normal; `type-scale-headings` name 34, h1 15/18, tagline 13, h2 24; `type-scale-text` summary 12/16, body 11/15, buttons 12; `type-scale-cards` stats 22 (spacing normal), card titles 13, labels 11, meta 11; `type-scale-impact` impact 22 (spacing normal), loop lead 13/17; `type-scale-details` company 13, role 11, period 11, footer title 13; `base-colors` card `#FFFFCC`, ink and ink-2 black, ink-3 `#008000` (roles, tagline, card prose: `/new`'s green secondary), ink-4 `#808080` (periods); `panel-colors` (morph: gradient tokens are structural) brand tile `#000080` (the AI stat), dark gradient `#000000`, footer gradient transparent, dark ink `#00FF00`, dark line `#008000`, step numbers `#FFFF00`, footnote `#00CC00`, dark shadow none; `card-colors` line `#808080`, accent `#0000FF`, surface, pink and lilac surfaces `#C0C0C0`, violet (education) transparent.

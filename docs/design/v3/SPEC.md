@@ -6,10 +6,9 @@ file "CV Senior Product Engineer v3". `design.dc.html` here is the exported file
 Renders: `screenshot.png` (1280 px wide, full page), `screenshot-mobile.png` (390 px).
 Assets: `assets/` (photo, four books, app icons, company logos).
 
-This package **replaces both pages**: `/` (today's CV in the Forest look) and `/new` (the Forest
-profile) become one page with this design's structure, texts and look. It supersedes
-`docs/design/forest/` as the **style reference** for the whole site (chat included); the Forest
-package stays as history. The **texts** in `design.dc.html` (EN) are the content source of truth:
+This package **replaces both pages**: `/` (the CV in the former Forest look) and `/new` (the Forest
+profile) become one page with this design's structure, texts and look. It is the **style
+reference** for the whole site (chat included). The **texts** in `design.dc.html` (EN) are the content source of truth:
 all of them, including the `buildJobs()`, `loop`, `impact` and `skills` data in its script.
 
 **Update 2026-10-05 (handoff).** The human's later design session in the same file is exported
@@ -48,8 +47,8 @@ Colours (names are proposals; the Theme task fixes them in `src/theme/tokens.css
 | shadows | card `0 30px 80px -40px rgba(139,92,246,.18)`; dark panel same at `.5`; CTA `0 10px 24px -10px rgba(255,79,184,.5)`; launcher `0 16px 40px -12px rgba(139,92,246,.45)` |
 
 Fonts: **Figtree** 400/500/600/700 (everything) and **JetBrains Mono** 400/500 (meta bar, labels,
-periods, tags, step numbers, footnote). Self-host them like the current fonts (latin + cyrillic;
-Figtree has no cyrillic → see Decision 3).
+periods, tags, step numbers, footnote). Self-host them, latin subsets only (Decision 3;
+`src/theme/AGENTS.md`).
 
 Type, radii and spacing: take the literal values from `design.dc.html` (they are inline styles;
 `clamp(...)` values stay fluid). Main ones: h1 `clamp(40px,7vw,84px)`/600/-.045em; h2
@@ -59,8 +58,9 @@ Page: card max-width 1120, padding `0 clamp(14px,3vw,42px)`, section gap `clamp(
 
 ## Structure (top to bottom)
 
-1. **Meta bar** (nav): `~/andrew.panasiuk/cv` left; right: location, "Remote / B2B across EU",
-   "Open to roles" (green dot) on its own line.
+1. **Meta bar** (nav): location, "Remote / B2B across EU", "Open to roles" (green dot) on its
+   own line. The design's `~/andrew.panasiuk/cv` handle at its left now sits in the sticky page
+   toolbar above it (`docs/design/page-nav/`).
 2. **Header**: photo 72–96 px (radius 24) + name + "Android since 2012 · Agentic engineering";
    h1 "Senior Software **Product** Engineer" (variant A; variant B is not used); summary (5
    lines, `<br>`-separated); 2×2 stat tiles (12+, 1M+, 2, AI — the last on the gradient); contact
@@ -83,7 +83,7 @@ Page: card max-width 1120, padding `0 clamp(14px,3vw,42px)`, section gap `clamp(
 10. **Footer CTA**: two columns (handoff §6b): left "Let's build something ↗" (hover: gradient
    text); right the email pill with ↗ circle, then WhatsApp / LinkedIn pills (no Telegram).
 11. © 2026 Andrew Panasiuk.
-11. **"Ask my AI"** launcher: fixed pill bottom-right (✦ circle on the gradient + label). It opens
+11. **"Talk to my AI"** launcher: fixed pill bottom-right (✦ circle on the gradient + label). It opens
     our chat (in the design it is a plain link).
 
 Mobile (390 px): see `screenshot-mobile.png`; everything wraps by the inline flex/grid rules, no
@@ -93,9 +93,8 @@ separate layout.
 
 - **Section order is the human's call** (2026-10-07, CV-145): Skills right after the header. A
   redesign keeps it unless the human says otherwise.
-1. **One page, one URL.** `/` shows this page. `/new` stays reachable and shows the same page
-   (old links keep working); there is no second page any more. How (alias vs redirect) is the
-   architecture's call.
+1. **One page, one URL.** `/` shows this page. `/new` is a 307 redirect to `/` (`vercel.json`), so
+   old links keep working; there is no second page any more.
 2. **English only** (the human, 2026-10-05). No Ukrainian anywhere: no translation, no language
    switcher, no `uk` locale (ADR-0006 → Decision 6).
 3. **Fonts:** Figtree + JetBrains Mono, latin subsets only.
@@ -105,11 +104,11 @@ separate layout.
    `assets/cv_app_august.png`.
 5. **Dropped from the design file:** headline variant B, the "TnAir" alternative palette and the
    unused `apps` list (Savant). They are not part of the page.
-6. **Chat.** The "Ask my AI" pill replaces the round launcher; the chat panel keeps its behaviour
+6. **Chat.** The "Talk to my AI" pill replaces the round launcher; the chat panel keeps its behaviour
    (`docs/design/chat/SPEC.md`) and is restyled to this palette (the Forest-dark panel becomes the
    v3 dark panel colours above). The chat answers about this one page.
-7. **Show case button** goes at the end of the meta bar (as today in Forest), styled as a small
-   mono pill in this palette.
+7. **Show case button** goes at the end of the meta bar, styled as a small mono pill in this
+   palette. It is hidden for now (CV-144); the footer's Show case link starts the show (CV-148).
 8. Contact links: phone numbers and URLs exactly as in the design (`wa.me/48519457129`,
    LinkedIn `in/andriipanasiuk`).
 
@@ -123,8 +122,8 @@ From CV-107 ([ADR-0006](../../adr/0006-one-page-v3.md); it wins where this list 
   (2026-10-07).
 - **English only** (the human, 2026-10-05). This overrides Orchestrator decisions 2 and 3 and the
   language-switcher part of 7: no UK translation, no Cyrillic font, no switcher. Figtree and
-  JetBrains Mono are latin only. The meta bar's end holds only the Show case button.
-- **Data:** a new `CvPage` model (`src/data/cvPage.ts`, `src/data/mock/cvPage.json`) with the
+  JetBrains Mono are latin only. The meta bar's end holds only the (hidden) Show case button.
+- **Data:** a new `CvPage` model (`src/data/cvPage.ts`, `src/data/cv/cvPage.json`) with the
   texts of this design. Section headings and fixed words ("Email me", the handle, ©) are the
   screen's strings. Card tones are set by position in the screen, not by data.
 - **Screen:** `src/screens/home/`, with the components in the screen folder. Test ids use the
@@ -135,6 +134,7 @@ From CV-107 ([ADR-0006](../../adr/0006-one-page-v3.md); it wins where this list 
   `--font-sans`/`--font-mono`, `--type-<role>-*`, `--radius-*`, `--page-*`). The table is in
   ADR-0006 → Decision 5.
 - **Chat:** `/api/chat` `v: 4` (`docs/chat/API.md` → v4). The page's sections are `header`,
-  `skills`, `craft`, `loop`, `impact`, `experience`, `education`, `about`, `contacts`. There are
-  three tools. The "Ask my AI" pill is the chat's launcher.
+  `skills`, `impact`, `projects`, `experience`, `craft`, `loop`, `education`, `about`, `contacts`
+  (`CV_SECTION_IDS` in `src/data/chat/contract.ts`). There are three tools. The "Talk to my AI"
+  pill is the chat's launcher.
 - **Show case:** one scenario, `retro-4` (`docs/retro/ARCHITECTURE.md` §11).
