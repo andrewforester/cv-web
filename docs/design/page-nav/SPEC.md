@@ -20,9 +20,14 @@ A visitor sees the CV's structure at a glance and jumps to any main block in one
 - Background `--color-toolbar` (translucent white) with `backdrop-filter: blur(var(--toolbar-blur))`;
   1 px bottom border `--color-line`.
 - **Left: the handle** `~/andrew.panasiuk/cv`, `--font-mono`, `--type-meta-size`, `--color-ink`,
-  weight 500. It moves here from the meta bar; the meta bar keeps location, work mode and status.
-- **Right: the section list**, 9 items, lowercase, `--font-mono`, `--type-meta-size` (14 px),
-  `--color-ink-3`:
+  regular weight (`--type-meta-weight`, as in the meta bar; the human, 2026-10-16). It moves here
+  from the meta bar; the meta bar keeps location, work mode and status.
+- **The page top below** (the human, 2026-10-16): with the handle gone, on screens wider than
+  960 px the meta bar sits at the header's top right and the photo, name and everything under
+  them rise to its level (the photo's top level with the location line). At 960 px and narrower
+  the meta bar stays above the header, right-aligned.
+- **Right: the section list**, 9 items, lowercase, `--font-mono`, `--toolbar-link-size` (15 px),
+  `--color-ink-2` (a touch larger and brighter than the handle; the human, 2026-10-16):
 
 | Label | Section id |
 |---|---|
@@ -79,6 +84,7 @@ Labels are UI strings (home screen namespace), not CV data.
 | `--toolbar-height` | 56px; 48px at `width <= 700px` |
 | `--toolbar-gap` | `--space-6` (handle ↔ list) |
 | `--toolbar-item-padding-x` | `--space-2-5` |
+| `--toolbar-link-size` | 15px |
 | `--toolbar-underline-width` | 2px |
 | `--toolbar-blur` | 14px |
 | `--toolbar-z-index` | 900 (below `--chat-z-index` 1000) |

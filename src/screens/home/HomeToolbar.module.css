@@ -24,7 +24,7 @@
 }
 
 .handle {
-  font-weight: var(--type-button-weight);
+  font-weight: var(--type-meta-weight);
   color: var(--color-ink);
   white-space: nowrap;
 }
@@ -42,7 +42,8 @@
   position: relative;
   padding: 0 var(--toolbar-item-padding-x);
   font: inherit;
-  color: inherit;
+  font-size: var(--toolbar-link-size);
+  color: var(--color-ink-2);
   white-space: nowrap;
   background: none;
   border: 0;

@@ -253,6 +253,7 @@
   --toolbar-blur: 14px;
   --toolbar-gap: var(--space-6);
   --toolbar-item-padding-x: var(--space-2-5);
+  --toolbar-link-size: 15px;
   --toolbar-underline-width: 2px;
   --toolbar-z-index: 900;
   --color-toolbar: rgb(255 255 255 / 88%);

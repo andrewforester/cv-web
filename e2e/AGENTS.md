@@ -22,7 +22,9 @@ What it guarantees today:
 - The page's top toolbar (`toolbar.spec.ts`, `toolbar.png`, `toolbar-mobile.png`): sticky at the
   top, the handle (moved out of the meta bar; hidden on the phone) and the nine section buttons in
   order; none is current on the header, a click lands the section just under the toolbar and
-  marks its button `aria-current`; on the phone the last one (contact) is still reachable.
+  marks its button `aria-current`; on the phone the last one (contact) is still reachable; with
+  the chat docked at the side the bar still spans the viewport; on desktop the photo is level with
+  the meta bar's location, on the phone the meta bar stays above the header.
 - The chat sends `v: 4` (no page id, no locale) and answers a question with a streamed reply;
   it offers the page's four first questions, and rate limiting shows its notice. A `#ask` link
   opens it; its look is screenshotted empty and answered at three viewports: `wide` 1600 × 900

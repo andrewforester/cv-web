@@ -132,3 +132,28 @@ test('with the chat docked at the side the toolbar still spans the viewport', as
     .toBe(true);
   expect(errors).toEqual([]);
 });
+
+test('on desktop the header rises to the meta bar: the photo is level with the location', async ({
+  page,
+}) => {
+  const errors = collectErrors(page);
+  await page.goto(NORMAL_SITE);
+  const photo = await page.getByTestId('home-photo').boundingBox();
+  const name = await page.getByTestId('home-name').boundingBox();
+  const location = await page.getByTestId('home-meta-bar').getByText('Wrocław').boundingBox();
+  if (!photo || !name || !location) throw new Error('page top not laid out');
+
+  expect(Math.abs(photo.y - location.y)).toBeLessThanOrEqual(4);
+  expect(name.x + name.width).toBeLessThan(location.x);
+  expect(errors).toEqual([]);
+});
+
+test('on a phone the meta bar stays above the header @mobile', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile', 'the phone layout only');
+  await page.goto(NORMAL_SITE);
+  const photo = await page.getByTestId('home-photo').boundingBox();
+  const meta = await page.getByTestId('home-meta-bar').boundingBox();
+  if (!photo || !meta) throw new Error('page top not laid out');
+
+  expect(photo.y).toBeGreaterThan(meta.y + meta.height);
+});
