@@ -105,6 +105,27 @@ describe('the page toolbar', () => {
     vi.unstubAllGlobals();
   });
 
+  it('keeps the picked section marked while the page scrolls to it', async () => {
+    await renderHome();
+    fireEvent.click(screen.getByRole('button', { name: 'contact' }));
+
+    // On its way down the page passes other sections; the mark stays on the pick.
+    stubSectionTops('experience');
+    act(() => {
+      fireEvent.scroll(window);
+    });
+    await nextFrame();
+    expect(current().map((link) => link.textContent)).toEqual(['contact']);
+
+    // Once the scroll ends the mark follows the page again.
+    act(() => {
+      fireEvent(window, new Event('scrollend'));
+    });
+    await vi.waitFor(() =>
+      expect(current().map((link) => link.textContent)).toEqual(['experience']),
+    );
+  });
+
   it('scrolls to the section the visitor picks and marks it', async () => {
     await renderHome();
 
