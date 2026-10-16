@@ -1,0 +1,88 @@
+/* The page toolbar (docs/design/page-nav): full width, pinned to the top, over the page card. */
+.root {
+  position: sticky;
+  top: 0;
+  z-index: var(--toolbar-z-index);
+  display: flex;
+  align-items: center;
+  gap: var(--toolbar-gap);
+  height: var(--toolbar-height);
+  margin: calc(-1 * var(--page-margin)) calc(-1 * var(--page-margin)) var(--page-margin);
+
+  /* Content lines up with the card's inner edges; items keep their own padding inside. */
+  padding-inline: max(
+    var(--page-margin),
+    calc((100% - var(--page-max-width)) / 2 + var(--page-padding-x))
+  );
+  font-family: var(--font-mono);
+  font-size: var(--type-meta-size);
+  line-height: var(--type-meta-line-height);
+  color: var(--color-ink-3);
+  background: var(--color-toolbar);
+  backdrop-filter: blur(var(--toolbar-blur));
+  border-bottom: var(--border-rule);
+}
+
+.handle {
+  font-weight: var(--type-button-weight);
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+.list {
+  position: relative;
+  display: flex;
+  align-self: stretch;
+  margin-inline: auto calc(-1 * var(--toolbar-item-padding-x));
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.link {
+  position: relative;
+  padding: 0 var(--toolbar-item-padding-x);
+  font: inherit;
+  color: inherit;
+  white-space: nowrap;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--color-ink);
+}
+
+.link:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: calc(-1 * var(--focus-ring-offset));
+}
+
+.link[aria-current='true'] {
+  color: var(--color-accent);
+}
+
+.link[aria-current='true']::after {
+  content: '';
+  position: absolute;
+  right: var(--toolbar-item-padding-x);
+  bottom: 0;
+  left: var(--toolbar-item-padding-x);
+  height: var(--toolbar-underline-width);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+@media (width <= 700px) {
+  .root {
+    padding-inline: var(--space-2);
+  }
+
+  .handle {
+    display: none;
+  }
+
+  .list {
+    margin-inline: 0;
+  }
+}

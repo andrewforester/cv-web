@@ -62,7 +62,7 @@ x: 0                                              880                       1280
 - The page scrolls under the fixed dock. The show scrolls it to a chunk's target when the target is out of view (Show what changed → Scrolling).
 - **Highlight overlay**: show-owned, drawn in the portal over the page and under the dock; the **plate** sits on the first target's bottom-left corner (the page area's corner for a page-wide chunk).
 - **Shorter viewports** (desktop ≥ 1024 wide, any height): the chat card height is `min(var(--retro-chat-height), 100dvh - 280px)` so at least ≈ 200 px of console stays visible (e.g. 700 px tall → chat 392, console ≈ 220; 600 px tall → chat 320, console ≈ 192). Width is fixed; the show doesn't run below 1024 px (desktop only).
-- **During the show there's no AI chat button and no meta bar** (the page's meta bar with the Show case button is hidden by the `hide-meta-bar` layer). Both come back through fix chunks.
+- **During the show there's no AI chat button and no meta bar** (the page's toolbar and its meta bar with the Show case button are hidden by the `hide-meta-bar` layer). Both come back through fix chunks.
 
 ## Timeline
 
@@ -587,7 +587,7 @@ The broken page the show fixes: the CV as its author would have built it as a 20
 | `card-padding` | `profile-education` and `profile-about` without their 24 px card padding |
 | `new-bursts` | blinking "NEW!" after the *Selected impact* and *How I build with agents* titles |
 | `decor-room` | `[data-testid='profile']` 72 px top and 216 px bottom padding for the nav bar and footer |
-| `hide-meta-bar` | the meta bar hidden |
+| `hide-meta-bar` | the toolbar and the meta bar hidden |
 | `link-style` | contact rows and the footer CTA `#0000EE` underlined; the contact ↗ hidden |
 | `contact-labels` | a bold `Contact me:` line before the contact list |
 

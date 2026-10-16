@@ -9,7 +9,9 @@ import { HomeImpact } from './HomeImpact';
 import { HomeLoop } from './HomeLoop';
 import { HomePage } from './HomePage';
 import styles from './HomeScreen.module.css';
+import type { HomeNavSection } from './homeNav';
 import { HomeSkills } from './HomeSkills';
+import { HomeToolbar } from './HomeToolbar';
 import { HomeTop } from './HomeTop';
 import type { HomeUiState } from './HomeUiState';
 import { homeStrings } from './strings';
@@ -18,6 +20,8 @@ import { homeTestIds } from './testIds';
 interface HomeScreenProps {
   className?: string;
   state: HomeUiState;
+  /** The visitor picked a section in the toolbar. */
+  onSelectSection?: (section: HomeNavSection) => void;
   /** Controls at the end of the meta bar (the Show case button). */
   metaBarEnd?: ReactNode;
   /** Control after the copyright line (the Show case link). */
@@ -25,13 +29,19 @@ interface HomeScreenProps {
 }
 
 /** The one CV page, top to bottom as in docs/design/v3 (SPEC → Structure). */
-export function HomeScreen({ className, state, metaBarEnd, copyrightEnd }: HomeScreenProps) {
+export function HomeScreen({
+  className,
+  state,
+  onSelectSection,
+  metaBarEnd,
+  copyrightEnd,
+}: HomeScreenProps) {
   const common = useStrings(commonStrings);
   const strings = useStrings(homeStrings);
 
   if (state.status !== 'ready') {
     return (
-      <HomePage className={className}>
+      <HomePage className={className} toolbar={<HomeToolbar />}>
         <HomeTop metaBarEnd={metaBarEnd} highlightedId={null} />
         <p className={styles.status} data-testid={homeTestIds.status}>
           {state.status === 'loading' ? common.loading : common.loadError}
@@ -40,9 +50,10 @@ export function HomeScreen({ className, state, metaBarEnd, copyrightEnd }: HomeS
     );
   }
 
-  const { page, highlightedId } = state;
+  const { page, highlightedId, activeSection } = state;
+  const toolbar = <HomeToolbar activeSection={activeSection} onSelect={onSelectSection} />;
   return (
-    <HomePage className={className}>
+    <HomePage className={className} toolbar={toolbar}>
       <HomeTop page={page} metaBarEnd={metaBarEnd} highlightedId={highlightedId} />
       <HomeSkills skills={page.skills} highlightedId={highlightedId} />
       <HomeImpact impact={page.impact} highlightedId={highlightedId} />

@@ -6,6 +6,8 @@ export const homeTestIds = {
   root: 'home',
   status: 'home-status',
   // Page parts
+  toolbar: 'home-toolbar',
+  toolbarLink: 'home-toolbar-link',
   metaBar: 'home-meta-bar',
   header: 'home-header',
   photo: 'home-photo',

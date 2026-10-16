@@ -112,7 +112,7 @@ describe('Home screen', () => {
     expect(screen.getByTestId(homeTestIds.status)).toHaveTextContent('Loading…');
     expect(await screen.findByTestId(homeTestIds.name)).toHaveTextContent('Test Person');
     const metaBar = screen.getByTestId(homeTestIds.metaBar);
-    for (const text of ['~/andrew.panasiuk/cv', 'Lviv', 'Hybrid', 'Busy', 'end control']) {
+    for (const text of ['Lviv', 'Hybrid', 'Busy', 'end control']) {
       expect(within(metaBar).getByText(text)).toBeInTheDocument();
     }
     expect(screen.getByText('Fake tagline')).toBeInTheDocument();

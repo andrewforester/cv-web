@@ -95,7 +95,7 @@ export const RETRO_CHUNKS: readonly RetroStep[] = [
       morph('new-bursts', on('NEW! badges', `${LOOP} h2`, `${IMPACT} h2`)),
       leave('page-footer', 'footer'),
       fade('decor-room', PAGE),
-      morph('hide-meta-bar', on('meta bar', hook('home-meta-bar'))),
+      morph('hide-meta-bar', on('meta bar', hook('home-toolbar'), hook('home-meta-bar'))),
     ],
   },
   {
