@@ -177,3 +177,26 @@ test('on a narrow desktop every section label fits without scrolling', async ({ 
     expect(clipped, `labels clipped at ${width}px`).toBe(false);
   }
 });
+
+test('the meta bar never overlaps the name or the tagline', async ({ page }) => {
+  for (const width of [961, 1000, 1100, 1101, 1280]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.goto(NORMAL_SITE);
+    await expect(page.getByTestId('home-name')).toBeVisible();
+    const overlap = await page.evaluate(() => {
+      const name = document.querySelector('[data-testid="home-name"]');
+      const texts = [name, name?.nextElementSibling].flatMap((e) =>
+        e ? [e.getBoundingClientRect()] : [],
+      );
+      const facts = [...document.querySelectorAll('[data-testid="home-meta-bar"] span')].map((e) =>
+        e.getBoundingClientRect(),
+      );
+      return texts.some((t) =>
+        facts.some(
+          (f) => t.left < f.right && f.left < t.right && t.top < f.bottom && f.top < t.bottom,
+        ),
+      );
+    });
+    expect(overlap, `overlap at ${width}px`).toBe(false);
+  }
+});

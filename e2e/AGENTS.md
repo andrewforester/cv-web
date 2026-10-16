@@ -25,7 +25,7 @@ What it guarantees today:
   marks its button `aria-current`; on the phone the sections fold into a menu (`toolbar-menu-mobile.png`)
   that reaches the last one (contact) and names it in the bar, nothing scrolling sideways; with
   the chat docked at the side the bar still spans the viewport; on desktop the photo is level with
-  the meta bar's location, on the phone the meta bar stays above the header; from 980 px up the
+  the meta bar's location (wider than 1100 px), the meta bar never overlaps the name, on the phone the meta bar stays above the header; from 980 px up the
   labels fit without scrolling.
 - The chat sends `v: 4` (no page id, no locale) and answers a question with a streamed reply;
   it offers the page's four first questions, and rate limiting shows its notice. A `#ask` link

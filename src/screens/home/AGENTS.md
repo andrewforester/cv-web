@@ -21,7 +21,7 @@ shown only while the page has a show).
 Domain terms:
 - **Hooks**: the `home-*` test ids (`testIds.ts`, ADR-0006 → Decision 2). The Show case's damage
   layers select them, so they are a contract with `src/screens/retro`.
-- **Page top**: wider than 960 px the meta bar sits at the header's top right, level with the
+- **Page top**: wider than 1100 px the meta bar sits at the header's top right, level with the
   photo (`HomeTop`); narrower it is above the header.
 - **Toolbar**: the handle and the nav sections (`homeNav.ts`, the page's agent sections minus
   the header, in page order); at 960 px and narrower they fold into a menu opened from the bar,
