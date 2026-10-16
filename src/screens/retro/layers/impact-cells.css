@@ -1,0 +1,14 @@
+[data-retro-stage]
+  :is(
+    [data-testid='home-stat'],
+    [data-testid='home-craft-card'],
+    [data-testid='home-impact-card']
+  ) {
+  padding: 6px;
+  border: 2px outset #c0c0c0;
+  border-radius: 0;
+}
+
+[data-retro-stage] :is([data-testid='home-craft-card'], [data-testid='home-impact-card']) {
+  gap: 4px;
+}

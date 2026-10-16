@@ -1,0 +1,20 @@
+/* The header sits closer to the meta bar than sections sit to each other. */
+.root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--page-section-gap) - var(--page-header-pull-up));
+}
+
+/* Wide: the meta bar leaves the flow for the header's top right; the photo is level with it. */
+@media (width > 1100px) {
+  .root {
+    padding-top: var(--page-meta-padding-top);
+  }
+
+  .metaBar {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+}

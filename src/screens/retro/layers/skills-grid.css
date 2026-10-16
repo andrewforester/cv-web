@@ -1,0 +1,8 @@
+[data-retro-stage] [data-testid='home-skills'] h2 {
+  align-self: center;
+}
+
+[data-retro-stage] div:has(> [data-testid='home-skill']) {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+}

@@ -1,0 +1,18 @@
+export const retroTestIds = {
+  dock: 'retro-dock',
+  chat: 'retro-chat',
+  chatLog: 'retro-chat-log',
+  chatLine: 'retro-chat-line',
+  chatInput: 'retro-chat-input',
+  chatMeta: 'retro-chat-meta',
+  console: 'retro-console',
+  consoleScreen: 'retro-console-screen',
+  consoleErrors: 'retro-console-errors',
+  consoleWarnings: 'retro-console-warnings',
+  minimise: 'retro-minimise',
+  decoration: 'retro-decoration',
+  highlight: 'retro-highlight',
+  highlightBox: 'retro-highlight-box',
+  highlightPage: 'retro-highlight-page',
+  highlightPlate: 'retro-highlight-plate',
+} as const;

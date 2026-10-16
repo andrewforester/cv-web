@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="20" viewBox="0 0 40 20">
+  <!-- "NEW!" starburst tag. Made for GRA-38, CC0. -->
+  <path d="M20 0l3 4 5-3 1 5 6-1-2 5 5 2-5 3 2 5-6-1-1 5-5-3-3 4-3-4-5 3-1-5-6 1 2-5-5-2 5-3-2-5 6 1 1-5 5 3z" fill="#ff0000"/>
+  <text x="20" y="14" text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="9" fill="#ffff00">NEW!</text>
+</svg>

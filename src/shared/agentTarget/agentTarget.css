@@ -1,0 +1,26 @@
+/* Every agent target: lands below the top edge when scrolled to; the highlight fades out. */
+[data-agent-id] {
+  scroll-margin-top: var(--agent-scroll-margin-top);
+}
+
+[data-agent-highlighted] {
+  outline: var(--agent-highlight-width) solid var(--agent-highlight-color);
+  outline-offset: var(--agent-highlight-offset);
+  animation: agent-highlight-fade var(--agent-highlight-duration) ease-in forwards;
+}
+
+@keyframes agent-highlight-fade {
+  from {
+    outline-color: var(--agent-highlight-color);
+  }
+
+  to {
+    outline-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-agent-highlighted] {
+    animation: none;
+  }
+}

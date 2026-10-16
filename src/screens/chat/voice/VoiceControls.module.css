@@ -1,0 +1,54 @@
+/* docs/design/voice/SPEC.md → Layout 2: End and Mute, 56 circles left of the call composer's field. */
+.control {
+  flex: none;
+  height: var(--voice-control-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--color-dark-ink);
+  background: var(--chat-fill);
+  border: var(--border-card) solid var(--color-dark-line);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    color var(--chat-transition),
+    background-color var(--chat-transition),
+    border-color var(--chat-transition);
+}
+
+.control:hover:not(:disabled) {
+  background: var(--chat-fill-hover);
+}
+
+.round {
+  width: var(--voice-control-size);
+}
+
+.round[aria-pressed='true'],
+.round[aria-pressed='true']:hover {
+  color: var(--color-dark-number);
+  background: var(--chat-notice-bg);
+  border-color: var(--color-dark-number);
+}
+
+.round:disabled {
+  color: var(--color-ink-4);
+  background: transparent;
+  cursor: default;
+}
+
+.end {
+  color: var(--color-ink);
+  background: var(--color-card);
+  border-color: transparent;
+}
+
+.end:hover:not(:disabled) {
+  background: var(--color-surface);
+}
+
+.icon {
+  width: var(--voice-control-icon-size);
+  height: var(--voice-control-icon-size);
+}

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges">
+  <!-- "Image failed to load" placeholder in the style of 2000s browsers. Made for GRA-38, CC0. -->
+  <path d="M1.5 1.5h9l4 4v9h-13z" fill="#ffffff" stroke="#808080"/>
+  <path d="M10.5 1.5v4h4" fill="#c0c0c0" stroke="#808080"/>
+  <rect x="3" y="11" width="3" height="2" fill="#00a000"/>
+  <rect x="7" y="9" width="3" height="4" fill="#0000c0"/>
+  <path d="M4 3.5l5 5M9 3.5l-5 5" stroke="#e00000" stroke-width="1.6" shape-rendering="geometricPrecision"/>
+</svg>

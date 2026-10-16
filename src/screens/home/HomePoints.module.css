@@ -1,0 +1,28 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.point {
+  display: flex;
+  gap: var(--space-2-5);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+  color: var(--color-ink-2);
+  text-wrap: pretty;
+}
+
+/* Centred on the first line of the text. */
+.dot {
+  flex: none;
+  width: var(--bullet-size);
+  height: var(--bullet-size);
+  margin-top: var(--bullet-offset);
+  background: var(--color-accent-hover);
+  border-radius: 50%;
+  opacity: var(--bullet-opacity);
+}

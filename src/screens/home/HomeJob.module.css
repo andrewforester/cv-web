@@ -1,0 +1,66 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5-5) 0;
+  border-top: var(--border-rule);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.logo {
+  flex: none;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  object-fit: contain;
+}
+
+.tile {
+  background: var(--color-surface);
+  border-radius: var(--radius-logo);
+}
+
+.info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-0-75);
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.company {
+  font-size: var(--type-company-size);
+  font-weight: var(--type-company-weight);
+  line-height: var(--type-company-line-height);
+  letter-spacing: var(--type-company-letter-spacing);
+}
+
+.period {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: var(--type-period-size);
+  line-height: var(--type-period-line-height);
+  color: var(--color-ink-4);
+  white-space: nowrap;
+}
+
+.role {
+  font-size: var(--type-role-size);
+  line-height: var(--type-role-line-height);
+  color: var(--color-ink-3);
+}
+
+.meta {
+  margin-top: var(--space-0-75);
+}

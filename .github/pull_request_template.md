@@ -1,5 +1,5 @@
-Closes #
+Closes CV-
 
 ## What changed
 
-<!-- Short summary. Process details (screenshots, deviations, stubs, questions, verification) go into the Issue as comments. -->
+<!-- Short summary only. Everything about the task (plan, screenshots, deviations, stubs, questions, verification, usage) goes on the Linear ticket; the PR holds the code and its review. -->

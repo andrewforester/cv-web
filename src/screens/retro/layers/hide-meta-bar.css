@@ -1,0 +1,4 @@
+[data-retro-stage] [data-testid='home-toolbar'],
+[data-retro-stage] [data-testid='home-meta-bar'] {
+  display: none;
+}

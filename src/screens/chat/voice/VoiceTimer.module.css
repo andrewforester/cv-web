@@ -1,0 +1,43 @@
+/* docs/design/voice/SPEC.md → Layout 2 (header subtitle: the timer). */
+.timer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  font-family: var(--font-mono);
+  font-size: var(--chat-caption-size);
+  line-height: var(--chat-caption-line-height);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: var(--chat-ink-2);
+}
+
+.ring {
+  flex: none;
+  width: var(--chat-action-icon-size);
+  height: var(--chat-action-icon-size);
+  transform: rotate(-90deg);
+  fill: none;
+}
+
+.track {
+  stroke: var(--color-dark-line);
+}
+
+.progress {
+  stroke: var(--color-dark-ink);
+  stroke-linecap: round;
+}
+
+.value {
+  font-weight: var(--type-medium-weight);
+  color: var(--color-dark-ink);
+}
+
+.warning,
+.warning .value {
+  color: var(--color-dark-number);
+}
+
+.warning .progress {
+  stroke: var(--color-dark-number);
+}

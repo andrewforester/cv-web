@@ -1,0 +1,58 @@
+.chip {
+  max-width: 100%;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--chat-caption-size);
+  line-height: var(--chat-caption-line-height);
+  color: var(--color-dark-ink);
+  border: var(--border-card) solid var(--color-dark-line);
+  border-radius: var(--radius-pill);
+  overflow-wrap: anywhere;
+}
+
+.icon {
+  flex: none;
+  width: var(--chat-action-icon-size);
+  height: var(--chat-action-icon-size);
+  color: var(--color-dark-number);
+}
+
+.running {
+  color: var(--chat-ink-2);
+}
+
+.running .icon {
+  animation: pulse 1.2s infinite both;
+}
+
+.failed {
+  color: var(--chat-error);
+  background: var(--chat-error-bg);
+  border-color: var(--chat-error);
+}
+
+.failed .icon {
+  color: currentcolor;
+}
+
+@keyframes pulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+  }
+
+  40% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .running .icon {
+    animation: none;
+  }
+}

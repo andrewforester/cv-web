@@ -1,0 +1,316 @@
+name: Production
+
+# Production = main (docs/adr/0014-branches-and-ci-levels.md). Every push to main runs the checks;
+# in parallel the deploy is planned and built once, and `Deploy production` waits for all three.
+# Then the production smoke (prod-smoke.yml) and, if it fails, the rollback. Vercel's Git
+# integration doesn't deploy main (vercel.json -> git.deploymentEnabled). A manual run
+# (`gh workflow run production.yml --ref main`) redeploys; from any other ref it only runs the
+# checks.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      simulate_smoke_failure:
+        description: 'On main: deploy, then fail the production smoke on purpose to exercise the rollback'
+        type: boolean
+        default: false
+
+# Runs queue, never cancel each other (a deploy or a rollback must not stop half-way; GitHub keeps
+# only the newest queued run, which the docs-only check below accounts for).
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # The production domain (prod-smoke.yml smokes the same one).
+  PRODUCTION_DOMAIN: grandtorino.dev
+  # Vercel REST helpers for the deploy and rollback steps (`eval "$VERCEL_API_SH"`; kept
+  # here because the workflow is the only file these jobs share without a checkout).
+  # Promote and roll back go through the API, not the CLI: `vercel promote` / `vercel rollback`
+  # first look up the token's user (GET /v2/user), which answers 404 "User not found" for this
+  # team token (CV-132); the API calls name the team explicitly.
+  # vercel_api METHOD PATH [BODY]: the response body on stdout; "METHOD path -> status" (no
+  # query, no token) and, on an error, Vercel's error JSON in the log. Anything but a 2xx fails,
+  # a network error (status 000) included.
+  VERCEL_API_SH: |
+    vercel_api() {
+      local out code ok=0
+      out=$(mktemp)
+      code=$(curl -sS -X "$1" -o "$out" -w '%{http_code}' \
+        -H "Authorization: Bearer $VERCEL_TOKEN" -H 'Content-Type: application/json' \
+        ${3:+-d "$3"} "https://api.vercel.com$2") || true
+      echo "$1 ${2%%\?*} -> ${code:-000}" >&2
+      case $code in
+        2??) cat "$out" ;;
+        *) jq -c '.error // .' "$out" >&2 2> /dev/null || true; ok=1 ;;
+      esac
+      rm -f "$out"
+      return "$ok"
+    }
+    live_deployment() { vercel_api GET "/v13/deployments/$PRODUCTION_DOMAIN?teamId=$VERCEL_ORG_ID"; }
+    # Waits (up to 3 min) until the production domain serves deployment $1; a failed poll retries.
+    wait_until_live() {
+      local current
+      for _ in $(seq 36); do
+        current=$(live_deployment | jq -r '.id // empty') || current=
+        if [ "$current" = "$1" ]; then echo "The production domain serves $1"; return 0; fi
+        sleep 5
+      done
+      echo "::error::The production domain still serves ${current:-nothing}, not $1"
+      return 1
+    }
+  # GitHub Deployments helpers (gh with GH_TOKEN, jobs with `deployments: write`). Vercel's GitHub
+  # App records only Git-triggered deployments, so CI records its own in the Production
+  # environment (CV-165). gh_deployment_status ID STATE [DESCRIPTION]: environment_url is the
+  # production domain, log_url this run.
+  GH_DEPLOYMENTS_SH: |
+    gh_deployment_status() {
+      jq -n --arg state "$2" --arg description "${3:-}" \
+        --arg url "https://$PRODUCTION_DOMAIN" \
+        --arg log "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+        '{$state, $description, environment_url: $url, log_url: $log}' |
+        gh api "repos/$GITHUB_REPOSITORY/deployments/$1/statuses" --input - > /dev/null
+    }
+
+# Vercel deploys run in three jobs, so no job holds both the secrets and the project's code
+# (CV-166; the same split as the preview in dev.yml, which explains it): Plan production deploy
+# (token, git and the Vercel API only), Build production (no secrets, `vercel build`), Deploy
+# production (token, `vercel deploy --prebuilt` of that build's output).
+jobs:
+  checks:
+    name: Checks
+    uses: ./.github/workflows/checks.yml
+
+  release-plan:
+    name: Plan production deploy
+    # Starts with the checks, not after them: only Deploy production waits for the checks.
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    outputs:
+      deploy: ${{ steps.live.outputs.deploy }}
+      previous: ${{ steps.live.outputs.previous }}
+      previous_sha: ${{ steps.live.outputs.previous_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # The deployment the production domain serves is the rollback target. Its commit decides the
+      # docs-only skip: nothing but docs/, .claude/ and *.md changed since it (the rule of
+      # scripts/vercel-ignore.sh).
+      # Diffing against the live commit, not the push's `before`, also covers queued runs that
+      # GitHub dropped. Any doubt deploys; a manual run always deploys.
+      - name: Live production deployment
+        id: live
+        run: |
+          set -euo pipefail
+          eval "$VERCEL_API_SH"
+          prod=$(live_deployment)
+          previous=$(jq -r '.id // empty' <<< "$prod")
+          live_sha=$(jq -r '.meta.githubCommitSha // empty' <<< "$prod")
+          echo "Live: ${previous:-none} at ${live_sha:-unknown commit}"
+          echo "previous=$previous" >> "$GITHUB_OUTPUT"
+          echo "previous_sha=$live_sha" >> "$GITHUB_OUTPUT"
+          deploy=true
+          if [ "$GITHUB_EVENT_NAME" = push ] && [ -n "$live_sha" ] &&
+            git merge-base --is-ancestor "$live_sha" HEAD 2> /dev/null; then
+            changed=$(git diff --name-only "$live_sha" HEAD)
+            if [ -n "$changed" ] && ! grep -qvE '^(docs/|\.claude/)|\.md$' <<< "$changed"; then
+              deploy=false
+              echo "Docs-only change since the live commit: nothing to deploy."
+            fi
+          fi
+          echo "deploy=$deploy" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        if: ${{ steps.live.outputs.deploy == 'true' }}
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: .github/workflows/vercel-cli/package-lock.json
+      - uses: ./.github/workflows/vercel-cli
+        if: ${{ steps.live.outputs.deploy == 'true' }}
+      - name: Project settings (production)
+        if: ${{ steps.live.outputs.deploy == 'true' }}
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - uses: actions/upload-artifact@v4
+        if: ${{ steps.live.outputs.deploy == 'true' }}
+        with:
+          name: vercel-project-production
+          path: .vercel/project.json
+          include-hidden-files: true
+          retention-days: 1
+
+  release-build:
+    name: Build production
+    needs: release-plan
+    if: ${{ needs.release-plan.outputs.deploy == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # No git credentials on disk for the build's code.
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-project-production
+          path: .vercel
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            .github/workflows/vercel-cli/package-lock.json
+      - uses: ./.github/workflows/vercel-cli
+      - name: Build (production, no secrets)
+        run: vercel build --prod
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vercel-output-production
+          path: .vercel/output
+          include-hidden-files: true
+          retention-days: 1
+
+  deploy:
+    name: Deploy production
+    needs: [checks, release-plan, release-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      deployments: write
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      GH_TOKEN: ${{ github.token }}
+    outputs:
+      previous: ${{ needs.release-plan.outputs.previous }}
+      previous_sha: ${{ needs.release-plan.outputs.previous_sha }}
+      github_deployment: ${{ steps.github.outputs.id }}
+      promoting: ${{ steps.release.outputs.promoting }}
+      promoted: ${{ steps.release.outputs.promoted }}
+    steps:
+      # Only for the deployment's git metadata (`meta.githubCommitSha`, which the next run's
+      # docs-only check reads) and the CLI's lockfile; nothing of the project runs here.
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-project-production
+          path: .vercel
+      - uses: actions/download-artifact@v4
+        with:
+          name: vercel-output-production
+          path: .vercel/output
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: .github/workflows/vercel-cli/package-lock.json
+      - uses: ./.github/workflows/vercel-cli
+      # The GitHub Deployment for this commit (environment Production), only when CI really
+      # deploys; its status follows the deploy below and the rollback job.
+      - name: GitHub deployment
+        id: github
+        run: |
+          set -euo pipefail
+          eval "$GH_DEPLOYMENTS_SH"
+          id=$(jq -n --arg ref "$GITHUB_SHA" \
+            '{$ref, environment: "Production", auto_merge: false, required_contexts: []}' |
+            gh api "repos/$GITHUB_REPOSITORY/deployments" --input - --jq .id)
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+          gh_deployment_status "$id" in_progress
+      # --skip-domain + promote instead of a plain --prod: after a rollback Vercel stops assigning
+      # the production domain to new deployments, so only an explicit promote reliably goes live.
+      # The smoke starts only once the domain serves the new deployment.
+      - name: Deploy and promote
+        id: release
+        run: |
+          set -euo pipefail
+          eval "$VERCEL_API_SH"
+          url=$(vercel deploy --prebuilt --prod --skip-domain --token="$VERCEL_TOKEN")
+          echo "Deployment: $url"
+          id=$(vercel_api GET "/v13/deployments/${url#https://}?teamId=$VERCEL_ORG_ID" | jq -er .id)
+          echo "promoting=true" >> "$GITHUB_OUTPUT"
+          vercel_api POST "/v10/projects/$VERCEL_PROJECT_ID/promote/$id?teamId=$VERCEL_ORG_ID" '{}' > /dev/null
+          # Accepted: from here on a failure must roll back, even if the domain hasn't moved yet.
+          echo "promoted=true" >> "$GITHUB_OUTPUT"
+          wait_until_live "$id"
+          echo "Production: $url ($id, commit $GITHUB_SHA)" >> "$GITHUB_STEP_SUMMARY"
+      # The smoke may still fail it: the rollback job then marks it failed.
+      - name: GitHub deployment status
+        if: ${{ always() && steps.github.outputs.id }}
+        env:
+          ID: ${{ steps.github.outputs.id }}
+          STATE: ${{ steps.release.outcome == 'success' && 'success' || 'failure' }}
+        run: |
+          eval "$GH_DEPLOYMENTS_SH"
+          gh_deployment_status "$ID" "$STATE"
+
+  smoke:
+    name: Production smoke
+    needs: deploy
+    if: ${{ needs.deploy.outputs.promoting == 'true' }}
+    uses: ./.github/workflows/prod-smoke.yml
+    with:
+      simulate_failure: ${{ github.event_name == 'workflow_dispatch' && inputs.simulate_smoke_failure }}
+
+  # A failed smoke (or a promote that failed half-way) puts the previous deployment back on the
+  # production domain. Only when Vercel never accepted the promote and the domain still serves the
+  # previous deployment is there nothing to undo; an accepted promote may still land, so it is
+  # always rolled back. The run stays red: the failed job is still there.
+  rollback:
+    name: Roll back production
+    needs: [deploy, smoke]
+    if: ${{ !cancelled() && needs.deploy.outputs.promoting == 'true' && (needs.deploy.result == 'failure' || needs.smoke.result == 'failure') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      deployments: write
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      GH_TOKEN: ${{ github.token }}
+      PREVIOUS: ${{ needs.deploy.outputs.previous }}
+      PREVIOUS_SHA: ${{ needs.deploy.outputs.previous_sha }}
+      PROMOTED: ${{ needs.deploy.outputs.promoted }}
+      GITHUB_DEPLOYMENT: ${{ needs.deploy.outputs.github_deployment }}
+    steps:
+      - name: Roll back to the previous production deployment
+        run: |
+          set -euo pipefail
+          eval "$VERCEL_API_SH"
+          test -n "$PREVIOUS" || { echo "::error::No previous production deployment to roll back to"; exit 1; }
+          if [ "$PROMOTED" != true ] && [ "$(live_deployment | jq -r '.id // empty')" = "$PREVIOUS" ]; then
+            echo "The promote was never accepted and the domain still serves $PREVIOUS: nothing to roll back."
+            exit 0
+          fi
+          vercel_api POST "/v9/projects/$VERCEL_PROJECT_ID/rollback/$PREVIOUS?teamId=$VERCEL_ORG_ID" '{}' > /dev/null
+          wait_until_live "$PREVIOUS"
+          echo "Rolled back production to $PREVIOUS" >> "$GITHUB_STEP_SUMMARY"
+      # GitHub's Production environment shows what is live again: this commit failed, the previous
+      # production commit's latest deployment is active (best effort, never fails the job).
+      - name: GitHub deployments after the rollback
+        if: ${{ always() }}
+        run: |
+          eval "$GH_DEPLOYMENTS_SH"
+          if [ -n "$GITHUB_DEPLOYMENT" ]; then
+            gh_deployment_status "$GITHUB_DEPLOYMENT" failure 'Production smoke failed: rolled back' || true
+          fi
+          if [ -n "$PREVIOUS_SHA" ]; then
+            prev=$(gh api "repos/$GITHUB_REPOSITORY/deployments?environment=Production&sha=$PREVIOUS_SHA&per_page=1" --jq '.[0].id // empty') || prev=
+            if [ -n "$prev" ]; then
+              gh_deployment_status "$prev" success 'Restored by rollback' || true
+            fi
+          fi

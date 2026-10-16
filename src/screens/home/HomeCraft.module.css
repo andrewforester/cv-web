@@ -1,0 +1,46 @@
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-2-5);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--card-padding);
+  border-radius: var(--radius-card);
+}
+
+.neutral {
+  --craft-label: var(--color-accent);
+
+  background: var(--color-surface);
+}
+
+.pink {
+  --craft-label: var(--color-accent-pink);
+
+  background: var(--color-surface-pink);
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line-height);
+  color: var(--craft-label);
+}
+
+.title {
+  font-size: var(--type-card-title-size);
+  font-weight: var(--type-card-title-weight);
+  line-height: var(--type-card-title-line-height);
+  letter-spacing: var(--type-card-title-letter-spacing);
+}
+
+.text {
+  font-size: var(--type-body-size);
+  line-height: var(--type-summary-line-height);
+  color: var(--color-ink-3);
+  text-wrap: pretty;
+}

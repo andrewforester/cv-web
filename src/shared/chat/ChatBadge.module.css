@@ -1,0 +1,10 @@
+.badge {
+  flex: none;
+  width: var(--chat-badge-size);
+  height: var(--chat-badge-size);
+  display: grid;
+  place-items: center;
+  color: var(--color-on-accent);
+  background: var(--gradient-brand-tile);
+  border-radius: 50%;
+}

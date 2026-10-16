@@ -1,0 +1,43 @@
+.row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.visitor {
+  align-items: flex-end;
+}
+
+/* Message text: Figtree; the loop-step card's radius with a 4 px tail corner. */
+.bubble {
+  max-width: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--chat-text-size);
+  line-height: var(--chat-text-line-height);
+  border-radius: var(--radius-tile);
+  overflow-wrap: anywhere;
+}
+
+/* The first impact card's treatment: lilac surface, ink text (white on the gradient's pink end is
+   below 4.5:1 at bubble size). */
+.visitor .bubble {
+  max-width: var(--chat-bubble-max-width);
+  padding: var(--space-3) var(--space-4);
+  white-space: pre-wrap;
+  color: var(--color-ink);
+  background: var(--color-surface-lilac);
+  border-bottom-right-radius: var(--chat-radius-tail);
+}
+
+/* Outline-only, like the loop steps; 15 + 1 px border = 16 to the text. */
+.assistant .bubble {
+  padding: var(--space-3) calc(var(--space-4) - var(--border-card));
+  border: var(--border-card) solid var(--color-dark-line);
+  border-bottom-left-radius: var(--chat-radius-tail);
+}
+
+.assistant .error {
+  background: var(--chat-error-bg);
+  border-color: var(--chat-error);
+}

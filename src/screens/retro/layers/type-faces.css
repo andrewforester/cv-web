@@ -1,0 +1,8 @@
+[data-retro-stage] :is(h2, [data-testid='home-name']) {
+  font-family: 'Times New Roman', Times, serif;
+  font-weight: 700;
+}
+
+[data-retro-stage] :is([data-testid='home-stat'], [data-testid='home-skill']) {
+  font-family: Arial, Helvetica, sans-serif;
+}

@@ -1,0 +1,61 @@
+import { describe, expect, it } from 'vitest';
+import { SHOW_SCENARIOS } from '../../../src/data/retro/scenarios.js';
+import { NARRATE_BODY, replyBody } from '../../test/helpers.js';
+import { HAIKU_4_5 } from '../llm/modelOptions.js';
+import { NARRATE_DEADLINE_MS, narrationStreamer, planShow } from './planShow.js';
+import { showOutline } from './showPrompt.js';
+
+const knowledge = () => Promise.resolve('<knowledge>CV page</knowledge>');
+
+describe('planShow', () => {
+  it('caps the narrate deadline at 20 s and leaves the reply deadline as is', async () => {
+    expect((await planShow(NARRATE_BODY, knowledge, HAIKU_4_5, 55_000)).deadlineMs).toBe(
+      NARRATE_DEADLINE_MS,
+    );
+    expect((await planShow(NARRATE_BODY, knowledge, HAIKU_4_5, 30)).deadlineMs).toBe(30);
+    expect((await planShow(replyBody(), knowledge, HAIKU_4_5, 55_000)).deadlineMs).toBe(55_000);
+  });
+
+  it("plans from the request's scenario and logs its id", async () => {
+    const outline = showOutline(SHOW_SCENARIOS[NARRATE_BODY.scenario]);
+    const narrate = await planShow(NARRATE_BODY, knowledge, HAIKU_4_5, 1);
+    expect(narrate.llmRequest.system[1]?.text).toBe(outline);
+    expect(narrate.logFields).toMatchObject({ showKind: 'narrate', showScenario: 'retro-4' });
+    const reply = await planShow(replyBody(), knowledge, HAIKU_4_5, 1);
+    expect(reply.llmRequest.system[1]?.text).toBe(outline);
+    expect(reply.logFields).toMatchObject({ showKind: 'reply', showScenario: 'retro-4' });
+  });
+
+  it("grounds replies in the one page's knowledge (ADR-0006 Decision 4)", async () => {
+    const reply = await planShow(replyBody(), knowledge, HAIKU_4_5, 1);
+    expect(reply.llmRequest.system[2]?.text).toBe('<knowledge>CV page</knowledge>');
+  });
+
+  it('loads the knowledge only for replies', async () => {
+    let loads = 0;
+    const counting = () => {
+      loads++;
+      return knowledge();
+    };
+    const narrate = await planShow(NARRATE_BODY, counting, HAIKU_4_5, 1);
+    expect(loads).toBe(0);
+    expect(narrate.streamer).toBeDefined();
+    const reply = await planShow(replyBody(), counting, HAIKU_4_5, 1);
+    expect(loads).toBe(1);
+    expect(reply.streamer).toBeUndefined();
+  });
+});
+
+describe('narrationStreamer', () => {
+  it('encodes parsed lines as line events and counts them', () => {
+    const streamer = narrationStreamer();
+    expect(streamer.text('fonts: Fonts')).toEqual([]);
+    expect(streamer.text(' first.\nfinale: Done.')).toEqual([
+      'event: line\ndata: {"key":"fonts","text":"Fonts first."}\n\n',
+    ]);
+    expect(streamer.end('end_turn')).toEqual([
+      'event: line\ndata: {"key":"finale","text":"Done."}\n\n',
+    ]);
+    expect(streamer.logFields()).toEqual({ narrationLines: 2 });
+  });
+});

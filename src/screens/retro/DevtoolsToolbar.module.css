@@ -1,0 +1,113 @@
+/*
+ * SPEC → DevTools console → Panel chrome: the tab strip and the console filter bar. Decoration:
+ * nothing here takes the pointer or focus. Metrics are the panel's (LiveConsole.module.css).
+ */
+.tabStrip,
+.filterBar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: var(--console-bar-height);
+  border-bottom: 1px solid var(--devtools-divider);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.tabStrip {
+  padding-left: var(--console-strip-padding-left);
+  background: var(--devtools-toolbar-bg);
+}
+
+.filterBar {
+  padding-right: var(--console-filter-bar-padding-right);
+  background: var(--devtools-bg);
+}
+
+.button {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--console-button-width);
+  height: var(--console-bar-height);
+  color: var(--devtools-text-dim);
+}
+
+.separator {
+  flex: none;
+  width: 1px;
+  height: var(--console-separator-height);
+  margin: var(--console-separator-margin);
+  background: var(--devtools-divider);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: var(--console-tab-padding);
+  color: var(--devtools-text-dim);
+}
+
+/* The active tab: accent text and an underline across the tab at the strip's bottom edge. */
+.active {
+  color: var(--devtools-accent);
+  box-shadow: inset 0 calc(-1 * var(--console-tab-underline)) var(--devtools-accent);
+}
+
+.spacer {
+  flex: 1;
+  min-width: 0;
+}
+
+.counters {
+  display: flex;
+  flex: none;
+  gap: var(--console-counters-gap);
+  padding: var(--console-counters-padding);
+  font-variant-numeric: tabular-nums;
+}
+
+.counter {
+  display: flex;
+  align-items: center;
+  gap: var(--console-counter-gap);
+}
+
+.error {
+  color: var(--devtools-error);
+}
+
+.warning {
+  color: var(--devtools-warning);
+}
+
+.zero {
+  color: var(--devtools-text-dim);
+}
+
+.select {
+  display: flex;
+  flex: none;
+  align-items: center;
+  padding: var(--console-select-padding);
+}
+
+.selectIcon {
+  --console-icon-size: var(--console-select-icon-size);
+
+  color: var(--devtools-text-dim);
+}
+
+.filter {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  height: var(--console-filter-height);
+  margin: var(--console-filter-margin);
+  padding: var(--console-filter-padding);
+  border-radius: var(--console-filter-radius);
+  background: var(--devtools-input-bg);
+  color: var(--devtools-text-dim);
+}

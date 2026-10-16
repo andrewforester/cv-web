@@ -1,0 +1,26 @@
+name: Playwright Chromium
+description: >-
+  Makes Playwright's Chromium ready after `npm ci`: the browser download comes from the Actions
+  cache (keyed by the Playwright version in package-lock.json); the system packages it needs are
+  always installed.
+runs:
+  using: composite
+  steps:
+    - name: Playwright version
+      id: version
+      shell: bash
+      run: echo "version=$(jq -r '.packages["node_modules/playwright-core"].version' package-lock.json)" >> "$GITHUB_OUTPUT"
+    - name: Cached browsers
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-chromium-${{ runner.os }}-${{ runner.arch }}-${{ steps.version.outputs.version }}
+    - name: Install Chromium
+      if: ${{ steps.cache.outputs.cache-hit != 'true' }}
+      shell: bash
+      run: npx playwright install --with-deps chromium
+    - name: Chromium system packages
+      if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+      shell: bash
+      run: npx playwright install-deps chromium

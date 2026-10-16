@@ -1,0 +1,20 @@
+.list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-dark-line) transparent;
+  list-style: none;
+}
+
+@media (width <= 599px), (height <= 499px) {
+  .list {
+    padding-inline: var(--space-4);
+  }
+}

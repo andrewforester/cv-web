@@ -1,0 +1,71 @@
+/* The education and about-me cards side by side at the bottom of the page. */
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  border-radius: var(--radius-card);
+}
+
+.violet {
+  gap: var(--space-2);
+  background: var(--color-surface-violet);
+}
+
+.text {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line-height);
+  text-wrap: pretty;
+}
+
+.violet .text {
+  margin-top: var(--space-1-5);
+}
+
+.neutral {
+  gap: var(--space-3-5);
+  background: var(--color-surface);
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line-height);
+  color: var(--color-accent);
+}
+
+.title {
+  font-size: var(--type-card-title-size);
+  font-weight: var(--type-card-title-weight);
+  line-height: var(--type-card-title-line-height);
+  letter-spacing: var(--type-card-title-letter-spacing);
+}
+
+.secondary {
+  color: var(--color-ink-3);
+}
+
+.books {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, var(--book-width)));
+  gap: var(--space-2);
+}
+
+.book {
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  background: var(--color-card);
+  border-radius: var(--radius-book);
+}
+
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.lineLabel {
+  font-weight: var(--type-company-weight);
+  color: var(--color-ink);
+}

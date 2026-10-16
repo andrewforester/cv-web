@@ -1,0 +1,58 @@
+{
+  "name": "cv-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "demo": "CHAT_FAKE_LLM=1 VOICE_FAKE=1 VOICE_ENABLED=true ANTHROPIC_API_KEY= ELEVENLABS_API_KEY= ELEVENLABS_AGENT_ID= vite --open '/?voice=demo'",
+    "build": "tsc -b && vite build",
+    "build:e2e": "VITE_VOICE_FAKE=1 npm run build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "lint": "eslint . --max-warnings 0 && stylelint \"src/**/*.css\" && prettier --check . && tsc -b",
+    "format": "stylelint --fix \"src/**/*.css\" && prettier --write . && eslint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "web-check": "playwright test",
+    "web-check:prod": "PW_BASE_URL=${PW_BASE_URL:-https://grandtorino.dev} playwright test --grep @prod"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.129.0",
+    "@elevenlabs/client": "1.27.0",
+    "@fontsource/figtree": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@vercel/speed-insights": "^2.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "~1.56.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.12.0",
+    "jsdom": "^30.1.1",
+    "prettier": "^3.9.9",
+    "stylelint": "^17.16.0",
+    "stylelint-config-css-modules": "^4.6.0",
+    "stylelint-config-standard": "^40.0.0",
+    "stylelint-declaration-strict-value": "^1.12.1",
+    "stylelint-value-no-unknown-custom-properties": "^6.1.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.0",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  }
+}

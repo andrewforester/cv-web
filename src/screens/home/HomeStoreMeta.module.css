@@ -1,0 +1,18 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-0-75);
+  font-size: var(--type-meta-size);
+  font-weight: var(--type-medium-weight);
+  line-height: var(--type-meta-line-height);
+  color: var(--color-ink-3);
+}
+
+.star {
+  font-size: var(--type-star-size);
+  line-height: 1;
+}
+
+.rest {
+  white-space: pre;
+}

@@ -1,0 +1,124 @@
+/*
+ * The dock of the live-fix show (docs/design/retro/SPEC.md → Screen layout): DevTools docked flush
+ * to the top, right and bottom, the agent chat card floating over its lower part. The console
+ * keeps its rows above the card (`--retro-console-reserve`, read by LiveConsole.module.css).
+ */
+.dock {
+  /* At least ≈ 200 px of console stays visible on shorter viewports. */
+  --retro-chat-box-height: min(var(--retro-chat-height), calc(100dvh - 280px));
+  --retro-chat-header-height: calc(
+    2 * var(--space-3) + var(--chat-control-size) + var(--border-card)
+  );
+  --retro-console-reserve: calc(var(--retro-chat-box-height) + 2 * var(--retro-dock-inset));
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--retro-z-index);
+  width: var(--retro-dock-width);
+  pointer-events: none;
+}
+
+.dock > * {
+  pointer-events: auto;
+}
+
+.chatMinimised {
+  --retro-chat-box-height: var(--retro-chat-header-height);
+}
+
+.devtools {
+  position: absolute;
+  inset: 0;
+}
+
+.chat {
+  position: absolute;
+  right: var(--retro-dock-inset);
+  bottom: var(--retro-dock-inset);
+  width: calc(100% - 2 * var(--retro-dock-inset));
+  height: var(--retro-chat-box-height);
+  transition: height var(--chat-motion-duration) var(--chat-motion-easing);
+}
+
+/*
+ * On `body` while the show is mounted: the page makes room for the dock, never sits under it. The
+ * room is taken at once and released with motion as the dock closes (SPEC → End of the show).
+ */
+.stage {
+  transition: padding-right var(--retro-reserve-duration) var(--chat-motion-easing);
+}
+
+.stage.docked {
+  padding-right: var(--retro-dock-width);
+  transition: none;
+}
+
+/*
+ * The close, one panel at a time (SPEC → End of the show): DevTools slides out to the right and
+ * stays out, hidden; later the chat's contents fade and its card moves and shrinks onto the AI
+ * chat launcher's box, turning into it, then fades over the real launcher in its last 100 ms.
+ */
+.undocked .devtools {
+  animation: retro-slide-out var(--retro-close-slide) var(--retro-close-easing) forwards;
+}
+
+.closing .chat {
+  animation: retro-shrink var(--retro-close-shrink) var(--chat-motion-easing) forwards;
+}
+
+.closing .chat > * {
+  animation: retro-fade-out var(--retro-close-stagger) linear forwards;
+}
+
+@keyframes retro-slide-out {
+  to {
+    visibility: hidden;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes retro-shrink {
+  80% {
+    opacity: 1;
+  }
+
+  100% {
+    right: var(--space-6);
+    bottom: var(--space-6);
+    width: var(--chat-control-size);
+    height: var(--chat-control-size);
+    border-radius: 50%;
+    background: var(--gradient-dark);
+    box-shadow: var(--shadow-launcher);
+    opacity: 0;
+  }
+}
+
+@keyframes retro-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* With reduced motion nothing moves: DevTools goes at once, the runner skips the chat's close. */
+@media (prefers-reduced-motion: reduce) {
+  .stage,
+  .chat {
+    transition: none;
+  }
+
+  .undocked .devtools {
+    display: none;
+  }
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
