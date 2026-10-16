@@ -35,6 +35,16 @@ const FAKE_PAGE: CvPage = {
     footnote: 'it repeats',
   },
   impact: [{ id: 'i1', value: '2x', text: 'Faster builds.' }],
+  personal: [
+    {
+      id: 'side',
+      company: 'Side',
+      role: 'Personal product',
+      period: '2026',
+      logo: 'https://example.com/side.png',
+      points: ['Built S.'],
+    },
+  ],
   jobs: [
     {
       id: 'acme',
@@ -42,7 +52,7 @@ const FAKE_PAGE: CvPage = {
       role: 'Engineer',
       period: '2020 – 2024',
       logo: 'https://example.com/acme.png',
-      tag: 'product',
+      tags: ['product'],
       about: 'An anvil shop.',
       meta: '1M+ · 4.5★',
       points: ['Did A.', 'Did B.'],
@@ -141,19 +151,21 @@ describe('Home screen', () => {
 
     expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
       'Skills',
+      'Selected impact',
+      'Projects',
+      'Experience',
       'Code craft × agentic process',
       'How I build with agents',
-      'Selected impact',
-      'Experience',
       'Write to me↗',
     ]);
     const ids = [
       'header',
       'skills',
+      'impact',
+      'projects',
+      'experience',
       'craft',
       'loop',
-      'impact',
-      'experience',
       'education',
       'about',
       'footer',
@@ -181,7 +193,12 @@ describe('Home screen', () => {
     renderHome(repositoryOf(() => Promise.resolve(FAKE_PAGE)));
     await screen.findByTestId(homeTestIds.name);
 
-    const [acme, globex] = screen.getAllByTestId(homeTestIds.job) as [HTMLElement, HTMLElement];
+    const experience = screen.getByTestId(homeTestIds.experience);
+    const [acme, globex] = within(experience).getAllByTestId(homeTestIds.job) as [
+      HTMLElement,
+      HTMLElement,
+    ];
+    expect(screen.getByTestId(homeTestIds.projects)).toHaveTextContent('Side2026Personal product');
     expect(acme).toHaveTextContent('Acme2020 – 2024Engineer1M+ · 4.5★productAn anvil shop.');
     expect(within(acme).getAllByRole('listitem')).toHaveLength(2);
     expect(acme.querySelector('img')).toHaveClass('tile');
@@ -206,6 +223,21 @@ describe('Home screen', () => {
     expect(texts(homeTestIds.footerLink)).toEqual(['test@example.com↗', 'WhatsApp', 'LinkedIn']);
   });
 
+  it('links a job or a project name to its page in a new tab, with the arrow', async () => {
+    renderHome();
+    await screen.findByTestId(homeTestIds.name);
+
+    const links = screen.getAllByTestId(homeTestIds.nameLink);
+    expect(links.map((link) => link.textContent)).toEqual([
+      'Dolphin Music↗',
+      'Cync↗',
+      'August Home↗',
+    ]);
+    expect(links[0]).toHaveAttribute('href', 'https://github.com/andrewforester/dolphin-music');
+    expect(links[0]).toHaveAttribute('target', '_blank');
+    expect(links[0]).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
   it('shows the error state when the page cannot be loaded', async () => {
     renderHome(repositoryOf(() => Promise.reject(new Error('offline'))));
 
@@ -222,7 +254,7 @@ describe('Home screen', () => {
       if (key === 'status') continue;
       expect(screen.queryAllByTestId(id).length, id).toBeGreaterThan(0);
     }
-    expect(screen.getAllByTestId(homeTestIds.job)).toHaveLength(9);
+    expect(screen.getAllByTestId(homeTestIds.job)).toHaveLength(10);
     expect(screen.getAllByTestId(homeTestIds.project)).toHaveLength(3);
   });
 });

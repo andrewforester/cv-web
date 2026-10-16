@@ -184,11 +184,12 @@ export const CHAT_API_VERSION_V4 = 4;
 /** The page's sections in page order; `data-agent-id="section:<id>"`. */
 export const CV_SECTION_IDS = [
   'header',
+  'skills',
+  'impact',
+  'projects',
+  'experience',
   'craft',
   'loop',
-  'impact',
-  'experience',
-  'skills',
   'education',
   'about',
   'contacts',

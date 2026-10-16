@@ -10,6 +10,7 @@ const SECTION_KEYS: Record<CvSectionId, Key> = {
   craft: 'sectionCraft',
   loop: 'sectionLoop',
   impact: 'sectionImpact',
+  projects: 'sectionProjects',
   experience: 'sectionExperience',
   skills: 'sectionSkills',
   education: 'sectionEducation',

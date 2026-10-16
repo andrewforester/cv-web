@@ -11,6 +11,7 @@ function idsOf(page: CvPage) {
     craft: ids(page.craft),
     loop: ids(page.loop.steps),
     impact: ids(page.impact),
+    personal: ids(page.personal),
     jobs: ids(page.jobs),
     projects: ids(page.jobs.flatMap((job) => job.projects ?? [])),
     skills: ids(page.skills),
@@ -36,8 +37,8 @@ describe('CvPage item ids', () => {
   it('match ADR-0006 → Decision 1', async () => {
     const ids = idsOf(await load());
     expect(ids.stats).toEqual(['years', 'users', 'platforms', 'ai']);
+    expect(ids.personal).toEqual(['dolphin-music', 'ai-cv']);
     expect(ids.jobs).toEqual([
-      'ai-cv',
       'transcenda',
       'wisehouse',
       'attendify',

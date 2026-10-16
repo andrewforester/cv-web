@@ -18,7 +18,7 @@ One file holds the CV: `src/data/mock/cvPage.json` (≈12 KB). Two readers use i
 - **The server** imports it directly (`server/chat/cvPageData.ts` → `CV_PAGE`). Three things are
   built from it once per function instance:
   - the knowledge block, memoized by `createCvPageKnowledgeLoader`;
-  - the Anthropic `tools` (`LLM_TOOLS_V4`, with the 37 target ids as a `strict` enum);
+  - the Anthropic `tools` (`LLM_TOOLS_V4`, with the 41 target ids as a `strict` enum);
   - the snapshot validator's `TARGETS` and `TOOL_NAMES` (`server/chat/validateV4.ts`).
 
   The tools and the knowledge form the cached prefix (`buildLlmRequest`: tools, then the system

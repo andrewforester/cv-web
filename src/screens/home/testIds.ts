@@ -18,6 +18,7 @@ export const homeTestIds = {
   craft: 'home-craft',
   loop: 'home-loop',
   impact: 'home-impact',
+  projects: 'home-projects',
   experience: 'home-experience',
   skills: 'home-skills',
   education: 'home-education',
@@ -33,4 +34,5 @@ export const homeTestIds = {
   skill: 'home-skill',
   book: 'home-book',
   footerLink: 'home-footer-link',
+  nameLink: 'home-name-link',
 } as const;

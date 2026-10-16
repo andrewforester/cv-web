@@ -22,6 +22,8 @@ export interface CvPage {
   craft: CraftCard[];
   loop: AgentLoop;
   impact: ImpactCard[];
+  /** Personal products under "Projects", newest first; laid out like jobs. */
+  personal: CvJob[];
   jobs: CvJob[];
   skills: SkillGroup[];
   education: Education;
@@ -73,10 +75,12 @@ export interface CvJob {
   logo: ImageRef;
   /** The logo is shown without its tile (Samsung). */
   logoPlain?: boolean;
-  /** Kind of what was built, e.g. `product`, `tool`; shown with `about`. */
-  tag?: string;
+  /** Labels for what was built, e.g. `product`, `tool`, `web`, `LLM`; shown with `about`. */
+  tags?: string[];
   /** One line on the product. */
   about?: string;
+  /** The product's page (repo, store); the company name links to it. */
+  url?: string;
   /** Store line as displayed, e.g. `1M+ · 4.5★`. */
   meta?: string;
   points: string[];
@@ -91,9 +95,13 @@ export interface CvProject {
   icon?: ImageRef;
   /** E.g. `Smart Home`. */
   domain: string;
+  /** More labels after the domain, e.g. `BLE`. */
+  tags?: string[];
   /** As displayed, e.g. `1M+ · 5.0★ · 91.8K reviews`. */
   meta: string;
   about: string;
+  /** The store page; the name links to it. */
+  url?: string;
   points: string[];
 }
 

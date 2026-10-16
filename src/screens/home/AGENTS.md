@@ -2,8 +2,8 @@
 
 Why it exists: the one CV page of the site (design `docs/design/v3/`, ADR-0006): Andrew as a
 Senior Software Product Engineer, with the stats and contacts up top, skills (right after the
-header: the human's call, CV-145; a test locks the order), code craft × agentic process, how he
-builds with agents, selected impact, experience (Transcenda's client projects on a tree), education, about me and a closing call to action. It replaced both older pages: the
+header: the human's call, CV-145; a test locks the order), selected impact, projects (personal
+products), experience (Transcenda's client projects on a tree), code craft × agentic process, how he builds with agents, education, about me and a closing call to action. It replaced both older pages: the
 app shell shows it on every path, and `/new` redirects here on Vercel.
 
 Place in the architecture: the screen pattern of the root `AGENTS.md` over `CvPageRepository`
@@ -19,10 +19,10 @@ Domain terms:
 - **Hooks**: the `home-*` test ids (`testIds.ts`, ADR-0006 → Decision 2). The Show case's damage
   layers select them, so they are a contract with `src/screens/retro`.
 - **Page agent** (ADR-0002): every section and item the chat can point at carries
-  `data-agent-id`. Sections `header` (meta bar + header), `skills`, `craft`, `loop`, `impact`, `experience`,
+  `data-agent-id`. Sections `header` (meta bar + header), `skills`, `impact`, `projects`, `experience`, `craft`, `loop`,
   `education`, `about`, `contacts` (the closing call to action); items `impact:`,
-  `experience:` (with Transcenda's tree), `app:` (its projects), `skill:`, `book:`, and
-  `contact:<channel>` on the header buttons. Each id appears once (`cvPageTargetIds`, 37). While
+  `experience:` (projects and jobs; with Transcenda's tree), `app:` (its projects), `skill:`, `book:`, and
+  `contact:<channel>` on the header buttons. Each id appears once (`cvPageTargetIds`, 41). While
   the page is shown it offers scroll, highlight (fades after a few seconds) and open contact
   (after the visitor confirms in the chat).
 

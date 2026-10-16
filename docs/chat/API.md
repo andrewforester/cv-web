@@ -311,9 +311,9 @@ replies in the same knowledge.
 
 | Tool | Description (for the model) | Parameter | Enum | `confirm` |
 |---|---|---|---|---|
-| `highlightElement` | Scroll to a section or item of the page and briefly highlight it, e.g. an impact card, a job, an app, a skill group, a book or a contact. | `target` (The element to highlight.) | `section:<CvSectionId>` (9), then `impact:` (3), `experience:` (9), `app:` (3, Transcenda's projects), `skill:` (6), `book:` (4) with the `CvPage` ids in data order, then `contact:<channel>` (3): 37 | `false` |
+| `highlightElement` | Scroll to a section or item of the page and briefly highlight it, e.g. an impact card, a job, an app, a skill group, a book or a contact. | `target` (The element to highlight.) | `section:<CvSectionId>` (10), then `impact:` (3), `experience:` (10, projects then jobs), `app:` (3, Transcenda's projects), `skill:` (8), `book:` (4) with the `CvPage` ids in data order, then `contact:<channel>` (3): 41 | `false` |
 | `openContact` | Open a contact channel of Andrew (email, WhatsApp or LinkedIn). The visitor confirms first. | `channel` (The contact channel.) | `CV_CONTACT_CHANNELS` | `true` |
-| `scrollToSection` | Scroll the page to a section. | `section` (The section to scroll to. craft = "Code craft × agentic process", loop = "How I build with agents", impact = "Selected impact", contacts = the closing call to action with every contact.) | `CV_SECTION_IDS` in page order | `false` |
+| `scrollToSection` | Scroll the page to a section. | `section` (The section to scroll to. craft = "Code craft × agentic process", loop = "How I build with agents", impact = "Selected impact", projects = personal products, contacts = the closing call to action with every contact.) | `CV_SECTION_IDS` in page order | `false` |
 
 Item ids are the `id` fields of `ImpactCard`, `CvJob`, `CvProject`, `SkillGroup`, `Book` and
 `CvContact` (`src/data/cvPage.ts`, ADR-0006 → Decision 1), checked by `cvPageIds.test.ts`. On the

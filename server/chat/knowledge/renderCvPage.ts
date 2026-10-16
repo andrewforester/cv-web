@@ -9,7 +9,7 @@ const CONTACT_NAMES: Record<string, string> = {
 
 function project(entry: CvProject): string[] {
   return [
-    `#### ${entry.name}, ${entry.domain}, ${entry.meta}`,
+    `#### ${entry.name}, ${[entry.domain, ...(entry.tags ?? [])].join(', ')}, ${entry.meta}`,
     entry.about,
     ...entry.points.map((point) => `- ${point}`),
   ];
@@ -18,7 +18,9 @@ function project(entry: CvProject): string[] {
 function job(entry: CvJob): string[] {
   return [
     `### ${entry.role}, ${entry.company}, ${entry.period}`,
-    ...(entry.about ? [entry.tag ? `${entry.tag}: ${entry.about}` : entry.about] : []),
+    ...(entry.about
+      ? [entry.tags?.length ? `${entry.tags.join(', ')}: ${entry.about}` : entry.about]
+      : []),
     ...(entry.meta ? [`Store: ${entry.meta}`] : []),
     ...entry.points.map((point) => `- ${point}`),
     ...(entry.projects ?? []).flatMap(project),
@@ -50,6 +52,18 @@ export function renderCvPage(page: CvPage): string {
     ),
     `- Phone: ${page.phone}`,
     '',
+    '## Skills',
+    ...page.skills.map((group) => `- ${group.title}: ${group.items}`),
+    '',
+    '## Selected impact',
+    ...page.impact.map((card) => `- ${card.value}: ${card.text}`),
+    '',
+    '## Projects',
+    ...page.personal.flatMap(job),
+    '',
+    '## Experience',
+    ...page.jobs.flatMap(job),
+    '',
     '## Code craft × agentic process',
     ...page.craft.flatMap((card) => [`### ${card.label}: ${card.title}`, card.text]),
     '',
@@ -57,15 +71,6 @@ export function renderCvPage(page: CvPage): string {
     loop.lead,
     ...loop.steps.map((step, index) => `${index + 1}. ${step.text}`),
     loop.footnote,
-    '',
-    '## Selected impact',
-    ...page.impact.map((card) => `- ${card.value}: ${card.text}`),
-    '',
-    '## Experience',
-    ...page.jobs.flatMap(job),
-    '',
-    '## Skills',
-    ...page.skills.map((group) => `- ${group.title}: ${group.items}`),
     '',
     '## Education',
     `${education.title}, ${education.place}, ${education.period}`,

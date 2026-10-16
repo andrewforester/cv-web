@@ -3,6 +3,7 @@ import type { AgentTargetId } from '../../data/chat';
 import { agentTargetProps } from '../../shared/agentTarget';
 import styles from './HomeJob.module.css';
 import { HomePoints } from './HomePoints';
+import { HomeNameLink } from './HomeNameLink';
 import { HomeProjects } from './HomeProjects';
 import { HomeStoreMeta } from './HomeStoreMeta';
 import { HomeTagLine } from './HomeTagLine';
@@ -33,14 +34,14 @@ export function HomeJob({ job, highlightedId }: HomeJobProps) {
         />
         <div className={styles.info}>
           <div className={styles.titleRow}>
-            <div className={styles.company}>{job.company}</div>
+            <HomeNameLink className={styles.company} name={job.company} url={job.url} />
             <div className={styles.period}>{job.period}</div>
           </div>
           <div className={styles.role}>{job.role}</div>
           {job.meta && <HomeStoreMeta className={styles.meta} text={job.meta} />}
         </div>
       </div>
-      {job.about && <HomeTagLine tag={job.tag} text={job.about} />}
+      {job.about && <HomeTagLine tags={job.tags ?? []} text={job.about} />}
       {job.points.length > 0 && <HomePoints points={job.points} />}
       {job.projects && <HomeProjects projects={job.projects} highlightedId={highlightedId} />}
     </article>

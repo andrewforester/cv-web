@@ -8,6 +8,7 @@ export const homeStrings = defineStrings({
     loopTitle: 'How I build with agents',
     loopNote: 'system with feedback',
     impactTitle: 'Selected impact',
+    projectsTitle: 'Projects',
     experienceTitle: 'Experience',
     skillsTitle: 'Skills',
     educationLabel: 'education',

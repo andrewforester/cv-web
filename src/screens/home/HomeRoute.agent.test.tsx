@@ -62,7 +62,7 @@ describe('the page agent on the one page', () => {
   it('puts every catalogue target on the page exactly once, and nothing else', async () => {
     const { page } = await renderHome();
     const ids = cvPageTargetIds(page);
-    expect(ids).toHaveLength(37);
+    expect(ids).toHaveLength(41);
     for (const id of ids) {
       expect(document.querySelectorAll(`[data-agent-id="${id}"]`), id).toHaveLength(1);
     }
@@ -88,7 +88,7 @@ describe('the page agent on the one page', () => {
 
   it.each([
     'section:header',
-    'impact:design-system',
+    'impact:platforms',
     'experience:transcenda',
     'app:spoton',
     'skill:ai-engineering',

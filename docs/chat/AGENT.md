@@ -20,11 +20,11 @@ with the editing backend, an unknown `highlighted` from a tab opened before the 
 - **Tools:** `highlightElement`, `openContact` (`confirm`), `scrollToSection`. A request no tool
   fits (e.g. "switch the language", "fill the form") gets "I can't do that" from the model. The
   model answers in the visitor's language.
-- **Sections** (`CV_SECTION_IDS`): `header`, `skills`, `craft`, `loop`, `impact`, `experience`,
-  `education`, `about`, `contacts` (page order: `docs/design/v3/SPEC.md` → Structure).
-- **Targets** (37): the 9 sections, `impact:` (3), `experience:` (9 jobs; Transcenda's article
+- **Sections** (`CV_SECTION_IDS`): `header`, `skills`, `impact`, `projects`, `experience`, `craft`,
+  `loop`, `education`, `about`, `contacts` (page order: `docs/design/v3/SPEC.md` → Structure).
+- **Targets** (41): the 10 sections, `impact:` (3), `experience:` (2 projects and 8 jobs; Transcenda's article
   includes its project tree), `app:` (Transcenda's 3 projects: `spoton`, `cync`, `august-home`),
-  `skill:` (6), `book:` (4), `contact:` (3, the header buttons: `email`, `whatsapp`, `linkedin`).
+  `skill:` (8), `book:` (4), `contact:` (3, the header buttons: `email`, `whatsapp`, `linkedin`).
   Not targets: stats, craft cards, loop steps, the meta bar, the footer pills.
 - **`openContact`** opens `mailto:` in place and `https://` links (WhatsApp, LinkedIn) in
   a new tab, after the visitor confirms; the confirmation names the contact's label from the data.

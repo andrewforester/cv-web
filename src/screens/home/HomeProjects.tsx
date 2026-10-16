@@ -1,6 +1,7 @@
 import type { CvProject } from '../../data';
 import type { AgentTargetId } from '../../data/chat';
 import { agentTargetProps } from '../../shared/agentTarget';
+import { HomeNameLink } from './HomeNameLink';
 import { HomePoints } from './HomePoints';
 import styles from './HomeProjects.module.css';
 import { HomeStoreMeta } from './HomeStoreMeta';
@@ -39,11 +40,11 @@ export function HomeProjects({ projects, highlightedId }: HomeProjectsProps) {
                 </span>
               )}
               <div className={styles.names}>
-                <div className={styles.name}>{project.name}</div>
+                <HomeNameLink className={styles.name} name={project.name} url={project.url} />
                 <HomeStoreMeta text={project.meta} />
               </div>
             </div>
-            <HomeTagLine tag={project.domain} text={project.about} />
+            <HomeTagLine tags={[project.domain, ...(project.tags ?? [])]} text={project.about} />
             <HomePoints points={project.points} />
           </div>
         </div>

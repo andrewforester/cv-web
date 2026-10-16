@@ -61,14 +61,14 @@ const items = (kind: AgentTargetKind, list: readonly { id: string }[]) =>
 
 /**
  * Every highlightable target of the one page (v4), `<kind>:<id>`: sections, then impact cards,
- * jobs, Transcenda's projects (`app:`), skill groups, books, contacts (header buttons), in data
+ * personal projects and jobs (both `experience:`), Transcenda's projects (`app:`), skill groups, books, contacts (header buttons), in data
  * order.
  */
 export function cvPageTargetIds(page: CvPage): AgentTargetId[] {
   return [
     ...CV_SECTION_IDS.map((id) => agentTargetId('section', id)),
     ...items('impact', page.impact),
-    ...items('experience', page.jobs),
+    ...items('experience', [...page.personal, ...page.jobs]),
     ...items(
       'app',
       page.jobs.flatMap((job) => job.projects ?? []),
@@ -110,7 +110,7 @@ export function buildCvPageToolSpecs(page: CvPage): AgentToolSpec[] {
       description: 'Scroll the page to a section.',
       inputSchema: oneEnumParam(
         'section',
-        'The section to scroll to. craft = "Code craft × agentic process", loop = "How I build with agents", impact = "Selected impact", contacts = the closing call to action with every contact.',
+        'The section to scroll to. craft = "Code craft × agentic process", loop = "How I build with agents", impact = "Selected impact", projects = personal products, contacts = the closing call to action with every contact.',
         CV_SECTION_IDS,
       ),
       confirm: false,
