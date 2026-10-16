@@ -73,6 +73,20 @@
   background: var(--color-accent);
 }
 
+/* The chat's side dock slides the page (and this bar) left by half its width: the background
+ * stretches back to the viewport's right edge, under the panel (src/app/App.module.css). */
+:global(:root[data-chat-dock='side']) .root::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: calc(-1 * var(--border-card));
+  left: 100%;
+  width: calc(var(--chat-dock-width) / 2);
+  background: var(--color-toolbar);
+  backdrop-filter: blur(var(--toolbar-blur));
+  border-bottom: var(--border-rule);
+}
+
 @media (width <= 700px) {
   .root {
     padding-inline: var(--space-2);

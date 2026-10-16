@@ -111,3 +111,24 @@ test('the meta bar no longer carries the handle', async ({ page }) => {
   await expect(page.getByTestId('home-meta-bar')).not.toContainText(HANDLE);
   expect(errors).toEqual([]);
 });
+
+test('with the chat docked at the side the toolbar still spans the viewport', async ({ page }) => {
+  const errors = collectErrors(page);
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await page.goto(NORMAL_SITE);
+  await page.getByTestId('chat-fab').click();
+  await expect(page.locator('html')).toHaveAttribute('data-chat-dock', 'side');
+
+  // The page (and the bar) slid left by half the dock...
+  await expect.poll(async () => (await toolbar(page).boundingBox())?.x ?? 0).toBeLessThan(-100);
+  // ...and the bar's background still reaches the viewport's right edge.
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const hit = document.elementFromPoint(window.innerWidth - 2, 4);
+        return Boolean(hit?.closest('[data-testid="home-toolbar"]'));
+      }),
+    )
+    .toBe(true);
+  expect(errors).toEqual([]);
+});

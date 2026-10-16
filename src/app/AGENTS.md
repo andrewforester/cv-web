@@ -53,8 +53,9 @@ Rules and limits:
 - One page, no router: every path renders `HomeRoute`; production redirects `/new` to `/`
   (`vercel.json`), Vite dev/preview fall back to `index.html` by themselves.
 - Entry point is `src/main.tsx` (global styles, providers, `App`).
-- Nothing inside `main` is `position: fixed` or `sticky`: the slid `main` is their containing
-  block. Overlays (the chat, its launcher and call pill, the show) are siblings of `main`.
+- Nothing inside `main` is `position: fixed`: the slid `main` is its containing block. Overlays
+  (the chat, its launcher and call pill, the show) are siblings of `main`. The one `sticky` inside
+  is the page toolbar: it slides with the page and stretches its background under the side dock.
 - The show starts from the footer Show case link (`ShowCaseLink`, CV-148; `useShowCaseAvailable`:
   a scenario and ≥ 1024 px) and with `?retro=1`.
 - The Show case button is hidden (`SHOW_CASE_BUTTON_ENABLED = false` in `App.tsx`, CV-144); the footer link
