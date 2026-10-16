@@ -18,7 +18,8 @@ What it guarantees today:
 - The one CV page (`/`, docs/design/v3) loads directly with no page or console errors and shows
   all ten job rows (eight jobs and two personal projects; the Show case button stays hidden, CV-144), on desktop and on the phone, where it
   also fits without horizontal scrolling (`home.png`, `home-mobile.png`); `/new` shows the same
-  page (locally the same app; production redirects it).
+  page (locally the same app; production redirects it). A tag line holds two badges a row, the
+  third wraps under them, the text beside (Dolphin Music, desktop and phone).
 - The page's top toolbar (`toolbar.spec.ts`, `toolbar.png`, `toolbar-mobile.png`): sticky at the
   top, the handle (moved out of the meta bar; hidden on the phone) and the nine section buttons in
   order; none is current on the header, a click lands the section just under the toolbar and
