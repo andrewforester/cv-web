@@ -70,7 +70,7 @@ jobs:
           else
             echo "No change to workflows, vercel.json or package*.json: no preview."
           fi
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: ${{ steps.paths.outputs.run == 'true' }}
         with:
           node-version-file: .nvmrc
@@ -104,7 +104,7 @@ jobs:
         with:
           name: vercel-project-preview
           path: .vercel
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -142,7 +142,7 @@ jobs:
         with:
           name: vercel-output-preview
           path: .vercel/output
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm

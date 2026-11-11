@@ -129,7 +129,7 @@ jobs:
             fi
           fi
           echo "deploy=$deploy" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: ${{ steps.live.outputs.deploy == 'true' }}
         with:
           node-version-file: .nvmrc
@@ -163,7 +163,7 @@ jobs:
         with:
           name: vercel-project-production
           path: .vercel
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -211,7 +211,7 @@ jobs:
         with:
           name: vercel-output-production
           path: .vercel/output
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
